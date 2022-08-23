@@ -3136,7 +3136,6 @@ class LazyLaurentSeries(LazyCauchyProductSeries):
         coeff_stream = self._coeff_stream
         if isinstance(coeff_stream, Stream_zero):
             return self
-        BR = P.base_ring()
         if (isinstance(coeff_stream, Stream_exact)
             and not coeff_stream._constant):
             if coeff_stream._approximate_order >= 0 and coeff_stream._degree <= order:
@@ -3566,6 +3565,85 @@ class LazyTaylorSeries(LazyCauchyProductSeries):
         return P.element_class(P, coeff_stream)
 
     compose = __call__
+
+    def derivative(self, *args):
+        """
+        Return the derivative of the Taylor series.
+
+        INPUT:
+
+        EXAMPLES::
+
+            sage: T.<z> = LazyTaylorSeriesRing(ZZ)
+            sage: z.derivative()
+            1
+            sage: (1+z+z^2).derivative(3)
+            0
+            sage: (1/(1-z)).derivative()
+            1 + 2*z + 3*z^2 + 4*z^3 + 5*z^4 + 6*z^5 + 7*z^6 + O(z^7)
+
+            sage: R.<q> = QQ[]
+            sage: L.<x, y> = LazyTaylorSeriesRing(R)
+            sage: f = 1/(1-q*x+y); f
+            1 + (q*x-y) + (q^2*x^2+(-2*q)*x*y+y^2) + (q^3*x^3+(-3*q^2)*x^2*y+3*q*x*y^2-y^3) + (q^4*x^4+(-4*q^3)*x^3*y+6*q^2*x^2*y^2+(-4*q)*x*y^3+y^4) + (q^5*x^5+(-5*q^4)*x^4*y+10*q^3*x^3*y^2+(-10*q^2)*x^2*y^3+5*q*x*y^4-y^5) + (q^6*x^6+(-6*q^5)*x^5*y+15*q^4*x^4*y^2+(-20*q^3)*x^3*y^3+15*q^2*x^2*y^4+(-6*q)*x*y^5+y^6) + O(x,y)^7
+            sage: f.derivative(q)
+            x + (2*q*x^2+(-2)*x*y) + (3*q^2*x^3+(-6*q)*x^2*y+3*x*y^2) + (4*q^3*x^4+(-12*q^2)*x^3*y+12*q*x^2*y^2+(-4)*x*y^3) + (5*q^4*x^5+(-20*q^3)*x^4*y+30*q^2*x^3*y^2+(-20*q)*x^2*y^3+5*x*y^4) + (6*q^5*x^6+(-30*q^4)*x^5*y+60*q^3*x^4*y^2+(-60*q^2)*x^3*y^3+30*q*x^2*y^4+(-6)*x*y^5) + O(x,y)^7
+
+        """
+        P = self.parent()
+        R = P._laurent_poly_ring
+        V = R.gens()
+        order = 0
+        vars = []
+        gen_vars = []
+        for x in derivative_parse(args):
+            if x is None:
+                order += 1
+            elif x in V:
+                gen_vars.append(x)
+            else:
+                vars.append(x)
+
+        if P._arity > 1 and order:
+            raise ValueError("for multivariate series you have to specify the variable with respect to which the derivative should be taken")
+        else:
+            order += len(gen_vars)
+
+        coeff_stream = self._coeff_stream
+        if isinstance(coeff_stream, Stream_zero):
+            return self
+
+        if P._arity > 1:
+            coeff_stream = Stream_shift(Stream_map_coefficients(coeff_stream,
+                                                                lambda c: c.derivative(gen_vars + vars),
+                                                                P._laurent_poly_ring),
+                                        -len(gen_vars))
+            return P.element_class(P, coeff_stream)
+
+        if (isinstance(coeff_stream, Stream_exact)
+            and not coeff_stream._constant):
+            if coeff_stream._degree <= order:
+                return P.zero()
+            if vars:
+                coeffs = [prod(i-k for k in range(order)) * c.derivative(vars)
+                          for i, c in enumerate(coeff_stream._initial_coefficients,
+                                                coeff_stream._approximate_order)]
+            else:
+                coeffs = [prod(i-k for k in range(order)) * c
+                          for i, c in enumerate(coeff_stream._initial_coefficients,
+                                                coeff_stream._approximate_order)]
+            coeff_stream = Stream_exact(coeffs,
+                                        self._coeff_stream._is_sparse,
+                                        order=coeff_stream._approximate_order - order,
+                                        constant=coeff_stream._constant)
+            return P.element_class(P, coeff_stream)
+
+        coeff_stream = Stream_derivative(self._coeff_stream, order)
+        if vars:
+            coeff_stream = Stream_map_coefficients(coeff_stream,
+                                                   lambda c: c.derivative(vars),
+                                                   R)
+        return P.element_class(P, coeff_stream)
 
     def _format_series(self, formatter, format_strings=False):
         """

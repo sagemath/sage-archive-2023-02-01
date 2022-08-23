@@ -3377,12 +3377,19 @@ class Permutation(CombinatorialElement):
 
         INPUT:
 
-        - ``composition`` -- a :class:`Composition` of :meth:`size`
+        - ``composition`` -- a composition of :meth:`size`
 
         EXAMPLES::
 
-            sage: Permutation([5, 6, 2, 1, 3, 7, 4]).multi_major_index(Composition([3, 2, 2]))
+            sage: p = Permutation([5, 6, 2, 1, 3, 7, 4])
+            sage: p.multi_major_index([3, 2, 2])
             [2, 0, 1]
+            sage: p.multi_major_index([7]) == [p.major_index()]
+            True
+            sage: p.multi_major_index([1]*7)
+            [0, 0, 0, 0, 0, 0, 0]
+            sage: Permutation([]).multi_major_index([])
+            []
 
         REFERENCES:
 

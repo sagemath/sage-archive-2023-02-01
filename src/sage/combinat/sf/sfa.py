@@ -3076,19 +3076,20 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
         # Handle degree one elements
         if include is not None and exclude is not None:
             raise RuntimeError("include and exclude cannot both be specified")
+        R = p.base_ring()
 
-        try:
-            degree_one = [R(g) for g in R.variable_names_recursive()]
-        except AttributeError:
-            try:
-                degree_one = R.gens()
-            except NotImplementedError:
-                degree_one = []
-
-        if include:
+        if include is not None:
             degree_one = [R(g) for g in include]
-        if exclude:
-            degree_one = [g for g in degree_one if g not in exclude]
+        else:
+            try:
+                degree_one = [R(g) for g in R.variable_names_recursive()]
+            except AttributeError:
+                try:
+                    degree_one = R.gens()
+                except NotImplementedError:
+                    degree_one = []
+            if exclude is not None:
+                degree_one = [g for g in degree_one if g not in exclude]
 
         degree_one = [g for g in degree_one if g != R.one()]
 

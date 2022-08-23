@@ -965,7 +965,10 @@ class LazyModuleElement(Element):
             Lazy Taylor Series Ring in z over Rational Field
         """
         P = self.parent()
-        Q = type(P)(ring, names=P.variable_names(), sparse=P._sparse)
+        if P._names is not None:
+            Q = type(P)(ring, names=P.variable_names(), sparse=P._sparse)
+        else:
+            Q = type(P)(ring, sparse=P._sparse)
         return Q.element_class(Q, self._coeff_stream)
 
     # === module structure ===
@@ -3076,6 +3079,8 @@ class LazyLaurentSeries(LazyCauchyProductSeries):
             raise ValueError("compositional inverse does not exist")
         raise ValueError("cannot determine whether the compositional inverse exists")
 
+    compositional_inverse = revert
+
     def approximate_series(self, prec, name=None):
         r"""
         Return the Laurent series with absolute precision ``prec`` approximated
@@ -3643,6 +3648,10 @@ class LazySymmetricFunction(LazyCauchyProductSeries):
 
         - ``args`` -- other (lazy) symmetric functions
 
+        .. TODO::
+
+            allow specification of degree one elements
+
         EXAMPLES::
 
             sage: P.<q> = QQ[]
@@ -3751,6 +3760,78 @@ class LazySymmetricFunction(LazyCauchyProductSeries):
         return P.element_class(P, coeff_stream)
 
     plethysm = __call__
+
+    def revert(self):
+        r"""
+        Return the compositional inverse of ``self`` if possible.
+
+        (Specifically, if ``self`` is of the form `0 + p_{1} + \cdots`.)
+
+        The compositional inverse is the inverse with respect to
+        plethystic substitution. This is the operation on cycle index
+        series which corresponds to substitution, a.k.a. partitional
+        composition, on the level of species. See Section 2.2 of
+        [BLL]_ for a definition of this operation.
+
+        EXAMPLES::
+
+            sage: h = SymmetricFunctions(QQ).h()
+            sage: p = SymmetricFunctions(QQ).p()
+            sage: L = LazySymmetricFunctions(p)
+            sage: Eplus = L(lambda n: h[n]) - 1
+            sage: Eplus(Eplus.revert())
+            p[1] + O^8
+
+        TESTS::
+
+            sage: Eplus = L(lambda n: h[n]) - 1 - h[1]
+            sage: Eplus.compositional_inverse()
+            Traceback (most recent call last):
+            ...
+            ValueError: compositional inverse does not exist
+
+        ALGORITHM:
+
+        Let `F` be a species satisfying `F = 0 + X + F_2 + F_3 + \cdots` for
+        `X` the species of singletons. (Equivalently, `\lvert F[\varnothing]
+        \rvert = 0` and `\lvert F[\{1\}] \rvert = 1`.) Then there exists a
+        (virtual) species `G` satisfying `F \circ G = G \circ F = X`.
+
+        It follows that `(F - X) \circ G = F \circ G - X \circ G = X - G`.
+        Rearranging, we obtain the recursive equation `G = X - (F - X) \circ G`,
+        which can be solved using iterative methods.
+
+        .. WARNING::
+
+            This algorithm is functional but can be very slow.
+            Use with caution!
+
+        .. SEEALSO::
+
+            The compositional inverse `\Omega` of the species `E_{+}`
+            of nonempty sets can be handled much more efficiently
+            using specialized methods. See
+            :func:`~sage.combinat.species.generating_series.LogarithmCycleIndexSeries`
+
+        AUTHORS:
+
+        - Andrew Gainer-Dewar
+        """
+        P = self.parent()
+        if P._arity != 1:
+            raise ValueError("arity must be equal to 1")
+        if self.valuation() == 1:
+            from sage.combinat.sf.sf import SymmetricFunctions
+            p = SymmetricFunctions(P.base()).p()
+            X = P(p[1])
+            f1 = self - X
+            g = P(None, valuation=1)
+            g.define(X - f1(g))
+            return g
+        raise ValueError("compositional inverse does not exist")
+
+    plethystic_inverse = revert
+    compositional_inverse = revert
 
     def _format_series(self, formatter, format_strings=False):
         r"""

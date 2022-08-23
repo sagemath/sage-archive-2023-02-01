@@ -80,7 +80,6 @@ AUTHORS:
 - Kwankyu Lee (2019-02-24): initial version
 - Tejasvi Chebrolu, Martin Rubey, Travis Scrimshaw (2021-08):
   refactored and expanded functionality
-
 """
 
 # ****************************************************************************
@@ -168,6 +167,15 @@ class Stream_inexact(Stream):
     - ``sparse`` -- boolean; whether the implementation of the stream is sparse
     - ``approximate_order`` -- integer; a lower bound for the order
       of the stream
+
+    .. TODO::
+
+        The ``approximate_order`` is currently only updated when
+        invoking :meth:`order`.  It might make sense to update it
+        whenever the coefficient one larger than the current
+        ``approximate_order`` is computed, since in some methods this
+        will allow shortcuts.
+
     """
     def __init__(self, is_sparse, approximate_order):
         """
@@ -1603,18 +1611,16 @@ class Stream_cauchy_compose(Stream_binary):
             sage: h = Stream_cauchy_compose(f, g)
         """
         #assert g._approximate_order > 0
-        self._fv = f._approximate_order
-        self._gv = g._approximate_order
-        if self._fv < 0:
+        if f._approximate_order < 0:
             ginv = Stream_cauchy_invert(g)
             # The constant part makes no contribution to the negative.
             # We need this for the case so self._neg_powers[0][n] => 0.
             self._neg_powers = [Stream_zero(f._is_sparse), ginv]
-            for i in range(1, -self._fv):
+            for i in range(1, -f._approximate_order):
                 self._neg_powers.append(Stream_cauchy_mul(self._neg_powers[-1], ginv))
         # Placeholder None to make this 1-based.
         self._pos_powers = [None, g]
-        val = self._fv * self._gv
+        val = f._approximate_order * g._approximate_order
         super().__init__(f, g, f._is_sparse, val)
 
     def get_coefficient(self, n):
@@ -1636,15 +1642,18 @@ class Stream_cauchy_compose(Stream_binary):
             sage: [h.get_coefficient(i) for i in range(10)]
             [0, 1, 6, 28, 124, 527, 2172, 8755, 34704, 135772]
         """
+        fv = self._left._approximate_order
+        gv = self._right._approximate_order
         if n < 0:
-            return sum(self._left[i] * self._neg_powers[-i][n] for i in range(self._fv, n // self._gv + 1))
+            return sum(self._left[i] * self._neg_powers[-i][n]
+                       for i in range(fv, n // gv + 1))
         # n > 0
-        while len(self._pos_powers) <= n // self._gv:
+        while len(self._pos_powers) <= n // gv:
             self._pos_powers.append(Stream_cauchy_mul(self._pos_powers[-1], self._right))
-        ret = sum(self._left[i] * self._neg_powers[-i][n] for i in range(self._fv, 0))
+        ret = sum(self._left[i] * self._neg_powers[-i][n] for i in range(fv, 0))
         if n == 0:
             ret += self._left[0]
-        return ret + sum(self._left[i] * self._pos_powers[i][n] for i in range(1, n // self._gv+1))
+        return ret + sum(self._left[i] * self._pos_powers[i][n] for i in range(1, n // gv+1))
 
 
 class Stream_plethysm(Stream_binary):
@@ -1659,30 +1668,73 @@ class Stream_plethysm(Stream_binary):
     - ``f`` -- a :class:`Stream`
     - ``g`` -- a :class:`Stream` with positive order
     - ``p`` -- the powersum symmetric functions
+    - ``ring`` (optional, default ``None``) -- the ring the result
+      should be in, by default ``p``
+    - ``include`` -- a list of variables to be treated as degree one
+      elements instead of the default degree one elements
+    - ``exclude`` -- a list of variables to be excluded from the
+      default degree one elements
 
     EXAMPLES::
 
-        sage: from sage.data_structures.stream import Stream_function,  Stream_plethysm
+        sage: from sage.data_structures.stream import Stream_function, Stream_plethysm
         sage: s = SymmetricFunctions(QQ).s()
         sage: p = SymmetricFunctions(QQ).p()
         sage: f = Stream_function(lambda n: s[n], s, True, 1)
         sage: g = Stream_function(lambda n: s[[1]*n], s, True, 1)
-        sage: h = Stream_plethysm(f, g, p)
-        sage: [s(h[i]) for i in range(5)]
+        sage: h = Stream_plethysm(f, g, p, s)
+        sage: [h[i] for i in range(5)]
         [0,
          s[1],
          s[1, 1] + s[2],
          2*s[1, 1, 1] + s[2, 1] + s[3],
          3*s[1, 1, 1, 1] + 2*s[2, 1, 1] + s[2, 2] + s[3, 1] + s[4]]
-        sage: u = Stream_plethysm(g, f, p)
-        sage: [s(u[i]) for i in range(5)]
+        sage: u = Stream_plethysm(g, f, p, s)
+        sage: [u[i] for i in range(5)]
         [0,
          s[1],
          s[1, 1] + s[2],
          s[1, 1, 1] + s[2, 1] + 2*s[3],
          s[1, 1, 1, 1] + s[2, 1, 1] + 3*s[3, 1] + 2*s[4]]
+
+    TESTS:
+
+    Check corner cases::
+
+        sage: from sage.data_structures.stream import Stream_exact
+        sage: p = SymmetricFunctions(QQ).p()
+        sage: f0 = Stream_exact([p([])], True)
+        sage: f1 = Stream_exact([p[1]], True, order=1)
+        sage: f2 = Stream_exact([p[2]], True, order=2 )
+        sage: f11 = Stream_exact([p[1,1]], True, order=2 )
+        sage: r = Stream_plethysm(f0, f1, p); [r[n] for n in range(3)]
+        [p[], 0, 0]
+        sage: r = Stream_plethysm(f0, f2, p); [r[n] for n in range(3)]
+        [p[], 0, 0]
+        sage: r = Stream_plethysm(f0, f11, p); [r[n] for n in range(3)]
+        [p[], 0, 0]
+
+    Check that degree one elements are treated in the correct way::
+
+        sage: R.<a1,a2,a11,b1,b21,b111> = QQ[]; p = SymmetricFunctions(R).p()
+        sage: f_s = a1*p[1] + a2*p[2] + a11*p[1,1]
+        sage: g_s = b1*p[1] + b21*p[2,1] + b111*p[1,1,1]
+        sage: r_s = f_s(g_s)
+        sage: f = Stream_exact([f_s.restrict_degree(k) for k in range(f_s.degree()+1)], True)
+        sage: g = Stream_exact([g_s.restrict_degree(k) for k in range(g_s.degree()+1)], True)
+        sage: r = Stream_plethysm(f, g, p)
+        sage: r_s == sum(r[n] for n in range(2*(r_s.degree()+1)))
+        True
+
+        sage: r_s - f_s(g_s, include=[])
+        (a2*b1^2-a2*b1)*p[2] + (a2*b111^2-a2*b111)*p[2, 2, 2] + (a2*b21^2-a2*b21)*p[4, 2]
+
+        sage: r2 = Stream_plethysm(f, g, p, include=[])
+        sage: r_s - sum(r2[n] for n in range(2*(r_s.degree()+1)))
+        (a2*b1^2-a2*b1)*p[2] + (a2*b111^2-a2*b111)*p[2, 2, 2] + (a2*b21^2-a2*b21)*p[4, 2]
+
     """
-    def __init__(self, f, g, p):
+    def __init__(self, f, g, p, ring=None, include=None, exclude=None):
         r"""
         Initialize ``self``.
 
@@ -1695,12 +1747,38 @@ class Stream_plethysm(Stream_binary):
             sage: g = Stream_function(lambda n: s[n-1,1], s, True, 2)
             sage: h = Stream_plethysm(f, g, p)
         """
-        #assert g._approximate_order > 0
-        self._fv = f._approximate_order
-        self._gv = g._approximate_order
+        # handle degree one elements
+        if include is not None and exclude is not None:
+            raise RuntimeError("include and exclude cannot both be specified")
+        R = p.base_ring()
+
+        if include is not None:
+            degree_one = [R(g) for g in include]
+        else:
+            try:
+                degree_one = [R(g) for g in R.variable_names_recursive()]
+            except AttributeError:
+                try:
+                    degree_one = R.gens()
+                except NotImplementedError:
+                    degree_one = []
+            if exclude is not None:
+                degree_one = [g for g in degree_one if g not in exclude]
+
+        self._degree_one = [g for g in degree_one if g != R.one()]
+
+        # assert g._approximate_order > 0
+        val = f._approximate_order * g._approximate_order
+        p_f = Stream_map_coefficients(f, lambda x: x, p)
+        p_g = Stream_map_coefficients(g, lambda x: x, p)
+        self._powers = [p_g] # a cache for the powers of p_g
+        if ring is None:
+            self._basis = p
+        else:
+            self._basis = ring
         self._p = p
-        val = self._fv * self._gv
-        super().__init__(f, g, f._is_sparse, val)
+
+        super().__init__(p_f, p_g, f._is_sparse, val)
 
     def get_coefficient(self, n):
         r"""
@@ -1731,18 +1809,12 @@ class Stream_plethysm(Stream_binary):
         if not n: # special case of 0
             return self._left[0]
 
-        # We assume n > 0
-        p = self._p
-        ret = p.zero()
-        for k in range(n+1):
-            temp = p(self._left[k])
-            for la, c in temp:
-                inner = self._compute_product(n, la, c)
-                if inner is not None:
-                    ret += inner
-        return ret
+        return sum((c * self._compute_product(n, la)
+                    for k in range(self._left._approximate_order, n+1)
+                    for la, c in self._left[k]),
+                   self._basis.zero())
 
-    def _compute_product(self, n, la, c):
+    def _compute_product(self, n, la):
         """
         Compute the product ``c * p[la](self._right)`` in degree ``n``.
 
@@ -1754,24 +1826,52 @@ class Stream_plethysm(Stream_binary):
             sage: f = Stream_function(lambda n: s[n], s, True, 1)
             sage: g = Stream_exact([s[2], s[3]], False, 0, 4, 2)
             sage: h = Stream_plethysm(f, g, p)
-            sage: ret = h._compute_product(7, [2, 1], 1); ret
+            sage: ret = h._compute_product(7, Partition([2, 1])); ret
             1/12*p[2, 2, 1, 1, 1] + 1/4*p[2, 2, 2, 1] + 1/6*p[3, 2, 2]
              + 1/12*p[4, 1, 1, 1] + 1/4*p[4, 2, 1] + 1/6*p[4, 3]
             sage: ret == p[2,1](s[2] + s[3]).homogeneous_component(7)
             True
         """
-        p = self._p
-        ret = p.zero()
-        for mu in wt_int_vec_iter(n, la):
-            temp = c
-            for i, j in zip(la, mu):
-                gs = self._right[j]
-                if not gs:
-                    temp = p.zero()
-                    break
-                temp *= p[i](gs)
+        ret = self._basis.zero()
+        la_exp = la.to_exp()
+        wgt = [i for i, m in enumerate(la_exp, 1) if m]
+        exp = [m for m in la_exp if m]
+        for k in wt_int_vec_iter(n, wgt):
+            # TODO: it may make a big difference here if the
+            # approximate order would be updated
+            if any(d < self._right._approximate_order * m
+                   for m, d in zip(exp, k)):
+                continue
+            temp = self._basis.one()
+            for i, m, d in zip(wgt, exp, k):
+                temp *= self._stretched_power_restrict_degree(i, m, d)
             ret += temp
         return ret
+
+    def _scale_part(self, mu, i):
+        return mu.__class__(mu.parent(), [j * i for j in mu])
+
+    def _raise_c(self, c, i):
+        return c.subs(**{str(g): g ** i
+                         for g in self._degree_one})
+
+    def _stretched_power_restrict_degree(self, i, m, d):
+        """
+        Return the degree ``d*i`` part of ``p([i]*m)(g)``.
+        """
+        while len(self._powers) < m:
+            self._powers.append(Stream_cauchy_mul(self._powers[-1], self._powers[0]))
+        power = self._powers[m-1]
+
+        # we have to check power[d] for zero because it might be an
+        # integer and not a symmetric function
+        if power[d]:
+            terms = [(self._scale_part(m, i), self._raise_c(c, i)) for m, c in power[d]]
+        else:
+            terms = []
+
+        return self._p.sum_of_terms(terms, distinct = True)
+
 
 #####################################################################
 # Unary operations
@@ -2324,4 +2424,3 @@ class Stream_shift(Stream_inexact):
             True
         """
         return self._series.is_nonzero()
-

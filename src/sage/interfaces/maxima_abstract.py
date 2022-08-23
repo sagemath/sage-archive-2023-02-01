@@ -59,14 +59,13 @@ COMMANDS_CACHE = '%s/maxima_commandlist_cache.sobj' % DOT_SAGE
 
 from sage.cpython.string import bytes_to_str
 
-from sage.misc.misc import ECL_TMP
 from sage.misc.multireplace import multiple_replace
 from sage.structure.richcmp import richcmp, rich_to_bool
 
 from .interface import (Interface, InterfaceElement, InterfaceFunctionElement,
                         InterfaceFunction, AsciiArtString)
 from sage.interfaces.tab_completion import ExtraTabCompletion
-from sage.docs.instancedoc import instancedoc
+from sage.misc.instancedoc import instancedoc
 
 # The Maxima "apropos" command, e.g., apropos(det) gives a list
 # of all identifiers that begin in a certain way.  This could
@@ -166,7 +165,6 @@ class MaximaAbstract(ExtraTabCompletion, Interface):
         """
         cmd = '{} --very-quiet --batch-string="{}({});" '.format(MAXIMA, command, s)
         env = os.environ.copy()
-        env['TMPDIR'] = str(ECL_TMP)
 
         if redirect:
             res = bytes_to_str(subprocess.check_output(cmd, shell=True,
@@ -1150,7 +1148,7 @@ class MaximaAbstractElement(ExtraTabCompletion, InterfaceElement):
         # but be careful, since for relations things like is(equal(a,b)) are
         # what Maxima needs
 
-    __nonzero__ = __bool__
+    
 
     def _richcmp_(self, other, op):
         """

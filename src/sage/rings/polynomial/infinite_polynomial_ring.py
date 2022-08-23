@@ -1337,7 +1337,7 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
             sage: R.krull_dimension()
             +Infinity
         """
-        from sage.rings.all import Infinity
+        from sage.rings.infinity import Infinity
         return Infinity
 
     def order(self):
@@ -1351,7 +1351,7 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
             sage: R.order()
             +Infinity
         """
-        from sage.rings.all import Infinity
+        from sage.rings.infinity import Infinity
         return Infinity
 
 
@@ -1635,5 +1635,3 @@ class InfinitePolynomialRing_dense(InfinitePolynomialRing_sparse):
 
         """
         return self._P
-
-

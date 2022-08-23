@@ -1,1 +1,1 @@
-9.6.beta6
+src/VERSION.txt

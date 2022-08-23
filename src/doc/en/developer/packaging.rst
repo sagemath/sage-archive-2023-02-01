@@ -586,8 +586,9 @@ and upper bounds).  The constraints are in the format of the
 or `setup.py
 <https://packaging.python.org/discussions/install-requires-vs-requirements/#id5>`_.
 
-The files may include comments (starting with ``#``) that explain why a particular lower
-bound is warranted or why we wish to include or reject certain versions.
+It is strongly recommended to include comments (starting with ``#``)
+in the file that explain why a particular lower or upper bound is
+warranted or why we wish to include or reject certain versions.
 
 For example:
 
@@ -612,6 +613,8 @@ Developers and downstream packagers are invited to refine the version
 constraints based on their experience and tests.  When a package
 update is made in order to pick up a critical bug fix from a newer
 version, then the lower bound should be adjusted.
+Setting upper bounds to guard against incompatible future changes is
+a complex topic; see :trac:`33520`.
 
 
 .. _section-spkg-SPKG-txt:
@@ -675,7 +678,6 @@ for ``eclib``:
 
     ----------
     All lines of this file are ignored except the first.
-    It is copied by SAGE_ROOT/build/make/install into SAGE_ROOT/build/make/Makefile.
 
 For Python packages, common dependencies include ``pip``,
 ``setuptools``, and ``future``. If your package depends on any of
@@ -696,7 +698,6 @@ If there are no dependencies, you can use
 
     ----------
     All lines of this file are ignored except the first.
-    It is copied by SAGE_ROOT/build/make/install into SAGE_ROOT/build/make/Makefile.
 
 There are actually two kinds of dependencies: there are normal
 dependencies and order-only dependencies, which are weaker. The syntax
@@ -715,11 +716,21 @@ If there is no ``|``, then all dependencies are normal.
   dependency (for example, a dependency on pip simply because the
   ``spkg-install`` file uses pip).
 
+  Alternatively, you can put the order-only dependencies in a separate
+  file ``dependencies_order_only``.
+
 - If A has a **normal dependency** on B, it means additionally that A
   should be rebuilt every time that B gets updated. This is the most
   common kind of dependency. A normal dependency is what you need for
   libraries: if we upgrade NTL, we should rebuild everything which
   uses NTL.
+
+Some packages are only needed for self-tests of a package (``spkg-check``).
+These dependencies should be declared in a separate file ``dependencies_check``.
+
+Some dependencies are optional in the sense that they are only
+a dependency if they are configured to be installed. These dependencies
+should be declared in a separate file ``dependencies_optional``.
 
 In order to check that the dependencies of your package are likely
 correct, the following command should work without errors::

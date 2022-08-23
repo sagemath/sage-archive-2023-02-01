@@ -153,7 +153,7 @@ class QuotientRingElement(RingElement):
         """
         return self.__rep not in self.parent().defining_ideal()
 
-    __nonzero__ = __bool__
+    
 
     def is_unit(self):
         """
@@ -223,6 +223,31 @@ class QuotientRingElement(RingElement):
             return str(self.__rep)
         with localvars(R, P.variable_names(), normalize=False):
             return str(self.__rep)
+
+    def _latex_(self):
+        """
+        Return the LaTeX representation as a string.
+
+        EXAMPLES::
+
+            sage: R = PolynomialRing(QQ, 'a, b, c')
+            sage: a = R.gen(0)
+            sage: I = R.ideal(a**2 + a + 1)
+            sage: S = R.quotient(I, names=R.variable_names())
+            sage: a = S.gen(0)
+            sage: latex(a)
+            a
+        """
+        from sage.structure.parent_gens import localvars
+        P = self.parent()
+        R = P.cover_ring()
+        # see _repr_ above for the idea
+        try:
+            P.variable_names()
+        except ValueError:
+            return self.__rep._latex_()
+        with localvars(R, P.variable_names(), normalize=False):
+            return self.__rep._latex_()
 
     def __pari__(self):
         """
@@ -927,4 +952,3 @@ class QuotientRingElement(RingElement):
         # reduction w.r.t. the defining ideal is performed in the
         # constructor
         return self.__class__(self.parent(), self.__rep.reduce(G))
-

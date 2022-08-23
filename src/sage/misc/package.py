@@ -51,7 +51,7 @@ import sys
 from pathlib import Path
 from urllib.request import urlopen
 from urllib.error import URLError
-from ssl import SSLContext
+from ssl import create_default_context as default_context
 
 DEFAULT_PYPI = 'https://pypi.org/pypi'
 
@@ -110,7 +110,7 @@ def pip_remote_version(pkg, pypi_url=DEFAULT_PYPI, ignore_URLError=False):
     url = '{pypi_url}/{pkg}/json'.format(pypi_url=pypi_url, pkg=pkg)
 
     try:
-        f = urlopen(url, context=SSLContext())
+        f = urlopen(url, context=default_context())
         text = f.read()
         f.close()
     except URLError:
@@ -142,19 +142,18 @@ def pip_installed_packages(normalization=None):
     EXAMPLES::
 
         sage: from sage.misc.package import pip_installed_packages
-        sage: d = pip_installed_packages()  # optional - sage_spkg
-        sage: 'scipy' in d  # optional - sage_spkg
+        sage: d = pip_installed_packages()                      # optional - sage_spkg
+        sage: 'scipy' in d or 'SciPy' in d                      # optional - sage_spkg
         True
-        sage: d['scipy']  # optional - sage_spkg
+        sage: d['beautifulsoup4']                               # optional - sage_spkg beautifulsoup4
         '...'
-        sage: d['beautifulsoup4']   # optional - sage_spkg beautifulsoup4
-        '...'
-        sage: d['prompt-toolkit']   # optional - sage_spkg
+        sage: d['prompt-toolkit']                               # optional - sage_spkg
         '...'
         sage: d = pip_installed_packages(normalization='spkg')  # optional - sage_spkg
-        sage: d['prompt_toolkit']   # optional - sage_spkg
+        sage: d['prompt_toolkit']                               # optional - sage_spkg
         '...'
-
+        sage: d['scipy']                                        # optional - sage_spkg
+        '...'
     """
     with open(os.devnull, 'w') as devnull:
         proc = subprocess.Popen(
@@ -276,10 +275,10 @@ def list_packages(*pkg_types: str, pkg_sources: List[str] = ['normal', 'pip', 's
         'script'
 
         sage: L = list_packages(pkg_sources=['pip'], local=True)  # optional - sage_spkg internet
-        sage: bs4_info = L['beautifulsoup4'] # optional - sage_spkg internet
-        sage: bs4_info.type                    # optional - sage_spkg internet
+        sage: bp_info = L['biopython']         # optional - sage_spkg internet
+        sage: bp_info.type                     # optional - sage_spkg internet
         'optional'
-        sage: bs4_info.source                  # optional - sage_spkg internet
+        sage: bp_info.source                   # optional - sage_spkg internet
         'pip'
 
     Check the option ``exclude_pip``::
@@ -561,10 +560,9 @@ def optional_packages():
         sage: from sage.misc.package import optional_packages
         sage: installed, not_installed = optional_packages()  # optional - sage_spkg
         doctest:...: DeprecationWarning: ...
-        sage: 'beautifulsoup4' in installed+not_installed  # optional - sage_spkg
+        sage: 'biopython' in installed + not_installed        # optional - sage_spkg
         True
-
-        sage: 'beautifulsoup4' in installed   # optional - sage_spkg beautifulsoup4
+        sage: 'biopython' in installed                        # optional - sage_spkg biopython
         True
     """
     from sage.misc.superseded import deprecation

@@ -193,7 +193,7 @@ class Rings(CategoryWithAxiom):
             .. NOTE::
 
                 We can not override ``is_zero()`` from the category framework
-                and we can not implement ``__nonzero__`` because it is a
+                and we can not implement ``__bool__`` because it is a
                 special method. That this is why this has a cumbersome name.
 
             EXAMPLES::
@@ -202,7 +202,6 @@ class Rings(CategoryWithAxiom):
                 True
                 sage: ZZ.hom(Zmod(1))._is_nonzero()
                 False
-
             """
             return bool(self.codomain().one())
 
@@ -387,12 +386,13 @@ class Rings(CategoryWithAxiom):
             INPUT:
 
             - ``Y`` -- a ring
-            - ``category`` -- a subcategory of :class:`Rings`() or None
+            - ``category`` -- a subcategory of :class:`Rings()
+              <Rings>` or ``None``
 
             The sole purpose of this method is to construct the homset
             as a :class:`~sage.rings.homset.RingHomset`. If
             ``category`` is specified and is not a subcategory of
-            :class:`Rings`, a ``TypeError`` is raised instead
+            :class:`Rings() <Rings>`, a ``TypeError`` is raised instead
 
             This method is not meant to be called directly. Please use
             :func:`sage.categories.homset.Hom` instead.
@@ -413,7 +413,6 @@ class Rings(CategoryWithAxiom):
                 <class 'sage.rings.number_field.homset.CyclotomicFieldHomset_with_category'>
 
                 sage: TestSuite(Hom(QQ, QQ, category = Rings())).run() # indirect doctest
-
             """
             if category is not None and not category.is_subcategory(Rings()):
                 raise TypeError("%s is not a subcategory of Rings()"%category)

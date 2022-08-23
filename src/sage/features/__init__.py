@@ -302,7 +302,7 @@ class FeatureNotPresentError(RuntimeError):
         return "\n".join(lines)
 
 
-class FeatureTestResult(object):
+class FeatureTestResult():
     r"""
     The result of a :meth:`Feature.is_present` call.
 
@@ -371,7 +371,7 @@ class FeatureTestResult(object):
         """
         return bool(self.is_present)
 
-    __nonzero__ = __bool__
+    
 
     def __repr__(self):
         r"""
@@ -570,6 +570,10 @@ class Executable(FileFeature):
     def is_functional(self):
         r"""
         Return whether an executable in the path is functional.
+
+        This method is used internally and can be overridden in subclasses
+        in order to implement a feature test. It should not be called directly.
+        Use :meth:`Feature.is_present` instead.
 
         EXAMPLES:
 

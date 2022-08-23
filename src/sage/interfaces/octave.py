@@ -145,7 +145,7 @@ import os
 from .expect import Expect, ExpectElement
 import pexpect
 from sage.misc.verbose import verbose
-from sage.docs.instancedoc import instancedoc
+from sage.misc.instancedoc import instancedoc
 from sage.cpython.string import bytes_to_str
 
 
@@ -659,7 +659,7 @@ class OctaveElement(ExpectElement):
         """
         return str(self) != ' [](0x0)' and any(x != '0' for x in str(self).split())
 
-    __nonzero__ = __bool__
+    
 
     def _matrix_(self, R=None):
         r"""

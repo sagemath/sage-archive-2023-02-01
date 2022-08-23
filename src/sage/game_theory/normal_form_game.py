@@ -1137,7 +1137,7 @@ class NormalFormGame(SageObject, MutableMapping):
             { "" 3, 5, 8 }
             { "" 2, 6, 4 }
             }
-            1 2 3 4 5 6 7 8 
+            1 2 3 4 5 6 7 8
             <BLANKLINE>
         """
         from decimal import Decimal
@@ -1754,14 +1754,10 @@ class NormalFormGame(SageObject, MutableMapping):
         with open(game_name, 'w') as game_file:
             game_file.write(game_str)
 
-        try:
-            process = Popen(['lrsnash', game_name],
-                    stdout=PIPE,
-                    stderr=PIPE)
-        except OSError as e:
-            from sage.features.lrs import Lrs
-            from sage.features import FeatureNotPresentError
-            raise FeatureNotPresentError(Lrs(), reason=f'Calling lrsnash failed with {e}')
+        from sage.features.lrs import LrsNash
+        LrsNash().require()
+        process = Popen([LrsNash().absolute_filename(), game_name],
+                        stdout=PIPE, stderr=PIPE)
 
         lrs_output = [bytes_to_str(row) for row in process.stdout]
         process.terminate()
@@ -2319,7 +2315,7 @@ class NormalFormGame(SageObject, MutableMapping):
         return s, t
 
     def _lrs_nash_format(self, m1, m2):
-        """
+        r"""
         Create the input format for ``lrsnash``, version 6.1 or newer.
 
         EXAMPLES:

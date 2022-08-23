@@ -233,7 +233,7 @@ class WQSymBasis_abstract(CombinatorialFreeModule, BindableClass):
             # Otherwise lift that basis up and then coerce over
             target = getattr(self.realization_of(), R._basis_name)()
             return self._coerce_map_via([target], R)
-        return super(WQSymBasis_abstract, self)._coerce_map_from_(R)
+        return super()._coerce_map_from_(R)
 
     @cached_method
     def an_element(self):
@@ -646,7 +646,7 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
                 sage: M.coproduct( M([[1], [2]]) )
                 M[] # M[{1}, {2}] + M[{1}] # M[{1}] + M[{1}, {2}] # M[]
             """
-            if not len(x):
+            if not x:
                 return self.one().tensor(self.one())
             K = self.indices()
 
@@ -1212,7 +1212,7 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
             # The coproduct on the Q basis satisfies the same formula
             # as on the M basis. This is easily derived from the
             # formula on the M basis.
-            if not len(x):
+            if not x:
                 return self.one().tensor(self.one())
             K = self.indices()
 
@@ -1723,7 +1723,7 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
                 sage: AA(M(x).coproduct()) == x.coproduct()
                 True
             """
-            if not len(x):
+            if not x:
                 return self.one().tensor(self.one())
             K = self.indices()
 

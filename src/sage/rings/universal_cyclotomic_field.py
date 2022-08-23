@@ -332,7 +332,7 @@ class UniversalCyclotomicFieldElement(FieldElement):
         """
         return bool(self._obj)
 
-    __nonzero__ = __bool__
+    
 
     def __reduce__(self):
         r"""
@@ -1305,7 +1305,7 @@ class UniversalCyclotomicField(UniqueRepresentation, Field):
             sage: E(3,2)
             E(3)^2
         """
-        return super(UniversalCyclotomicField, cls).__classcall__(cls, None)
+        return super().__classcall__(cls, None)
 
     def __init__(self, names=None):
         r"""

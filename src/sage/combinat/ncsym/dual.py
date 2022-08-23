@@ -71,7 +71,7 @@ class SymmetricFunctionsNonCommutingVariablesDual(UniqueRepresentation, Parent):
             sage: SymmetricFunctionsNonCommutingVariables(ZZ).dual()
             Dual symmetric functions in non-commuting variables over the Integer Ring
         """
-        return "Dual symmetric functions in non-commuting variables over the %s"%self.base_ring()
+        return "Dual symmetric functions in non-commuting variables over the %s" % self.base_ring()
 
     def a_realization(self):
         r"""
@@ -229,6 +229,7 @@ class SymmetricFunctionsNonCommutingVariablesDual(UniqueRepresentation, Parent):
             P = SetPartitions()
             n = A.size()
             k = B.size()
+
             def unions(s):
                 a = sorted(s)
                 b = sorted(Set(range(1, n+k+1)).difference(s))

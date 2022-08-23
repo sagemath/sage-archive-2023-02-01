@@ -36,7 +36,7 @@ class CoxeterGroups(Category_singleton):
 
     `I` is the *index set* of `W` and `|I|` is the *rank* of `W`.
 
-    See :Wikipedia:`Coxeter_group` for details.
+    See :wikipedia:`Coxeter_group` for details.
 
     EXAMPLES::
 
@@ -1281,6 +1281,38 @@ class CoxeterGroups(Category_singleton):
                 tester.assertNotIn(i, si.descents(positive=True, side='left'))
                 tester.assertNotIn(i, si.descents(positive=True, side='right'))
 
+        def _test_coxeter_relations(self, **options):
+            r"""
+            Test whether the Coxeter relations hold for ``self``.
+
+            This checks nothing in the case of infinite order.
+
+            TESTS::
+
+                sage: A = AffinePermutationGroup(['A',7,1])
+                sage: A._test_coxeter_relations()
+
+                sage: cm = CartanMatrix([[2,-5,0],[-2,2,-1],[0,-1,2]])
+                sage: W = WeylGroup(cm)
+                sage: W._test_coxeter_relations()
+            """
+            tester = self._tester(**options)
+            s = self.simple_reflections()
+            one = self.one()
+            for si in s:
+                tester.assertEqual(si**2, one)
+            cox_mat = self.coxeter_matrix()
+            I = cox_mat.index_set()
+            for ii, i in enumerate(I):
+                for j in I[ii + 1:]:
+                    mij = cox_mat[i, j]
+                    if mij == -1:  # -1 stands for infinity
+                        continue
+                    l = s[i] * s[j]
+                    tester.assertEqual(l**mij, one, "Coxeter relation fails")
+                    for p in range(1, mij):
+                        tester.assertNotEqual(l**p, one, "unexpected relation")
+
     class ElementMethods:
         def has_descent(self, i, side='right', positive=False):
             """
@@ -1892,8 +1924,8 @@ class CoxeterGroups(Category_singleton):
         def coset_representative(self, index_set, side='right'):
             r"""
             Return the unique shortest element of the Coxeter group
-            $W$ which is in the same left (resp. right) coset as
-            ``self``, with respect to the parabolic subgroup $W_I$.
+            `W` which is in the same left (resp. right) coset as
+            ``self``, with respect to the parabolic subgroup `W_I`.
 
             INPUT:
 
@@ -2573,7 +2605,7 @@ class CoxeterGroups(Category_singleton):
 
         def min_demazure_product_greater(self, element):
             r"""
-            Find the unique Bruhat-minimum element ``u`` such that ``v`` $\le$ ``w`` * ``u`` where ``v`` is ``self``, ``w`` is ``element`` and ``*`` is the Demazure product.
+            Find the unique Bruhat-minimum element ``u`` such that ``v`` `\le` ``w`` * ``u`` where ``v`` is ``self``, ``w`` is ``element`` and ``*`` is the Demazure product.
 
             INPUT:
 
@@ -2619,13 +2651,13 @@ class CoxeterGroups(Category_singleton):
             - ``index_set`` is a subset of Dynkin nodes defining a parabolic subgroup ``W'`` of ``W``
 
             It is assumed that ``v = self`` and ``w`` are minimum length coset representatives
-            for ``W/W'`` such that ``v`` $\le$ ``w`` in Bruhat order.
+            for ``W/W'`` such that ``v`` `\le` ``w`` in Bruhat order.
 
             OUTPUT:
 
             Deodhar's element ``f(v,w)`` is the unique element of ``W'`` such that,
-            for all ``v'`` and ``w'`` in ``W'``, ``vv'`` $\le$ ``ww'`` in ``W`` if and only if
-            ``v'`` $\le$ ``f(v,w) * w'`` in ``W'`` where ``*`` is the Demazure product.
+            for all ``v'`` and ``w'`` in ``W'``, ``vv'`` `\le` ``ww'`` in ``W`` if and only if
+            ``v'`` `\le` ``f(v,w) * w'`` in ``W'`` where ``*`` is the Demazure product.
 
             EXAMPLES::
 
@@ -2666,9 +2698,9 @@ class CoxeterGroups(Category_singleton):
 
         def deodhar_lift_up(self, w, index_set):
             r"""
-            Letting ``v = self``, given a Bruhat relation ``v W'`` $\le$ ``w W'`` among cosets
+            Letting ``v = self``, given a Bruhat relation ``v W'`` `\le` ``w W'`` among cosets
             with respect to the subgroup ``W'`` given by the Dynkin node subset ``index_set``,
-            returns the Bruhat-minimum lift ``x`` of ``wW'`` such that ``v`` $\le$ ``x``.
+            returns the Bruhat-minimum lift ``x`` of ``wW'`` such that ``v`` `\le` ``x``.
 
             INPUT:
 
@@ -2678,7 +2710,7 @@ class CoxeterGroups(Category_singleton):
             OUTPUT:
 
             The unique Bruhat-minimum element ``x`` in ``W`` such that ``x W' = w W'``
-            and ``v`` $\le$ ``x``.
+            and ``v`` `\le` ``x``.
 
             .. SEEALSO:: :meth:`sage.categories.coxeter_groups.CoxeterGroups.ElementMethods.deodhar_lift_down`
 
@@ -2700,9 +2732,9 @@ class CoxeterGroups(Category_singleton):
 
         def deodhar_lift_down(self, w, index_set):
             r"""
-            Letting ``v = self``, given a Bruhat relation ``v W'`` $\ge$ ``w W'`` among cosets
+            Letting ``v = self``, given a Bruhat relation ``v W'`` `\ge` ``w W'`` among cosets
             with respect to the subgroup ``W'`` given by the Dynkin node subset ``index_set``,
-            returns the Bruhat-maximum lift ``x`` of ``wW'`` such that ``v`` $\ge$ ``x``.
+            returns the Bruhat-maximum lift ``x`` of ``wW'`` such that ``v`` `\ge` ``x``.
 
             INPUT:
 
@@ -2712,7 +2744,7 @@ class CoxeterGroups(Category_singleton):
             OUTPUT:
 
             The unique Bruhat-maximum element ``x`` in ``W`` such that ``x W' = w W'``
-            and ``v $\ge$ ``x``.
+            and ``v`` `\ge` ``x``.
 
             .. SEEALSO:: :meth:`sage.categories.coxeter_groups.CoxeterGroups.ElementMethods.deodhar_lift_up`
 

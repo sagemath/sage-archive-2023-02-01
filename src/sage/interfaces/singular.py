@@ -354,7 +354,7 @@ import sage.features.singular
 import sage.rings.integer
 
 from sage.misc.verbose import get_verbose
-from sage.docs.instancedoc import instancedoc
+from sage.misc.instancedoc import instancedoc
 
 
 class SingularError(RuntimeError):
@@ -1496,7 +1496,7 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
         P = self.parent()
         return P.eval('%s == 0' % self.name()) == '0'
 
-    __nonzero__ = __bool__
+    
 
     def sage_polystring(self):
         r"""

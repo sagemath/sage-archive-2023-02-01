@@ -45,13 +45,14 @@ REFERENCES:
 # *****************************************************************************
 
 from __future__ import annotations
-from typing import Union, TYPE_CHECKING
+from typing import Optional, Union, TYPE_CHECKING
 from sage.misc.cachefunc import cached_method
 from sage.tensor.modules.free_module_alt_form import FreeModuleAltForm
 from sage.manifolds.differentiable.tensorfield import TensorField
 from sage.manifolds.differentiable.tensorfield_paral import TensorFieldParal
 
 if TYPE_CHECKING:
+    from sage.manifolds.differentiable.vectorfield_module import VectorFieldModule
     from sage.manifolds.differentiable.metric import PseudoRiemannianMetric
     from sage.manifolds.differentiable.symplectic_form import SymplecticForm
 
@@ -384,7 +385,7 @@ class DiffForm(TensorField):
         self.exterior_derivative.clear_cache()
 
     @cached_method
-    def exterior_derivative(self):
+    def exterior_derivative(self) -> DiffForm:
         r"""
         Compute the exterior derivative of ``self``.
 
@@ -590,7 +591,7 @@ class DiffForm(TensorField):
                                           other_r._restrictions[dom])
         return resu
 
-    def degree(self):
+    def degree(self) -> int:
         r"""
         Return the degree of ``self``.
 
@@ -615,7 +616,9 @@ class DiffForm(TensorField):
 
     def hodge_dual(
         self,
-        nondegenerate_tensor: Union[PseudoRiemannianMetric, SymplecticForm, None] = None,
+        nondegenerate_tensor: Union[
+            PseudoRiemannianMetric, SymplecticForm, None
+        ] = None,
     ) -> DiffForm:
         r"""
         Compute the Hodge dual of the differential form with respect to some non-degenerate
@@ -1228,8 +1231,8 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal, DiffForm):
         no symmetry;  no antisymmetry
 
     """
-    def __init__(self, vector_field_module, degree, name=None,
-                 latex_name=None):
+    def __init__(self, vector_field_module: VectorFieldModule, degree: int, name: Optional[str] = None,
+                 latex_name: Optional[str] = None):
         r"""
         Construct a differential form.
 
@@ -1332,7 +1335,7 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal, DiffForm):
         """
         TensorFieldParal._init_derived(self)
 
-    def _del_derived(self, del_restrictions=True):
+    def _del_derived(self, del_restrictions: bool = True):
         r"""
         Delete the derived quantities.
 
@@ -1382,7 +1385,7 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal, DiffForm):
         return TensorFieldParal.__call__(self, *args)
 
     @cached_method
-    def exterior_derivative(self):
+    def exterior_derivative(self) -> DiffFormParal:
         r"""
         Compute the exterior derivative of ``self``.
 
@@ -1627,6 +1630,15 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal, DiffForm):
                (x, y, z) ↦ 2*x*y^3 - 2*z^3 - 6*x - 6*z
             sage: s == a.contract(0,1,b,0,1)
             True
+
+        TESTS:
+
+        Check that :trac:`33780` is fixed::
+
+            sage: v = X.frame()[1]  # vector field d/dx
+            sage: f = X.coframe()[2]  # 1-form dy
+            sage: f.interior_product(v)
+            Scalar field zero on the 3-dimensional differentiable manifold M
 
         """
         if self._domain.is_subset(qvect._domain):

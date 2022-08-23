@@ -296,9 +296,9 @@ class MPowerSeriesRing_generic(PowerSeriesRing_generic, Nonexact):
             True
 
         """
-        order = TermOrder(order,num_gens)
-        return super(MPowerSeriesRing_generic,cls).__classcall__(cls, base_ring, num_gens, name_list,
-                 order, default_prec, sparse)
+        order = TermOrder(order, num_gens)
+        return super().__classcall__(cls, base_ring, num_gens, name_list,
+                                     order, default_prec, sparse)
 
     def __init__(self, base_ring, num_gens, name_list,
                  order='negdeglex', default_prec=10, sparse=False):
@@ -1082,6 +1082,3 @@ def unpickle_multi_power_series_ring_v0(base_ring, num_gens, names, order, defau
         True
     """
     return PowerSeriesRing(base_ring, num_gens=num_gens, names=names, order=order, default_prec=default_prec, sparse=sparse)
-
-
-

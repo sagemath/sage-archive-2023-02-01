@@ -75,7 +75,7 @@ class LieAlgebraFromAssociative(Parent, UniqueRepresentation):
             sage: L1 is L2
             True
         """
-        return super(LieAlgebraFromAssociative, cls).__classcall__(cls, tuple(gens))
+        return super().__classcall__(cls, tuple(gens))
 
     def __init__(self, gens):
         """
@@ -207,7 +207,7 @@ class LieAlgebraFromAssociative(Parent, UniqueRepresentation):
             """
             return bool(self.value)
 
-        __nonzero__ = __bool__
+        
 
         def _add_(self, rhs):
             """
@@ -329,4 +329,3 @@ class LieAlgebraFromAssociative(Parent, UniqueRepresentation):
             return self.__class__(self.parent(), self.value * rhs.value - rhs.value * self.value)
 
 Example = LieAlgebraFromAssociative
-

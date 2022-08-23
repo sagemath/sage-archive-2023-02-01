@@ -56,6 +56,12 @@ are available, too. The methods for all this functionality are
 :meth:`as_classical_group`, :meth:`as_matrix_group`, :meth:`as_permutation_group`
 and :meth:`as_reflection_group`.
 
+TESTS::
+
+    sage: CubicBraidGroup(4).category()
+    Category of shephard groups
+    sage: CubicBraidGroup(6).category()
+    Category of infinite groups
 
 REFERENCES:
 
@@ -77,6 +83,7 @@ AUTHORS:
 # ****************************************************************************
 
 from sage.categories.groups import Groups
+from sage.categories.shephard_groups import ShephardGroups
 from sage.misc.cachefunc import cached_method
 from sage.libs.gap.element import GapElement
 from sage.groups.free_group import FreeGroup
@@ -264,9 +271,7 @@ class CubicBraidElement(FinitelyPresentedGroupElement):
             tietze_red = _reduce_tietze(tietze_list)
             if tietze_red != tietze_list:
                 x = tuple(tietze_red)
-        super(CubicBraidElement, self).__init__(parent, x, check=check)
-
-
+        super().__init__(parent, x, check=check)
 
     def _richcmp_(self, other, op):
         """
@@ -731,8 +736,7 @@ class CubicBraidGroup(FinitelyPresentedGroup):
 
         from sage.structure.category_object import normalize_names
         names = tuple(normalize_names(n, names))
-        return super(CubicBraidGroup, cls).__classcall__(cls, names, cbg_type=cbg_type)
-
+        return super().__classcall__(cls, names, cbg_type=cbg_type)
 
     def __init__(self, names, cbg_type=None):
         """
@@ -800,8 +804,10 @@ class CubicBraidGroup(FinitelyPresentedGroup):
                 elif cbg_type == CubicBraidGroup.type.AssionS:
                     rels.append(b[i+2]*b[i]*t[i+1]*b[i]*ti[i+1]*t[i+2]*t[i+1]*b[i]*ti[i+1]*ti[i+2])
 
-        if self._nstrands <= 5 or cbg_type != CubicBraidGroup.type.Coxeter:
+        if cbg_type != CubicBraidGroup.type.Coxeter:
             cat = Groups().Finite()
+        elif self._nstrands <= 5:
+            cat = ShephardGroups()
         else:
             cat = Groups().Infinite()
         FinitelyPresentedGroup.__init__(self, free_group, tuple(rels), category=cat)
@@ -840,6 +846,72 @@ class CubicBraidGroup(FinitelyPresentedGroup):
         else:
             return "Assion group on %s strands of type %s"%(self.strands() ,self._cbg_type.value)
 
+    def index_set(self):
+        r"""
+        Return the index set of ``self``.
+
+        This is the set of integers `0,\dots,n-2` where `n` is
+        the number of strands.
+
+        This is only used when ``self`` is a finite reflection group.
+
+        EXAMPLES::
+
+            sage: CubicBraidGroup(3).index_set()
+            [0, 1]
+        """
+        return list(range(self.strands() - 1))
+
+    def simple_reflections(self):
+        """
+        Return the generators of ``self``.
+
+        This is only used when ``self`` is a finite reflection group.
+
+        EXAMPLES::
+
+            sage: CubicBraidGroup(3).simple_reflections()
+            (c0, c1)
+        """
+        return self.generators()
+
+    def degrees(self):
+        """
+        Return the degrees of ``self``.
+
+        This only makes sense when ``self`` is a finite reflection group.
+
+        EXAMPLES::
+
+            sage: CubicBraidGroup(4).degrees()
+            (6, 9, 12)
+        """
+        if self._cbg_type != CubicBraidGroup.type.Coxeter:
+            raise TypeError('not a finite reflection group')
+        if self.strands() > 5:
+            raise TypeError('not a finite reflection group')
+        d_table = {1: tuple(), 2: (3,), 3: (4, 6),
+                   4: (6, 9, 12), 5: (12, 18, 24, 30)}
+        return tuple(Integer(deg) for deg in d_table[self.strands()])
+
+    def codegrees(self):
+        """
+        Return the codegrees of ``self``.
+
+        This only makes sense when ``self`` is a finite reflection group.
+
+        EXAMPLES::
+
+            sage: CubicBraidGroup(5).codegrees()
+            (0, 6, 12, 18)
+        """
+        if self._cbg_type != CubicBraidGroup.type.Coxeter:
+            raise TypeError('not a finite reflection group')
+        if self.strands() > 5:
+            raise TypeError('not a finite reflection group')
+        d_table = {1: tuple(), 2: (0,), 3: (0, 2),
+                   4: (0, 3, 6), 5: (0, 6, 12, 18)}
+        return tuple(Integer(deg) for deg in d_table[self.strands()])
 
     # -------------------------------------------------------------------------------
     # Methods for test_suite
@@ -848,12 +920,12 @@ class CubicBraidGroup(FinitelyPresentedGroup):
         r"""
         It tests conversion maps from ``self`` to the given attached Group
         which must have been defined using the :meth:`as_classical_group`,
-        :meth:`as_matrix_group`, meth:`as_permutation_group` or
+        :meth:`as_matrix_group`, :meth:`as_permutation_group` or
         :meth:`as_reflection_group`.
 
         INPUT:
 
-         - ``attached_group`` -- attached group to be tested as specified above.
+        - ``attached_group`` -- attached group to be tested as specified above.
 
         EXAMPLES::
 
@@ -1139,6 +1211,7 @@ class CubicBraidGroup(FinitelyPresentedGroup):
             # matrix.
             # -----------------------------------------------------------
             from sage.matrix.constructor import matrix
+
             def transvec2mat(v, bas=bas, bform=bform, fact=1):
                 t = [x + fact*(x * bform * v) * v for x in bas]
                 return matrix(bform.base_ring(),  t)
@@ -1220,6 +1293,7 @@ class CubicBraidGroup(FinitelyPresentedGroup):
             # matrix.
             # -----------------------------------------------------------
             from sage.matrix.constructor import matrix
+
             def transvec2mat(v, bas=bas, bform=bform, fact=a):
                 # note x does not change under conjugation, since it belongs to standard basis
                 t = [x + fact *(x * bform * v.conjugate()) * v for x in bas]
@@ -1299,13 +1373,13 @@ class CubicBraidGroup(FinitelyPresentedGroup):
         INPUT:
 
         - ``x`` -- can be one of the following:
-                -- an instance of the element class of ``self`` (but possible to a different parent).
-                -- an instance of the element class of the braid group.
-                -- a tuple representing a braid in Tietze form.
-                -- an instance of an element class of a parent P such that there is a map from ``self`` to P
+                - an instance of the element class of ``self`` (but possible to a different parent).
+                - an instance of the element class of the braid group.
+                - a tuple representing a braid in Tietze form.
+                - an instance of an element class of a parent P such that there is a map from ``self`` to P
                    having :meth:`lift`, for example an element of an alternative realization of ``self``, such
                    as the classical realization.
-                -- any other object which works for the element constructor of :class:`FinitelyPresentedGroup`.
+                - any other object which works for the element constructor of :class:`FinitelyPresentedGroup`.
 
         OUTPUT:
 
@@ -1325,8 +1399,7 @@ class CubicBraidGroup(FinitelyPresentedGroup):
             if map_to is not None:
                 if hasattr(map_to, 'lift'):
                     return map_to.lift(x)
-        return super(CubicBraidGroup, self)._element_constructor_(x)
-
+        return super()._element_constructor_(x)
 
     #######################################################################################################################
     # ----------------------------------------------------------------------------------
@@ -1572,14 +1645,13 @@ class CubicBraidGroup(FinitelyPresentedGroup):
             PG = CGM.as_permutation_group()
             img_gens = [PG(CGM(CG(gen))) for gen in self.gens()]
         else:
-            PG = super(CubicBraidGroup, self).as_permutation_group()
+            PG = super().as_permutation_group()
             img_gens = PG.gens()
 
         img_gens = [PG(gen) for gen in img_gens]
         hom_to_perm = self.hom(img_gens)
         PG.register_conversion(hom_to_perm)
         return PG
-
 
     # ----------------------------------------------------------------------------------
     # as_classical_group

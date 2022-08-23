@@ -1277,7 +1277,7 @@ class Sets(Category_singleton):
             """
             tester = self._tester(**options)
             S = list(tester.some_elements())
-            n = tester._max_runs
+            n = max(tester._max_runs, 8)
             if (len(S)+2)**3 <= n:
                 S = list(S) + [None, 0]
             else:
@@ -1471,10 +1471,10 @@ class Sets(Category_singleton):
 
         def _test_construction(self, **options):
             """
-            Test that the construction returned by self really yields self.
+            Test that the construction returned by ``self`` really yields ``self``.
 
-            :meth:`construction` either returns None or a pair ``(F,O)``,
-            and if it returns the latter, then it is supposed that ``F(O)==self`.
+            :meth:`construction` either returns None or a pair ``(F, O)``,
+            and if it returns the latter, then it is supposed that ``F(O) == self``.
             The test verifies this assumption.
 
             EXAMPLES:

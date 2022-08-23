@@ -301,8 +301,10 @@ def _split_dict_(D, indices, group_by=None):
 
     class SplitDictError(ValueError):
         pass
+
     def get(T, i):
         return T[i] if i is not None else 0
+
     def extract(T, indices):
         return tuple(get(T, i) for i in indices)
 
@@ -1266,5 +1268,3 @@ class LaurentPolynomialRing_mpair(LaurentPolynomialRing_generic):
             True
         """
         return LaurentPolynomialRing_mpair, (self._R,)
-
-

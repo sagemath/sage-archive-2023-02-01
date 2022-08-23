@@ -250,7 +250,7 @@ def html_to_float(c):
         ...
         ValueError: invalid literal for int() with base 16: '3x'
     """
-    if not len(c) or c[0] != '#':
+    if not c or c[0] != '#':
         raise ValueError("'%s' must be a valid HTML hex color (e.g., '#f07' or '#d6e7da')" % c)
     h = c[1:]
     if len(h) == 3:
@@ -358,7 +358,7 @@ def rgbcolor(c, space='rgb'):
 to_mpl_color = rgbcolor
 
 
-class Color(object):
+class Color():
     def __init__(self, r='#0000ff', g=None, b=None, space='rgb'):
         """
         An Red-Green-Blue (RGB) color model color object.  For most

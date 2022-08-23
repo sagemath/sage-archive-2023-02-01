@@ -477,7 +477,7 @@ class Chart(UniqueRepresentation, SageObject):
         r"""
         Rewrite ``coord_restrictions`` as a ``frozenset``, representing a logical "and", of other clauses.
 
-        Also replace ``list``s by ``frozenset``s, making the result hashable.
+        Also replace ``list`` by ``frozenset`` , making the result hashable.
 
         EXAMPLES::
 
@@ -3037,7 +3037,7 @@ class RealChart(Chart):
         from sage.plot.graphics import Graphics
         from sage.plot.line import line
         from sage.manifolds.continuous_map import ContinuousMap
-        from .utilities import set_axes_labels
+        from sage.manifolds.utilities import set_axes_labels
 
         # Extract the kwds options
         max_range = kwds['max_range']

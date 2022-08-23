@@ -261,45 +261,22 @@ Guide for details.
 With so many bugs in Sage and hundreds of open tickets, why don't you produce a stabilization release?
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-Any software package contains bug. With something as complex as Sage,
-neither the Sage community nor the Sage Development Team make any
-claims that Sage is free of bugs. To do so would be an act of
-dishonesty.
+Any software package contains bug. With something as complex as Sage, neither
+the Sage community nor the Sage Development Team make any claims that Sage is
+free of bugs, and perhaps never will. To do so would be an act of dishonesty.
 
-A Sage release cycle usually lasts for a few months, with several
-betas appearing at a 2-3 week intervals.  Each
-release cycle is usually chaired by a single release manager who looks
-after the Sage merge tree for the duration of the release
-cycle. During that time, the release manager often needs to devote the
-equivalent of full-time work to quality management and actively
-interacts with an international community of Sage users, developers,
-and potential contributors.
+A Sage release cycle lasts for a few months, with several betas appearing at
+1-2 week intervals, followed by several release candidates (as of 2022). Under
+this schedule and with the limited capacity of the Sage developer community,
+the project cannot make stabilization releases. However, important
+bug fix tickets are merged with high priority and will be available in the
+development release. Thanks to rigorous integration testing by our dedicated
+Release Manager, development releases (betas and release candidates) are
+generally safe and reliable to use.
 
-There have been a number of cases where
-two Sage contributors paired up to be the release managers for a Sage
-release cycle. However, it is often the case that few people have the
-equivalent of 3 weeks' worth of free time to devote to release
-management. If you want to help out with release management, please
-subscribe to the
-`sage-release <http://groups.google.com/group/sage-release>`_
+If you want to help out with release management, as a starting point please
+subscribe to the `sage-release <http://groups.google.com/group/sage-release>`_
 mailing list.
-
-Since the beginning of the Sage project, Sage contributors have tried
-to listen and think about what would increase the chances that serious
-potential contributors would actually contribute. What encourages one
-contributor can discourage another, so tradeoffs need to be made. To
-decide that a stabilization release would merge patches with bug
-fixes, and only fix bugs, would likely discourage someone from
-contributing when they have been told in advance that their positively
-reviewed patches will not be merged.
-
-The Sage community believes in
-the principle of "release early, release often". How the Sage project
-is organized and run differ greatly from that of a commercial software
-company. Contributors are all volunteers and this changes the dynamic
-of the project dramatically from what it would be if Sage were a
-commercial development effort with all developers being full-time
-employees.
 
 
 How can I download the Sage documentation to read it offline?
@@ -344,7 +321,7 @@ I want to cite Sage in a publication, how do I do it?
 
 Here is a BibTeX entry for Sage:
 
-.. CODE-BLOCK:: text
+.. CODE-BLOCK:: bibtex
 
     @manual{sagemath,
         label        = {Sag95},
@@ -359,6 +336,65 @@ Here is a BibTeX entry for Sage:
 Adjust version/year as needed.  You might also like to use DOI for Sage,
 as the note entry in the above record, or directly as DOI record.
 
+
+If you happen to use the Sage interface to PARI, GAP or Singular,
+you should definitely reference them as well. Likewise, if you use
+code that is implemented using PARI, GAP, or Singular, reference
+the corresponding system (you can often tell from the documentation
+if PARI, GAP, or Singular is used in the implementation of a
+function).
+
+.. index::
+   pair: referencing; PARI
+
+See `citing PARI <https://pari.math.u-bordeaux.fr/faq.html#quote>`_.
+
+.. CODE-BLOCK:: bibtex
+
+    @preamble("\usepackage{url}")
+    @manual{PARI2,
+      organization = "{The PARI~Group}",
+      title        = "{PARI/GP version \texttt{2.11.2}}",
+      year         = 2019,
+      address      = "Univ. Bordeaux",
+      note         = "available from \url{http://pari.math.u-bordeaux.fr/}"
+    }
+
+
+.. index::
+   pair: referencing; GAP
+
+See `citing GAP <https://www.gap-system.org/Contacts/cite.html>`_.
+
+.. CODE-BLOCK:: bibtex
+
+    @preamble("\usepackage{url}")
+    @manual{GAP4,
+        key          = "GAP",
+        organization = "The GAP~Group",
+        title        = "{GAP -- Groups, Algorithms, and Programming,
+                        Version 4.11.1}",
+        year         = 2021,
+        note         = "\url{https://www.gap-system.org}",
+    }
+
+
+.. index::
+   pair: referencing; Singular
+
+See `citing Singular <https://www.singular.uni-kl.de/index.php/how-to-cite-singular.html>`_.
+
+.. CODE-BLOCK:: bibtex
+
+    @misc {DGPS,
+       title = {{\sc Singular} {4-3-0} --- {A} computer algebra system for polynomial computations},
+       author = {Decker, Wolfram and Greuel, Gert-Martin and Pfister, Gerhard and Sch\"onemann, Hans},
+       year = {2022},
+       howpublished = {\url{http://www.singular.uni-kl.de}},
+    }
+
+
+.. index:: logging Sage
 
 What are DOI records for Sage?
 """"""""""""""""""""""""""""""

@@ -52,7 +52,7 @@ Functions
 
 from sage.categories.sets_cat import EmptySetError
 from sage.misc.unknown import Unknown
-from .design_catalog import transversal_design  # type: ignore
+from .design_catalog import transversal_design  # type:ignore
 from sage.arith.all import binomial, is_prime_power
 from .group_divisible_designs import GroupDivisibleDesign
 from .designs_pyx import is_pairwise_balanced_design
@@ -840,7 +840,8 @@ def v_4_1_BIBD(v, check=True):
 
     return bibd
 
-def BIBD_from_PBD(PBD,v,k,check=True,base_cases={}):
+
+def BIBD_from_PBD(PBD, v, k, check=True, base_cases=None):
     r"""
     Return a `(v,k,1)`-BIBD from a `(r,K)`-PBD where `r=(v-1)/(k-1)`.
 
@@ -868,6 +869,8 @@ def BIBD_from_PBD(PBD,v,k,check=True,base_cases={}):
         sage: PBD = PBD_4_5_8_9_12(17)
         sage: bibd = is_pairwise_balanced_design(BIBD_from_PBD(PBD,52,4),52,[4])
     """
+    if base_cases is None:
+        base_cases = {}
     r = (v-1) // (k-1)
     bibd = []
     for X in PBD:

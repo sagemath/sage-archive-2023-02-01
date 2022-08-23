@@ -154,7 +154,7 @@ cdef class PowerSeries_poly(PowerSeries):
         """
         return self.__f.degree()
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         Return ``True`` if ``self`` is nonzero, and ``False`` otherwise.
 
@@ -754,8 +754,8 @@ cdef class PowerSeries_poly(PowerSeries):
 
     def truncate_powerseries(self, long prec):
         r"""
-        Given input ``prec`` = $n$, returns the power series of degree
-        $< n$ which is equivalent to self modulo $x^n$.
+        Given input ``prec`` = `n`, returns the power series of degree
+        `< n` which is equivalent to self modulo `x^n`.
 
         EXAMPLES::
 

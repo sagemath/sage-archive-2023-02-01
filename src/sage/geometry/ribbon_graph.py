@@ -299,7 +299,7 @@ class RibbonGraph(SageObject, UniqueRepresentation):
         M = sigma.parent()
         if len(M.domain()) < len(rho.parent().domain()):
             M = rho.parent()
-        return super(RibbonGraph, cls).__classcall__(cls, M(sigma), M(rho))
+        return super().__classcall__(cls, M(sigma), M(rho))
 
     def __init__(self, sigma, rho):
         r"""
@@ -1229,4 +1229,3 @@ def bipartite_ribbon_graph(p, q):
                        PermutationConstructor([tuple(x) for x in sigma]),
                        PermutationConstructor([tuple(x) for x in rho])
                        )
-

@@ -230,6 +230,7 @@ LaTeX
    sagetex
    sage/misc/latex
    sage/misc/latex_macros
+   sage/misc/latex_standalone
 
 Saving and Loading Sage Objects
 -------------------------------
@@ -258,6 +259,7 @@ Interactive Sage Sessions
    sage/misc/viewer
    sage/misc/pager
    sage/misc/sagedoc
+   sage/misc/sagedoc_conf
    sage/misc/sphinxify
 
 Distribution

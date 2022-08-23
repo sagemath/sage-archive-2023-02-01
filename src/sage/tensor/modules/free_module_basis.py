@@ -39,6 +39,36 @@ from sage.structure.unique_representation import UniqueRepresentation
 class Basis_abstract(UniqueRepresentation, AbstractFamily):
     """
     Abstract base class for (dual) bases of free modules.
+
+    A basis is an :class:`~sage.sets.family.AbstractFamily`, hence like
+    :class:`collections.abc.Mapping` subclasses such as :class:`dict`, it is
+    an associative :class:`Container`, providing methods :meth:`keys`,
+    :meth:`values`, and :meth:`items`. Thus, ``e[i]`` returns the element
+    of the basis ``e`` indexed by the key ``i``. However, in contrast to
+    :class:`Mapping` subclasses, not the :meth:`keys` but the
+    :meth:`values` are considered the elements.
+
+    EXAMPLES:
+
+        sage: M = FiniteRankFreeModule(ZZ, 3, name='M', start_index=1)
+        sage: e = M.basis('e'); e
+        Basis (e_1,e_2,e_3) on the Rank-3 free module M over the Integer Ring
+        sage: list(e)
+        [Element e_1 of the Rank-3 free module M over the Integer Ring,
+        Element e_2 of the Rank-3 free module M over the Integer Ring,
+        Element e_3 of the Rank-3 free module M over the Integer Ring]
+        sage: e.category()
+        Category of facade finite enumerated sets
+        sage: list(e.keys())
+        [1, 2, 3]
+        sage: list(e.values())
+        [Element e_1 of the Rank-3 free module M over the Integer Ring,
+        Element e_2 of the Rank-3 free module M over the Integer Ring,
+        Element e_3 of the Rank-3 free module M over the Integer Ring]
+        sage: list(e.items())
+        [(1, Element e_1 of the Rank-3 free module M over the Integer Ring),
+        (2, Element e_2 of the Rank-3 free module M over the Integer Ring),
+        (3, Element e_3 of the Rank-3 free module M over the Integer Ring)]
     """
     def __init__(self, fmodule, symbol, latex_symbol, indices, latex_indices):
         """

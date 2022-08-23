@@ -1873,7 +1873,7 @@ class VectorFunctor(ConstructionFunctor):
         self.latex_name_mapping = latex_name_mapping
 
     def _apply_functor(self, R):
-        """
+        r"""
         Apply the functor to an object of ``self``'s domain.
 
         TESTS::

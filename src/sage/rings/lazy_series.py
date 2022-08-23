@@ -119,6 +119,7 @@ from sage.structure.richcmp import op_EQ, op_NE
 from sage.functions.other import factorial
 from sage.arith.power import generic_power
 from sage.misc.misc_c import prod
+from sage.misc.derivative import derivative_parse
 from sage.rings.infinity import infinity
 from sage.rings.integer_ring import ZZ
 from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
@@ -3083,13 +3084,11 @@ class LazyLaurentSeries(LazyCauchyProductSeries):
 
     compositional_inverse = revert
 
-    def derivative(self, order=1):
+    def derivative(self, *args):
         """
         Return the derivative of the Laurent series.
 
         INPUT:
-
-        - ``order`` -- optional integer (default 1)
 
         EXAMPLES::
 
@@ -3100,11 +3099,40 @@ class LazyLaurentSeries(LazyCauchyProductSeries):
             0
             sage: (1/z).derivative()
             -z^-2
-            sage: (1/(1-z)).derivative()
+            sage: (1/(1-z)).derivative(z)
             1 + 2*z + 3*z^2 + 4*z^3 + 5*z^4 + 6*z^5 + 7*z^6 + O(z^7)
+
+        TESTS::
+
+            sage: R.<q> = QQ[]
+            sage: L.<z> = LazyLaurentSeriesRing(R)
+            sage: (z*q).derivative()
+            q
+
+            sage: (z*q).derivative(q)
+            z
+
+            sage: (z*q).derivative(q, z)
+            1
+
+            sage: f = 1/(1-q*z+z^2)
+            sage: f
+            1 + q*z + (q^2 - 1)*z^2 + (q^3 - 2*q)*z^3 + (q^4 - 3*q^2 + 1)*z^4 + (q^5 - 4*q^3 + 3*q)*z^5 + (q^6 - 5*q^4 + 6*q^2 - 1)*z^6 + O(z^7)
+            sage: f.derivative(q)[3]
+            3*q^2 - 2
 
         """
         P = self.parent()
+        R = P._laurent_poly_ring
+        v = R.gen()
+        order = 0
+        vars = []
+        for x in derivative_parse(args):
+            if x is None or x == v:
+                order += 1
+            else:
+                vars.append(x)
+
         coeff_stream = self._coeff_stream
         if isinstance(coeff_stream, Stream_zero):
             return self
@@ -3113,16 +3141,25 @@ class LazyLaurentSeries(LazyCauchyProductSeries):
             and not coeff_stream._constant):
             if coeff_stream._approximate_order >= 0 and coeff_stream._degree <= order:
                 return P.zero()
-            initial_coefficients = [prod(i-k for k in range(order)) * c
-                                    for i, c in enumerate(coeff_stream._initial_coefficients,
-                                                          coeff_stream._approximate_order)]
-            coeff_stream = Stream_exact(initial_coefficients,
+            if vars:
+                coeffs = [prod(i-k for k in range(order)) * c.derivative(vars)
+                          for i, c in enumerate(coeff_stream._initial_coefficients,
+                                                coeff_stream._approximate_order)]
+            else:
+                coeffs = [prod(i-k for k in range(order)) * c
+                          for i, c in enumerate(coeff_stream._initial_coefficients,
+                                                coeff_stream._approximate_order)]
+            coeff_stream = Stream_exact(coeffs,
                                         self._coeff_stream._is_sparse,
                                         order=coeff_stream._approximate_order - order,
                                         constant=coeff_stream._constant)
             return P.element_class(P, coeff_stream)
 
         coeff_stream = Stream_derivative(self._coeff_stream, order)
+        if vars:
+            coeff_stream = Stream_map_coefficients(coeff_stream,
+                                                   lambda c: c.derivative(vars),
+                                                   R)
         return P.element_class(P, coeff_stream)
 
     def approximate_series(self, prec, name=None):
@@ -3441,7 +3478,7 @@ class LazyTaylorSeries(LazyCauchyProductSeries):
             TypeError: no common canonical parent for objects with parents: ...
 
         """
-        if len(g) != len(self.parent().variable_names()):
+        if len(g) != self.parent()._arity:
             raise ValueError("arity of must be equal to the number of arguments provided")
 
         # Find a good parent for the result

@@ -1251,7 +1251,9 @@ cdef class BaseRingFloorDivAction(Action):
             This is meant to be a fast internal function, so the
             conditions on the input are not checked!
 
-        EXAMPLES::
+        EXAMPLES:
+
+        One gets the correct parent with floor division::
 
             sage: A = ZZ[['t']]
             sage: f = A([3*2**n for n in range(6)]).O(6)
@@ -1259,6 +1261,13 @@ cdef class BaseRingFloorDivAction(Action):
             1 + 2*t + 4*t^2 + 8*t^3 + 16*t^4 + 32*t^5 + O(t^6)
             sage: g.parent()
             Power Series Ring in t over Integer Ring
+
+        whereas the parent is larger with division::
+
+            sage: parent(f/3)
+            Power Series Ring in t over Rational Field
+
+        Another example::
 
             sage: s = polygen(QQ,'s')
             sage: A = s.parent()[['t']]

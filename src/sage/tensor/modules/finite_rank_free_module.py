@@ -2851,6 +2851,21 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
         """
         return (1, 0)
 
+    def tensor_power(self, n):
+        r"""
+        Return the ``n``-fold tensor product of ``self``.
+
+        EXAMPLES::
+
+            sage: M = FiniteRankFreeModule(QQ, 2)
+            sage: M.tensor_power(3)
+            Free module of type-(3,0) tensors on the 2-dimensional vector space over the Rational Field
+            sage: M.tensor_module(1,2).tensor_power(3)
+            Free module of type-(3,6) tensors on the 2-dimensional vector space over the Rational Field
+        """
+        tensor_type = self.tensor_type()
+        return self.base_module().tensor_module(n * tensor_type[0], n * tensor_type[1])
+
     def tensor_product(self, *others):
         r"""
         Return the tensor product of ``self`` and ``others``.

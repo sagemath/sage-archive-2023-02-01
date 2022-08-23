@@ -2825,6 +2825,19 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
                 self._identity_map.set_name(name=name, latex_name=latex_name)
         return self._identity_map
 
+    def base_module(self):
+        r"""
+        Return the free module on which ``self`` is constructed, namely ``self`` itself.
+
+        EXAMPLES::
+
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: M.base_module() is M
+            True
+
+        """
+        return self
+
     def tensor_type(self):
         r"""
         Return the tensor type of ``self``, the pair `(1, 0)`.
@@ -2837,3 +2850,27 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
 
         """
         return (1, 0)
+
+    def tensor_product(self, *others):
+        r"""
+        Return the tensor product of ``self`` and ``others``.
+
+        EXAMPLES::
+
+            sage: M = FiniteRankFreeModule(QQ, 2)
+            sage: M.tensor_product(M)
+            Free module of type-(2,0) tensors on the 2-dimensional vector space over the Rational Field
+            sage: M.tensor_product(M.tensor_module(1,2))
+            Free module of type-(2,2) tensors on the 2-dimensional vector space over the Rational Field
+            sage: M.tensor_module(1,2).tensor_product(M)
+            Free module of type-(2,2) tensors on the 2-dimensional vector space over the Rational Field
+            sage: M.tensor_module(1,1).tensor_product(M.tensor_module(1,2))
+            Free module of type-(2,3) tensors on the 2-dimensional vector space over the Rational Field
+
+        """
+        from sage.modules.free_module_element import vector
+        base_module = self.base_module()
+        if not all(module.base_module() == base_module for module in others):
+            raise NotImplementedError('all factors must be tensor modules over the same base module')
+        tensor_type = sum(vector(module.tensor_type()) for module in [self] + list(others))
+        return base_module.tensor_module(*tensor_type)

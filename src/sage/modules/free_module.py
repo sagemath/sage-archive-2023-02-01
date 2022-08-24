@@ -1787,7 +1787,7 @@ class Module_free_ambient(Module):
         Return a graded free resolution of ``self``.
 
         For input options, see
-        :class:`~sage.homology.graded_resolution.GradedFreeResolution`.
+        :class:`~sage.homology.graded_resolution.GradedFiniteFreeResolution`.
 
         EXAMPLES::
 

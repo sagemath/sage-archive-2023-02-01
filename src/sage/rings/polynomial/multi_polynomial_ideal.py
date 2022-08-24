@@ -1797,9 +1797,20 @@ class MPolynomialIdeal_singular_repr(
                                         [-x^2]      
                         [  y x^2]       [   y]      
              0 <-- C_0 <---------- C_1 <------- C_2 <-- 0
+
+            sage: q = ZZ['q'].fraction_field().gen()
+            sage: R.<x,y,z> = q.parent()[]
+            sage: I = R.ideal([x^2+y^2+z^2, x*y*z^4])
+            sage: I.free_resolution()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: the ring must be a polynomial ring using Singular
         """
-        from sage.homology.free_resolution import FiniteFreeResolution_singular
-        return FiniteFreeResolution_singular(self, *args, **kwds)
+        from sage.rings.polynomial.multi_polynomial_libsingular import MPolynomialRing_libsingular
+        if isinstance(self.ring(), MPolynomialRing_libsingular):
+            from sage.homology.free_resolution import FiniteFreeResolution_singular
+            return FiniteFreeResolution_singular(self, *args, **kwds)
+        raise NotImplementedError("the ring must be a polynomial ring using Singular")
 
     @require_field
     def graded_free_resolution(self, *args, **kwds):
@@ -1825,9 +1836,20 @@ class MPolynomialIdeal_singular_repr(
             sage: I = R.ideal([f,g,h])
             sage: I.graded_free_resolution(degrees=[1,2])
             S(0) <-- S(-2)⊕S(-2) <-- S(-4) <-- 0
+
+            sage: q = ZZ['q'].fraction_field().gen()
+            sage: R.<x,y,z> = q.parent()[]
+            sage: I = R.ideal([x^2+y^2+z^2, x*y*z^4])
+            sage: I.graded_free_resolution()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: the ring must be a polynomial ring using Singular
         """
-        from sage.homology.graded_resolution import GradedFiniteFreeResolution_singular
-        return GradedFiniteFreeResolution_singular(self, *args, **kwds)
+        from sage.rings.polynomial.multi_polynomial_libsingular import MPolynomialRing_libsingular
+        if isinstance(self.ring(), MPolynomialRing_libsingular):
+            from sage.homology.graded_resolution import GradedFiniteFreeResolution_singular
+            return GradedFiniteFreeResolution_singular(self, *args, **kwds)
+        raise NotImplementedError("the ring must be a polynomial ring using Singular")
 
     @handle_AA_and_QQbar
     @singular_gb_standard_options

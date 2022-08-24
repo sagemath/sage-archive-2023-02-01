@@ -21,7 +21,8 @@ AUTHORS:
 
 from sage.structure.parent import Parent
 from sage.misc.cachefunc import cached_method
-from sage.rings.all import (ZZ, CommutativeRing)
+from sage.rings.integer_ring import ZZ
+from sage.rings.ring import CommutativeRing
 from sage.rings.ideal import is_Ideal
 from sage.structure.unique_representation import UniqueRepresentation
 
@@ -1055,7 +1056,7 @@ class AffineScheme(UniqueRepresentation, Scheme):
             Point on Spectrum of Integer Ring defined by the Principal ideal (811) of Integer Ring
         """
         if self.coordinate_ring() is ZZ:
-            from sage.arith.all import random_prime
+            from sage.arith.misc import random_prime
             return self(ZZ.ideal(random_prime(1000)))
         return self(self.coordinate_ring().zero_ideal())
 

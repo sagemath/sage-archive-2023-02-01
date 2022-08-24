@@ -517,11 +517,10 @@ def FreeModule(base_ring, rank_or_basis_keys=None, sparse=False, inner_product_m
         else:
             if inner_product_matrix is not None:
                 raise NotImplementedError
-            from sage.combinat.free_module import CombinatorialFreeModule_with_construction
-            return CombinatorialFreeModule_with_construction(base_ring, basis_keys, **args)
+            from sage.combinat.free_module import CombinatorialFreeModule
+            return CombinatorialFreeModule(base_ring, basis_keys, **args)
     else:
         raise NotImplementedError
-
 
 def VectorSpace(K, dimension_or_basis_keys=None, sparse=False, inner_product_matrix=None, *,
                 with_basis='standard', dimension=None, basis_keys=None, **args):

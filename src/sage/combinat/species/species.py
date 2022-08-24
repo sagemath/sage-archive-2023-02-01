@@ -22,7 +22,7 @@ leaves and of `q` to internal nodes::
     sage: leaf = species.SingletonSpecies()
     sage: internal_node = species.SingletonSpecies(weight=q)
     sage: L = species.LinearOrderSpecies(min=1)
-    sage: T = species.CombinatorialSpecies()
+    sage: T = species.CombinatorialSpecies(min=1)
     sage: T.define(leaf + internal_node*L(T))
     sage: T.isotype_generating_series()[0:6]
     [0, 1, q, q^2 + q, q^3 + 3*q^2 + q, q^4 + 6*q^3 + 6*q^2 + q]
@@ -495,7 +495,7 @@ class GenericCombinatorialSpecies(SageObject):
     def _series_helper(self, series_ring_class, prefix, base_ring=None):
         """
         This code handles much of the common work involved in getting the
-        generating series for this species (such has determining the
+        generating series for this species (such as determining the
         correct base ring to pass down to the subclass, determining which
         method on the subclass to call to get the series object, etc.)
 

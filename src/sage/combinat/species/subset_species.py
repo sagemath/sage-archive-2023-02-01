@@ -19,7 +19,6 @@ Subset Species
 
 from .species import GenericCombinatorialSpecies
 from .set_species import SetSpecies
-from .generating_series import _integers_from
 from .structure import GenericSpeciesStructure
 from sage.combinat.species.misc import accept_size
 from sage.structure.unique_representation import UniqueRepresentation

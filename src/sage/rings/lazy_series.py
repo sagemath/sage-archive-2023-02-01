@@ -971,10 +971,10 @@ class LazyModuleElement(Element):
             Lazy Taylor Series Ring in z over Rational Field
         """
         P = self.parent()
-        if P._names is not None:
-            Q = type(P)(ring, names=P.variable_names(), sparse=P._sparse)
-        else:
+        if P._names is None:
             Q = type(P)(ring, sparse=P._sparse)
+        else:
+            Q = type(P)(ring, names=P.variable_names(), sparse=P._sparse)
         return Q.element_class(Q, self._coeff_stream)
 
     # === module structure ===

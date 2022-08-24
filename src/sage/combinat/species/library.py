@@ -103,9 +103,9 @@ def BinaryTreeSpecies():
         sage: oeis(seq)[0]                              # optional -- internet
         A000108: Catalan numbers: ...
     """
-    B = CombinatorialSpecies()
+    B = CombinatorialSpecies(min=1)
     X = SingletonSpecies()
-    B.define(X+B*B)
+    B.define(X + B*B)
     return B
 
 @cached_function

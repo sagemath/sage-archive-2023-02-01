@@ -17,7 +17,6 @@ Partition Species
 #*****************************************************************************
 
 from .species import GenericCombinatorialSpecies
-from .generating_series import _integers_from
 from sage.arith.misc import factorial
 from .subset_species import SubsetSpeciesStructure
 from .set_species import SetSpecies

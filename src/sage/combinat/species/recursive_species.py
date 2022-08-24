@@ -25,7 +25,7 @@ class CombinatorialSpeciesStructure(SpeciesStructureWrapper):
 
 
 class CombinatorialSpecies(GenericCombinatorialSpecies):
-    def __init__(self):
+    def __init__(self, min=None):
         """
         EXAMPLES::
 
@@ -48,10 +48,7 @@ class CombinatorialSpecies(GenericCombinatorialSpecies):
         self._generating_series = {}
         self._isotype_generating_series = {}
         self._cycle_index_series = {}
-        self._min = None
-        self._max = None
-        self._weight = 1
-        GenericCombinatorialSpecies.__init__(self, min=None, max=None, weight=None)
+        GenericCombinatorialSpecies.__init__(self, min=min, max=None, weight=None)
 
     _default_structure_class = CombinatorialSpeciesStructure
 
@@ -236,7 +233,7 @@ class CombinatorialSpecies(GenericCombinatorialSpecies):
             Uninitialized Lazy Laurent Series
         """
         if base_ring not in self._generating_series:
-            self._generating_series[base_ring] = series_ring(None)
+            self._generating_series[base_ring] = series_ring.undefined(valuation=(0 if self._min is None else self._min))
 
         res = self._generating_series[base_ring]
         if hasattr(self, "_reference") and not hasattr(res, "_reference"):
@@ -253,7 +250,7 @@ class CombinatorialSpecies(GenericCombinatorialSpecies):
             Uninitialized Lazy Laurent Series
         """
         if base_ring not in self._isotype_generating_series:
-            self._isotype_generating_series[base_ring] = series_ring(None)
+            self._isotype_generating_series[base_ring] = series_ring.undefined(valuation=(0 if self._min is None else self._min))
 
         res = self._isotype_generating_series[base_ring]
         if hasattr(self, "_reference") and not hasattr(res, "_reference"):
@@ -270,7 +267,7 @@ class CombinatorialSpecies(GenericCombinatorialSpecies):
             Uninitialized Lazy Laurent Series
         """
         if base_ring not in self._cycle_index_series:
-            self._cycle_index_series[base_ring] = series_ring(None)
+            self._cycle_index_series[base_ring] = series_ring.undefined(valuation=(0 if self._min is None else self._min))
 
         res = self._cycle_index_series[base_ring]
         if hasattr(self, "_reference") and not hasattr(res, "_reference"):
@@ -364,7 +361,7 @@ class CombinatorialSpecies(GenericCombinatorialSpecies):
 
         ::
 
-            sage: A = CombinatorialSpecies()
+            sage: A = CombinatorialSpecies(min=1)
             sage: A.define(X+A*A)
             sage: A.generating_series()[0:6]
             [0, 1, 1, 2, 5, 14]
@@ -381,14 +378,12 @@ class CombinatorialSpecies(GenericCombinatorialSpecies):
 
             sage: X2 = X*X
             sage: X5 = X2*X2*X
-            sage: A = CombinatorialSpecies()
-            sage: B = CombinatorialSpecies()
-            sage: C = CombinatorialSpecies()
+            sage: A = CombinatorialSpecies(min=1)
+            sage: B = CombinatorialSpecies(min=1)
+            sage: C = CombinatorialSpecies(min=1)
             sage: A.define(X5+B*B)
             sage: B.define(X5+C*C)
             sage: C.define(X2+C*C+A*A)
-            sage: A.generating_series()[Integer(0):Integer(10)
-            [0, 0, 0, 0, 0, 1, 0, 0, 1, 2]
             sage: A.generating_series()[0:15]
             [0, 0, 0, 0, 0, 1, 0, 0, 1, 2, 5, 4, 14, 10, 48]
             sage: B.generating_series()[0:15]

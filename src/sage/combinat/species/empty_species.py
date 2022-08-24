@@ -16,7 +16,6 @@ Empty Species
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from .species import GenericCombinatorialSpecies
-from .series_order import inf
 from sage.structure.unique_representation import UniqueRepresentation
 
 class EmptySpecies(GenericCombinatorialSpecies, UniqueRepresentation):
@@ -113,18 +112,6 @@ class EmptySpecies(GenericCombinatorialSpecies, UniqueRepresentation):
 
     _itgs = _gs
     _cis  = _gs
-
-    def _order(self):
-        """
-        Returns the order of the generating series.
-
-        EXAMPLES::
-
-            sage: F = species.EmptySpecies()
-            sage: F._order()
-            Infinite series order
-        """
-        return inf
 
     def _structures(self, structure_class, labels):
         """

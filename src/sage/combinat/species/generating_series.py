@@ -15,37 +15,11 @@ as the coefficients of our cycle index series.
 
 TESTS::
 
-    sage: from sage.combinat.species.stream import Stream, _integers_from
     sage: from sage.combinat.species.generating_series import CycleIndexSeriesRing
     sage: p = SymmetricFunctions(QQ).power()
-    sage: CIS = CycleIndexSeriesRing(QQ, 'z')
-
-::
-
-    sage: geo1 = CIS((p([1])^i  for i in _integers_from(0)))
-    sage: geo2 = CIS((p([2])^i  for i in _integers_from(0)))
-    sage: s = geo1 * geo2
-    sage: s[0]
-    p[]
-    sage: s[1]
-    p[1] + p[2]
-    sage: s[2]
-    p[1, 1] + p[2, 1] + p[2, 2]
-    sage: s[3]
-    p[1, 1, 1] + p[2, 1, 1] + p[2, 2, 1] + p[2, 2, 2]
-
-Whereas the coefficients of the above test are homogeneous with
-respect to total degree, the following test groups with respect to
-weighted degree where each variable x_i has weight i.
-
-::
-
-    sage: def g():
-    ....:     for i in _integers_from(0):
-    ....:         yield p([2])^i
-    ....:         yield p(0)
-    sage: geo1 = CIS((p([1])^i  for i in _integers_from(0)))
-    sage: geo2 = CIS(g())
+    sage: CIS = CycleIndexSeriesRing(QQ)
+    sage: geo1 = CIS(lambda i: p([1])^i)
+    sage: geo2 = CIS(lambda i: p([2])^(i // 2) if is_even(i) else 0)
     sage: s = geo1 * geo2
     sage: s[0]
     p[]
@@ -55,8 +29,6 @@ weighted degree where each variable x_i has weight i.
     p[1, 1] + p[2]
     sage: s[3]
     p[1, 1, 1] + p[2, 1]
-    sage: s[4]
-    p[1, 1, 1, 1] + p[2, 1, 1] + p[2, 2]
 
 REFERENCES:
 
@@ -77,9 +49,8 @@ REFERENCES:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-from sage.rings.lazy_laurent_series import LazyTaylorSeries, LazySymmetricFunction
-from sage.rings.lazy_laurent_series_ring import LazyTaylorSeriesRing, LazySymmetricFunctions
-from .stream import Stream, _integers_from
+from sage.rings.lazy_series import LazyTaylorSeries, LazySymmetricFunction
+from sage.rings.lazy_series_ring import LazyTaylorSeriesRing, LazySymmetricFunctions
 from sage.rings.integer import Integer
 from sage.rings.rational_field import RationalField
 from sage.arith.all import moebius, gcd, lcm, divisors
@@ -94,14 +65,13 @@ class OrdinaryGeneratingSeries(LazyTaylorSeries):
     r"""
     A class for ordinary generating series.
 
-    Note that it is just a
-    :class:`LazyTaylorSeries` whose elements have
-    some extra methods.
+    Note that it is just a :class:`LazyTaylorSeries` whose elements
+    have some extra methods.
 
     EXAMPLES::
 
         sage: from sage.combinat.species.generating_series import OrdinaryGeneratingSeriesRing
-        sage: R = OrdinaryGeneratingSeriesRing(QQ, 'z')
+        sage: R = OrdinaryGeneratingSeriesRing(QQ)
         sage: f = R(lambda n: n)
         sage: f
         z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + O(z^7)
@@ -118,7 +88,7 @@ class OrdinaryGeneratingSeries(LazyTaylorSeries):
         EXAMPLES::
 
             sage: from sage.combinat.species.generating_series import OrdinaryGeneratingSeriesRing
-            sage: R = OrdinaryGeneratingSeriesRing(QQ, 'z')
+            sage: R = OrdinaryGeneratingSeriesRing(QQ)
             sage: f = R(range(20))
             sage: f.count(10)
             10
@@ -134,7 +104,7 @@ class OrdinaryGeneratingSeries(LazyTaylorSeries):
         EXAMPLES::
 
             sage: from sage.combinat.species.generating_series import OrdinaryGeneratingSeriesRing
-            sage: R = OrdinaryGeneratingSeriesRing(QQ, 'z')
+            sage: R = OrdinaryGeneratingSeriesRing(QQ)
             sage: f = R(range(20))
             sage: f.counts(10)
             [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
@@ -154,7 +124,7 @@ class OrdinaryGeneratingSeriesRing(LazyTaylorSeriesRing):
     EXAMPLES::
 
         sage: from sage.combinat.species.generating_series import OrdinaryGeneratingSeriesRing
-        sage: R = OrdinaryGeneratingSeriesRing(QQ, 'z'); R
+        sage: R = OrdinaryGeneratingSeriesRing(QQ); R
         Lazy Taylor Series Ring in z over Rational Field
         sage: [R(lambda n: 1).coefficient(i) for i in range(4)]
         [1, 1, 1, 1]
@@ -165,14 +135,15 @@ class OrdinaryGeneratingSeriesRing(LazyTaylorSeriesRing):
 
     TESTS:
 
-    We test to make sure that caching works.
+    We test to make sure that caching works.::
 
-    ::
-
-        sage: R is OrdinaryGeneratingSeriesRing(QQ, 'z')
+        sage: R is OrdinaryGeneratingSeriesRing(QQ)
         True
 
     """
+    def __init__(self, base_ring):
+        super().__init__(base_ring, names="z")
+
     Element = OrdinaryGeneratingSeries
 
 
@@ -187,7 +158,7 @@ class ExponentialGeneratingSeries(LazyTaylorSeries):
     EXAMPLES::
 
         sage: from sage.combinat.species.generating_series import OrdinaryGeneratingSeriesRing
-        sage: R = OrdinaryGeneratingSeriesRing(QQ, 'z')
+        sage: R = OrdinaryGeneratingSeriesRing(QQ)
         sage: f = R(lambda n: n)
         sage: f
         z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + O(z^7)
@@ -200,7 +171,7 @@ class ExponentialGeneratingSeries(LazyTaylorSeries):
         EXAMPLES::
 
             sage: from sage.combinat.species.generating_series import ExponentialGeneratingSeriesRing
-            sage: R = ExponentialGeneratingSeriesRing(QQ, 'z')
+            sage: R = ExponentialGeneratingSeriesRing(QQ)
             sage: f = R(lambda n: 1)
             sage: [f.count(i) for i in range(7)]
             [1, 1, 2, 6, 24, 120, 720]
@@ -216,7 +187,7 @@ class ExponentialGeneratingSeries(LazyTaylorSeries):
         EXAMPLES::
 
             sage: from sage.combinat.species.generating_series import ExponentialGeneratingSeriesRing
-            sage: R = ExponentialGeneratingSeriesRing(QQ, 'z')
+            sage: R = ExponentialGeneratingSeriesRing(QQ)
             sage: f = R(range(20))
             sage: f.counts(5)
             [0, 1, 4, 18, 96]
@@ -248,34 +219,18 @@ class ExponentialGeneratingSeries(LazyTaylorSeries):
             sage: [g.coefficient(i) for i in range(10)]
             [1, 1, 1, 4/3, 8/3, 128/15, 2048/45, 131072/315, 2097152/315, 536870912/2835]
 
-        """
-        P = self.parent()
-        return P(lambda n: self._functorial_compose_gen(y, n), 0)
-
-    def _functorial_compose_gen(self, y, n):
-        """
-        Returns the ``n``th coefficient of the functorial
-        composition of self with y.
-
-        INPUT:
-
-        - ``y`` -- the other series
-        - ``n`` -- the nth term of the functorial composition
-
-        EXAMPLES::
-
             sage: E = species.SetSpecies()
             sage: E2 = E.restricted(min=2, max=3)
             sage: WP = species.SubsetSpecies()
             sage: P2 = E2*E
             sage: g1 = WP.generating_series()
             sage: g2 = P2.generating_series()
-            sage: [g1._functorial_compose_gen(g2, i) for i in range(10)]
+            sage: g1.functorial_composition(g2)[:10]
             [1, 1, 1, 4/3, 8/3, 128/15, 2048/45, 131072/315, 2097152/315, 536870912/2835]
 
         """
-        return self.count(y.count(n)) / factorial(n)
-
+        P = self.parent()
+        return P(lambda n: self.count(y.count(n)) / factorial(n), 0)
 
 class ExponentialGeneratingSeriesRing(LazyTaylorSeriesRing):
     r"""
@@ -288,7 +243,7 @@ class ExponentialGeneratingSeriesRing(LazyTaylorSeriesRing):
     EXAMPLES::
 
         sage: from sage.combinat.species.generating_series import ExponentialGeneratingSeriesRing
-        sage: R = ExponentialGeneratingSeriesRing(QQ, 'z'); R
+        sage: R = ExponentialGeneratingSeriesRing(QQ); R
         Lazy Taylor Series Ring in z over Rational Field
         sage: [R(lambda n: 1).coefficient(i) for i in range(4)]
         [1, 1, 1, 1]
@@ -301,32 +256,14 @@ class ExponentialGeneratingSeriesRing(LazyTaylorSeriesRing):
 
     ::
 
-        sage: R is ExponentialGeneratingSeriesRing(QQ, 'z')
+        sage: R is ExponentialGeneratingSeriesRing(QQ)
         True
 
     """
+    def __init__(self, base_ring):
+        super().__init__(base_ring, names="z")
+
     Element = ExponentialGeneratingSeries
-
-
-def factorial_gen():
-    """
-    A generator for the factorials starting at 0.
-
-    EXAMPLES::
-
-        sage: from sage.combinat.species.generating_series import factorial_gen
-        sage: g = factorial_gen()
-        sage: [next(g) for i in range(5)]
-        [1, 1, 2, 6, 24]
-    """
-    z = Integer(1)
-    yield z
-    yield z
-    n = Integer(2)
-    while True:
-        z *= n
-        yield z
-        n += 1
 
 
 class CycleIndexSeries(LazySymmetricFunction):
@@ -339,7 +276,7 @@ class CycleIndexSeries(LazySymmetricFunction):
 
             sage: from sage.combinat.species.generating_series import CycleIndexSeriesRing
             sage: p = SymmetricFunctions(QQ).power()
-            sage: CIS = CycleIndexSeriesRing(QQ, 'z')
+            sage: CIS = CycleIndexSeriesRing(QQ)
             sage: f = CIS([0, p([1]), 2*p([1,1]), 3*p([2,1])])
             sage: f.count([1])
             1
@@ -359,7 +296,7 @@ class CycleIndexSeries(LazySymmetricFunction):
 
             sage: from sage.combinat.species.generating_series import CycleIndexSeriesRing
             sage: p = SymmetricFunctions(QQ).power()
-            sage: CIS = CycleIndexSeriesRing(QQ, 'z')
+            sage: CIS = CycleIndexSeriesRing(QQ)
             sage: f = CIS([0, p([1]), 2*p([1,1]),3*p([2,1])])
             sage: f.coefficient_cycle_type([1])
             1
@@ -372,59 +309,6 @@ class CycleIndexSeries(LazySymmetricFunction):
         p = self.coefficient(t.size())
         return p.coefficient(t)
 
-    def stretch(self, k):
-        r"""
-        Return the stretch of the cycle index series ``self`` by a positive
-        integer `k`.
-
-        If
-
-        .. MATH::
-
-           f = \sum_{n=0}^{\infty} f_n(p_1, p_2, p_3, \ldots ),
-
-        then the stretch `g` of `f` by `k` is
-
-        .. MATH::
-
-           g = \sum_{n=0}^{\infty} f_n(p_k, p_{2k}, p_{3k}, \ldots ).
-
-        EXAMPLES::
-
-            sage: from sage.combinat.species.generating_series import CycleIndexSeriesRing
-            sage: p = SymmetricFunctions(QQ).power()
-            sage: CIS = CycleIndexSeriesRing(QQ, 'z')
-            sage: f = CIS([p([]), p([1]), p([2]), p.zero()])
-            sage: f.stretch(3)[0:10]
-            [p[], 0, 0, p[3], 0, 0, p[6], 0, 0, 0]
-        """
-        P = self.parent()
-        return P(lambda n: self._stretch_gen(k, n), k * self._coeff_stream._approximate_order)
-
-    def _stretch_gen(self, k, n):
-        """
-        EXAMPLES::
-
-            sage: from sage.combinat.species.generating_series import CycleIndexSeriesRing
-            sage: p = SymmetricFunctions(QQ).power()
-            sage: CIS = CycleIndexSeriesRing(QQ, 'z')
-            sage: f = CIS([p([1])]) # This is the power series whose all coefficients
-            ....:                   # are p[1]. Not combinatorially meaningful!
-            sage: [f._stretch_gen(2, i) for i in range(10)]
-            [p[2], 0, p[2], 0, p[2], 0, p[2], 0, p[2], 0]
-        """
-        from sage.combinat.partition import Partition
-        BR = self.base_ring()
-        zero = BR.zero()
-
-        stretch_k = lambda p: Partition([k*i for i in p])
-
-        if n == 0:
-            return self.coefficient(0).map_support(stretch_k)
-        elif n % k:
-            return zero
-        return self.coefficient(n//k).map_support(stretch_k)
-
     def isotype_generating_series(self):
         """
         EXAMPLES::
@@ -435,43 +319,9 @@ class CycleIndexSeries(LazySymmetricFunction):
             sage: f[:10]
             [1, 1, 2, 3, 5, 7, 11, 15, 22, 30]
         """
-        R = self.base_ring().base_ring()
-        OGS = OrdinaryGeneratingSeriesRing(R, 'z')
+        R = self.base_ring()
+        OGS = OrdinaryGeneratingSeriesRing(R)
         return OGS(lambda n: self._ogs_gen(n, self._coeff_stream._approximate_order), self._coeff_stream._approximate_order)
-
-    def expand_as_sf(self, n, alphabet='x'):
-        """
-        Returns the expansion of a cycle index series as a symmetric function in
-        ``n`` variables.
-
-        Specifically, this returns a :class:`~sage.combinat.species.series.LazyTaylorSeries` whose
-        ith term is obtained by calling :meth:`~sage.combinat.sf.sfa.SymmetricFunctionAlgebra_generic_Element.expand`
-        on the ith term of ``self``.
-
-        This relies on the (standard) interpretation of a cycle index series as a symmetric function
-        in the power sum basis.
-
-        INPUT:
-
-        - ``self`` -- a cycle index series
-
-        - ``n`` -- a positive integer
-
-        - ``alphabet`` -- a variable for the expansion (default: `x`)
-
-        EXAMPLES::
-
-            sage: from sage.combinat.species.set_species import SetSpecies
-            sage: SetSpecies().cycle_index_series().expand_as_sf(2)[:4]
-            [1, x0 + x1, x0^2 + x0*x1 + x1^2, x0^3 + x0^2*x1 + x0*x1^2 + x1^3]
-
-        """
-        expanded_poly_ring = self.coefficient(0).expand(n, alphabet).parent()
-        LPSR = LazyTaylorSeriesRing(expanded_poly_ring)
-
-        expander_gen = (LPSR.term(self.coefficient(i).expand(n, alphabet), i) for i in _integers_from(0))
-
-        return LPSR.sum_generator(expander_gen)
 
     def _ogs_gen(self, n, ao):
         """
@@ -488,10 +338,6 @@ class CycleIndexSeries(LazySymmetricFunction):
         if n < ao:
             return 0
         return sum(self.coefficient(n).coefficients())
-        # for i in range(ao):
-        #     yield 0
-        # for i in _integers_from(ao):
-        #     yield sum( self.coefficient(i).coefficients() )
 
     def generating_series(self):
         """
@@ -503,8 +349,8 @@ class CycleIndexSeries(LazySymmetricFunction):
             sage: f[:5]
             [1, 1, 1, 5/6, 5/8]
         """
-        R = self.base_ring().base_ring()
-        EGS = ExponentialGeneratingSeriesRing(R, 'z')
+        R = self.base_ring()
+        EGS = ExponentialGeneratingSeriesRing(R)
         return EGS(lambda n: self._egs_gen(n, self._coeff_stream._approximate_order), self._coeff_stream._approximate_order)
 
     def _egs_gen(self, n, ao):
@@ -523,7 +369,6 @@ class CycleIndexSeries(LazySymmetricFunction):
             return 0
         return self.coefficient(n).coefficient([1]*n)
 
-    def __invert__(self):
         r"""
         Return the multiplicative inverse of ``self``.
 
@@ -552,288 +397,14 @@ class CycleIndexSeries(LazySymmetricFunction):
         AUTHORS:
 
         - Andrew Gainer-Dewar
-        """
-        if self.coefficient(0) == 0:
-            raise ValueError("constant term must be non-zero")
 
-        def multinv_builder(i):
-            return self.coefficient(0)**(-i-1) * (self.coefficient(0) + (-1)*self)**i
-
-        return self.parent().sum_generator(multinv_builder(i) for i in _integers_from(0))
-
-    def _div_(self, y):
-        """
         TESTS::
 
             sage: E = species.SetSpecies().cycle_index_series()
             sage: (E / E)[:6]
             [p[], 0, 0, 0, 0, 0]
         """
-        return self*(~y)
 
-    def functorial_composition(self, g):
-        r"""
-        Returns the functorial composition of ``self`` and ``g``.
-
-        If `F` and `G` are species, their functorial composition is the species
-        `F \Box G` obtained by setting `(F \Box G) [A] = F[ G[A] ]`.
-        In other words, an `(F \Box G)`-structure on a set `A` of labels is an
-        `F`-structure whose labels are the set of all `G`-structures on `A`.
-
-        It can be shown (as in section 2.2 of [BLL]_) that there is a
-        corresponding operation on cycle indices:
-
-        .. MATH::
-
-            Z_{F} \Box Z_{G} = \sum_{n \geq 0} \frac{1}{n!}
-            \sum_{\sigma \in \mathfrak{S}_{n}}
-            \operatorname{fix} F[ (G[\sigma])_{1}, (G[\sigma])_{2}, \ldots ]
-            \, p_{1}^{\sigma_{1}} p_{2}^{\sigma_{2}} \cdots.
-
-        This method implements that operation on cycle index series.
-
-        EXAMPLES:
-
-        The species `G` of simple graphs can be expressed in terms of a functorial
-        composition: `G = \mathfrak{p} \Box \mathfrak{p}_{2}`, where
-        `\mathfrak{p}` is the :class:`~sage.combinat.species.subset_species.SubsetSpecies`.
-        This is how it is implemented in
-        :meth:`~sage.combinat.species.library.SimpleGraphSpecies`::
-
-            sage: S = species.SimpleGraphSpecies()
-            sage: S.cycle_index_series()[:5]
-            [p[],
-             p[1],
-             p[1, 1] + p[2],
-             4/3*p[1, 1, 1] + 2*p[2, 1] + 2/3*p[3],
-             8/3*p[1, 1, 1, 1] + 4*p[2, 1, 1] + 2*p[2, 2] + 4/3*p[3, 1] + p[4]]
-        """
-        # return self._new(partial(self._functorial_compose_gen, g), lambda a,b: 0, self, g)
-        P = self.parent()
-        return P(lambda n: self._functorial_compose_gen(g, n, self._coeff_stream._approximate_order), 0)
-
-    def _functorial_compose_gen(self, g, n, ao):
-        """
-        Return a generator for the coefficients of the functorial
-        composition of ``self`` with ``g``.
-
-        EXAMPLES::
-
-            sage: E = species.SetSpecies()
-            sage: E2 = species.SetSpecies(size=2)
-            sage: WP = species.SubsetSpecies()
-            sage: P2 = E2*E
-            sage: P2_cis = P2.cycle_index_series()
-            sage: WP_cis = WP.cycle_index_series()
-            sage: [WP_cis._functorial_compose_gen(P2_cis, i, 0) for i in range(5)]
-            [p[],
-             p[1],
-             p[1, 1] + p[2],
-             4/3*p[1, 1, 1] + 2*p[2, 1] + 2/3*p[3],
-             8/3*p[1, 1, 1, 1] + 4*p[2, 1, 1] + 2*p[2, 2] + 4/3*p[3, 1] + p[4]]
-        """
-        p = self.parent().base_ring()
-        res = p(0)
-        print(n)
-        print(res)
-        for s in Partitions(n):
-            print(s)
-            t = g._cycle_type(s)
-            print(t)
-            q = self.count(t) / s.aut()
-            print(q)
-            res += q * p(s)
-            print(res)
-        return res
-        # p = self.parent().base_ring()
-        # m = 0
-        # print(p)
-        # print(m)
-        # while True:
-        #     res = p(0)
-        #     print(res)
-        #     for s in Partitions(m):
-        #         print(s)
-        #         t = g._cycle_type(s)
-        #         print(t)
-        #         q = self.count(t) / s.aut()
-        #         print(q)
-        #         res += q*p(s)
-        #         print(res)
-        #     yield res
-        #     m += 1
-
-    def arithmetic_product(self, g, check_input = True):
-        r"""
-        Return the arithmetic product of ``self`` with ``g``.
-
-        For species `M` and `N` such that `M[\\varnothing] = N[\\varnothing] = \\varnothing`,
-        their arithmetic product is the species `M \\boxdot N` of "`M`-assemblies of cloned `N`-structures".
-        This operation is defined and several examples are given in [MM]_.
-
-        The cycle index series for `M \\boxdot N` can be computed in terms of the component series `Z_M` and `Z_N`,
-        as implemented in this method.
-
-        INPUT:
-
-        - ``g`` -- a cycle index series having the same parent as ``self``.
-
-        - ``check_input`` -- (default: ``True``) a Boolean which, when set
-          to ``False``, will cause input checks to be skipped.
-
-        OUTPUT:
-
-        The arithmetic product of ``self`` with ``g``. This is a cycle
-        index series defined in terms of ``self`` and ``g`` such that
-        if ``self`` and ``g`` are the cycle index series of two species
-        `M` and `N`, their arithmetic product is the cycle index series
-        of the species `M \\boxdot N`.
-
-        EXAMPLES:
-
-        For `C` the species of (oriented) cycles and `L_{+}` the species of nonempty linear orders, `C \\boxdot L_{+}` corresponds
-        to the species of "regular octopuses"; a `(C \\boxdot L_{+})`-structure is a cycle of some length, each of whose elements
-        is an ordered list of a length which is consistent for all the lists in the structure. ::
-
-            sage: C = species.CycleSpecies().cycle_index_series()
-            sage: Lplus = species.LinearOrderSpecies(min=1).cycle_index_series()
-            sage: RegularOctopuses = C.arithmetic_product(Lplus)
-            sage: RegOctSpeciesSeq = RegularOctopuses.generating_series().counts(8)
-            sage: RegOctSpeciesSeq
-            [0, 1, 3, 8, 42, 144, 1440, 5760]
-
-        It is shown in [MM]_ that the exponential generating function for regular octopuses satisfies
-        `(C \\boxdot L_{+}) (x) = \\sum_{n \geq 1} \\sigma (n) (n - 1)! \\frac{x^{n}}{n!}` (where `\\sigma (n)` is
-        the sum of the divisors of `n`). ::
-
-            sage: RegOctDirectSeq = [0] + [sum(divisors(i))*factorial(i-1) for i in range(1,8)]
-            sage: RegOctDirectSeq == RegOctSpeciesSeq
-            True
-
-        AUTHORS:
-
-        - Andrew Gainer-Dewar (2013)
-
-        REFERENCES:
-
-        .. [MM] \M. Maia and M. Mendez. "On the arithmetic product of combinatorial species".
-           Discrete Mathematics, vol. 308, issue 23, 2008, pp. 5407-5427.
-           :arxiv:`math/0503436v2`.
-
-        """
-        from itertools import product, repeat, chain
-
-        p = self.base_ring()
-
-        if check_input:
-            assert self.coefficient(0) == p.zero()
-            assert g.coefficient(0) == p.zero()
-
-        # We first define an operation `\\boxtimes` on partitions as in Lemma 2.1 of [MM]_.
-        def arith_prod_of_partitions(l1, l2):
-            # Given two partitions `l_1` and `l_2`, we construct a new partition `l_1 \\boxtimes l_2` by
-            # the following procedure: each pair of parts `a \\in l_1` and `b \\in l_2` contributes
-            # `\\gcd (a, b)`` parts of size `\\lcm (a, b)` to `l_1 \\boxtimes l_2`. If `l_1` and `l_2`
-            # are partitions of integers `n` and `m`, respectively, then `l_1 \\boxtimes l_2` is a
-            # partition of `nm`.
-            term_iterable = chain.from_iterable(repeat(lcm(pair), gcd(pair))
-                                                for pair in product(l1, l2))
-            return Partition(sorted(term_iterable, reverse=True))
-
-        # We then extend this to an operation on symmetric functions as per eq. (52) of [MM]_.
-        # (Maia and Mendez, in [MM]_, are talking about polynomials instead of symmetric
-        # functions, but this boils down to the same: Their x_i corresponds to the i-th power
-        # sum symmetric function.)
-        def arith_prod_sf(x, y):
-            ap_sf_wrapper = lambda l1, l2: p(arith_prod_of_partitions(l1, l2))
-            return p._apply_multi_module_morphism(x, y, ap_sf_wrapper)
-
-        # Sage stores cycle index series by degree.
-        # Thus, to compute the arithmetic product `Z_M \\boxdot Z_N` it is useful
-        # to compute all terms of a given degree `n` at once.
-        def arith_prod_coeff(n):
-            if n == 0:
-                res = p.zero()
-            else:
-                index_set = ((d, n // d) for d in divisors(n))
-                res = sum(arith_prod_sf(self.coefficient(i), g.coefficient(j)) for i,j in index_set)
-
-            # Build a list which has res in the `n`th slot and 0's before and after
-            # to feed to sum_generator
-            res_in_seq = [p.zero()]*n + [res, p.zero()]
-
-            return self.parent(res_in_seq)
-
-        # Finally, we use the sum_generator method to assemble these results into a single
-        # LazyTaylorSeries object.
-        return self.parent().sum_generator(arith_prod_coeff(n) for n in _integers_from(0))
-
-    def _cycle_type(self, s):
-        """
-        EXAMPLES::
-
-            sage: cis = species.PartitionSpecies().cycle_index_series()
-            sage: [cis._cycle_type(p) for p in Partitions(3)]
-            [[3, 1, 1], [2, 1, 1, 1], [1, 1, 1, 1, 1]]
-            sage: cis = species.PermutationSpecies().cycle_index_series()
-            sage: [cis._cycle_type(p) for p in Partitions(3)]
-            [[3, 1, 1, 1], [2, 2, 1, 1], [1, 1, 1, 1, 1, 1]]
-            sage: cis = species.SetSpecies().cycle_index_series()
-            sage: [cis._cycle_type(p) for p in Partitions(3)]
-            [[1], [1], [1]]
-        """
-        if s == []:
-            return self._card(0)
-        res = []
-        for k in range(1, self._upper_bound_for_longest_cycle(s)+1):
-            e = 0
-            for d in divisors(k):
-                m = moebius(d)
-                if m == 0:
-                    continue
-                u = s.power(k/d)
-                e += m*self.count(u)
-            res.extend([k]*int(e/k))
-        res.reverse()
-        return Partition(res)
-
-    def _upper_bound_for_longest_cycle(self, s):
-        """
-        EXAMPLES::
-
-            sage: cis = species.PartitionSpecies().cycle_index_series()
-            sage: cis._upper_bound_for_longest_cycle([4])
-            4
-            sage: cis._upper_bound_for_longest_cycle([3,1])
-            3
-            sage: cis._upper_bound_for_longest_cycle([2,2])
-            2
-            sage: cis._upper_bound_for_longest_cycle([2,1,1])
-            2
-            sage: cis._upper_bound_for_longest_cycle([1,1,1,1])
-            1
-        """
-        if s == []:
-            return 1
-        return min(self._card(sum(s)), lcm(list(s)))
-
-    def _card(self, n):
-        r"""
-        Return the number of structures on an underlying set of size ``n`` for
-        the species associated with ``self``.
-
-        This is just ``n!`` times the coefficient of ``p[1]n`` in ``self``.
-
-        EXAMPLES::
-
-            sage: cis = species.PartitionSpecies().cycle_index_series()
-            sage: cis._card(4)
-            15
-        """
-        p = self.coefficient(n)
-        return factorial(n) * p.coefficient([1] * n)
-
-    def _compose_gen(self, y, ao):
         """
         Return a generator for the coefficients of the composition of this
         cycle index series and the cycle index series ``y``. This overrides
@@ -849,19 +420,7 @@ class CycleIndexSeries(LazySymmetricFunction):
             sage: g = E_cis._compose_gen(C.cycle_index_series(),0)
             sage: [next(g) for i in range(4)]
             [p[], p[1], p[1, 1] + p[2], p[1, 1, 1] + p[2, 1] + p[3]]
-        """
-        assert y.coefficient(0) == 0
-        y_powers = Stream(y._power_gen())
 
-        parent = self.parent()
-        res =  parent.sum_generator(self._compose_term(self.coefficient(i), y_powers)
-                                    for i in _integers_from(0))
-
-        for i in _integers_from(0):
-            yield res.coefficient(i)
-
-    def _compose_term(self, p, y_powers):
-        r"""
         Return the composition of one term in ``self`` with `y`.
 
         INPUT:
@@ -872,7 +431,6 @@ class CycleIndexSeries(LazySymmetricFunction):
 
         EXAMPLES::
 
-            sage: from sage.combinat.species.stream import Stream
             sage: E = species.SetSpecies(); C = species.CycleSpecies()
             sage: E_cis = E.cycle_index_series()
             sage: C_cis = C.cycle_index_series()
@@ -882,171 +440,7 @@ class CycleIndexSeries(LazySymmetricFunction):
             sage: E_cis._compose_term(p2, c_powers)[:4]
             [0, 0, 1/2*p[1, 1] + 1/2*p[2], 1/2*p[1, 1, 1] + 1/2*p[2, 1]]
         """
-        parent = self.parent()
-        if p == 0:
-            return parent(0)
 
-        res = []
-        #Go through all the partition, coefficient pairs in the term p
-        for m, c in p:
-            res_t = parent.term(c, 0)
-
-            for e,v in enumerate(m.to_exp()):
-                if v == 0:
-                    continue
-                res_t = res_t * y_powers[v-1].stretch(e+1)
-            res.append(res_t)
-
-        return parent.sum(res)
-
-    def weighted_composition(self, y_species):
-        r"""
-        Return the composition of this cycle index series with the cycle
-        index series of the weighted species ``y_species``.
-
-        Note that this is basically the same algorithm as composition
-        except we can not use the optimization that the powering of cycle
-        index series commutes with 'stretching'.
-
-        EXAMPLES::
-
-            sage: E = species.SetSpecies(); C = species.CycleSpecies()
-            sage: E_cis = E.cycle_index_series()
-            sage: E_cis.weighted_composition(C)[:4]
-            [p[], p[1], p[1, 1] + p[2], p[1, 1, 1] + p[2, 1] + p[3]]
-            sage: E(C).cycle_index_series()[:4]
-            [p[], p[1], p[1, 1] + p[2], p[1, 1, 1] + p[2, 1] + p[3]]
-        """
-        base_ring = self.base_ring()
-        y = y_species.cycle_index_series(base_ring)
-        assert y.coefficient(0) == 0
-        return self._new(partial(self._weighted_compose_gen, y_species), lambda a,b:a*b, self, y)
-
-    def _weighted_compose_gen(self, y_species, ao):
-        r"""
-        Return an iterator for the composition of this cycle index series
-        and the cycle index series of the weighted species ``y_species``.
-
-        EXAMPLES::
-
-            sage: E = species.SetSpecies(); C = species.CycleSpecies()
-            sage: E_cis = E.cycle_index_series()
-            sage: g = E_cis._weighted_compose_gen(C,0)
-            sage: [next(g) for i in range(4)]
-            [p[], p[1], p[1, 1] + p[2], p[1, 1, 1] + p[2, 1] + p[3]]
-        """
-        parent = self.parent()
-        res =  parent.sum_generator(self._weighted_compose_term(self.coefficient(i), y_species)
-                                    for i in _integers_from(0))
-
-        for i in _integers_from(0):
-            yield res.coefficient(i)
-
-    def _weighted_compose_term(self, p, y_species):
-        r"""
-        Return the weighted composition of one term in ``self`` with ``y``.
-
-        INPUT:
-
-        -  ``p`` -- a term in ``self``
-        -  ``y_species`` -- a species
-
-        EXAMPLES::
-
-            sage: E = species.SetSpecies(); C = species.CycleSpecies()
-            sage: E_cis = E.cycle_index_series()
-            sage: p2 = E_cis.coefficient(2); p2
-            1/2*p[1, 1] + 1/2*p[2]
-            sage: E_cis._weighted_compose_term(p2, C)[:4]
-            [0, 0, 1/2*p[1, 1] + 1/2*p[2], 1/2*p[1, 1, 1] + 1/2*p[2, 1]]
-        """
-        parent = self.parent()
-        if p == 0:
-            return parent(0)
-
-        base_ring = self.base_ring().base_ring()
-
-        res = []
-        #Go through all the partition, coefficient pairs in the term p
-        for m, c in p:
-            res_t = parent(c, 0)
-
-            for e,v in enumerate(m.to_exp()):
-                if v == 0:
-                    continue
-                res_t = res_t * (y_species.weighted(y_species._weight**(e+1)).cycle_index_series(base_ring)**v).stretch(e+1)
-            res.append(res_t)
-
-        return parent.sum(res)
-
-    def compositional_inverse(self):
-        r"""
-        Return the compositional inverse of ``self`` if possible.
-
-        (Specifically, if ``self`` is of the form `0 + p_{1} + \cdots`.)
-
-        The compositional inverse is the inverse with respect to
-        plethystic substitution. This is the operation on cycle index
-        series which corresponds to substitution, a.k.a. partitional
-        composition, on the level of species. See Section 2.2 of
-        [BLL]_ for a definition of this operation.
-
-        EXAMPLES::
-
-            sage: Eplus = species.SetSpecies(min=1).cycle_index_series()
-            sage: Eplus(Eplus.compositional_inverse())[:8]
-            [0, p[1], 0, 0, 0, 0, 0, 0]
-
-        TESTS::
-
-            sage: Eplus = species.SetSpecies(min=2).cycle_index_series()
-            sage: Eplus.compositional_inverse()
-            Traceback (most recent call last):
-            ...
-            ValueError: not an invertible series
-
-        ALGORITHM:
-
-        Let `F` be a species satisfying `F = 0 + X + F_2 + F_3 + \cdots` for
-        `X` the species of singletons. (Equivalently, `\lvert F[\varnothing]
-        \rvert = 0` and `\lvert F[\{1\}] \rvert = 1`.) Then there exists a
-        (virtual) species `G` satisfying `F \circ G = G \circ F = X`.
-
-        It follows that `(F - X) \circ G = F \circ G - X \circ G = X - G`.
-        Rearranging, we obtain the recursive equation `G = X - (F - X) \circ G`,
-        which can be solved using iterative methods.
-
-        .. WARNING::
-
-            This algorithm is functional but can be very slow.
-            Use with caution!
-
-        .. SEEALSO::
-
-            The compositional inverse `\Omega` of the species `E_{+}`
-            of nonempty sets can be handled much more efficiently
-            using specialized methods. See
-            :func:`~sage.combinat.species.generating_series.LogarithmCycleIndexSeries`
-
-        AUTHORS:
-
-        - Andrew Gainer-Dewar
-        """
-        cisr = self.parent()
-        sfa = cisr._base
-
-        X = cisr([0, sfa([1]), 0])
-
-        if self[:2] != X[:2]:
-            raise ValueError('not an invertible series')
-
-        res = cisr()
-        # res.define(X - (self - X).compose(res))
-        res.define(X - (self - X)(res))
-
-        return res
-
-    def derivative(self, order=1):
         r"""
         Return the species-theoretic `n`-th derivative of ``self``,
         where `n` is ``order``.
@@ -1075,24 +469,7 @@ class CycleIndexSeries(LazySymmetricFunction):
             sage: L[:8] == C.derivative()[:8]
             True
         """
-        # Make sure that order is integral
-        order = Integer(order)
 
-        if order < 0:
-            raise ValueError("Order must be a non-negative integer")
-
-        elif order == 0:
-            return self
-
-        elif order == 1:
-            parent = self.parent()
-            derivative_term = lambda n: parent.term(self.coefficient(n+1).derivative_with_respect_to_p1(), n)
-            return parent.sum_generator(derivative_term(i) for i in _integers_from(0))
-
-        else:
-            return self.derivative(order-1)
-
-    def pointing(self):
         r"""
         Return the species-theoretic pointing of ``self``.
 
@@ -1114,40 +491,7 @@ class CycleIndexSeries(LazySymmetricFunction):
             True
 
         """
-        p1 = self.base_ring()([1])
-        X = self.parent()([0, p1, 0])
 
-        return X*self.derivative()
-
-    def integral(self, *args):
-        r"""
-        Given a cycle index `G`, it is not in general possible to recover a
-        single cycle index `F` such that `F' = G` (even up to addition of a
-        constant term).
-
-        More broadly, it may be the case that there are many non-isomorphic
-        species `S` such that `S' = T` for a given species `T`.
-        For example, the species `3 C_{3}` of 3-cycles from three distinct
-        classes and the species `X^{3}` of 3-sets are not isomorphic, but
-        `(3 C_{3})' = (X^{3})' = 3 X^{2}`.
-
-        EXAMPLES::
-
-            sage: C3 = species.CycleSpecies(size=3).cycle_index_series()
-            sage: X = species.SingletonSpecies().cycle_index_series()
-            sage: (3*C3).derivative()[:8] == (3*X^2)[:8]
-            True
-            sage: (X^3).derivative()[:8] == (3*X^2)[:8]
-            True
-
-        .. WARNING::
-
-            This method has no implementation and exists only to prevent you from
-            doing something strange. Calling it raises a ``NotImplementedError``!
-        """
-        raise NotImplementedError
-
-    def exponential(self):
         r"""
         Return the species-theoretic exponential of ``self``.
 
@@ -1192,7 +536,7 @@ class CycleIndexSeries(LazySymmetricFunction):
 
             sage: G = species.SimpleGraphSpecies().cycle_index_series() - 1
             sage: from sage.combinat.species.generating_series import LogarithmCycleIndexSeries
-            sage: CG = LogarithmCycleIndexSeries().compose(G)
+            sage: CG = LogarithmCycleIndexSeries()(G)
             sage: CG.isotype_generating_series()[:8]
             [0, 1, 1, 2, 6, 21, 112, 853]
         """
@@ -1236,11 +580,11 @@ class CycleIndexSeriesRing(LazySymmetricFunctions):
     EXAMPLES::
 
         sage: from sage.combinat.species.generating_series import CycleIndexSeriesRing
-        sage: R = CycleIndexSeriesRing(QQ, 'z'); R
+        sage: R = CycleIndexSeriesRing(QQ); R
         Cycle Index Series Ring over Rational Field
-        sage: [R(lambda n: 1).coefficient(i) for i in range(4)] # This is not combinatorially
-        ....:                        # meaningful.
-        [1, 1, 1, 1]
+        sage: p = SymmetricFunctions(QQ).p()
+        sage: R(lambda n: p[n])
+        p[] + p[1] + p[2] + p[3] + p[4] + p[5] + p[6] + O^7
 
     TESTS:
 
@@ -1248,21 +592,25 @@ class CycleIndexSeriesRing(LazySymmetricFunctions):
 
     ::
 
-        sage: R is CycleIndexSeriesRing(QQ, 'z')
+        sage: R is CycleIndexSeriesRing(QQ)
         True
 
     """
     Element = CycleIndexSeries
+
+    def __init__(self, base_ring, sparse=True):
+        p = SymmetricFunctions(base_ring).power()
+        super().__init__(p)
 
     def __repr__(self):
         """
         EXAMPLES::
 
             sage: from sage.combinat.species.generating_series import CycleIndexSeriesRing
-            sage: CycleIndexSeriesRing(QQ, 'z')
+            sage: CycleIndexSeriesRing(QQ)
             Cycle Index Series Ring over Rational Field
         """
-        return "Cycle Index Series Ring over %s"%self.base_ring()
+        return "Cycle Index Series Ring over %s" % self.base_ring()
 
 
 @cached_function
@@ -1300,7 +648,7 @@ def ExponentialCycleIndexSeries(R = RationalField()):
          + 1/3*p[3], 1/24*p[1, 1, 1, 1] + 1/4*p[2, 1, 1] + 1/8*p[2, 2]
          + 1/3*p[3, 1] + 1/4*p[4]]
     """
-    CIS = CycleIndexSeriesRing(R, 'z')
+    CIS = CycleIndexSeriesRing(R)
     return CIS(lambda n: _exp_term(n))
 
 
@@ -1355,5 +703,5 @@ def LogarithmCycleIndexSeries(R = RationalField()):
         sage: LogarithmCycleIndexSeries()(Eplus)[:4]
         [0, p[1], 0, 0]
     """
-    CIS = CycleIndexSeriesRing(R, 'z')
+    CIS = CycleIndexSeriesRing(R)
     return CIS(lambda n: _cl_term(n))

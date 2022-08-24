@@ -18,7 +18,6 @@ Permutation species
 
 from .species import GenericCombinatorialSpecies
 from .structure import GenericSpeciesStructure
-from .generating_series import _integers_from
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.rings.integer_ring import ZZ
 from sage.combinat.permutation import Permutation, Permutations
@@ -225,8 +224,6 @@ class PermutationSpecies(GenericCombinatorialSpecies, UniqueRepresentation):
 
              \prod{n=1}^\infty \frac{1}{1-x_n}.
 
-
-
         EXAMPLES::
 
             sage: P = species.PermutationSpecies()
@@ -238,8 +235,11 @@ class PermutationSpecies(GenericCombinatorialSpecies, UniqueRepresentation):
              p[1, 1, 1] + p[2, 1] + p[3],
              p[1, 1, 1, 1] + p[2, 1, 1] + p[2, 2] + p[3, 1] + p[4]]
         """
+        from sage.combinat.sf.sf import SymmetricFunctions
+        from sage.combinat.partition import Partitions
+        p = SymmetricFunctions(base_ring).p()
         CIS = series_ring
-        return CIS.product_generator( CIS(self._cis_gen(base_ring, i)) for i in _integers_from(ZZ(1)) )
+        return CIS(lambda n: sum(p(la) for la in Partitions(n)))
 
     def _cis_gen(self, base_ring, m, n):
         """

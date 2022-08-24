@@ -207,7 +207,6 @@ class CompositionSpecies(GenericCombinatorialSpecies, UniqueRepresentation):
             sage: L.isotype_generating_series()[:10]
             [1, 1, 2, 3, 5, 7, 11, 15, 22, 30]
         """
-        raise NotImplementedError()
         cis = self.cycle_index_series(base_ring)
         return cis.isotype_generating_series()
 
@@ -251,12 +250,6 @@ class CompositionSpecies(GenericCombinatorialSpecies, UniqueRepresentation):
         """
         f_cis = self._F.cycle_index_series(base_ring)
         g_cis = self._G.cycle_index_series(base_ring)
-
-        #If G is a weighted species, then we can't use the default
-        #algorithm for the composition of the cycle index series
-        #since we must raise the weighting to the power.
-        if self._G.is_weighted():
-            return f_cis.weighted_composition(self._G)
         return f_cis(g_cis)
 
     def weight_ring(self):

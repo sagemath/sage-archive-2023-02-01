@@ -220,6 +220,14 @@ class FiniteEnumeratedSets(CategoryWithAxiom):
         def tuple(self):
             r"""
             Return a :class:`tuple`of the elements of ``self``.
+
+            EXAMPLE::
+
+                sage: C = FiniteEnumeratedSets().example()
+                sage: C.tuple()
+                (1, 2, 3)
+                sage: C.tuple() is C.tuple()
+                True
             """
             # Simpler implementation because it does not have to check whether cardinality is finite
             try: # shortcut

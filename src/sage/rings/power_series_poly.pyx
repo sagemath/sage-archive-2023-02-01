@@ -1267,6 +1267,12 @@ cdef class BaseRingFloorDivAction(Action):
             sage: parent(f/3)
             Power Series Ring in t over Rational Field
 
+        Floor division in case that the power series is not divisible by the divisor::
+
+            sage: f = A([2**n for n in range(6)]).O(6)
+            sage: g = f // 3; g
+            t^2 + 2*t^3 + 5*t^4 + 10*t^5 + O(t^6)
+
         Another example::
 
             sage: s = polygen(QQ,'s')

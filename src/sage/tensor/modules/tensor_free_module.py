@@ -740,10 +740,10 @@ class TensorFreeModule(FiniteRankFreeModule):
             <sage.tensor.modules.tensor_free_submodule_basis.TensorFreeSubmoduleBasis_comp... object at ...>
             sage: for a in e_Sym2M: a.display()
             e_0⊗e_0
-            e_0⊗e_1
-            e_0⊗e_2
+            e_0⊗e_1 + e_1⊗e_0
+            e_0⊗e_2 + e_2⊗e_0
             e_1⊗e_1
-            e_1⊗e_2
+            e_1⊗e_2 + e_2⊗e_1
             e_2⊗e_2
         """
         return TensorFreeSubmoduleBasis_comp(self, symbol)

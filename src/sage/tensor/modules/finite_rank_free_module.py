@@ -1440,7 +1440,10 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
         # (from _test_elements)
         is_sub_testsuite = (tester is not None)
         tester = self._tester(tester=tester, **options)
-        b = self.basis('test')
+        try:
+            b = self.basis('test')
+        except NotImplementedError:
+            return
         # Test uniqueness
         b_again = self.basis('test')
         tester.assertTrue(b is b_again)

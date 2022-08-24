@@ -119,7 +119,7 @@ from sage.structure.richcmp import op_EQ, op_NE
 from sage.functions.other import factorial
 from sage.arith.power import generic_power
 from sage.arith.functions import lcm
-from sage.arith.misc import divisors, moebius
+from sage.arith.misc import divisors, moebius, gcd
 from sage.combinat.partition import Partition, Partitions
 from sage.misc.misc_c import prod
 from sage.misc.derivative import derivative_parse
@@ -4146,6 +4146,138 @@ class LazySymmetricFunction(LazyCauchyProductSeries):
                     t = g_cycle_type(s)
                     q = t.aut() * f[t.size()].coefficient(t) / s.aut()
                     res += q * p(s)
+                return res
+
+            coeff_stream = Stream_function(coefficient, R, P._sparse, 0)
+
+        else:
+            raise NotImplementedError("only implemented for arity 1")
+
+        return P.element_class(P, coeff_stream)
+
+    def arithmetic_product(self, *args, check=True):
+        r"""
+        Return the arithmetic product of ``self`` with ``g``.
+
+        For species `M` and `N` such that `M[\\varnothing] =
+        N[\\varnothing] = \\varnothing`, their arithmetic product is
+        the species `M \\boxdot N` of "`M`-assemblies of cloned
+        `N`-structures".  This operation is defined and several
+        examples are given in [MM]_.
+
+        The cycle index series for `M \\boxdot N` can be computed in
+        terms of the component series `Z_M` and `Z_N`, as implemented
+        in this method.
+
+        INPUT:
+
+        - ``g`` -- a cycle index series having the same parent as ``self``.
+
+        - ``check`` -- (default: ``True``) a Boolean which, when set
+          to ``False``, will cause input checks to be skipped.
+
+        OUTPUT:
+
+        The arithmetic product of ``self`` with ``g``. This is a
+        cycle index series defined in terms of ``self`` and ``g``
+        such that if ``self`` and ``g`` are the cycle index series of
+        two species `M` and `N`, their arithmetic product is the
+        cycle index series of the species `M \\boxdot N`.
+
+        EXAMPLES:
+
+        For `C` the species of (oriented) cycles and `L_{+}` the
+        species of nonempty linear orders, `C \\boxdot L_{+}`
+        corresponds to the species of "regular octopuses"; a `(C
+        \\boxdot L_{+})`-structure is a cycle of some length, each of
+        whose elements is an ordered list of a length which is
+        consistent for all the lists in the structure. ::
+
+            sage: R.<q> = QQ[]
+            sage: p = SymmetricFunctions(R).p()
+            sage: m = SymmetricFunctions(R).m()
+            sage: L = LazySymmetricFunctions(m)
+
+            sage: C = species.CycleSpecies().cycle_index_series()
+            sage: c = L(lambda n: C[n])
+            sage: Lplus = L(lambda n: p([1]*n), valuation=1)
+            sage: R = c.arithmetic_product(Lplus); R
+            m[1] + (3*m[1,1]+2*m[2]) + (8*m[1,1,1]+4*m[2,1]+2*m[3]) + (42*m[1,1,1,1]+21*m[2,1,1]+12*m[2,2]+7*m[3,1]+3*m[4]) + (144*m[1,1,1,1,1]+72*m[2,1,1,1]+36*m[2,2,1]+24*m[3,1,1]+12*m[3,2]+6*m[4,1]+2*m[5]) + (1440*m[1,1,1,1,1,1]+720*m[2,1,1,1,1]+360*m[2,2,1,1]+184*m[2,2,2]+240*m[3,1,1,1]+120*m[3,2,1]+42*m[3,3]+60*m[4,1,1]+32*m[4,2]+12*m[5,1]+4*m[6]) + O^7
+
+        In particular, the number of regular octopuses is::
+
+            sage: [R[n].coefficient([1]*n) for n in range(8)]
+            [0, 1, 3, 8, 42, 144, 1440, 5760]
+
+        It is shown in [MM]_ that the exponential generating function
+        for regular octopuses satisfies `(C \\boxdot L_{+}) (x) =
+        \\sum_{n \geq 1} \\sigma (n) (n - 1)! \\frac{x^{n}}{n!}`
+        (where `\\sigma (n)` is the sum of the divisors of `n`). ::
+
+            sage: [sum(divisors(i))*factorial(i-1) for i in range(1,8)]
+            [1, 3, 8, 42, 144, 1440, 5760]
+
+        AUTHORS:
+
+        - Andrew Gainer-Dewar (2013)
+
+        REFERENCES:
+
+        .. [MM] \M. Maia and M. Mendez. "On the arithmetic product of combinatorial species".
+           Discrete Mathematics, vol. 308, issue 23, 2008, pp. 5407-5427.
+           :arxiv:`math/0503436v2`.
+
+        """
+        from itertools import product, repeat, chain
+        if len(args) != self.parent()._arity:
+            raise ValueError("arity must be equal to the number of arguments provided")
+        from sage.combinat.sf.sfa import is_SymmetricFunction
+        if not all(isinstance(g, LazySymmetricFunction)
+                   or is_SymmetricFunction(g)
+                   or not g for g in args):
+            raise ValueError("all arguments must be (possibly lazy) symmetric functions")
+
+        if len(args) == 1:
+            g = args[0]
+            P = g.parent()
+            R = P._laurent_poly_ring
+            p = R.realization_of().p()
+            # TODO: does the following introduce a memory leak?
+            g = g.change_ring(p)
+            f = self.change_ring(p)
+
+            if check:
+                assert not f[0]
+                assert not g[0]
+
+            # We first define an operation `\\boxtimes` on partitions as in Lemma 2.1 of [MM]_.
+            def arith_prod_of_partitions(l1, l2):
+                # Given two partitions `l_1` and `l_2`, we construct a new partition `l_1 \\boxtimes l_2` by
+                # the following procedure: each pair of parts `a \\in l_1` and `b \\in l_2` contributes
+                # `\\gcd (a, b)`` parts of size `\\lcm (a, b)` to `l_1 \\boxtimes l_2`. If `l_1` and `l_2`
+                # are partitions of integers `n` and `m`, respectively, then `l_1 \\boxtimes l_2` is a
+                # partition of `nm`.  Finally, we return the corresponding powersum symmetric function.
+                term_iterable = chain.from_iterable(repeat(lcm(pair), gcd(pair))
+                                                    for pair in product(l1, l2))
+                return p(Partition(sorted(term_iterable, reverse=True)))
+
+            # We then extend this to an operation on symmetric functions as per eq. (52) of [MM]_.
+            # (Maia and Mendez, in [MM]_, are talking about polynomials instead of symmetric
+            # functions, but this boils down to the same: Their x_i corresponds to the i-th power
+            # sum symmetric function.)
+            def arith_prod_sf(x, y):
+                return p._apply_multi_module_morphism(x, y, arith_prod_of_partitions)
+
+            # Sage stores cycle index series by degree.
+            # Thus, to compute the arithmetic product `Z_M \\boxdot Z_N` it is useful
+            # to compute all terms of a given degree `n` at once.
+            def coefficient(n):
+                if n == 0:
+                    res = p.zero()
+                else:
+                    index_set = ((d, n // d) for d in divisors(n))
+                    res = sum(arith_prod_sf(f[i], g[j]) for i, j in index_set)
+
                 return res
 
             coeff_stream = Stream_function(coefficient, R, P._sparse, 0)

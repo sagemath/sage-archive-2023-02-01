@@ -52,11 +52,12 @@ An example of a minimal free resolution from [CLO2005]_::
 AUTHORS:
 
 - Kwankyu Lee (2022-05-13): initial version
-
+- Travis Scrimshaw (2022-08-23): refactored for free module inputs
 """
 
 # ****************************************************************************
 #       Copyright (C) 2022 Kwankyu Lee <ekwankyu@gmail.com>
+#                 (C) 2022 Travis Scrimshaw <tcscrims at gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -96,7 +97,7 @@ class FreeResolution(SageObject, metaclass=ClasscallMetaclass):
     homological index `1`.
     """
     @staticmethod
-    def __classcall_private__(cls, module, degrees=None, shifts=None, name='S', **kwds):
+    def __classcall_private__(cls, module, degrees=None, shifts=None, name='S', graded=False, **kwds):
         """
         Dispatch to the correct constructor.
 
@@ -158,9 +159,9 @@ class FreeResolution(SageObject, metaclass=ClasscallMetaclass):
         if not is_free_module:
             from sage.rings.polynomial.multi_polynomial_libsingular import MPolynomialRing_libsingular
             if not isinstance(S, MPolynomialRing_libsingular):
-                raise NotImplementedError("the ring must be a free module or a polynomial ring that can be constructed in Singular")
+                raise NotImplementedError("the module must be a free module or have the base ring be a polynomial ring using Singular")
 
-            if degrees is not None or shifts is not None:
+            if graded or degrees is not None or shifts is not None:
                 # We are computing a graded resolution
                 from sage.homology.graded_resolution import GradedFiniteFreeResolution_singular
                 return GradedFiniteFreeResolution_singular(module, degrees=degrees, shifts=shifts, name=name, **kwds)
@@ -169,7 +170,7 @@ class FreeResolution(SageObject, metaclass=ClasscallMetaclass):
 
         # Otherwise we know it is a free module
 
-        if degrees is not None or shifts is not None:
+        if graded or degrees is not None or shifts is not None:
             # We are computing a graded resolution
             from sage.homology.graded_resolution import GradedFiniteFreeResolution_free_module
             return GradedFiniteFreeResolution_free_module(module, degrees=degrees, shifts=shifts, name=name, **kwds)
@@ -214,10 +215,10 @@ class FreeResolution(SageObject, metaclass=ClasscallMetaclass):
             sage: r = FreeResolution(m1, name='S')
             sage: print(FreeResolution._repr_(r))
             Free resolution with initial map:
-            [z^2 - y*w, y*z - x*w, y^2 - x*z]
+            [z^2 - y*w y*z - x*w y^2 - x*z]
         """
         if isinstance(self._module, Matrix):
-            return f"Free resolution with inital map:\n{self._module}"
+            return f"Free resolution with initial map:\n{self._module}"
         return f"Free resolution of {self._module}"
 
     def _repr_module(self, i):
@@ -674,23 +675,36 @@ class FiniteFreeResolution_free_module(FiniteFreeResolution):
             sage: res._maps
             [[x^4 + 3*x^2 + 2]]
 
-        An overdetermined system over a PID::
-
             sage: from sage.homology.free_resolution import FreeResolution
-            sage: R.<x> = QQ[]
             sage: M = matrix([[x^2, 2],
             ....:             [3*x^2, 5],
             ....:             [5*x^2, 4]])
+            sage: res = FreeResolution(M.transpose())
+            sage: res
+            S^3 <-- S^2 <-- 0
+            sage: res._m()
+            [     1      0]
+            [   5/2   -x^2]
+            [     2 -6*x^2]
+            sage: res._maps
+            [
+            [     1      0]
+            [   5/2   -x^2]
+            [     2 -6*x^2]
+            ]
+
+        An overdetermined system over a PID::
+
             sage: res = FreeResolution(M)
             sage: res
             S^2 <-- S^2 <-- 0
             sage: res._m()
-            [  x^2 3*x^2 5*x^2]
-            [    2     5     4]
+            [x^2   0]
+            [  2  -1]
             sage: res._maps
             [
             [x^2   0]
-            [  0   1]
+            [  2  -1]
             ]
         """
         if isinstance(self._module, Ideal_generic):
@@ -811,7 +825,7 @@ class FiniteFreeResolution_singular(FiniteFreeResolution):
             sage: FreeResolution(Q.ideal([xb]))  # has torsion
             Traceback (most recent call last):
             ...
-            NotImplementedError: the ring must be a free module or a polynomial ring that can be constructed in Singular
+            NotImplementedError: the module must be a free module or have the base ring be a polynomial ring using Singular
         """
         self._algorithm = algorithm
         super().__init__(module, name=name, **kwds)

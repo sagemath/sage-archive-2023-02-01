@@ -7,17 +7,16 @@ such that all maps are homogeneous module homomorphisms.
 
 EXAMPLES::
 
-    sage: from sage.homology.graded_resolution import GradedFiniteFreeResolution_singular
     sage: S.<x,y,z,w> = PolynomialRing(QQ)
     sage: I = S.ideal([y*w - z^2, -x*w + y*z, x*z - y^2])
-    sage: r = GradedFiniteFreeResolution_singular(I, algorithm='minimal')
+    sage: r = I.graded_free_resolution(algorithm='minimal')
     sage: r
     S(0) <-- S(-2)⊕S(-2)⊕S(-2) <-- S(-3)⊕S(-3) <-- 0
-    sage: GradedFiniteFreeResolution_singular(I, algorithm='shreyer')
+    sage: I.graded_free_resolution(algorithm='shreyer')
     S(0) <-- S(-2)⊕S(-2)⊕S(-2) <-- S(-3)⊕S(-3) <-- 0
-    sage: GradedFiniteFreeResolution_singular(I, algorithm='standard')
+    sage: I.graded_free_resolution(algorithm='standard')
     S(0) <-- S(-2)⊕S(-2)⊕S(-2) <-- S(-3)⊕S(-3) <-- 0
-    sage: GradedFiniteFreeResolution_singular(I, algorithm='heuristic')
+    sage: I.graded_free_resolution(algorithm='heuristic')
     S(0) <-- S(-2)⊕S(-2)⊕S(-2) <-- S(-3)⊕S(-3) <-- 0
 
 ::
@@ -39,7 +38,7 @@ EXAMPLES::
     [ y -z  w]
     [ x -y  z]
     sage: m = d.image()
-    sage: GradedFiniteFreeResolution_singular(m, shifts=(2,2,2))
+    sage: m.graded_free_resolution(shifts=(2,2,2))
     S(-2)⊕S(-2)⊕S(-2) <-- S(-3)⊕S(-3) <-- 0
 
 An example of multigraded resolution from Example 9.1 of [MilStu2005]_::
@@ -51,7 +50,7 @@ An example of multigraded resolution from Example 9.1 of [MilStu2005]_::
     Ideal (c^2 - b*d, b*c - a*d, b^2 - a*c) of Multivariate Polynomial Ring in a, b, c, d over Rational Field
     sage: P3 = ProjectiveSpace(S)
     sage: C = P3.subscheme(I)  # twisted cubic curve
-    sage: r = GradedFiniteFreeResolution_singular(I, degrees=[(1,0), (1,1), (1,2), (1,3)])
+    sage: r = I.graded_free_resolution(degrees=[(1,0), (1,1), (1,2), (1,3)])
     sage: r
     S((0, 0)) <-- S((-2, -4))⊕S((-2, -3))⊕S((-2, -2)) <-- S((-3, -5))⊕S((-3, -4)) <-- 0
     sage: r.K_polynomial(names='s,t')
@@ -60,11 +59,12 @@ An example of multigraded resolution from Example 9.1 of [MilStu2005]_::
 AUTHORS:
 
 - Kwankyu Lee (2022-05): initial version
-
+- Travis Scrimshaw (2022-08-23): refactored for free module inputs
 """
 
 # ****************************************************************************
 #       Copyright (C) 2022 Kwankyu Lee <ekwankyu@gmail.com>
+#                 (C) 2022 Travis Scrimshaw <tcscrims at gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -112,19 +112,18 @@ class GradedFiniteFreeResolution(FiniteFreeResolution):
 
         TESTS::
 
-            sage: from sage.homology.graded_resolution import GradedFiniteFreeResolution_singular
             sage: S.<x,y,z,w> = PolynomialRing(QQ)
             sage: I = S.ideal([y*w - z^2, -x*w + y*z, x*z - y^2])
-            sage: r = GradedFiniteFreeResolution_singular(I)
+            sage: r = I.graded_free_resolution()
             sage: TestSuite(r).run(skip=['_test_pickling'])
 
         An overdetermined system over a PID::
 
-            sage: from sage.homology.graded_resolution import GradedFiniteFreeResolution_free_module
+            sage: from sage.homology.free_resolution import FreeResolution
             sage: M = matrix([[x^2, 2],
             ....:             [3*x^2, 5],
             ....:             [5*x^2, 4]])
-            sage: res = GradedFiniteFreeResolution_free_module(M)
+            sage: res = FreeResolution(M, graded=True)
             sage: res
             S(0)⊕S(0) <-- S(-2)⊕S(0) <-- 0
             sage: res._res_shifts
@@ -167,10 +166,9 @@ class GradedFiniteFreeResolution(FiniteFreeResolution):
         """
         EXAMPLES::
 
-            sage: from sage.homology.graded_resolution import GradedFiniteFreeResolution_singular
             sage: S.<x,y,z,w> = PolynomialRing(QQ)
             sage: I = S.ideal([y*w - z^2, -x*w + y*z, x*z - y^2])
-            sage: r = GradedFiniteFreeResolution_singular(I)
+            sage: r = I.graded_free_resolution()
             sage: r._repr_module(0)
             'S(0)'
             sage: r._repr_module(1)
@@ -180,7 +178,7 @@ class GradedFiniteFreeResolution(FiniteFreeResolution):
             sage: r._repr_module(3)
             '0'
 
-            sage: r = GradedFiniteFreeResolution_singular(I, shifts=[-1])
+            sage: r = I.graded_free_resolution(shifts=[-1])
             sage: r._repr_module(0)
             'S(1)'
         """
@@ -199,15 +197,14 @@ class GradedFiniteFreeResolution(FiniteFreeResolution):
                              for sh in shifts)
 
     def shifts(self, i):
-        """
+        r"""
         Return the shifts of ``self``.
 
         EXAMPLES::
 
-            sage: from sage.homology.graded_resolution import GradedFiniteFreeResolution_singular
             sage: S.<x,y,z,w> = PolynomialRing(QQ)
             sage: I = S.ideal([y*w - z^2, -x*w + y*z, x*z - y^2])
-            sage: r = GradedFiniteFreeResolution_singular(I)
+            sage: r = I.graded_free_resolution()
             sage: r.shifts(0)
             [0]
             sage: r.shifts(1)
@@ -241,10 +238,9 @@ class GradedFiniteFreeResolution(FiniteFreeResolution):
 
         EXAMPLES::
 
-            sage: from sage.homology.graded_resolution import GradedFiniteFreeResolution_singular
             sage: S.<x,y,z,w> = PolynomialRing(QQ)
             sage: I = S.ideal([y*w - z^2, -x*w + y*z, x*z - y^2])
-            sage: r = GradedFiniteFreeResolution_singular(I)
+            sage: r = I.graded_free_resolution()
             sage: r.betti(0)
             {0: 1}
             sage: r.betti(1)
@@ -285,10 +281,9 @@ class GradedFiniteFreeResolution(FiniteFreeResolution):
 
         EXAMPLES::
 
-            sage: from sage.homology.graded_resolution import GradedFiniteFreeResolution_singular
             sage: S.<x,y,z,w> = PolynomialRing(QQ)
             sage: I = S.ideal([y*w - z^2, -x*w + y*z, x*z - y^2])
-            sage: r = GradedFiniteFreeResolution_singular(I)
+            sage: r = I.graded_free_resolution()
             sage: r.K_polynomial()
             2*t^3 - 3*t^2 + 1
         """
@@ -325,18 +320,18 @@ class GradedFiniteFreeResolution_free_module(GradedFiniteFreeResolution, FiniteF
 
     EXAMPLES::
 
-        sage: from sage.homology.graded_resolution import GradedFiniteFreeResolution_free_module
+        sage: from sage.homology.free_resolution import FreeResolution
         sage: R.<x> = QQ[]
         sage: M = matrix([[x^3, 3*x^3, 5*x^3],
         ....:             [0, x, 2*x]])
-        sage: res = GradedFiniteFreeResolution_free_module(M)
+        sage: res = FreeResolution(M, graded=True)
         sage: res
         S(0)⊕S(0)⊕S(0) <-- S(-3)⊕S(-1) <-- 0
 
         sage: M = matrix([[x^2, 2],
         ....:             [3*x^2, 5],
         ....:             [5*x^2, 4]])
-        sage: res = GradedFiniteFreeResolution_free_module(M)
+        sage: res = FreeResolution(M, graded=True)
         sage: res
         S(0)⊕S(0) <-- S(-2)⊕S(0) <-- 0
     """
@@ -346,11 +341,11 @@ class GradedFiniteFreeResolution_free_module(GradedFiniteFreeResolution, FiniteF
 
         EXAMPLES::
 
-            sage: from sage.homology.graded_resolution import GradedFiniteFreeResolution_free_module
+            sage: from sage.homology.free_resolution import FreeResolution
             sage: R.<x> = QQ[]
             sage: M = matrix([[x^3, 3*x^3, 5*x^3],
             ....:             [0, x, 2*x]])
-            sage: res = GradedFiniteFreeResolution_free_module(M)
+            sage: res = FreeResolution(M, graded=True)
             sage: TestSuite(res).run(skip="_test_pickling")
         """
         super().__init__(module, degrees=degrees, *args, **kwds)
@@ -367,11 +362,11 @@ class GradedFiniteFreeResolution_free_module(GradedFiniteFreeResolution, FiniteF
 
         TESTS::
 
-            sage: from sage.homology.graded_resolution import GradedFiniteFreeResolution_free_module
+            sage: from sage.homology.free_resolution import FreeResolution
             sage: R.<x> = QQ[]
             sage: M = matrix([[x^3, 3*x^3, 5*x^3],
             ....:             [0, x, 2*x]])
-            sage: res = GradedFiniteFreeResolution_free_module(M)
+            sage: res = FreeResolution(M, graded=True)
             sage: res
             S(0)⊕S(0)⊕S(0) <-- S(-3)⊕S(-1) <-- 0
             sage: res._maps
@@ -386,8 +381,12 @@ class GradedFiniteFreeResolution_free_module(GradedFiniteFreeResolution, FiniteF
             sage: M = matrix([[x^2, 2],
             ....:             [3*x^2, 5],
             ....:             [5*x^2, 4]])
-            sage: res = GradedFiniteFreeResolution_free_module(M)
+            sage: res = FreeResolution(M, graded=True)
             sage: res._maps
+            [
+            [x^2   0]
+            [  2  -1]
+            ]
             sage: res._res_shifts
             [[2, 0]]
 
@@ -400,6 +399,7 @@ class GradedFiniteFreeResolution_free_module(GradedFiniteFreeResolution, FiniteF
             sage: res._res_shifts
             [[9]]
         """
+
         def compute_degree(base, i):
             """
             Compute the degree by ``base * deg + shift``,
@@ -486,10 +486,9 @@ class GradedFiniteFreeResolution_singular(GradedFiniteFreeResolution, FiniteFree
 
     EXAMPLES::
 
-        sage: from sage.homology.graded_resolution import GradedFiniteFreeResolution_singular
         sage: S.<x,y,z,w> = PolynomialRing(QQ)
         sage: I = S.ideal([y*w - z^2, -x*w + y*z, x*z - y^2])
-        sage: r = GradedFiniteFreeResolution_singular(I)
+        sage: r = I.graded_free_resolution()
         sage: r
         S(0) <-- S(-2)⊕S(-2)⊕S(-2) <-- S(-3)⊕S(-3) <-- 0
         sage: len(r)
@@ -498,8 +497,8 @@ class GradedFiniteFreeResolution_singular(GradedFiniteFreeResolution, FiniteFree
         sage: I = S.ideal([z^2 - y*w, y*z - x*w, y - x])
         sage: I.is_homogeneous()
         True
-        sage: R = GradedFiniteFreeResolution_singular(I)
-        sage: R
+        sage: r = I.graded_free_resolution()
+        sage: r
         S(0) <-- S(-1)⊕S(-2)⊕S(-2) <-- S(-3)⊕S(-3)⊕S(-4) <-- S(-5) <-- 0
     """
     def __init__(self, module, degrees=None, shifts=None, name='S', algorithm='heuristic', **kwds):
@@ -508,22 +507,10 @@ class GradedFiniteFreeResolution_singular(GradedFiniteFreeResolution, FiniteFree
 
         TESTS::
 
-            sage: from sage.homology.graded_resolution import GradedFiniteFreeResolution_singular
             sage: S.<x,y,z,w> = PolynomialRing(QQ)
             sage: I = S.ideal([y*w - z^2, -x*w + y*z, x*z - y^2])
-            sage: r = GradedFiniteFreeResolution_singular(I)
+            sage: r = I.graded_free_resolution()
             sage: TestSuite(r).run(skip=['_test_pickling'])
-
-        An overdetermined system over a PID::
-
-            sage: M = matrix([[x^2, 2],
-            ....:             [3*x^2, 5],
-            ....:             [5*x^2, 4]])
-            sage: res = GradedFiniteFreeResolution_singular(M)
-            sage: res
-            S(0)⊕S(0) <-- S(-2)⊕S(0) <-- 0
-            sage: res._res_shifts
-            [[2, 0]]
         """
         super().__init__(module, degrees=degrees, shifts=shifts, name=name, **kwds)
         self._algorithm = algorithm
@@ -537,10 +524,9 @@ class GradedFiniteFreeResolution_singular(GradedFiniteFreeResolution, FiniteFree
 
         TESTS::
 
-            sage: from sage.homology.graded_resolution import GradedFiniteFreeResolution_singular
             sage: S.<x,y,z,w> = PolynomialRing(QQ)
             sage: I = S.ideal([y*w - z^2, -x*w + y*z, x*z - y^2])
-            sage: r = GradedFiniteFreeResolution_singular(I)
+            sage: r = I.graded_free_resolution()
             sage: r._maps
             [
                                              [-y  x]

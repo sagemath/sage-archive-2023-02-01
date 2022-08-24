@@ -7,15 +7,17 @@
 export PATH="$(pwd)/build/bin:$PATH"
 
 STRIP_COMMENTS="sed s/#.*//;"
-RECOMMENDED_SPKG_PATTERN="@(_recommended$(for a in $(head -n 1 build/pkgs/_recommended/dependencies); do echo -n "|"$a; done))"
-DEVELOP_SPKG_PATTERN="git_trac_command"
+
+shopt -s extglob
+
+DEVELOP_SPKG_PATTERN="@(_develop$(for a in $(head -n 1 build/pkgs/_develop/dependencies); do echo -n "|"$a; done))"
 
 BOOTSTRAP_PACKAGES=$(echo $(${STRIP_COMMENTS} build/pkgs/_bootstrap/distros/conda.txt))
 SYSTEM_PACKAGES=
 OPTIONAL_SYSTEM_PACKAGES=
 SAGELIB_SYSTEM_PACKAGES=
 SAGELIB_OPTIONAL_SYSTEM_PACKAGES=
-RECOMMENDED_SYSTEM_PACKAGES=
+DEVELOP_SYSTEM_PACKAGES=
 for PKG_BASE in $(sage-package list --has-file distros/conda.txt); do
     PKG_SCRIPTS=build/pkgs/$PKG_BASE
     SYSTEM_PACKAGES_FILE=$PKG_SCRIPTS/distros/conda.txt
@@ -27,8 +29,8 @@ for PKG_BASE in $(sage-package list --has-file distros/conda.txt); do
                 *:standard)
                     SYSTEM_PACKAGES+=" $PKG_SYSTEM_PACKAGES"
                     ;;
-                $RECOMMENDED_SPKG_PATTERN:*)
-                    RECOMMENDED_SYSTEM_PACKAGES+=" $PKG_SYSTEM_PACKAGES"
+                $DEVELOP_SPKG_PATTERN:*)
+                    DEVELOP_SYSTEM_PACKAGES+=" $PKG_SYSTEM_PACKAGES"
                     ;;
                 *)
                     OPTIONAL_SYSTEM_PACKAGES+=" $PKG_SYSTEM_PACKAGES"
@@ -70,7 +72,6 @@ echo >&2 $0:$LINENO: generate conda environment files
     done
 ) > src/environment.yml
 
-DEVELOP_SYSTEM_PACKAGES="openssh pycodestyle pytest"
 (
     sed 's/name: sage/name: sage-dev/' src/environment.yml
     echo "  # Additional dev tools"

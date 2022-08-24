@@ -118,6 +118,9 @@ from sage.structure.element import Element, parent
 from sage.structure.richcmp import op_EQ, op_NE
 from sage.functions.other import factorial
 from sage.arith.power import generic_power
+from sage.arith.functions import lcm
+from sage.arith.misc import divisors, moebius
+from sage.combinat.partition import Partition, Partitions
 from sage.misc.misc_c import prod
 from sage.misc.derivative import derivative_parse
 from sage.rings.infinity import infinity
@@ -3990,6 +3993,7 @@ class LazySymmetricFunction(LazyCauchyProductSeries):
         raise ValueError("compositional inverse does not exist")
 
     plethystic_inverse = revert
+
     compositional_inverse = revert
 
     def derivative_with_respect_to_p1(self, n=1):
@@ -4045,10 +4049,110 @@ class LazySymmetricFunction(LazyCauchyProductSeries):
         if P._arity != 1:
             raise ValueError("arity must be equal to 1")
 
-        coeff_stream = Stream_shift(Stream_map_coefficients(self._coeff_stream,
-                                                            lambda c: c.derivative_with_respect_to_p1(n),
-                                                            P._laurent_poly_ring),
-                                    -n)
+        coeff_stream = Stream_map_coefficients(self._coeff_stream,
+                                               lambda c: c.derivative_with_respect_to_p1(n),
+                                               P._laurent_poly_ring)
+        coeff_stream = Stream_shift(coeff_stream, -n)
+        return P.element_class(P, coeff_stream)
+
+    def functorial_composition(self, *args):
+        r"""Returns the functorial composition of ``self`` and ``g``.
+
+        If `F` and `G` are species, their functorial composition is the species
+        `F \Box G` obtained by setting `(F \Box G) [A] = F[ G[A] ]`.
+        In other words, an `(F \Box G)`-structure on a set `A` of labels is an
+        `F`-structure whose labels are the set of all `G`-structures on `A`.
+
+        It can be shown (as in section 2.2 of [BLL]_) that there is a
+        corresponding operation on cycle indices:
+
+        .. MATH::
+
+            Z_{F} \Box Z_{G} = \sum_{n \geq 0} \frac{1}{n!}
+            \sum_{\sigma \in \mathfrak{S}_{n}}
+            \operatorname{fix} F[ (G[\sigma])_{1}, (G[\sigma])_{2}, \ldots ]
+            \, p_{1}^{\sigma_{1}} p_{2}^{\sigma_{2}} \cdots.
+
+        This method implements that operation on cycle index series.
+
+        EXAMPLES:
+
+        The species `G` of simple graphs can be expressed in terms of a functorial
+        composition: `G = \mathfrak{p} \Box \mathfrak{p}_{2}`, where
+        `\mathfrak{p}` is the :class:`~sage.combinat.species.subset_species.SubsetSpecies`.::
+
+            sage: R.<q> = QQ[]
+            sage: h = SymmetricFunctions(R).h()
+            sage: m = SymmetricFunctions(R).m()
+            sage: L = LazySymmetricFunctions(m)
+            sage: P = L(lambda n: sum(q^k*h[n-k]*h[k] for k in range(n+1)))
+            sage: P2 = L(lambda n: h[2]*h[n-2], valuation=2)
+            sage: P.functorial_composition(P2)[:4]
+            [m[],
+             m[1],
+             (q+1)*m[1, 1] + (q+1)*m[2],
+             (q^3+3*q^2+3*q+1)*m[1, 1, 1] + (q^3+2*q^2+2*q+1)*m[2, 1] + (q^3+q^2+q+1)*m[3]]
+
+        For example, there are::
+
+            sage: P.functorial_composition(P2)[4].coefficient([4])[3]
+            3
+
+        unlabelled graphs on 4 vertices and 3 edges, and::
+
+            sage: P.functorial_composition(P2)[4].coefficient([2,2])[3]
+            8
+
+        labellings of their vertices with two 1's and two 2's.
+        """
+        if len(args) != self.parent()._arity:
+            raise ValueError("arity must be equal to the number of arguments provided")
+        from sage.combinat.sf.sfa import is_SymmetricFunction
+        if not all(isinstance(g, LazySymmetricFunction)
+                   or is_SymmetricFunction(g)
+                   or not g for g in args):
+            raise ValueError("all arguments must be (possibly lazy) symmetric functions")
+
+        if len(args) == 1:
+            g = args[0]
+            P = g.parent()
+            R = P._laurent_poly_ring
+            p = R.realization_of().p()
+            # TODO: does the following introduce a memory leak?
+            g = g.change_ring(p)
+            f = self.change_ring(p)
+
+            def g_cycle_type(s):
+                if not s:
+                    return Partition([g[0].coefficient([])])
+                res = []
+                # in the species case, k is at most
+                # factorial(n) * g[n].coefficient([1]*n) with n = sum(s)
+                for k in range(1, lcm(s) + 1):
+                    e = 0
+                    for d in divisors(k):
+                        m = moebius(d)
+                        if m == 0:
+                            continue
+                        u = s.power(k/d)
+                        e += m * u.aut() * g[u.size()].coefficient(u)
+                    res.extend([k] * ZZ(e/k))
+                res.reverse()
+                return Partition(res)
+
+            def coefficient(n):
+                res = p(0)
+                for s in Partitions(n):
+                    t = g_cycle_type(s)
+                    q = t.aut() * f[t.size()].coefficient(t) / s.aut()
+                    res += q * p(s)
+                return res
+
+            coeff_stream = Stream_function(coefficient, R, P._sparse, 0)
+
+        else:
+            raise NotImplementedError("only implemented for arity 1")
+
         return P.element_class(P, coeff_stream)
 
 

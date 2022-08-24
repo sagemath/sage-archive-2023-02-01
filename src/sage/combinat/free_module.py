@@ -475,6 +475,9 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
         c = super().construction()
         if c is not None:
             return c
+        if self.__class__.__base__ != CombinatorialFreeModule:
+            # The construction is not suitable for subclasses
+            return None
         from sage.categories.pushout import VectorFunctor
         return VectorFunctor(None, True, None, with_basis='standard',
                              basis_keys=self.basis().keys()), self.base_ring()

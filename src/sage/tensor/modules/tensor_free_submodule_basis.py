@@ -48,6 +48,9 @@ class TensorFreeSubmoduleBasis_comp(Basis_abstract):
     def keys(self):
         yield from self._comp.non_redundant_index_generator()
 
+    def values(self):
+        yield from self
+
     def __iter__(self):
         r"""
         Generate the basis elements of ``self``.

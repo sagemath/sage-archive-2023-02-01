@@ -3377,7 +3377,7 @@ class Permutation(CombinatorialElement):
 
         INPUT:
 
-        - ``composition`` -- a composition of :meth:`size`
+        - ``composition`` -- a composition of the :meth:`size` of this permutation
 
         EXAMPLES::
 
@@ -3390,6 +3390,13 @@ class Permutation(CombinatorialElement):
             [0, 0, 0, 0, 0, 0, 0]
             sage: Permutation([]).multi_major_index([])
             []
+
+        TESTS::
+
+            sage: p.multi_major_index([1, 3, 3, 7])
+            Traceback (most recent call last):
+            ...
+            ValueError: size of the composition should be equal to size of the permutation
 
         REFERENCES:
 

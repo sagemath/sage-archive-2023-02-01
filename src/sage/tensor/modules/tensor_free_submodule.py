@@ -78,7 +78,8 @@ class TensorFreeSubmodule_comp(TensorFreeModule):
     @cached_method
     def _basis_comp(self):
         frame = tuple(self.base_module().irange())
-        tensor = self.ambient()(sym=self._sym, antisym=self._antisym)
+        # Need to call _element_constructor_ explicitly, or the passed arguments are dropped
+        tensor = self.ambient()._element_constructor_(sym=self._sym, antisym=self._antisym)
         return tensor._new_comp(frame)
 
     def _repr_(self):

@@ -216,7 +216,9 @@ from sage.functions.hyperbolic import sinh, cosh
 from sage.functions.trig import sin, cos
 from sage.libs.mpmath import utils as mpmath_utils
 from sage.misc.latex import latex
-from sage.rings.all import Integer, ZZ, QQ
+from sage.rings.integer import Integer
+from sage.rings.integer_ring import ZZ
+from sage.rings.rational_field import QQ
 from sage.structure.element import get_coercion_model
 from sage.symbolic.constants import pi
 from sage.symbolic.ring import SR

@@ -407,7 +407,9 @@ class GenericSymbolicSubring(SymbolicRing):
             # Workaround; can be deleted once #19231 is fixed
             return False
 
-        from sage.rings.all import RLF, CLF, AA, QQbar, InfinityRing
+        from sage.rings.infinity import InfinityRing
+        from sage.rings.qqbar import AA, QQbar
+        from sage.rings.real_lazy import RLF, CLF
 
         if isinstance(P, type):
             return SR._coerce_map_from_(P)

@@ -1782,7 +1782,7 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic, ProjectivePlaneCurv
 
         from warnings import warn
         from sage.graphs.graph import DiGraph, Graph
-        from sage.matrix.all import Matrix
+        from sage.matrix.constructor import Matrix
 
         # warn users if things are getting big
         if l == 2:

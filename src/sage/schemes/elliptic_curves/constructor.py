@@ -1065,7 +1065,7 @@ def EllipticCurve_from_cubic(F, P=None, morphism=True):
                 (-1/3*z : 3*x : -1/1008*x + 1/1008*y + 1/378*z)
     """
     from sage.schemes.curves.constructor import Curve
-    from sage.matrix.all import Matrix
+    from sage.matrix.constructor import Matrix
     from sage.schemes.elliptic_curves.weierstrass_transform import \
         WeierstrassTransformationWithInverse
 

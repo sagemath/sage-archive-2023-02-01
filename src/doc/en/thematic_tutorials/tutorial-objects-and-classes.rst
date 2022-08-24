@@ -220,7 +220,7 @@ In Python, everything is an object so there isn't any difference between types
 and classes. One can get the class of the object ``el`` by::
 
     sage: type(el)
-    <class 'sage.combinat.free_module.CombinatorialFreeModule_with_construction_with_category.element_class'>
+    <class 'sage.combinat.free_module.CombinatorialFreeModule_with_category.element_class'>
 
 As such, this is not very informative. We'll come back to it later. The data
 associated to objects are stored in so-called **attributes**. They are

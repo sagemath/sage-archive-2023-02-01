@@ -4247,8 +4247,8 @@ class LazySymmetricFunction(LazyCauchyProductSeries):
             R = P._laurent_poly_ring
             p = R.realization_of().p()
             # TODO: does the following introduce a memory leak?
-            g = g.change_ring(p)
-            f = self.change_ring(p)
+            g = Stream_map_coefficients(g._coeff_stream, lambda x: x, p)
+            f = Stream_map_coefficients(self._coeff_stream, lambda x: x, p)
 
             if check:
                 assert not f[0]

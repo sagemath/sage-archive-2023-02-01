@@ -57,7 +57,6 @@ with the simple command::
 We reproduce the same, but by deriving a subclass of
 :class:`CombinatorialFreeModule`::
 
-    sage: from sage.combinat.free_module import CombinatorialFreeModule
     sage: class MyCyclicGroupModule(CombinatorialFreeModule):
     ....:     """An absolutely minimal implementation of a module whose basis is a cyclic group"""
     ....:     def __init__(self, R, n, *args, **kwargs):

@@ -64,10 +64,8 @@ class TensorFreeSubmodule_comp(TensorFreeModule):
         if ambient is None:
             ambient = fmodule.tensor_module(*tensor_type)
         self._ambient_module = ambient
-        # Create a tensor only because we need a Components object
-        tensor = fmodule.tensor(tensor_type,
-                                name=name, latex_name=latex_name,
-                                sym=sym, antisym=antisym)
+        self._sym = sym
+        self._antisym = antisym
         rank = len(list(self.irange()))
         category = fmodule.category().TensorProducts().FiniteDimensional().Subobjects().or_subcategory(category)
         # Skip TensorFreeModule.__init__
@@ -76,6 +74,12 @@ class TensorFreeSubmodule_comp(TensorFreeModule):
                                       start_index=fmodule._sindex,
                                       output_formatter=fmodule._output_formatter,
                                       ambient=ambient, category=category)
+
+    @cached_method
+    def _basis_comp(self):
+        frame = tuple(self.base_module().irange())
+        tensor = self.ambient()(sym=self._sym, antisym=self._antisym)
+        return tensor._new_comp(frame)
 
     def _repr_(self):
         r"""

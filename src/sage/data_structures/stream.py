@@ -97,6 +97,7 @@ AUTHORS:
 from sage.rings.integer_ring import ZZ
 from sage.rings.infinity import infinity
 from sage.arith.misc import divisors
+from sage.misc.misc_c import prod
 from sage.combinat.integer_vector_weighted import iterator_fast as wt_int_vec_iter
 
 class Stream():
@@ -2347,7 +2348,7 @@ class Stream_shift(Stream_inexact):
             sage: from sage.data_structures.stream import Stream_exact
             sage: h = Stream_exact([1], False, constant=3)
             sage: M = Stream_shift(h, 2)
-            sage: TestSuite(M).run()
+            sage: TestSuite(M).run(skip="_test_pickling")
         """
         self._series = series
         self._shift = shift
@@ -2421,6 +2422,116 @@ class Stream_shift(Stream_inexact):
             sage: f = Stream_function(lambda n: n^2, ZZ, False, 1)
             sage: g = Stream_cauchy_invert(f)
             sage: g.is_nonzero()
+            True
+        """
+        return self._series.is_nonzero()
+
+class Stream_derivative(Stream_inexact):
+    """
+    Operator for taking derivatives of a stream.
+
+    INPUT:
+
+    - ``series`` -- a :class:`Stream`
+    - ``shift`` -- a positive integer
+    """
+    def __init__(self, series, shift):
+        """
+        Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.data_structures.stream import Stream_exact, Stream_derivative
+            sage: f = Stream_exact([1,2,3], False)
+            sage: f2 = Stream_derivative(f, 2)
+            sage: TestSuite(f2).run()
+        """
+        self._series = series
+        self._shift = shift
+        if 0 <= series._approximate_order <= shift:
+            aorder = 0
+        else:
+            aorder = series._approximate_order - shift
+        super().__init__(series._is_sparse, aorder)
+
+    def __getitem__(self, n):
+        """
+        Return the ``n``-th coefficient of ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.data_structures.stream import Stream_function, Stream_derivative
+            sage: f = Stream_function(lambda n: 1/n if n else 0, QQ, True, -2)
+            sage: [f[i] for i in range(-5, 3)]
+            [0, 0, 0, -1/2, -1, 0, 1, 1/2]
+            sage: f2 = Stream_derivative(f, 2)
+            sage: [f2[i] for i in range(-5, 3)]
+            [0, -3, -2, 0, 0, 1, 2, 3]
+
+            sage: f = Stream_function(lambda n: 1/n, QQ, True, 2)
+            sage: [f[i] for i in range(-1, 4)]
+            [0, 0, 0, 1/2, 1/3]
+            sage: f2 = Stream_derivative(f, 3)
+            sage: [f2[i] for i in range(-1, 4)]
+            [0, 2, 6, 12, 20]
+        """
+        return (prod(n+k for k in range(1, self._shift + 1))
+                * self._series[n + self._shift])
+
+    def __hash__(self):
+        """
+        Return the hash of ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.data_structures.stream import Stream_function
+            sage: from sage.data_structures.stream import Stream_derivative
+            sage: a = Stream_function(lambda n: 2*n, ZZ, False, 1)
+            sage: f = Stream_derivative(a, 1)
+            sage: g = Stream_derivative(a, 2)
+            sage: hash(f) == hash(f)
+            True
+            sage: hash(f) == hash(g)
+            False
+
+        """
+        return hash((type(self), self._series, self._shift))
+
+    def __eq__(self, other):
+        """
+        Test equality.
+
+        INPUT:
+
+        - ``other`` -- a stream of coefficients
+
+        EXAMPLES::
+
+            sage: from sage.data_structures.stream import Stream_function
+            sage: from sage.data_structures.stream import Stream_derivative
+            sage: a = Stream_function(lambda n: 2*n, ZZ, False, 1)
+            sage: f = Stream_derivative(a, 1)
+            sage: g = Stream_derivative(a, 2)
+            sage: f == g
+            False
+            sage: f == Stream_derivative(a, 1)
+            True
+        """
+        return (isinstance(other, type(self)) and self._shift == other._shift
+                and self._series == other._series)
+
+    def is_nonzero(self):
+        r"""
+        Return ``True`` if and only if this stream is known
+        to be nonzero.
+
+        EXAMPLES::
+
+            sage: from sage.data_structures.stream import Stream_exact, Stream_derivative
+            sage: f = Stream_exact([1,2], False)
+            sage: Stream_derivative(f, 1).is_nonzero()
+            True
+            sage: Stream_derivative(f, 2).is_nonzero() # it might be nice if this gave False
             True
         """
         return self._series.is_nonzero()

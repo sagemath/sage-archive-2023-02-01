@@ -118,6 +118,11 @@ from sage.structure.element import Element, parent
 from sage.structure.richcmp import op_EQ, op_NE
 from sage.functions.other import factorial
 from sage.arith.power import generic_power
+from sage.arith.functions import lcm
+from sage.arith.misc import divisors, moebius, gcd
+from sage.combinat.partition import Partition, Partitions
+from sage.misc.misc_c import prod
+from sage.misc.derivative import derivative_parse
 from sage.rings.infinity import infinity
 from sage.rings.integer_ring import ZZ
 from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
@@ -137,6 +142,7 @@ from sage.data_structures.stream import (
     Stream_uninitialized,
     Stream_shift,
     Stream_function,
+    Stream_derivative,
     Stream_dirichlet_convolve,
     Stream_dirichlet_invert,
     Stream_plethysm
@@ -323,10 +329,10 @@ class LazyModuleElement(Element):
             if not any(initial_coefficients) and not c:
                 return P.zero()
             coeff_stream = Stream_exact(initial_coefficients,
-                                                   self._coeff_stream._is_sparse,
-                                                   order=coeff_stream._approximate_order,
-                                                   degree=coeff_stream._degree,
-                                                   constant=BR(c))
+                                        self._coeff_stream._is_sparse,
+                                        order=coeff_stream._approximate_order,
+                                        degree=coeff_stream._degree,
+                                        constant=BR(c))
             return P.element_class(P, coeff_stream)
         R = P._internal_poly_ring.base_ring()
         coeff_stream = Stream_map_coefficients(self._coeff_stream, func, R)
@@ -3081,6 +3087,83 @@ class LazyLaurentSeries(LazyCauchyProductSeries):
 
     compositional_inverse = revert
 
+    def derivative(self, *args):
+        """
+        Return the derivative of the Laurent series.
+
+        INPUT:
+
+        EXAMPLES::
+
+            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
+            sage: z.derivative()
+            1
+            sage: (1+z+z^2).derivative(3)
+            0
+            sage: (1/z).derivative()
+            -z^-2
+            sage: (1/(1-z)).derivative(z)
+            1 + 2*z + 3*z^2 + 4*z^3 + 5*z^4 + 6*z^5 + 7*z^6 + O(z^7)
+
+        TESTS::
+
+            sage: R.<q> = QQ[]
+            sage: L.<z> = LazyLaurentSeriesRing(R)
+            sage: (z*q).derivative()
+            q
+
+            sage: (z*q).derivative(q)
+            z
+
+            sage: (z*q).derivative(q, z)
+            1
+
+            sage: f = 1/(1-q*z+z^2)
+            sage: f
+            1 + q*z + (q^2 - 1)*z^2 + (q^3 - 2*q)*z^3 + (q^4 - 3*q^2 + 1)*z^4 + (q^5 - 4*q^3 + 3*q)*z^5 + (q^6 - 5*q^4 + 6*q^2 - 1)*z^6 + O(z^7)
+            sage: f.derivative(q)[3]
+            3*q^2 - 2
+
+        """
+        P = self.parent()
+        R = P._laurent_poly_ring
+        v = R.gen()
+        order = 0
+        vars = []
+        for x in derivative_parse(args):
+            if x is None or x == v:
+                order += 1
+            else:
+                vars.append(x)
+
+        coeff_stream = self._coeff_stream
+        if isinstance(coeff_stream, Stream_zero):
+            return self
+        if (isinstance(coeff_stream, Stream_exact)
+            and not coeff_stream._constant):
+            if coeff_stream._approximate_order >= 0 and coeff_stream._degree <= order:
+                return P.zero()
+            if vars:
+                coeffs = [prod(i-k for k in range(order)) * c.derivative(vars)
+                          for i, c in enumerate(coeff_stream._initial_coefficients,
+                                                coeff_stream._approximate_order)]
+            else:
+                coeffs = [prod(i-k for k in range(order)) * c
+                          for i, c in enumerate(coeff_stream._initial_coefficients,
+                                                coeff_stream._approximate_order)]
+            coeff_stream = Stream_exact(coeffs,
+                                        self._coeff_stream._is_sparse,
+                                        order=coeff_stream._approximate_order - order,
+                                        constant=coeff_stream._constant)
+            return P.element_class(P, coeff_stream)
+
+        coeff_stream = Stream_derivative(self._coeff_stream, order)
+        if vars:
+            coeff_stream = Stream_map_coefficients(coeff_stream,
+                                                   lambda c: c.derivative(vars),
+                                                   R)
+        return P.element_class(P, coeff_stream)
+
     def approximate_series(self, prec, name=None):
         r"""
         Return the Laurent series with absolute precision ``prec`` approximated
@@ -3397,7 +3480,7 @@ class LazyTaylorSeries(LazyCauchyProductSeries):
             TypeError: no common canonical parent for objects with parents: ...
 
         """
-        if len(g) != len(self.parent().variable_names()):
+        if len(g) != self.parent()._arity:
             raise ValueError("arity of must be equal to the number of arguments provided")
 
         # Find a good parent for the result
@@ -3485,6 +3568,85 @@ class LazyTaylorSeries(LazyCauchyProductSeries):
         return P.element_class(P, coeff_stream)
 
     compose = __call__
+
+    def derivative(self, *args):
+        """
+        Return the derivative of the Taylor series.
+
+        INPUT:
+
+        EXAMPLES::
+
+            sage: T.<z> = LazyTaylorSeriesRing(ZZ)
+            sage: z.derivative()
+            1
+            sage: (1+z+z^2).derivative(3)
+            0
+            sage: (1/(1-z)).derivative()
+            1 + 2*z + 3*z^2 + 4*z^3 + 5*z^4 + 6*z^5 + 7*z^6 + O(z^7)
+
+            sage: R.<q> = QQ[]
+            sage: L.<x, y> = LazyTaylorSeriesRing(R)
+            sage: f = 1/(1-q*x+y); f
+            1 + (q*x-y) + (q^2*x^2+(-2*q)*x*y+y^2) + (q^3*x^3+(-3*q^2)*x^2*y+3*q*x*y^2-y^3) + (q^4*x^4+(-4*q^3)*x^3*y+6*q^2*x^2*y^2+(-4*q)*x*y^3+y^4) + (q^5*x^5+(-5*q^4)*x^4*y+10*q^3*x^3*y^2+(-10*q^2)*x^2*y^3+5*q*x*y^4-y^5) + (q^6*x^6+(-6*q^5)*x^5*y+15*q^4*x^4*y^2+(-20*q^3)*x^3*y^3+15*q^2*x^2*y^4+(-6*q)*x*y^5+y^6) + O(x,y)^7
+            sage: f.derivative(q)
+            x + (2*q*x^2+(-2)*x*y) + (3*q^2*x^3+(-6*q)*x^2*y+3*x*y^2) + (4*q^3*x^4+(-12*q^2)*x^3*y+12*q*x^2*y^2+(-4)*x*y^3) + (5*q^4*x^5+(-20*q^3)*x^4*y+30*q^2*x^3*y^2+(-20*q)*x^2*y^3+5*x*y^4) + (6*q^5*x^6+(-30*q^4)*x^5*y+60*q^3*x^4*y^2+(-60*q^2)*x^3*y^3+30*q*x^2*y^4+(-6)*x*y^5) + O(x,y)^7
+
+        """
+        P = self.parent()
+        R = P._laurent_poly_ring
+        V = R.gens()
+        order = 0
+        vars = []
+        gen_vars = []
+        for x in derivative_parse(args):
+            if x is None:
+                order += 1
+            elif x in V:
+                gen_vars.append(x)
+            else:
+                vars.append(x)
+
+        if P._arity > 1 and order:
+            raise ValueError("for multivariate series you have to specify the variable with respect to which the derivative should be taken")
+        else:
+            order += len(gen_vars)
+
+        coeff_stream = self._coeff_stream
+        if isinstance(coeff_stream, Stream_zero):
+            return self
+
+        if P._arity > 1:
+            coeff_stream = Stream_shift(Stream_map_coefficients(coeff_stream,
+                                                                lambda c: c.derivative(gen_vars + vars),
+                                                                P._laurent_poly_ring),
+                                        -len(gen_vars))
+            return P.element_class(P, coeff_stream)
+
+        if (isinstance(coeff_stream, Stream_exact)
+            and not coeff_stream._constant):
+            if coeff_stream._degree <= order:
+                return P.zero()
+            if vars:
+                coeffs = [prod(i-k for k in range(order)) * c.derivative(vars)
+                          for i, c in enumerate(coeff_stream._initial_coefficients,
+                                                coeff_stream._approximate_order)]
+            else:
+                coeffs = [prod(i-k for k in range(order)) * c
+                          for i, c in enumerate(coeff_stream._initial_coefficients,
+                                                coeff_stream._approximate_order)]
+            coeff_stream = Stream_exact(coeffs,
+                                        self._coeff_stream._is_sparse,
+                                        order=coeff_stream._approximate_order - order,
+                                        constant=coeff_stream._constant)
+            return P.element_class(P, coeff_stream)
+
+        coeff_stream = Stream_derivative(self._coeff_stream, order)
+        if vars:
+            coeff_stream = Stream_map_coefficients(coeff_stream,
+                                                   lambda c: c.derivative(vars),
+                                                   R)
+        return P.element_class(P, coeff_stream)
 
     def _format_series(self, formatter, format_strings=False):
         """
@@ -3831,7 +3993,300 @@ class LazySymmetricFunction(LazyCauchyProductSeries):
         raise ValueError("compositional inverse does not exist")
 
     plethystic_inverse = revert
+
     compositional_inverse = revert
+
+    def derivative_with_respect_to_p1(self, n=1):
+        r"""
+        Return the symmetric function obtained by taking the
+        derivative of ``self`` with respect to the power-sum
+        symmetric function `p_1` when the expansion of ``self`` in
+        the power-sum basis is considered as a polynomial in `p_k`'s
+        (with `k \geq 1`).
+
+        This is the same as skewing ``self`` by the first power-sum
+        symmetric function `p_1`.
+
+        INPUT:
+
+        - ``n`` -- (default: 1) nonnegative integer which determines
+          which power of the derivative is taken
+
+
+        EXAMPLES:
+
+        The species `E` of sets satisfies the relationship `E' = E`::
+
+            sage: h = SymmetricFunctions(QQ).h()
+            sage: T = LazySymmetricFunctions(h)
+            sage: E = T(lambda n: h[n])
+            sage: E - E.derivative_with_respect_to_p1()
+            O^6
+
+        The species `C` of cyclic orderings and the species `L` of linear
+        orderings satisfy the relationship `C' = L`::
+
+            sage: p = SymmetricFunctions(QQ).p()
+            sage: C = T(lambda n: (sum(euler_phi(k)*p([k])**(n//k) for k in divisors(n))/n if n > 0 else 0))
+            sage: L = T(lambda n: p([1]*n))
+            sage: L - C.derivative_with_respect_to_p1()
+            O^6
+
+        TESTS::
+
+            sage: T = LazySymmetricFunctions(p)
+            sage: a = T(p([1,1,1]))
+            sage: a.derivative_with_respect_to_p1()
+            (3*p[1,1]) + O^9
+            sage: a.derivative_with_respect_to_p1(1)
+            (3*p[1,1]) + O^9
+            sage: a.derivative_with_respect_to_p1(2)
+            6*p[1] + O^8
+            sage: a.derivative_with_respect_to_p1(3)
+            6*p[] + O^7
+        """
+        P = self.parent()
+        if P._arity != 1:
+            raise ValueError("arity must be equal to 1")
+
+        coeff_stream = Stream_map_coefficients(self._coeff_stream,
+                                               lambda c: c.derivative_with_respect_to_p1(n),
+                                               P._laurent_poly_ring)
+        coeff_stream = Stream_shift(coeff_stream, -n)
+        return P.element_class(P, coeff_stream)
+
+    def functorial_composition(self, *args):
+        r"""Returns the functorial composition of ``self`` and ``g``.
+
+        If `F` and `G` are species, their functorial composition is the species
+        `F \Box G` obtained by setting `(F \Box G) [A] = F[ G[A] ]`.
+        In other words, an `(F \Box G)`-structure on a set `A` of labels is an
+        `F`-structure whose labels are the set of all `G`-structures on `A`.
+
+        It can be shown (as in section 2.2 of [BLL]_) that there is a
+        corresponding operation on cycle indices:
+
+        .. MATH::
+
+            Z_{F} \Box Z_{G} = \sum_{n \geq 0} \frac{1}{n!}
+            \sum_{\sigma \in \mathfrak{S}_{n}}
+            \operatorname{fix} F[ (G[\sigma])_{1}, (G[\sigma])_{2}, \ldots ]
+            \, p_{1}^{\sigma_{1}} p_{2}^{\sigma_{2}} \cdots.
+
+        This method implements that operation on cycle index series.
+
+        EXAMPLES:
+
+        The species `G` of simple graphs can be expressed in terms of a functorial
+        composition: `G = \mathfrak{p} \Box \mathfrak{p}_{2}`, where
+        `\mathfrak{p}` is the :class:`~sage.combinat.species.subset_species.SubsetSpecies`.::
+
+            sage: R.<q> = QQ[]
+            sage: h = SymmetricFunctions(R).h()
+            sage: m = SymmetricFunctions(R).m()
+            sage: L = LazySymmetricFunctions(m)
+            sage: P = L(lambda n: sum(q^k*h[n-k]*h[k] for k in range(n+1)))
+            sage: P2 = L(lambda n: h[2]*h[n-2], valuation=2)
+            sage: P.functorial_composition(P2)[:4]
+            [m[],
+             m[1],
+             (q+1)*m[1, 1] + (q+1)*m[2],
+             (q^3+3*q^2+3*q+1)*m[1, 1, 1] + (q^3+2*q^2+2*q+1)*m[2, 1] + (q^3+q^2+q+1)*m[3]]
+
+        For example, there are::
+
+            sage: P.functorial_composition(P2)[4].coefficient([4])[3]
+            3
+
+        unlabelled graphs on 4 vertices and 3 edges, and::
+
+            sage: P.functorial_composition(P2)[4].coefficient([2,2])[3]
+            8
+
+        labellings of their vertices with two 1's and two 2's.
+        """
+        if len(args) != self.parent()._arity:
+            raise ValueError("arity must be equal to the number of arguments provided")
+        from sage.combinat.sf.sfa import is_SymmetricFunction
+        if not all(isinstance(g, LazySymmetricFunction)
+                   or is_SymmetricFunction(g)
+                   or not g for g in args):
+            raise ValueError("all arguments must be (possibly lazy) symmetric functions")
+
+        if len(args) == 1:
+            g = args[0]
+            P = g.parent()
+            R = P._laurent_poly_ring
+            p = R.realization_of().p()
+            # TODO: does the following introduce a memory leak?
+            g = g.change_ring(p)
+            f = self.change_ring(p)
+
+            def g_cycle_type(s):
+                if not s:
+                    return Partition([g[0].coefficient([])])
+                res = []
+                # in the species case, k is at most
+                # factorial(n) * g[n].coefficient([1]*n) with n = sum(s)
+                for k in range(1, lcm(s) + 1):
+                    e = 0
+                    for d in divisors(k):
+                        m = moebius(d)
+                        if m == 0:
+                            continue
+                        u = s.power(k/d)
+                        e += m * u.aut() * g[u.size()].coefficient(u)
+                    res.extend([k] * ZZ(e/k))
+                res.reverse()
+                return Partition(res)
+
+            def coefficient(n):
+                res = p(0)
+                for s in Partitions(n):
+                    t = g_cycle_type(s)
+                    q = t.aut() * f[t.size()].coefficient(t) / s.aut()
+                    res += q * p(s)
+                return res
+
+            coeff_stream = Stream_function(coefficient, R, P._sparse, 0)
+
+        else:
+            raise NotImplementedError("only implemented for arity 1")
+
+        return P.element_class(P, coeff_stream)
+
+    def arithmetic_product(self, *args, check=True):
+        r"""
+        Return the arithmetic product of ``self`` with ``g``.
+
+        For species `M` and `N` such that `M[\\varnothing] =
+        N[\\varnothing] = \\varnothing`, their arithmetic product is
+        the species `M \\boxdot N` of "`M`-assemblies of cloned
+        `N`-structures".  This operation is defined and several
+        examples are given in [MM]_.
+
+        The cycle index series for `M \\boxdot N` can be computed in
+        terms of the component series `Z_M` and `Z_N`, as implemented
+        in this method.
+
+        INPUT:
+
+        - ``g`` -- a cycle index series having the same parent as ``self``.
+
+        - ``check`` -- (default: ``True``) a Boolean which, when set
+          to ``False``, will cause input checks to be skipped.
+
+        OUTPUT:
+
+        The arithmetic product of ``self`` with ``g``. This is a
+        cycle index series defined in terms of ``self`` and ``g``
+        such that if ``self`` and ``g`` are the cycle index series of
+        two species `M` and `N`, their arithmetic product is the
+        cycle index series of the species `M \\boxdot N`.
+
+        EXAMPLES:
+
+        For `C` the species of (oriented) cycles and `L_{+}` the
+        species of nonempty linear orders, `C \\boxdot L_{+}`
+        corresponds to the species of "regular octopuses"; a `(C
+        \\boxdot L_{+})`-structure is a cycle of some length, each of
+        whose elements is an ordered list of a length which is
+        consistent for all the lists in the structure. ::
+
+            sage: R.<q> = QQ[]
+            sage: p = SymmetricFunctions(R).p()
+            sage: m = SymmetricFunctions(R).m()
+            sage: L = LazySymmetricFunctions(m)
+
+            sage: C = species.CycleSpecies().cycle_index_series()
+            sage: c = L(lambda n: C[n])
+            sage: Lplus = L(lambda n: p([1]*n), valuation=1)
+            sage: R = c.arithmetic_product(Lplus); R
+            m[1] + (3*m[1,1]+2*m[2]) + (8*m[1,1,1]+4*m[2,1]+2*m[3]) + (42*m[1,1,1,1]+21*m[2,1,1]+12*m[2,2]+7*m[3,1]+3*m[4]) + (144*m[1,1,1,1,1]+72*m[2,1,1,1]+36*m[2,2,1]+24*m[3,1,1]+12*m[3,2]+6*m[4,1]+2*m[5]) + (1440*m[1,1,1,1,1,1]+720*m[2,1,1,1,1]+360*m[2,2,1,1]+184*m[2,2,2]+240*m[3,1,1,1]+120*m[3,2,1]+42*m[3,3]+60*m[4,1,1]+32*m[4,2]+12*m[5,1]+4*m[6]) + O^7
+
+        In particular, the number of regular octopuses is::
+
+            sage: [R[n].coefficient([1]*n) for n in range(8)]
+            [0, 1, 3, 8, 42, 144, 1440, 5760]
+
+        It is shown in [MM]_ that the exponential generating function
+        for regular octopuses satisfies `(C \\boxdot L_{+}) (x) =
+        \\sum_{n \geq 1} \\sigma (n) (n - 1)! \\frac{x^{n}}{n!}`
+        (where `\\sigma (n)` is the sum of the divisors of `n`). ::
+
+            sage: [sum(divisors(i))*factorial(i-1) for i in range(1,8)]
+            [1, 3, 8, 42, 144, 1440, 5760]
+
+        AUTHORS:
+
+        - Andrew Gainer-Dewar (2013)
+
+        REFERENCES:
+
+        .. [MM] \M. Maia and M. Mendez. "On the arithmetic product of combinatorial species".
+           Discrete Mathematics, vol. 308, issue 23, 2008, pp. 5407-5427.
+           :arxiv:`math/0503436v2`.
+
+        """
+        from itertools import product, repeat, chain
+        if len(args) != self.parent()._arity:
+            raise ValueError("arity must be equal to the number of arguments provided")
+        from sage.combinat.sf.sfa import is_SymmetricFunction
+        if not all(isinstance(g, LazySymmetricFunction)
+                   or is_SymmetricFunction(g)
+                   or not g for g in args):
+            raise ValueError("all arguments must be (possibly lazy) symmetric functions")
+
+        if len(args) == 1:
+            g = args[0]
+            P = g.parent()
+            R = P._laurent_poly_ring
+            p = R.realization_of().p()
+            # TODO: does the following introduce a memory leak?
+            g = g.change_ring(p)
+            f = self.change_ring(p)
+
+            if check:
+                assert not f[0]
+                assert not g[0]
+
+            # We first define an operation `\\boxtimes` on partitions as in Lemma 2.1 of [MM]_.
+            def arith_prod_of_partitions(l1, l2):
+                # Given two partitions `l_1` and `l_2`, we construct a new partition `l_1 \\boxtimes l_2` by
+                # the following procedure: each pair of parts `a \\in l_1` and `b \\in l_2` contributes
+                # `\\gcd (a, b)`` parts of size `\\lcm (a, b)` to `l_1 \\boxtimes l_2`. If `l_1` and `l_2`
+                # are partitions of integers `n` and `m`, respectively, then `l_1 \\boxtimes l_2` is a
+                # partition of `nm`.  Finally, we return the corresponding powersum symmetric function.
+                term_iterable = chain.from_iterable(repeat(lcm(pair), gcd(pair))
+                                                    for pair in product(l1, l2))
+                return p(Partition(sorted(term_iterable, reverse=True)))
+
+            # We then extend this to an operation on symmetric functions as per eq. (52) of [MM]_.
+            # (Maia and Mendez, in [MM]_, are talking about polynomials instead of symmetric
+            # functions, but this boils down to the same: Their x_i corresponds to the i-th power
+            # sum symmetric function.)
+            def arith_prod_sf(x, y):
+                return p._apply_multi_module_morphism(x, y, arith_prod_of_partitions)
+
+            # Sage stores cycle index series by degree.
+            # Thus, to compute the arithmetic product `Z_M \\boxdot Z_N` it is useful
+            # to compute all terms of a given degree `n` at once.
+            def coefficient(n):
+                if n == 0:
+                    res = p.zero()
+                else:
+                    index_set = ((d, n // d) for d in divisors(n))
+                    res = sum(arith_prod_sf(f[i], g[j]) for i, j in index_set)
+
+                return res
+
+            coeff_stream = Stream_function(coefficient, R, P._sparse, 0)
+
+        else:
+            raise NotImplementedError("only implemented for arity 1")
+
+        return P.element_class(P, coeff_stream)
+
 
     def _format_series(self, formatter, format_strings=False):
         r"""

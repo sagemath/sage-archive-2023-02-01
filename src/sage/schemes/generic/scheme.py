@@ -100,7 +100,7 @@ class Scheme(Parent):
         """
         from sage.schemes.generic.morphism import is_SchemeMorphism
         from sage.categories.map import Map
-        from sage.categories.all import Rings
+        from sage.categories.rings import Rings
 
         if X is None:
             self._base_ring = ZZ
@@ -1212,7 +1212,7 @@ class AffineScheme(UniqueRepresentation, Scheme):
                     (2, r)
         """
         from sage.categories.map import Map
-        from sage.categories.all import Rings
+        from sage.categories.rings import Rings
 
         if is_Scheme(x):
             return self.Hom(x).natural_map()

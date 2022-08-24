@@ -777,7 +777,7 @@ class SchemeMorphism_spec(SchemeMorphism):
         """
         SchemeMorphism.__init__(self, parent)
         if check:
-            from sage.categories.all import Rings
+            from sage.categories.rings import Rings
             if not (isinstance(phi, Map) and phi.category_for().is_subcategory(Rings())):
                 raise TypeError("phi (=%s) must be a ring homomorphism" % phi)
             if phi.domain() != parent.codomain().coordinate_ring():

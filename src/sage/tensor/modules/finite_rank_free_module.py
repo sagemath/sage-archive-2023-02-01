@@ -870,8 +870,8 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
         kwds = dict(is_sparse=False,
                     inner_product_matrix=None,
                     with_basis=None,
-                    name_mapping={self.base_ring(): self._name},
-                    latex_name_mapping={self.base_ring(): self._latex_name})
+                    name_mapping={self.base_ring(): self._name} if self._name else None,
+                    latex_name_mapping={self.base_ring(): self._latex_name} if self._latex_name else None)
         if self._sindex:
             return (VectorFunctor(basis_keys=list(self.irange()), **kwds),
                     self.base_ring())

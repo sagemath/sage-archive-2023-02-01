@@ -1959,7 +1959,9 @@ class VectorFunctor(ConstructionFunctor):
             return (self.n == other.n and
                     self.inner_product_matrix == other.inner_product_matrix and
                     self.with_basis == other.with_basis and
-                    self.basis_keys == other.basis_keys)
+                    self.basis_keys == other.basis_keys and
+                    self.name_mapping == other.name_mapping and
+                    self.latex_name_mapping == other.latex_name_mapping)
         return False
 
     def __ne__(self, other):
@@ -2032,6 +2034,17 @@ class VectorFunctor(ConstructionFunctor):
             [3 4 5]
             [6 7 8]'
 
+        Names are removed when they conflict::
+
+            sage: from sage.categories.pushout import VectorFunctor, pushout
+            sage: M_ZZx = FreeModule(ZZ['x'], 4, with_basis=None, name='M_ZZx')
+            sage: N_ZZx = FreeModule(ZZ['x'], 4, with_basis=None, name='N_ZZx')
+            sage: pushout(M_ZZx, QQ)
+            Rank-4 free module M_ZZx_base_ext over the Univariate Polynomial Ring in x over Rational Field
+            sage: pushout(M_ZZx, N_ZZx)
+            Rank-4 free module over the Univariate Polynomial Ring in x over Integer Ring
+            sage: pushout(pushout(M_ZZx, N_ZZx), QQ)
+            Rank-4 free module over the Univariate Polynomial Ring in x over Rational Field
         """
         if not isinstance(other, VectorFunctor):
             return None
@@ -2065,8 +2078,29 @@ class VectorFunctor(ConstructionFunctor):
         else:
             n = self.n
 
+        name_mapping = dict()
+        for base_ring, name in self.name_mapping.items():
+            try:
+                other_name = other.name_mapping[base_ring]
+            except KeyError:
+                name_mapping[base_ring] = name
+            else:
+                if name == other_name:
+                    name_mapping[base_ring] = name
+
+        latex_name_mapping = dict()
+        for base_ring, latex_name in self.latex_name_mapping.items():
+            try:
+                other_latex_name = other.latex_name_mapping[base_ring]
+            except KeyError:
+                latex_name_mapping[base_ring] = latex_name
+            else:
+                if latex_name == other_latex_name:
+                    latex_name_mapping[base_ring] = latex_name
+
         return VectorFunctor(n, is_sparse, inner_product_matrix,
-                             with_basis=with_basis, basis_keys=basis_keys)
+                             with_basis=with_basis, basis_keys=basis_keys,
+                             name_mapping=name_mapping, latex_name_mapping=latex_name_mapping)
 
 
 class SubspaceFunctor(ConstructionFunctor):

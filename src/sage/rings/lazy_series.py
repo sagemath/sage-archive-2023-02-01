@@ -4119,12 +4119,14 @@ class LazySymmetricFunction(LazyCauchyProductSeries):
             R = P._laurent_poly_ring
             p = R.realization_of().p()
             # TODO: does the following introduce a memory leak?
-            g = g.change_ring(p)
-            f = self.change_ring(p)
+            g = Stream_map_coefficients(g._coeff_stream, lambda x: x, p)
+            f = Stream_map_coefficients(self._coeff_stream, lambda x: x, p)
 
             def g_cycle_type(s):
                 if not s:
-                    return Partition([g[0].coefficient([])])
+                    if g[0]:
+                        return Partition([ZZ(g[0].coefficient([]))])
+                    return Partition([])
                 res = []
                 # in the species case, k is at most
                 # factorial(n) * g[n].coefficient([1]*n) with n = sum(s)
@@ -4132,10 +4134,12 @@ class LazySymmetricFunction(LazyCauchyProductSeries):
                     e = 0
                     for d in divisors(k):
                         m = moebius(d)
-                        if m == 0:
+                        if not m:
                             continue
                         u = s.power(k/d)
-                        e += m * u.aut() * g[u.size()].coefficient(u)
+                        g_u = g[u.size()]
+                        if g_u:
+                            e += m * u.aut() * g_u.coefficient(u)
                     res.extend([k] * ZZ(e/k))
                 res.reverse()
                 return Partition(res)

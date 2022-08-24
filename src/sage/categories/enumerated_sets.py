@@ -522,6 +522,22 @@ class EnumeratedSets(CategoryWithAxiom):
         _tuple_default = tuple
 
         def _tuple_from_iterator(self):
+            r"""
+            Return a tuple of the elements of ``self``.
+
+            This implementation of :meth:`tuple` creates the tuple of elements and caches it for
+            later uses.
+
+            TESTS::
+
+                sage: R = Integers(11)
+                sage: R._list is None
+                False
+                sage: R._tuple_from_iterator()
+                (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
+                sage: _ is R._list
+                True
+            """
             # This creates one throw-away list.
             self._list_from_iterator()
             return self._tuple_from_list()
@@ -529,6 +545,17 @@ class EnumeratedSets(CategoryWithAxiom):
         def _tuple_from_list(self):
             r"""
             Return a tuple of the elements of ``self``.
+
+            This implementation of :meth:`tuple` assumes that the tuple of elements is already
+            cached and just returns it.
+
+            TESTS::
+
+                sage: R = Integers(11)
+                sage: R.tuple()
+                (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
+                sage: R._tuple_from_list() is R.tuple()
+                True
             """
             # Implementation classes may put any Sequence type in self._list.
             # Traditionally, self._list was an actual list.

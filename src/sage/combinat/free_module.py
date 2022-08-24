@@ -1177,6 +1177,7 @@ class CombinatorialFreeModule_with_construction(CombinatorialFreeModule):
                              basis_keys=self.basis().keys()), self.base_ring()
 
 
+
 class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
         """
         Tensor Product of Free Modules

@@ -716,6 +716,7 @@ class TensorFreeModule(FiniteRankFreeModule):
               indices=None, latex_indices=None, symbol_dual=None,
               latex_symbol_dual=None):
         r"""
+        Return the standard basis of ``self`` corresponding to a basis of the base module.
 
         EXAMPLES::
 

@@ -46,14 +46,34 @@ class TensorFreeSubmoduleBasis_comp(Basis_abstract):
         self._comp = tensor_module._basis_comp()
 
     def keys(self):
+        """
+        Return an iterator for the keys (indices) of the family.
+
+        EXAMPLES::
+
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: T11 = M.tensor_module(1,1)
+            sage: e11 = T11.basis('e')
+            sage: list(e11.keys())
+            [(0, 0), (0, 1), (0, 2),
+             (1, 0), (1, 1), (1, 2),
+             (2, 0), (2, 1), (2, 2)]
+        """
         yield from self._comp.non_redundant_index_generator()
 
     def values(self):
-        yield from self
+        """
+        Return an iterator for the elements of the family.
 
-    def __iter__(self):
-        r"""
-        Generate the basis elements of ``self``.
+        EXAMPLES::
+
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: T11 = M.tensor_module(1,1)
+            sage: e11 = T11.basis('e')
+            sage: [b.disp() for b in e11.values()]
+            [e_0⊗e^0, e_0⊗e^1, e_0⊗e^2,
+             e_1⊗e^0, e_1⊗e^1, e_1⊗e^2,
+             e_2⊗e^0, e_2⊗e^1, e_2⊗e^2]
         """
         for ind in self.keys():
             yield self[ind]
@@ -93,7 +113,7 @@ class TensorFreeSubmoduleBasis_comp(Basis_abstract):
         element.set_comp(base_module_basis)[index] = 1
         return element
 
-# Todo: Make it a Family
+# Todo:
 #       dual basis
 #       add test for dual
 # lift/reduce/retract

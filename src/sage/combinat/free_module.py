@@ -1156,8 +1156,6 @@ class CombinatorialFreeModule(UniqueRepresentation, Module, IndexedGenerators):
 
 class CombinatorialFreeModule_with_construction(CombinatorialFreeModule):
 
-    __classcall_private__ = CombinatorialFreeModule.__classcall_private__
-
     def construction(self):
         """
         The construction functor and base ring for self.

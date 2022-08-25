@@ -462,6 +462,12 @@ class AbstractFamily(Parent):
 
         A key can only appear once, but if the function is not injective, values may
         appear multiple times.
+
+        EXAMPLES::
+
+            sage: f = Family([-2, -1, 0, 1, 2], abs)
+            sage: list(f.items())
+            [(-2, 2), (-1, 1), (0, 0), (1, 1), (2, 2)]
         """
         return zip(self.keys(), self.values())
 

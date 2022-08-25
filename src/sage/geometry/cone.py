@@ -3049,7 +3049,16 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container, ConvexSet_c
             N(3, 1),
             N(0, 1)
             in 2-d lattice N
+
+        An intersection with a polyhedron returns a polyhedron::
+
+            sage: cone = Cone([(1,0), (-1,0), (0,1)])
+            sage: p = polytopes.hypercube(2)
+            sage: cone & p
+            A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 3 vertices
         """
+        if not isinstance(other, ConvexRationalPolyhedralCone):
+            return self.polyhedron().intersection(other)
         if self._ambient is other._ambient:
             # Cones of the same ambient cone or fan intersect nicely/quickly.
             # Can we maybe even return an element of the cone lattice?..

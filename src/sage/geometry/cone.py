@@ -3017,6 +3017,13 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container, ConvexSet_c
             N( 2, 5)
             in 2-d lattice N
 
+        The intersection can also be expressed using the operator ``&``::
+
+            sage: (cone1 & cone2).rays()
+            N(-1, 3),
+            N( 2, 5)
+            in 2-d lattice N
+
         It is OK to intersect cones living in sublattices of the same ambient
         lattice::
 
@@ -3057,6 +3064,8 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container, ConvexSet_c
         p = C_Polyhedron(self._PPL_cone())
         p.add_constraints(other._PPL_cone().constraints())
         return _Cone_from_PPL(p, self.lattice().intersection(other.lattice()))
+
+    __and__ = intersection
 
     def is_equivalent(self, other):
         r"""

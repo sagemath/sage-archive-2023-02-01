@@ -32,29 +32,34 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-from . import defaults
-
-import sage.modular.hecke.element as element
-
-from sage.arith.all import lcm, divisors, moebius, sigma, factor, crt
+from sage.arith.functions import lcm
+from sage.arith.misc import divisors, moebius, sigma, factor, crt
 from sage.arith.srange import xsrange
+from sage.combinat.integer_vector_weighted import WeightedIntegerVectors
+from sage.matrix.constructor import Matrix
 from sage.matrix.constructor import matrix
-from sage.misc.misc_c import prod
 from sage.misc.cachefunc import cached_method
+from sage.misc.misc_c import prod
 from sage.misc.verbose import verbose
 from sage.modular.dirichlet import DirichletGroup
 from sage.modular.modsym.modsym import ModularSymbols
 from sage.modular.modsym.p1list import lift_to_sl2z
 from sage.modular.modsym.space import is_ModularSymbolsSpace
 from sage.modules.free_module_element import vector
-from sage.rings.all import ZZ, QQ, Integer, RealField, ComplexField, PowerSeriesRing
+from sage.rings.complex_mpfr import ComplexField
 from sage.rings.fast_arith import prime_range
+from sage.rings.integer import Integer
+from sage.rings.integer_ring import ZZ
 from sage.rings.morphism import RingHomomorphism
 from sage.rings.number_field.number_field_morphisms import NumberFieldEmbedding
+from sage.rings.power_series_ring import PowerSeriesRing
+from sage.rings.rational_field import QQ
+from sage.rings.real_mpfr import RealField
 from sage.structure.element import coercion_model, ModuleElement, Element
 from sage.structure.richcmp import richcmp, op_NE, op_EQ
-from sage.matrix.constructor import Matrix
-from sage.combinat.integer_vector_weighted import WeightedIntegerVectors
+
+import sage.modular.hecke.element as element
+from . import defaults
 
 
 def is_ModularFormElement(x):
@@ -2689,7 +2694,6 @@ class ModularFormElement(ModularForm_abstract, element.HeckeModuleElement):
 
         """
         from sage.modular.all import CuspForms, ModularForms
-        from sage.rings.all import PowerSeriesRing
         R = coercion_model.common_parent(self.base_ring(), chi.base_ring())
         N = self.level()
         Q = chi.modulus()

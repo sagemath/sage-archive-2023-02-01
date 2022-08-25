@@ -221,7 +221,7 @@ class FiniteEnumeratedSets(CategoryWithAxiom):
             r"""
             Return a :class:`tuple`of the elements of ``self``.
 
-            EXAMPLE::
+            EXAMPLES::
 
                 sage: C = FiniteEnumeratedSets().example()
                 sage: C.tuple()

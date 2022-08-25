@@ -541,7 +541,8 @@ class Stream_exact(Stream):
 
         # We do not insist that the last entry of
         # initial_coefficients is different from constant in case
-        # comparisons can be expensive such as in the symbolic ring
+        # comparisons can be expensive such as in the symbolic ring,
+        # but we remove zeros
         for i, v in enumerate(initial_coefficients):
             if v:
                 order += i

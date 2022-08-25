@@ -323,10 +323,10 @@ class LazyModuleElement(Element):
             if not any(initial_coefficients) and not c:
                 return P.zero()
             coeff_stream = Stream_exact(initial_coefficients,
-                                                   self._coeff_stream._is_sparse,
-                                                   order=coeff_stream._approximate_order,
-                                                   degree=coeff_stream._degree,
-                                                   constant=BR(c))
+                                        self._coeff_stream._is_sparse,
+                                        order=coeff_stream._approximate_order,
+                                        degree=coeff_stream._degree,
+                                        constant=BR(c))
             return P.element_class(P, coeff_stream)
         R = P._internal_poly_ring.base_ring()
         coeff_stream = Stream_map_coefficients(self._coeff_stream, func, R)
@@ -2163,6 +2163,11 @@ class LazyCauchyProductSeries(LazyModuleElement):
             sage: t1 = t.approximate_series(44)
             sage: s1 * t1 - (s * t).approximate_series(42)
             O(z^42)
+
+        Check products with exact series::
+
+            sage: L([1], constant=3)^2
+            1 + 6*z + 15*z^2 + 24*z^3 + 33*z^4 + 42*z^5 + 51*z^6 + O(z^7)
         """
         P = self.parent()
         left = self._coeff_stream
@@ -2998,27 +3003,35 @@ class LazyLaurentSeries(LazyCauchyProductSeries):
 
         - `val(f) = 1`, or
 
-        - `f = a + b z` with `a b \neq 0`, or
+        - `f = a + b z` with `a, b \neq 0`, or
 
         - `f = a/z` with `a \neq 0`
 
         EXAMPLES::
 
-            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
-            sage: z.revert()
-            z + O(z^8)
-            sage: (1/z).revert()
-            z^-1
+            sage: L.<z> = LazyLaurentSeriesRing(QQ)
+            sage: (2*z).revert()
+            1/2*z
+            sage: (2/z).revert()
+            2*z^-1
             sage: (z-z^2).revert()
             z + z^2 + 2*z^3 + 5*z^4 + 14*z^5 + 42*z^6 + 132*z^7 + O(z^8)
+
+            sage: s = L(degree=1, constant=-1)
+            sage: s.revert()
+            -z - z^2 - z^3 + O(z^4)
+
+            sage: s = L(degree=1, constant=1)
+            sage: s.revert()
+            z - z^2 + z^3 - z^4 + z^5 - z^6 + z^7 + O(z^8)
 
         TESTS::
 
             sage: L.<z> = LazyLaurentSeriesRing(QQ)
-            sage: s = L(lambda n: 1 if n == 1 else 0, valuation=1); s
-            z + O(z^8)
+            sage: s = L(lambda n: 2 if n == 1 else 0, valuation=1); s
+            2*z + O(z^8)
             sage: s.revert()
-            z + O(z^8)
+            1/2*z + O(z^8)
 
             sage: (2+3*z).revert()
             -2/3 + 1/3*z
@@ -3029,6 +3042,15 @@ class LazyLaurentSeries(LazyCauchyProductSeries):
             Traceback (most recent call last):
             ...
             ValueError: cannot determine whether the compositional inverse exists
+
+            sage: R.<q,t> = QQ[]
+            sage: L.<z> = LazyLaurentSeriesRing(R.fraction_field())
+            sage: s = L([q], valuation=0, constant=t); s
+            q + t*z + t*z^2 + t*z^3 + O(z^4)
+            sage: s.revert()
+            Traceback (most recent call last):
+            ...
+            ValueError: compositional inverse does not exist
 
         We look at some cases where the compositional inverse does not exist:
 

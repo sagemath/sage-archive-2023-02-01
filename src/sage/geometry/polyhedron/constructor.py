@@ -573,6 +573,23 @@ def Polyhedron(vertices=None, rays=None, lines=None,
 
         :mod:`Library of polytopes <sage.geometry.polyhedron.library>`
     """
+    # Special handling for first argument, for coercion-like uses
+    constructor = None
+    try:
+        # PolyhedronFace.as_polyhedron (it also has a "polyhedron" method with a different purpose)
+        constructor = vertices.as_polyhedron
+    except AttributeError:
+        try:
+            # ConvexRationalPolyhedralCone, LatticePolytopeClass, MixedIntegerLinearProgram, Hyperplane
+            constructor = vertices.polyhedron
+        except AttributeError:
+            pass
+    if constructor:
+        if not all(x is None for x in (rays, lines, ieqs, eqns, ambient_dim)):
+            raise ValueError('if a polyhedron is given, cannot provide H- and V-representations objects')
+        return constructor(base_ring=base_ring, minimize=minimize,
+                           verbose=verbose, backend=backend, mutable=False)
+
     got_Vrep = not ((vertices is None) and (rays is None) and (lines is None))
     got_Hrep = not ((ieqs is None) and (eqns is None))
 

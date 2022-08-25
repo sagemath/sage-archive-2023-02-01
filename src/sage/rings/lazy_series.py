@@ -3065,7 +3065,7 @@ class LazyLaurentSeries(LazyCauchyProductSeries):
             ...
             ValueError: compositional inverse does not exist
 
-        `val(f) ! = 1` and `f(0) * f(1) = 0`::
+        `val(f) != 1` and `f(0) * f(1) = 0`::
 
             sage: (z^2).revert()
             Traceback (most recent call last):
@@ -3076,6 +3076,29 @@ class LazyLaurentSeries(LazyCauchyProductSeries):
             Traceback (most recent call last):
             ...
             ValueError: compositional inverse does not exist
+
+        Reversion of exact series::
+
+            sage: f = L([2], valuation=-1, constant=2)
+            sage: f.revert()
+            Traceback (most recent call last):
+            ...
+            ValueError: compositional inverse does not exist
+
+            sage: f = L([1, 2], valuation=0, constant=1)
+            sage: f.revert()
+            Traceback (most recent call last):
+            ...
+            ValueError: compositional inverse does not exist
+
+            sage: f = L([-1, -1], valuation=1, constant=-1)
+            sage: f.revert()
+            -z - z^2 - z^3 + O(z^4)
+
+            sage: f = L([-1, 0, -1], valuation=1, constant=-1)
+            sage: f.revert()
+            -z + z^3 - z^4 - 2*z^5 + 6*z^6 + z^7 + O(z^8)
+
         """
         P = self.parent()
         if self.valuation() == 1:

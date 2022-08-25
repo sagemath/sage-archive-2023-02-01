@@ -547,7 +547,6 @@ class FiniteRankFreeModule_abstract(UniqueRepresentation, Parent):
     r"""
     Free module of finite rank over a commutative ring.
     """
-    _sindex: int
 
     def __init__(
         self,
@@ -555,7 +554,6 @@ class FiniteRankFreeModule_abstract(UniqueRepresentation, Parent):
         rank,
         name=None,
         latex_name=None,
-        start_index: int = 0,
         output_formatter=None,
         category=None,
     ):
@@ -587,7 +585,6 @@ class FiniteRankFreeModule_abstract(UniqueRepresentation, Parent):
             self._latex_name = self._name
         else:
             self._latex_name = latex_name
-        self._sindex = start_index
         self._output_formatter = output_formatter
 
     def _latex_(self):
@@ -904,6 +901,7 @@ class FiniteRankFreeModule(FiniteRankFreeModule_abstract):
     """
 
     Element = FiniteRankFreeModuleElement
+    _sindex: int
 
     @staticmethod
     def __classcall_private__(cls, ring, rank, name=None, latex_name=None, start_index=0,
@@ -956,8 +954,9 @@ class FiniteRankFreeModule(FiniteRankFreeModule_abstract):
 
         """
         super().__init__(ring, rank, name=name, latex_name=latex_name,
-                         start_index=start_index, output_formatter=output_formatter,
+                         output_formatter=output_formatter,
                          category=category)
+        self._sindex = start_index
         # Dictionary of the tensor modules built on self
         #   (keys = (k,l) --the tensor type)
         # This dictionary is to be extended on need by the method tensor_module

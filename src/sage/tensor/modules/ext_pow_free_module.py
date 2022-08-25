@@ -249,7 +249,6 @@ class ExtPowerFreeModule(FiniteRankFreeModule_abstract):
                          + fmodule._latex_name + r'\right)'
         super().__init__(fmodule._ring, rank,
                          name=name, latex_name=latex_name,
-                         start_index=fmodule._sindex,
                          output_formatter=fmodule._output_formatter)
         fmodule._all_modules.add(self)
 
@@ -650,7 +649,6 @@ class ExtPowerDualFreeModule(FiniteRankFreeModule_abstract):
                              + fmodule._latex_name + r'^*\right)'
         super().__init__(fmodule._ring, rank, name=name,
                          latex_name=latex_name,
-                         start_index=fmodule._sindex,
                          output_formatter=fmodule._output_formatter)
         fmodule._all_modules.add(self)
 

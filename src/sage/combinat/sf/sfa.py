@@ -3060,6 +3060,17 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
 
             sage: (1+p[2]).plethysm(p[2])
             p[] + p[4]
+
+        Check that degree one elements are treated in the correct way::
+
+            sage: R.<a1,a2,a11,b1,b21,b111> = QQ[]
+            sage: p = SymmetricFunctions(R).p()
+            sage: f = a1*p[1] + a2*p[2] + a11*p[1,1]
+            sage: g = b1*p[1] + b21*p[2,1] + b111*p[1,1,1]
+            sage: r = f(g); r
+            a1*b1*p[1] + a11*b1^2*p[1, 1] + a1*b111*p[1, 1, 1] + 2*a11*b1*b111*p[1, 1, 1, 1] + a11*b111^2*p[1, 1, 1, 1, 1, 1] + a2*b1^2*p[2] + a1*b21*p[2, 1] + 2*a11*b1*b21*p[2, 1, 1] + 2*a11*b21*b111*p[2, 1, 1, 1, 1] + a11*b21^2*p[2, 2, 1, 1] + a2*b111^2*p[2, 2, 2] + a2*b21^2*p[4, 2]
+            sage: r - f(g, include=[])
+            (a2*b1^2-a2*b1)*p[2] + (a2*b111^2-a2*b111)*p[2, 2, 2] + (a2*b21^2-a2*b21)*p[4, 2]
         """
         parent = self.parent()
         R = parent.base_ring()

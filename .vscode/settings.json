@@ -1,4 +1,6 @@
 {
+    // This settings file is not ignored by git. It should be kept in sync with
+    // the trac repo.
     "python.defaultInterpreterPath": "./venv/bin/python3",
     "files.exclude": {
         "**/__pycache__": true,

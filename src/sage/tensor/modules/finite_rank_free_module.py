@@ -554,7 +554,6 @@ class FiniteRankFreeModule_abstract(UniqueRepresentation, Parent):
         rank,
         name=None,
         latex_name=None,
-        output_formatter=None,
         category=None,
     ):
         r"""
@@ -585,7 +584,6 @@ class FiniteRankFreeModule_abstract(UniqueRepresentation, Parent):
             self._latex_name = self._name
         else:
             self._latex_name = latex_name
-        self._output_formatter = output_formatter
 
     def _latex_(self):
         r"""
@@ -954,9 +952,9 @@ class FiniteRankFreeModule(FiniteRankFreeModule_abstract):
 
         """
         super().__init__(ring, rank, name=name, latex_name=latex_name,
-                         output_formatter=output_formatter,
                          category=category)
         self._sindex = start_index
+        self._output_formatter = output_formatter
         # Dictionary of the tensor modules built on self
         #   (keys = (k,l) --the tensor type)
         # This dictionary is to be extended on need by the method tensor_module

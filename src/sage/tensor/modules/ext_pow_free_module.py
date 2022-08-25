@@ -248,8 +248,7 @@ class ExtPowerFreeModule(FiniteRankFreeModule_abstract):
             latex_name = r'\Lambda^{' + str(degree) + r'}\left(' \
                          + fmodule._latex_name + r'\right)'
         super().__init__(fmodule._ring, rank,
-                         name=name, latex_name=latex_name,
-                         output_formatter=fmodule._output_formatter)
+                         name=name, latex_name=latex_name)
         fmodule._all_modules.add(self)
 
     #### Parent methods
@@ -648,8 +647,7 @@ class ExtPowerDualFreeModule(FiniteRankFreeModule_abstract):
                 latex_name = r'\Lambda^{' + str(degree) + r'}\left(' \
                              + fmodule._latex_name + r'^*\right)'
         super().__init__(fmodule._ring, rank, name=name,
-                         latex_name=latex_name,
-                         output_formatter=fmodule._output_formatter)
+                         latex_name=latex_name)
         fmodule._all_modules.add(self)
 
     #### Parent methods

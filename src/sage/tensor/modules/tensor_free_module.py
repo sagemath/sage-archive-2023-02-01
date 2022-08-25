@@ -387,9 +387,7 @@ class TensorFreeModule(FiniteRankFreeModule_abstract):
             if latex_name is None and fmodule._latex_name is not None:
                 latex_name = r'T^{' + str(self._tensor_type) + r'}\left(' + \
                              fmodule._latex_name + r'\right)'
-        super().__init__(fmodule._ring, rank, name=name,
-                         latex_name=latex_name,
-                         output_formatter=fmodule._output_formatter)
+        super().__init__(fmodule._ring, rank, name=name, latex_name=latex_name)
         fmodule._all_modules.add(self)
 
     #### Parent Methods

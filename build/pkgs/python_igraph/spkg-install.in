@@ -1,2 +1,2 @@
 cd src
-eval sdh_pip_install $(eval sdh_prefix_args "--build-option" --use-pkg-config) .
+sdh_pip_install --config-settings "--global-option=--use-pkg-config --global-option=--no-wait" .

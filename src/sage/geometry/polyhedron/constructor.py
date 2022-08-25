@@ -313,10 +313,15 @@ def Polyhedron(vertices=None, rays=None, lines=None,
 
     INPUT:
 
-    - ``vertices`` -- list of points. Each point can be specified as
+    - ``vertices`` -- iterable of points. Each point can be specified as
       any iterable container of ``base_ring`` elements. If ``rays`` or
       ``lines`` are specified but no ``vertices``, the origin is
       taken to be the single vertex.
+
+      Instead of vertices, the first argument can also be an object
+      that can be converted to a :func:`Polyhedron` via an :meth:`as_polyhedron`
+      or :meth:`polyhedron` method. In this case, the following 5 arguments
+      cannot be provided.
 
     - ``rays`` -- list of rays. Each ray can be specified as any
       iterable container of ``base_ring`` elements.
@@ -332,16 +337,16 @@ def Polyhedron(vertices=None, rays=None, lines=None,
       any iterable container of ``base_ring`` elements. An entry equal to
       ``[-1,7,3,4]`` represents the equality `7x_1+3x_2+4x_3= 1`.
 
+    - ``ambient_dim`` -- integer. The ambient space dimension. Usually
+      can be figured out automatically from the H/Vrepresentation
+      dimensions.
+
     - ``base_ring`` -- a sub-field of the reals implemented in
       Sage. The field over which the polyhedron will be defined. For
       ``QQ`` and algebraic extensions, exact arithmetic will be
       used. For ``RDF``, floating point numbers will be used. Floating
       point arithmetic is faster but might give the wrong result for
       degenerate input.
-
-    - ``ambient_dim`` -- integer. The ambient space dimension. Usually
-      can be figured out automatically from the H/Vrepresentation
-      dimensions.
 
     - ``backend`` -- string or ``None`` (default). The backend to use. Valid choices are
 
@@ -465,17 +470,38 @@ def Polyhedron(vertices=None, rays=None, lines=None,
         ...
         ValueError: invalid base ring
 
-    Create a mutable polyhedron::
+    Converting from other objects to a polyhedron::
 
-        sage: P = Polyhedron(vertices=[[0, 1], [1, 0]], mutable=True)
-        sage: P.is_mutable()
-        True
-        sage: hasattr(P, "_Vrepresentation")
-        False
-        sage: P.Vrepresentation()
-        (A vertex at (0, 1), A vertex at (1, 0))
-        sage: hasattr(P, "_Vrepresentation")
-        True
+        sage: quadrant = Cone([(1,0), (0,1)])
+        sage: Polyhedron(quadrant)
+        A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 1 vertex and 2 rays
+        sage: Polyhedron(quadrant, base_ring=QQ)
+        A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex and 2 rays
+
+        sage: o = lattice_polytope.cross_polytope(2)
+        sage: Polyhedron(o)
+        A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 4 vertices
+        sage: Polyhedron(o, base_ring=QQ)
+        A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 4 vertices
+
+        sage: p = MixedIntegerLinearProgram(solver='PPL')
+        sage: x, y = p['x'], p['y']
+        sage: p.add_constraint(x <= 1)
+        sage: p.add_constraint(x >= -1)
+        sage: p.add_constraint(y <= 1)
+        sage: p.add_constraint(y >= -1)
+        sage: Polyhedron(o)
+        A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 4 vertices
+        sage: Polyhedron(o, base_ring=QQ)
+        A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 4 vertices
+
+        sage: H.<x,y> = HyperplaneArrangements(QQ)
+        sage: h = x + y - 1; h
+        Hyperplane x + y - 1
+        sage: Polyhedron(h, base_ring=ZZ)
+        A 1-dimensional polyhedron in ZZ^2 defined as the convex hull of 1 vertex and 1 line
+        sage: Polyhedron(h)
+        A 1-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex and 1 line
 
     .. NOTE::
 
@@ -485,7 +511,6 @@ def Polyhedron(vertices=None, rays=None, lines=None,
         be used, it might not give the right answer for degenerate
         input data - the results can depend upon the tolerance
         setting of cdd.
-
 
     TESTS:
 
@@ -568,6 +593,18 @@ def Polyhedron(vertices=None, rays=None, lines=None,
 
         sage: Polyhedron(ambient_dim=2, vertices=[], rays=[], lines=[], base_ring=QQ)
         The empty polyhedron in QQ^2
+
+    Create a mutable polyhedron::
+
+        sage: P = Polyhedron(vertices=[[0, 1], [1, 0]], mutable=True)
+        sage: P.is_mutable()
+        True
+        sage: hasattr(P, "_Vrepresentation")
+        False
+        sage: P.Vrepresentation()
+        (A vertex at (0, 1), A vertex at (1, 0))
+        sage: hasattr(P, "_Vrepresentation")
+        True
 
     .. SEEALSO::
 

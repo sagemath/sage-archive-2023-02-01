@@ -2176,9 +2176,15 @@ class LazyCauchyProductSeries(LazyModuleElement):
         # Check some trivial products
         if isinstance(left, Stream_zero) or isinstance(right, Stream_zero):
             return P.zero()
-        if isinstance(left, Stream_exact) and left._initial_coefficients == (P._internal_poly_ring.base_ring().one(),) and left.order() == 0:
+        if (isinstance(left, Stream_exact)
+            and left._initial_coefficients == (P._internal_poly_ring.base_ring().one(),)
+            and left.order() == 0
+            and not left._constant):
             return other  # self == 1
-        if isinstance(right, Stream_exact) and right._initial_coefficients == (P._internal_poly_ring.base_ring().one(),) and right.order() == 0:
+        if (isinstance(right, Stream_exact)
+            and right._initial_coefficients == (P._internal_poly_ring.base_ring().one(),)
+            and right.order() == 0
+            and not right._constant):
             return self  # right == 1
 
         # The product is exact if and only if both factors are exact
@@ -3043,6 +3049,13 @@ class LazyLaurentSeries(LazyCauchyProductSeries):
             ...
             ValueError: cannot determine whether the compositional inverse exists
 
+            sage: s = L(lambda n: 1, valuation=-2); s
+            z^-2 + z^-1 + 1 + z + z^2 + z^3 + z^4 + O(z^5)
+            sage: s.revert()
+            Traceback (most recent call last):
+            ...
+            ValueError: compositional inverse does not exist
+
             sage: R.<q,t> = QQ[]
             sage: L.<z> = LazyLaurentSeriesRing(R.fraction_field())
             sage: s = L([q], valuation=0, constant=t); s
@@ -3093,36 +3106,74 @@ class LazyLaurentSeries(LazyCauchyProductSeries):
 
             sage: f = L([-1, -1], valuation=1, constant=-1)
             sage: f.revert()
-            -z - z^2 - z^3 + O(z^4)
+            -z - z^2 - z^3 - z^4 - z^5 + O(z^6)
 
             sage: f = L([-1, 0, -1], valuation=1, constant=-1)
             sage: f.revert()
             -z + z^3 - z^4 - 2*z^5 + 6*z^6 + z^7 + O(z^8)
 
+            sage: f = L([-1], valuation=1, degree=3, constant=-1)
+            sage: f.revert()
+            -z + z^3 - z^4 - 2*z^5 + 6*z^6 + z^7 + O(z^8)
         """
         P = self.parent()
-        if self.valuation() == 1:
+        coeff_stream = self._coeff_stream
+        if isinstance(coeff_stream, Stream_zero):
+            raise ValueError("compositional inverse does not exist")
+        if isinstance(coeff_stream, Stream_exact):
+            if coeff_stream._constant:
+                if coeff_stream.order() == 1:
+                    R = P.base_ring()
+                    # we cannot assume that the last initial coefficient
+                    # and the constant differ, see stream.Stream_exact
+                    if (coeff_stream._degree == 1 + len(coeff_stream._initial_coefficients)
+                        and coeff_stream._constant == -R.one()
+                        and all(c == -R.one() for c in coeff_stream._initial_coefficients)):
+                        # self = -z/(1-z); self.revert() = -z/(1-z)
+                        return self
+                else:
+                    raise ValueError("compositional inverse does not exist")
+            else:
+                if (coeff_stream.order() == -1
+                    and coeff_stream._degree == 0):
+                    # self = a/z; self.revert() = a/z
+                    return self
+
+                if (coeff_stream.order() >= 0
+                    and coeff_stream._degree == 2):
+                    # self = a + b*z; self.revert() = -a/b + 1/b * z
+                    a = coeff_stream[0]
+                    b = coeff_stream[1]
+                    coeff_stream = Stream_exact((-a/b, 1/b),
+                                                coeff_stream._is_sparse,
+                                                order=0)
+                    return P.element_class(P, coeff_stream)
+
+                if coeff_stream.order() != 1:
+                    raise ValueError("compositional inverse does not exist")
+
+        if any(coeff_stream[i] for i in range(coeff_stream._approximate_order, -1)):
+            raise ValueError("compositional inverse does not exist")
+
+        if coeff_stream[-1]:
+            if coeff_stream[0] or coeff_stream[1]:
+                raise ValueError("compositional inverse does not exist")
+            else:
+                raise ValueError("cannot determine whether the compositional inverse exists")
+
+        if coeff_stream[0]:
+            if coeff_stream[1]:
+                raise ValueError("cannot determine whether the compositional inverse exists")
+            else:
+                raise ValueError("compositional inverse does not exist")
+
+        if coeff_stream[1]:
             z = P.gen()
             g = P(None, valuation=1)
             g.define(z/((self/z)(g)))
             return g
-        if self.valuation() not in [-1, 0]:
-            raise ValueError("compositional inverse does not exist")
-        coeff_stream = self._coeff_stream
-        if isinstance(coeff_stream, Stream_exact):
-            if (coeff_stream.order() == 0
-                and coeff_stream._degree == 2):
-                a = coeff_stream[0]
-                b = coeff_stream[1]
-                coeff_stream = Stream_exact((-a/b, 1/b),
-                                            coeff_stream._is_sparse,
-                                            order=0)
-                return P.element_class(P, coeff_stream)
-            if (coeff_stream.order() == -1
-                and coeff_stream._degree == 0):
-                return self
-            raise ValueError("compositional inverse does not exist")
-        raise ValueError("cannot determine whether the compositional inverse exists")
+
+        raise ValueError("compositional inverse does not exist")
 
     compositional_inverse = revert
 

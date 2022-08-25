@@ -202,6 +202,7 @@ or a few related issues::
   ``settings.json`` file is not ignored by git so be aware to keep it in sync
   with the trac repo. For further details, see the
   `official VS Code documentation <https://code.visualstudio.com/docs/python/linting>`__.
+
 *Configuration:* ``[pycodestyle]`` block in ``SAGE_ROOT/src/tox.ini``
 
 *Documentation:* https://pycodestyle.pycqa.org/en/latest/index.html

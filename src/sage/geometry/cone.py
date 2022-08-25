@@ -3513,7 +3513,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container, ConvexSet_c
         result += tp.plot_walls(walls)
         return result
 
-    def polyhedron(self):
+    def polyhedron(self, **kwds):
         r"""
         Return the polyhedron associated to ``self``.
 
@@ -3541,7 +3541,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container, ConvexSet_c
             A 0-dimensional polyhedron in ZZ^2 defined as the convex hull
             of 1 vertex
         """
-        return Polyhedron(rays=self.rays(), vertices=[self.lattice()(0)])
+        return Polyhedron(rays=self.rays(), vertices=[self.lattice()(0)], **kwds)
 
     def an_affine_basis(self):
         r"""

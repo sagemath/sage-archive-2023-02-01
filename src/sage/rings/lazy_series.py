@@ -118,6 +118,7 @@ from sage.structure.element import Element, parent
 from sage.structure.richcmp import op_EQ, op_NE
 from sage.functions.other import factorial
 from sage.arith.power import generic_power
+from sage.combinat.partition import Partition
 from sage.rings.infinity import infinity
 from sage.rings.integer_ring import ZZ
 from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
@@ -3876,7 +3877,7 @@ class LazySymmetricFunction(LazyCauchyProductSeries):
             sage: L = LazySymmetricFunctions(p)
             sage: Eplus = L(lambda n: h[n]) - 1
             sage: Eplus(Eplus.revert())
-            p[1] + O^8
+            p[1] + O^7
 
         TESTS::
 
@@ -3885,6 +3886,21 @@ class LazySymmetricFunction(LazyCauchyProductSeries):
             Traceback (most recent call last):
             ...
             ValueError: compositional inverse does not exist
+
+            sage: R.<a,b> = QQ[]
+            sage: p = SymmetricFunctions(R.fraction_field()).p()
+            sage: L = LazySymmetricFunctions(p)
+            sage: f = L(a + b*p[1])
+            sage: f.revert()
+            ((-a)/b)*p[] + 1/b*p[1]
+
+            sage: f = L(2*p[1])
+            sage: f.revert()
+            1/2*p[1] + O^8
+
+            sage: f = L(2*p[1] + p[2] + p[1,1])
+            sage: f.revert()
+            1/2*p[1] + (-1/4*p[1,1]-1/2*p[2]) + (1/4*p[1,1,1]+1/2*p[2,1]) + (-5/16*p[1,1,1,1]-3/4*p[2,1,1]+1/2*p[4]) + (7/16*p[1,1,1,1,1]+5/4*p[2,1,1,1]+1/2*p[2,2,1]-1/2*p[4,1]) + (-21/32*p[1,1,1,1,1,1]-35/16*p[2,1,1,1,1]-3/2*p[2,2,1,1]-1/4*p[2,2,2]+3/4*p[4,1,1]) + (33/32*p[1,1,1,1,1,1,1]+63/16*p[2,1,1,1,1,1]+15/4*p[2,2,1,1,1]+3/4*p[2,2,2,1]-5/4*p[4,1,1,1]-p[4,2,1]) + O^8
 
         ALGORITHM:
 
@@ -3916,15 +3932,18 @@ class LazySymmetricFunction(LazyCauchyProductSeries):
         P = self.parent()
         if P._arity != 1:
             raise ValueError("arity must be equal to 1")
-        if self.valuation() == 1:
-            from sage.combinat.sf.sf import SymmetricFunctions
-            p = SymmetricFunctions(P.base()).p()
-            X = P(p[1])
-            f1 = self - X
-            g = P(None, valuation=1)
-            g.define(X - f1(g))
-            return g
-        raise ValueError("compositional inverse does not exist")
+        coeff_stream = self._coeff_stream
+        if isinstance(coeff_stream, Stream_zero):
+            raise ValueError("compositional inverse does not exist")
+        if coeff_stream[0] or not coeff_stream[1]:
+            raise ValueError("compositional inverse does not exist")
+
+        ps = P._laurent_poly_ring.realization_of().p()
+        X = P(ps[1])
+        f1 = coeff_stream[1][Partition([1])]
+        g = P(None, valuation=1)
+        g.define(~f1*X - (self - f1*X)(g))
+        return g
 
     plethystic_inverse = revert
     compositional_inverse = revert

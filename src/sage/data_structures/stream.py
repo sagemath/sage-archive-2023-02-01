@@ -1861,16 +1861,15 @@ class Stream_plethysm(Stream_binary):
         """
         while len(self._powers) < m:
             self._powers.append(Stream_cauchy_mul(self._powers[-1], self._powers[0]))
-        power = self._powers[m-1]
-
-        # we have to check power[d] for zero because it might be an
+        power_d = self._powers[m-1][d]
+        # we have to check power_d for zero because it might be an
         # integer and not a symmetric function
-        if power[d]:
-            terms = [(self._scale_part(m, i), self._raise_c(c, i)) for m, c in power[d]]
-        else:
-            terms = []
+        if power_d:
+            terms = {self._scale_part(m, i): raised_c for m, c in power_d
+                     if (raised_c := self._raise_c(c, i))}
+            return self._p.element_class(self._p, terms)
 
-        return self._p.sum_of_terms(terms, distinct = True)
+        return self._p.zero()
 
 
 #####################################################################

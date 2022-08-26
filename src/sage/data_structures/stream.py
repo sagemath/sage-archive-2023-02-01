@@ -98,6 +98,7 @@ from sage.rings.integer_ring import ZZ
 from sage.rings.infinity import infinity
 from sage.arith.misc import divisors
 from sage.combinat.integer_vector_weighted import iterator_fast as wt_int_vec_iter
+from sage.combinat.sf.sfa import _variables_recursive, _raise_variables
 
 class Stream():
     """
@@ -1748,26 +1749,6 @@ class Stream_plethysm(Stream_binary):
             sage: g = Stream_function(lambda n: s[n-1,1], s, True, 2)
             sage: h = Stream_plethysm(f, g, p)
         """
-        # handle degree one elements
-        if include is not None and exclude is not None:
-            raise RuntimeError("include and exclude cannot both be specified")
-        R = p.base_ring()
-
-        if include is not None:
-            degree_one = [R(g) for g in include]
-        else:
-            try:
-                degree_one = [R(g) for g in R.variable_names_recursive()]
-            except AttributeError:
-                try:
-                    degree_one = R.gens()
-                except NotImplementedError:
-                    degree_one = []
-            if exclude is not None:
-                degree_one = [g for g in degree_one if g not in exclude]
-
-        self._degree_one = [g for g in degree_one if g != R.one()]
-
         # assert g._approximate_order > 0
         val = f._approximate_order * g._approximate_order
         p_f = Stream_map_coefficients(f, lambda x: x, p)
@@ -1778,7 +1759,8 @@ class Stream_plethysm(Stream_binary):
         else:
             self._basis = ring
         self._p = p
-
+        self._degree_one = _variables_recursive(self._basis.base_ring(),
+                                                include=include, exclude=exclude)
         super().__init__(p_f, p_g, f._is_sparse, val)
 
     def get_coefficient(self, n):
@@ -1849,16 +1831,21 @@ class Stream_plethysm(Stream_binary):
             ret += temp
         return ret
 
-    def _scale_part(self, mu, i):
-        return mu.__class__(mu.parent(), [j * i for j in mu])
-
-    def _raise_c(self, c, i):
-        return c.subs(**{str(g): g ** i
-                         for g in self._degree_one})
-
     def _stretched_power_restrict_degree(self, i, m, d):
         """
         Return the degree ``d*i`` part of ``p([i]*m)(g)``.
+
+        TESTS::
+
+            sage: from sage.data_structures.stream import Stream_plethysm, Stream_exact, Stream_function
+            sage: s = SymmetricFunctions(QQ).s()
+            sage: p = SymmetricFunctions(QQ).p()
+            sage: f = Stream_function(lambda n: s[n], s, True, 1)
+            sage: g = Stream_exact([s[2], s[3]], False, 0, 4, 2)
+            sage: h = Stream_plethysm(f, g, p)
+            sage: ret = h._stretched_power_restrict_degree(2, 3, 6)
+            sage: ret == p[2,2,2](s[2] + s[3]).homogeneous_component(12)
+            True
         """
         while len(self._powers) < m:
             self._powers.append(Stream_cauchy_mul(self._powers[-1], self._powers[0]))
@@ -1866,8 +1853,8 @@ class Stream_plethysm(Stream_binary):
         # we have to check power_d for zero because it might be an
         # integer and not a symmetric function
         if power_d:
-            terms = {self._scale_part(m, i): raised_c for m, c in power_d
-                     if (raised_c := self._raise_c(c, i))}
+            terms = {m.stretch(i): raised_c for m, c in power_d
+                     if (raised_c := _raise_variables(c, i, self._degree_one))}
             return self._p.element_class(self._p, terms)
 
         return self._p.zero()

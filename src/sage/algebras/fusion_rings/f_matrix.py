@@ -1235,9 +1235,7 @@ class FMatrix(SageObject):
         .. NOTE::
 
             Python 3.8+ is required, since the ``multiprocessing.shared_memory``
-            module must be imported. If we fail to import the ``shared_memory``
-            module, ``self.pool`` is set to ``None``, no worker pool is created,
-            and all subsequent calculations will run serially.
+            module must be imported. 
 
         INPUT:
 
@@ -1314,7 +1312,7 @@ class FMatrix(SageObject):
         self._pid_list[0] = getpid()
         for i, p in enumerate(self.pool._pool):
             self._pid_list[i+1] = p.pid
-        return True
+        # return True
 
     def shutdown_worker_pool(self):
         r"""
@@ -1331,7 +1329,7 @@ class FMatrix(SageObject):
         EXAMPLES::
 
             sage: f = FMatrix(FusionRing("A1", 3))
-            sage: is_shared_memory_available = f.start_worker_pool()     # Requires Python 3.8+
+            sage: f.start_worker_pool()
             sage: he = f.get_defining_equations('hexagons')
             sage: f.shutdown_worker_pool()
         """
@@ -1532,7 +1530,7 @@ class FMatrix(SageObject):
 
             sage: from sage.algebras.fusion_rings.poly_tup_engine import poly_to_tup
             sage: f = FMatrix(FusionRing("C3", 1))
-            sage: is_shared_memory_available = f.start_worker_pool()     # Requires Python 3.8+
+            sage: f.start_worker_pool()
             sage: he = f.get_defining_equations('hexagons')
             sage: all(f._tup_to_fpoly(poly_to_tup(h)) for h in he)
             True
@@ -1549,17 +1547,13 @@ class FMatrix(SageObject):
             sage: f = FMatrix(FusionRing("A1", 3))
             sage: f._reset_solver_state()
             sage: f.get_orthogonality_constraints(output=False)
-            sage: is_shared_memory_available = f.start_worker_pool()     # Requires Python 3.8+
+            sage: f.start_worker_pool()
             sage: f.get_defining_equations('hexagons', output=False)
             sage: f.ideal_basis = f._par_graph_gb(verbose=False)
             sage: from sage.algebras.fusion_rings.poly_tup_engine import poly_tup_sortkey, poly_to_tup
             sage: f.ideal_basis.sort(key=poly_tup_sortkey)
             sage: f.mp_thresh = 0
-            sage: if is_shared_memory_available:
-            ....:     f._fvars = f._shared_fvars
-            ....: else:
-            ....:     from sage.algebras.fusion_rings.shm_managers import FvarsHandler
-            ....:     f._fvars = FvarsHandler(f._poly_ring.ngens(),f._field,f._idx_to_sextuple,init_data=f._fvars)
+            sage: f._fvars = f._shared_fvars
             sage: f._triangular_elim(verbose=False)  # indirect doctest
             sage: f.ideal_basis
             []
@@ -1760,7 +1754,7 @@ class FMatrix(SageObject):
             sage: f = FMatrix(FusionRing("F4",1))
             sage: f._reset_solver_state()
             sage: f.get_orthogonality_constraints(output=False)
-            sage: is_shared_memory_available = f.start_worker_pool()     # Requires Python 3.8+
+            sage: f.start_worker_pool()
             sage: f.get_defining_equations('hexagons',output=False)
             sage: gb = f._par_graph_gb()
             Partitioned 10 equations into 2 components of size:
@@ -1803,7 +1797,7 @@ class FMatrix(SageObject):
         EXAMPLES::
 
             sage: f = FMatrix(FusionRing("G2", 2))
-            sage: is_shared_memory_available = f.start_worker_pool()                     # Requires Python 3.8+
+            sage: f.start_worker_pool()
             sage: f.get_defining_equations('hexagons', output=False)                     # long time
             sage: f.shutdown_worker_pool()
             sage: partition = f._partition_eqns()                                        # long time
@@ -2045,10 +2039,7 @@ class FMatrix(SageObject):
         - ``use_mp`` -- (default: ``True``) a boolean indicating whether to use
           multiprocessing to speed up calculation. The default value
           ``True`` is highly recommended, since parallel processing yields
-          results much more quickly. Python 3.8+ is required, since the
-          ``multiprocessing.shared_memory`` module must be imported. If we
-          fail to import the ``shared_memory`` module, the solver runs
-          serially.
+          results much more quickly.
 
         - ``verbose`` -- (default: ``True``) a boolean indicating whether the
           solver should print out intermediate progress reports.
@@ -2114,9 +2105,11 @@ class FMatrix(SageObject):
             #Loading from a pickle with solved F-symbols
             if self._chkpt_status > 5:
                 return
-        loads_shared_memory = False
+        # loads_shared_memory = False
+        # if use_mp:
+        #     loads_shared_memory = self.start_worker_pool()
         if use_mp:
-            loads_shared_memory = self.start_worker_pool()
+            self.start_worker_pool()
         if verbose:
             print("Computing F-symbols for {} with {} variables...".format(self._FR, self._poly_ring.ngens()))
 
@@ -2129,7 +2122,7 @@ class FMatrix(SageObject):
                 print("Set up {} hex and orthogonality constraints...".format(len(self.ideal_basis)))
 
         #Unzip _fvars and link to shared_memory structure if using multiprocessing
-        if use_mp and loads_shared_memory:
+        if use_mp:# and loads_shared_memory:
             self._fvars = self._shared_fvars
         else:
             n = self._poly_ring.ngens()

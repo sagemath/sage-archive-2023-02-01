@@ -744,7 +744,9 @@ class TensorFreeModule(FiniteRankFreeModule_abstract):
             e_1⊗e_2 + e_2⊗e_1
             e_2⊗e_2
         """
-        return TensorFreeSubmoduleBasis_comp(self, symbol)
+        return TensorFreeSubmoduleBasis_comp(self, symbol=symbol, latex_symbol=latex_symbol,
+                                             indices=indices, latex_indices=latex_indices,
+                                             symbol_dual=symbol_dual, latex_symbol_dual=latex_symbol_dual)
 
     @cached_method
     def _basis_comp(self):

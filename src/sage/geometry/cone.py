@@ -3055,7 +3055,9 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container, ConvexSet_c
             sage: cone = Cone([(1,0), (-1,0), (0,1)])
             sage: p = polytopes.hypercube(2)
             sage: cone & p
-            A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 3 vertices
+            A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 4 vertices
+            sage: sorted(_.vertices_list())
+            [[-1, 0], [-1, 1], [1, 0], [1, 1]]
         """
         if not isinstance(other, ConvexRationalPolyhedralCone):
             return self.polyhedron().intersection(other)

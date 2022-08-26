@@ -699,6 +699,7 @@ class Polyhedron_base6(Polyhedron_base5):
 
             try:
                 import sage.graphs.graph
+                assert sage.graphs.graph  # to muffle pyflakes
             except ImportError:
                 pass
             else:

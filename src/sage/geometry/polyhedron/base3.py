@@ -1863,6 +1863,7 @@ class Polyhedron_base3(Polyhedron_base2):
             D2._test_bitsets(tester, **options)
             try:
                 import sage.graphs.graph
+                assert sage.graphs.graph  # to muffle pyflakes
             except ImportError:
                 pass
             else:

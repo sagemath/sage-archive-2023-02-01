@@ -545,7 +545,7 @@ from sage.tensor.modules.free_module_element import FiniteRankFreeModuleElement
 
 class FiniteRankFreeModule_abstract(UniqueRepresentation, Parent):
     r"""
-    Free module of finite rank over a commutative ring.
+    Abstract base class for free modules of finite rank over a commutative ring.
     """
 
     def __init__(

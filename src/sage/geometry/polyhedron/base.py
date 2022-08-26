@@ -51,7 +51,6 @@ This is split into several modules, organized as follows:
 
 from sage.misc.cachefunc import cached_method
 
-import sage.rings.abc
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
 from sage.matrix.constructor import matrix

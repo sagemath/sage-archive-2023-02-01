@@ -291,6 +291,8 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 ########################################################################
 
+import sage.geometry.abc
+
 from sage.rings.integer_ring import ZZ
 from sage.rings.real_double import RDF
 from sage.rings.real_mpfr import RR
@@ -470,6 +472,13 @@ def Polyhedron(vertices=None, rays=None, lines=None,
         ...
         ValueError: invalid base ring
 
+    Converting from a given polyhedron::
+
+        sage: cb = polytopes.cube(); cb
+        A 3-dimensional polyhedron in ZZ^3 defined as the convex hull of 8 vertices
+        sage: Polyhedron(cb, base_ring=QQ)
+        A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 8 vertices
+
     Converting from other objects to a polyhedron::
 
         sage: quadrant = Cone([(1,0), (0,1)])
@@ -612,20 +621,34 @@ def Polyhedron(vertices=None, rays=None, lines=None,
     """
     # Special handling for first argument, for coercion-like uses
     constructor = None
+    first_arg = vertices
+    if isinstance(first_arg, sage.geometry.abc.Polyhedron):
+        constructor = first_arg.change_ring
     try:
         # PolyhedronFace.as_polyhedron (it also has a "polyhedron" method with a different purpose)
-        constructor = vertices.as_polyhedron
+        constructor = first_arg.as_polyhedron
     except AttributeError:
         try:
             # ConvexRationalPolyhedralCone, LatticePolytopeClass, MixedIntegerLinearProgram, Hyperplane
-            constructor = vertices.polyhedron
+            constructor = first_arg.polyhedron
         except AttributeError:
             pass
     if constructor:
         if not all(x is None for x in (rays, lines, ieqs, eqns, ambient_dim)):
             raise ValueError('if a polyhedron is given, cannot provide H- and V-representations objects')
-        return constructor(base_ring=base_ring, minimize=minimize,
-                           verbose=verbose, backend=backend, mutable=False)
+        # Only pass non-default arguments
+        kwds = {}
+        if base_ring is not None:
+            kwds['base_ring'] = base_ring
+        if verbose is not False:
+            kwds['verbose'] = verbose
+        if backend is not None:
+            kwds['backend'] = backend
+        if minimize is not True:
+            kwds['minimize'] = minimize
+        if mutable is not False:
+            kwds['mutable'] = mutable
+        return constructor(**kwds)
 
     got_Vrep = not ((vertices is None) and (rays is None) and (lines is None))
     got_Hrep = not ((ieqs is None) and (eqns is None))

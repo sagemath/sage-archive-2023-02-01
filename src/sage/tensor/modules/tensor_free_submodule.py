@@ -15,7 +15,7 @@ from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.sets.disjoint_set import DisjointSet
 from .tensor_free_module import TensorFreeModule
-from .finite_rank_free_module import FiniteRankFreeModule
+from .finite_rank_free_module import FiniteRankFreeModule_abstract
 
 class TensorFreeSubmodule_comp(TensorFreeModule):
     r"""
@@ -69,11 +69,9 @@ class TensorFreeSubmodule_comp(TensorFreeModule):
         rank = len(list(self.irange()))
         category = fmodule.category().TensorProducts().FiniteDimensional().Subobjects().or_subcategory(category)
         # Skip TensorFreeModule.__init__
-        FiniteRankFreeModule.__init__(self, fmodule._ring, rank, name=name,
-                                      latex_name=latex_name,
-                                      start_index=fmodule._sindex,
-                                      output_formatter=fmodule._output_formatter,
-                                      category=category, ambient=ambient)
+        FiniteRankFreeModule_abstract.__init__(self, fmodule._ring, rank, name=name,
+                                               latex_name=latex_name,
+                                               category=category, ambient=ambient)
 
     @cached_method
     def _basis_comp(self):

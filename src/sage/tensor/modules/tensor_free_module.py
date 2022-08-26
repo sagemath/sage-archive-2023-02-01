@@ -715,6 +715,17 @@ class TensorFreeModule(FiniteRankFreeModule_abstract):
         r"""
         Return the standard basis of ``self`` corresponding to a basis of the base module.
 
+        INPUT:
+
+        - ``symbol``, ``indices`` -- passed to he base module's method
+          :meth:`~sage.tensor.modules.finite_rank_free_module.FiniteRankFreeModule.basis`
+          to select a basis of the :meth:`base_module` of ``self``,
+          or to create it.
+
+        - other parameters -- passed to
+          :meth:`~sage.tensor.modules.finite_rank_free_module.FiniteRankFreeModule.basis`; when
+          the basis does not exist yet, it will be created using these parameters.
+
         EXAMPLES::
 
             sage: M = FiniteRankFreeModule(ZZ, 3, name='M')

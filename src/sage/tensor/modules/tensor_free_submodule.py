@@ -58,7 +58,7 @@ class TensorFreeSubmodule_comp(TensorFreeModule):
 
     """
     def __init__(self, fmodule, tensor_type, name=None, latex_name=None,
-                 sym=None, antisym=None, *, ambient=None, category=None):
+                 sym=None, antisym=None, *, category=None, ambient=None):
         self._fmodule = fmodule
         self._tensor_type = tuple(tensor_type)
         if ambient is None:
@@ -73,7 +73,7 @@ class TensorFreeSubmodule_comp(TensorFreeModule):
                                       latex_name=latex_name,
                                       start_index=fmodule._sindex,
                                       output_formatter=fmodule._output_formatter,
-                                      ambient=ambient, category=category)
+                                      category=category, ambient=ambient)
 
     @cached_method
     def _basis_comp(self):

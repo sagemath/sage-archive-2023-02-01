@@ -3860,29 +3860,31 @@ class LazySymmetricFunction(LazyCauchyProductSeries):
 
     def revert(self):
         r"""
-        Return the compositional inverse of ``self`` if possible.
+        Return the compositional inverse of ``self``.
 
-        (Specifically, if ``self`` is of the form `0 + p_{1} + \cdots`.)
+        Given a symmetric function `f`, the compositional inverse is
+        a symmetric function `g` over the same base ring, such that
+        `f \circ g = p_1`.  Thus, it is the inverse with respect to
+        plethystic substitution.
 
-        The compositional inverse is the inverse with respect to
-        plethystic substitution. This is the operation on cycle index
-        series which corresponds to substitution, a.k.a. partitional
-        composition, on the level of species. See Section 2.2 of
-        [BLL]_ for a definition of this operation.
+        The compositional inverse exists if and only if:
+
+        - `val(f) = 1`, or
+
+        - `f = a + b p_1` with `a, b \neq 0`.
 
         EXAMPLES::
 
             sage: h = SymmetricFunctions(QQ).h()
-            sage: p = SymmetricFunctions(QQ).p()
-            sage: L = LazySymmetricFunctions(p)
-            sage: Eplus = L(lambda n: h[n]) - 1
-            sage: Eplus(Eplus.revert())
-            p[1] + O^7
+            sage: L = LazySymmetricFunctions(h)
+            sage: f = L(lambda n: h[n]) - 1
+            sage: f(f.revert())
+            h[1] + O^7
 
         TESTS::
 
-            sage: Eplus = L(lambda n: h[n]) - 1 - h[1]
-            sage: Eplus.compositional_inverse()
+            sage: f = L(lambda n: h[n]) - 1 - h[1]
+            sage: f.compositional_inverse()
             Traceback (most recent call last):
             ...
             ValueError: compositional inverse does not exist
@@ -3892,11 +3894,11 @@ class LazySymmetricFunction(LazyCauchyProductSeries):
             sage: L = LazySymmetricFunctions(p)
             sage: f = L(a + b*p[1])
             sage: f.revert()
-            ((-a)/b)*p[] + 1/b*p[1]
+            (((-a)/b)*p[]) + 1/b*p[1]
 
             sage: f = L(2*p[1])
             sage: f.revert()
-            1/2*p[1] + O^8
+            1/2*p[1]
 
             sage: f = L(2*p[1] + p[2] + p[1,1])
             sage: f.revert()
@@ -3904,45 +3906,56 @@ class LazySymmetricFunction(LazyCauchyProductSeries):
 
         ALGORITHM:
 
-        Let `F` be a species satisfying `F = 0 + X + F_2 + F_3 + \cdots` for
-        `X` the species of singletons. (Equivalently, `\lvert F[\varnothing]
-        \rvert = 0` and `\lvert F[\{1\}] \rvert = 1`.) Then there exists a
-        (virtual) species `G` satisfying `F \circ G = G \circ F = X`.
+        Let `F` be a symmetric function with valuation `1`, i.e.,
+        whose constant term vanishes and whose degree one term equals
+        `b p_1`.  Then
 
-        It follows that `(F - X) \circ G = F \circ G - X \circ G = X - G`.
-        Rearranging, we obtain the recursive equation `G = X - (F - X) \circ G`,
-        which can be solved using iterative methods.
+        .. MATH::
 
-        .. WARNING::
+            (F - b p_1) \circ G = F \circ G - b p_1 \circ G = p_1 - b G`,
 
-            This algorithm is functional but can be very slow.
-            Use with caution!
+        and therefore `G = 1/b (p_1 - (F - b p_1) \circ G)`, which
+        allows recursive computation of `G`.
 
         .. SEEALSO::
 
-            The compositional inverse `\Omega` of the species `E_{+}`
-            of nonempty sets can be handled much more efficiently
-            using specialized methods. See
+            The compositional inverse `\Omega` of the symmetric
+            function `h_1 + h_2 + \dots` can be handled much more
+            efficiently using specialized methods. See
             :func:`~sage.combinat.species.generating_series.LogarithmCycleIndexSeries`
 
         AUTHORS:
 
         - Andrew Gainer-Dewar
+        - Martin Rubey
+
         """
         P = self.parent()
+        R = P._laurent_poly_ring
         if P._arity != 1:
             raise ValueError("arity must be equal to 1")
         coeff_stream = self._coeff_stream
         if isinstance(coeff_stream, Stream_zero):
             raise ValueError("compositional inverse does not exist")
+        if (isinstance(coeff_stream, Stream_exact)
+            and coeff_stream.order() >= 0
+            and coeff_stream._degree == 2):
+            # self = a + b * p_1; self.revert() = -a/b + 1/b * p_1
+            a = coeff_stream[0]
+            b = coeff_stream[1][Partition([1])]
+            X = R(Partition([1]))
+            coeff_stream = Stream_exact((-a/b, 1/b * X),
+                                        coeff_stream._is_sparse,
+                                        order=0)
+            return P.element_class(P, coeff_stream)
+
         if coeff_stream[0] or not coeff_stream[1]:
             raise ValueError("compositional inverse does not exist")
 
-        ps = P._laurent_poly_ring.realization_of().p()
-        X = P(ps[1])
-        f1 = coeff_stream[1][Partition([1])]
+        X = R(Partition([1]))
+        b = coeff_stream[1][Partition([1])]
         g = P(None, valuation=1)
-        g.define(~f1*X - (self - f1*X)(g))
+        g.define(~b * X - (self - b * X)(g))
         return g
 
     plethystic_inverse = revert

@@ -176,6 +176,7 @@ def Polyhedra(ambient_space_or_base_ring=None, ambient_dim=None, backend=None, *
         try:
             from sage.interfaces.polymake import polymake
             polymake_base_field = polymake(base_field)
+            assert polymake_base_field  # to muffle pyflakes
         except TypeError:
             raise ValueError(f"the 'polymake' backend for polyhedron cannot be used with {base_field}")
         return Polyhedra_polymake(base_field, ambient_dim, backend)

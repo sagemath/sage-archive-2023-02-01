@@ -421,11 +421,6 @@ class ExtPowerFreeModule(FiniteRankFreeModule_abstract):
         """
         return self._degree
 
-    def basis(self, *args, **kwds):
-        # We override it so that _test_basis is disabled.
-        # See https://trac.sagemath.org/ticket/30229#comment:6 for a better solution
-        raise NotImplementedError
-
 #***********************************************************************
 
 
@@ -893,8 +888,3 @@ class ExtPowerDualFreeModule(FiniteRankFreeModule_abstract):
 
         """
         return self._degree
-
-    def basis(self, *args, **kwds):
-        # We override it so that _test_basis is disabled.
-        # See https://trac.sagemath.org/ticket/30229#comment:6 for a better solution
-        raise NotImplementedError

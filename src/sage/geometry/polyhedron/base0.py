@@ -1366,6 +1366,8 @@ class Polyhedron_base0(Element, sage.geometry.abc.Polyhedron):
         try:
             cdd_type = self._cdd_type
         except AttributeError:
+            from sage.rings.integer_ring import ZZ
+            from sage.rings.rational_field import QQ
             if self.base_ring() is ZZ or self.base_ring() is QQ:
                 cdd_type = 'rational'
             elif isinstance(self.base_ring(), sage.rings.abc.RealDoubleField):
@@ -1427,6 +1429,8 @@ class Polyhedron_base0(Element, sage.geometry.abc.Polyhedron):
         try:
             cdd_type = self._cdd_type
         except AttributeError:
+            from sage.rings.integer_ring import ZZ
+            from sage.rings.rational_field import QQ
             if self.base_ring() is ZZ or self.base_ring() is QQ:
                 cdd_type = 'rational'
             elif isinstance(self.base_ring(), sage.rings.abc.RealDoubleField):

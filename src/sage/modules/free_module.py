@@ -687,7 +687,7 @@ def span(gens, base_ring=None, check=True, already_echelonized=False):
             gens = list(gens)
             R = base_ring
     except TypeError:
-        raise TypeError("generators must be given as an iterable structure!")
+        raise TypeError("generators must be given as an iterable structure")
 
     if R not in PrincipalIdealDomains():
         raise TypeError("The base_ring (= %s) must be a principal ideal "

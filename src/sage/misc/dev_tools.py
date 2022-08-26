@@ -292,7 +292,7 @@ def find_object_modules(obj):
 
     if module_name:
         if module_name not in sys.modules:
-            raise ValueError("This should not happen!")
+            raise ValueError("this should never happen")
         d = sys.modules[module_name].__dict__
         matching = sorted(key for key in d if d[key] is obj)
         if matching:

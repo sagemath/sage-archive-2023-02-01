@@ -827,11 +827,11 @@ class FiniteCoxeterGroups(CategoryWithAxiom):
                 sage: w.coxeter_knuth_neighbor(word)
                 Traceback (most recent call last):
                 ...
-                NotImplementedError: This has only been implemented in finite type A so far!
+                NotImplementedError: this has only been implemented in finite type A so far
             """
             C = self.parent().cartan_type()
             if not C[0] == 'A':
-                raise NotImplementedError("This has only been implemented in finite type A so far!")
+                raise NotImplementedError("this has only been implemented in finite type A so far")
             d = []
             for i in range(2,len(w)):
                 v = [j for j in w]

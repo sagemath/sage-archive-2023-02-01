@@ -1033,7 +1033,7 @@ def linear_relation(P, Q, operation='+', identity=None, inverse=None, op=None):
                     m1 * h)
         except ValueError:
             pass  # to next h
-    raise ValueError("No solution found in linear_relation!")
+    raise ValueError("no solution found in linear_relation")
 
 ################################################################
 #

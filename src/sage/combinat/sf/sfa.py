@@ -3093,9 +3093,6 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
 
         degree_one = _variables_recursive(R, include=include, exclude=exclude)
 
-        def raise_c(n):
-            return lambda c: c.subs(**{str(g): g ** n for g in degree_one})
-
         if tensorflag:
             tparents = x.parent()._sets
 
@@ -3107,7 +3104,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
                     for mu, d in p(self))
             return tensor([parent]*len(tparents))(s)
 
-        # Takes n an symmetric function f, and an n and returns the
+        # Takes a symmetric function f, and an n and returns the
         # symmetric function with all of its basis partitions scaled
         # by n
         def pn_pleth(f, n):

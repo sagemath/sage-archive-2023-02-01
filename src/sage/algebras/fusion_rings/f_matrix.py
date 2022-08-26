@@ -12,17 +12,13 @@ F-Matries of fusion rings
 # ****************************************************************************
 
 
-#Import pickle for checkpointing and loading
-try:
-    import cPickle as pickle
-except:
-    import pickle
 from copy import deepcopy
 from ctypes import cast, py_object
 from itertools import product, zip_longest
-from multiprocessing import  Pool, cpu_count, set_start_method
+from multiprocessing import  Pool, cpu_count, set_start_method, shared_memory
 import numpy as np
 from os import getpid, remove
+import pickle
 
 from sage.algebras.fusion_rings.fast_parallel_fmats_methods import (
     _backward_subs, _solve_for_linear_terms,
@@ -35,8 +31,7 @@ from sage.algebras.fusion_rings.poly_tup_engine import (
     poly_to_tup, _tup_to_poly, tup_to_univ_poly,
     _unflatten_coeffs,
     poly_tup_sortkey,
-    resize,
-    # tup_fixes_sq
+    resize
 )
 from sage.algebras.fusion_rings.shm_managers import KSHandler, FvarsHandler
 from sage.graphs.graph import Graph
@@ -1258,7 +1253,7 @@ class FMatrix(SageObject):
         EXAMPLES::
 
             sage: f = FMatrix(FusionRing("G2", 1))
-            sage: is_shared_memory_available = f.start_worker_pool()     # Requires Python 3.8+
+            sage: f.start_worker_pool()
             sage: he = f.get_defining_equations('hexagons')
             sage: sorted(he)
             [fx0 - 1,
@@ -1282,12 +1277,6 @@ class FMatrix(SageObject):
             leak, since shared memory resources outlive the process that created
             them.
         """
-        #Try to import module requiring Python 3.8+ locally
-        try:
-            from multiprocessing import shared_memory
-        except ImportError:
-            self.pool = None
-            return False
         try:
             set_start_method('fork')
         except RuntimeError:
@@ -1382,11 +1371,8 @@ class FMatrix(SageObject):
             sage: f._reset_solver_state()
             sage: len(f._map_triv_reduce('get_reduced_hexagons',[(0,1,False)]))
             11
-            sage: is_shared_memory_available = f.start_worker_pool()     # Requires Python 3.8+
-            sage: if is_shared_memory_available:
-            ....:     mp_params = [(i,f.pool._processes,True) for i in range(f.pool._processes)]
-            ....: else:
-            ....:     mp_params = [(0,1,True)]
+            sage: f.start_worker_pool()
+            sage: mp_params = [(i,f.pool._processes,True) for i in range(f.pool._processes)]
             sage: len(f._map_triv_reduce('get_reduced_pentagons',mp_params,worker_pool=f.pool,chunksize=1,mp_thresh=0))
             33
             sage: f.shutdown_worker_pool()

@@ -18,6 +18,7 @@ factory is a cyclotomic field.
 cimport cython
 cimport numpy as np
 from cysignals.memory cimport sig_malloc
+from multiprocessing import shared_memory
 from sage.algebras.fusion_rings.poly_tup_engine cimport poly_to_tup, tup_fixes_sq, _flatten_coeffs
 from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational
@@ -128,11 +129,6 @@ cdef class KSHandler:
         ])
         self.obj_cache = [None]*n
         if use_mp:
-            #Try to import module requiring Python 3.8+ locally
-            try:
-                from multiprocessing import shared_memory
-            except ImportError:
-                raise ImportError("failed to import shared_memory module; requires Python 3.8+")
             if name is None:
                 self.shm = shared_memory.SharedMemory(create=True, size=n*ks_t.itemsize)
             else:
@@ -509,11 +505,6 @@ cdef class FvarsHandler:
         self.sext_to_idx = {s: i for i, s in idx_to_sextuple.items()}
         self.ngens = n_slots
         if use_mp:
-            #Try to import module requiring Python 3.8+ locally
-            try:
-                from multiprocessing import shared_memory
-            except ImportError:
-                raise ImportError("failed to import shared_memory module; requires Python 3.8+")
             if name is None:
                 self.shm = shared_memory.SharedMemory(create=True, size=self.ngens*self.fvars_t.itemsize)
             else:

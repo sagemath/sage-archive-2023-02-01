@@ -17,7 +17,7 @@ LGPL V3+
 Upstream Contact
 ----------------
 
--  Paul.Zimmermann@inria.fr
+-  ecm-discuss@inria.fr
 
 Special Update/Build Instructions
 ---------------------------------

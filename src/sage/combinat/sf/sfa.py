@@ -3095,7 +3095,6 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
 
         if tensorflag:
             tparents = x.parent()._sets
-
             s = sum(d * prod(sum(_raise_variables(c, r, degree_one)
                                  * tensor([p[r].plethysm(base(la))
                                            for base, la in zip(tparents, trm)])

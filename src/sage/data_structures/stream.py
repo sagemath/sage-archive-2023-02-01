@@ -99,6 +99,7 @@ from sage.rings.infinity import infinity
 from sage.arith.misc import divisors
 from sage.combinat.integer_vector_weighted import iterator_fast as wt_int_vec_iter
 from sage.combinat.sf.sfa import _variables_recursive, _raise_variables
+from sage.categories.hopf_algebras_with_basis import HopfAlgebrasWithBasis
 
 class Stream():
     """
@@ -1759,8 +1760,12 @@ class Stream_plethysm(Stream_binary):
         else:
             self._basis = ring
         self._p = p
-        self._degree_one = _variables_recursive(self._basis.base_ring(),
-                                                include=include, exclude=exclude)
+        R = self._basis.base_ring()
+        if HopfAlgebrasWithBasis(R).TensorProducts() in p.categories():
+            self._tensor_power = len(p._sets)
+        else:
+            self._tensor_power = None
+        self._degree_one = _variables_recursive(R, include=include, exclude=exclude)
         super().__init__(p_f, p_g, f._is_sparse, val)
 
     def get_coefficient(self, n):
@@ -1801,18 +1806,28 @@ class Stream_plethysm(Stream_binary):
         """
         Compute the product ``c * p[la](self._right)`` in degree ``n``.
 
-        EXAMPLES::
+        TESTS::
 
-            sage: from sage.data_structures.stream import Stream_plethysm, Stream_exact, Stream_function
+            sage: from sage.data_structures.stream import Stream_plethysm, Stream_exact, Stream_function, Stream_zero
             sage: s = SymmetricFunctions(QQ).s()
             sage: p = SymmetricFunctions(QQ).p()
-            sage: f = Stream_function(lambda n: s[n], s, True, 1)
+            sage: f = Stream_zero(True) # irrelevant for this test
             sage: g = Stream_exact([s[2], s[3]], False, 0, 4, 2)
             sage: h = Stream_plethysm(f, g, p)
-            sage: ret = h._compute_product(7, Partition([2, 1])); ret
+            sage: A = h._compute_product(7, Partition([2, 1])); A
             1/12*p[2, 2, 1, 1, 1] + 1/4*p[2, 2, 2, 1] + 1/6*p[3, 2, 2]
              + 1/12*p[4, 1, 1, 1] + 1/4*p[4, 2, 1] + 1/6*p[4, 3]
-            sage: ret == p[2,1](s[2] + s[3]).homogeneous_component(7)
+            sage: A == p[2,1](s[2] + s[3]).homogeneous_component(7)
+            True
+
+            sage: p2 = tensor([p, p])
+            sage: f = Stream_zero(True) # irrelevant for this test
+            sage: g = Stream_function(lambda n: sum(tensor([p[k], p[n-k]]) for k in range(n+1)), p2, True, 1)
+            sage: h = Stream_plethysm(f, g, p2)
+            sage: A = h._compute_product(7, Partition([2, 1]))
+            sage: B = p[2,1](sum(g[n] for n in range(7)))
+            sage: B = p2.element_class(p2, {m: c for m, c in B if sum(mu.size() for mu in m) == 7})
+            sage: A == B
             True
         """
         ret = self._basis.zero()
@@ -1837,14 +1852,24 @@ class Stream_plethysm(Stream_binary):
 
         TESTS::
 
-            sage: from sage.data_structures.stream import Stream_plethysm, Stream_exact, Stream_function
+            sage: from sage.data_structures.stream import Stream_plethysm, Stream_exact, Stream_function, Stream_zero
             sage: s = SymmetricFunctions(QQ).s()
             sage: p = SymmetricFunctions(QQ).p()
-            sage: f = Stream_function(lambda n: s[n], s, True, 1)
+            sage: f = Stream_zero(False) # irrelevant for this test
             sage: g = Stream_exact([s[2], s[3]], False, 0, 4, 2)
             sage: h = Stream_plethysm(f, g, p)
-            sage: ret = h._stretched_power_restrict_degree(2, 3, 6)
-            sage: ret == p[2,2,2](s[2] + s[3]).homogeneous_component(12)
+            sage: A = h._stretched_power_restrict_degree(2, 3, 6)
+            sage: A == p[2,2,2](s[2] + s[3]).homogeneous_component(12)
+            True
+
+            sage: p2 = tensor([p, p])
+            sage: f = Stream_zero(True) # irrelevant for this test
+            sage: g = Stream_function(lambda n: sum(tensor([p[k], p[n-k]]) for k in range(n+1)), p2, True, 1)
+            sage: h = Stream_plethysm(f, g, p2)
+            sage: A = h._stretched_power_restrict_degree(2, 3, 6)
+            sage: B = p[2,2,2](sum(g[n] for n in range(7)))
+            sage: B = p2.element_class(p2, {m: c for m, c in B if sum(mu.size() for mu in m) == 12})
+            sage: A == B
             True
         """
         while len(self._powers) < m:
@@ -1853,8 +1878,13 @@ class Stream_plethysm(Stream_binary):
         # we have to check power_d for zero because it might be an
         # integer and not a symmetric function
         if power_d:
-            terms = {m.stretch(i): raised_c for m, c in power_d
-                     if (raised_c := _raise_variables(c, i, self._degree_one))}
+            if self._tensor_power is None:
+                terms = {m.stretch(i): raised_c for m, c in power_d
+                         if (raised_c := _raise_variables(c, i, self._degree_one))}
+            else:
+                terms = {tuple((mu.stretch(i) for mu in m)): raised_c
+                         for m, c in power_d
+                         if (raised_c := _raise_variables(c, i, self._degree_one))}
             return self._p.element_class(self._p, terms)
 
         return self._p.zero()

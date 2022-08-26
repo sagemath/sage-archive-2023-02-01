@@ -3780,6 +3780,17 @@ class LazySymmetricFunction(LazyCauchyProductSeries):
             sage: [s(x) for x in P[:5]]
             [s[], s[1], 2*s[2], s[2, 1] + 3*s[3], 2*s[2, 2] + 2*s[3, 1] + 5*s[4]]
 
+        The plethysm with a tensor product is also implemented::
+
+            sage: s = SymmetricFunctions(QQ).s()
+            sage: X = tensor([s[1],s[[]]])
+            sage: Y = tensor([s[[]],s[1]])
+            sage: S = LazySymmetricFunctions(s)
+            sage: S2 = LazySymmetricFunctions(tensor([s, s]))
+            sage: A = S(s[1,1,1])
+            sage: B = S2(X+Y)
+            sage: A(B)
+
         TESTS::
 
             sage: s = SymmetricFunctions(QQ).s()
@@ -3822,12 +3833,14 @@ class LazySymmetricFunction(LazyCauchyProductSeries):
             if not isinstance(g, LazySymmetricFunction) and not g:
                 return P(self[0].leading_coefficient())
 
-            if isinstance(self._coeff_stream, Stream_exact) and not self._coeff_stream._constant:
+            if (isinstance(self._coeff_stream, Stream_exact)
+                and not self._coeff_stream._constant):
                 f = self.symmetric_function()
                 if is_SymmetricFunction(g):
                     return f(g)
                 # g must be a LazySymmetricFunction
-                if isinstance(g._coeff_stream, Stream_exact) and not g._coeff_stream._constant:
+                if (isinstance(g._coeff_stream, Stream_exact)
+                    and not g._coeff_stream._constant):
                     gs = g.symmetric_function()
                     return P(f(gs))
 

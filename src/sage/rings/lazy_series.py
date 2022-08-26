@@ -3162,19 +3162,16 @@ class LazyLaurentSeries(LazyCauchyProductSeries):
             else:
                 raise ValueError("cannot determine whether the compositional inverse exists")
 
+        if not coeff_stream[1]:
+            raise ValueError("compositional inverse does not exist")
+
         if coeff_stream[0]:
-            if coeff_stream[1]:
                 raise ValueError("cannot determine whether the compositional inverse exists")
-            else:
-                raise ValueError("compositional inverse does not exist")
 
-        if coeff_stream[1]:
-            z = P.gen()
-            g = P(None, valuation=1)
-            g.define(z/((self/z)(g)))
-            return g
-
-        raise ValueError("compositional inverse does not exist")
+        z = P.gen()
+        g = P(None, valuation=1)
+        g.define(z / ((self / z)(g)))
+        return g
 
     compositional_inverse = revert
 
@@ -3949,8 +3946,11 @@ class LazySymmetricFunction(LazyCauchyProductSeries):
                                         order=0)
             return P.element_class(P, coeff_stream)
 
-        if coeff_stream[0] or not coeff_stream[1]:
+        if not coeff_stream[1]:
             raise ValueError("compositional inverse does not exist")
+
+        if coeff_stream[0]:
+            raise ValueError("cannot determine whether the compositional inverse exists")
 
         X = R(Partition([1]))
         b = coeff_stream[1][Partition([1])]

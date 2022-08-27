@@ -1797,7 +1797,9 @@ class Stream_plethysm(Stream_binary):
              4*s[1, 1, 1, 1, 1] + 4*s[2, 1, 1, 1] + 2*s[2, 2, 1] + 2*s[3, 1, 1] + s[3, 2] + s[4, 1] + s[5]]
         """
         if not n: # special case of 0
-            return self._left[0].coefficient([])
+            if self._tensor_power is None:
+                return self._left[0]
+            return self._basis(self._left[0].coefficient([]))
 
         return sum((c * self._compute_product(n, la)
                     for k in range(self._left._approximate_order, n+1)

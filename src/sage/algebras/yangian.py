@@ -19,11 +19,9 @@ AUTHORS:
 from sage.misc.cachefunc import cached_method
 from sage.misc.misc_c import prod
 
-from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.hopf_algebras_with_basis import HopfAlgebrasWithBasis
 from sage.categories.graded_hopf_algebras_with_basis import GradedHopfAlgebrasWithBasis
 from sage.categories.cartesian_product import cartesian_product
-from sage.rings.integer_ring import ZZ
 from sage.rings.infinity import infinity
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.sets.family import Family
@@ -31,8 +29,6 @@ from sage.sets.positive_integers import PositiveIntegers
 from sage.monoids.indexed_free_monoid import IndexedFreeAbelianMonoid
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.algebras.associated_graded import AssociatedGradedAlgebra
-
-import itertools
 
 
 class Yangian(CombinatorialFreeModule):

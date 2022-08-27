@@ -16,6 +16,7 @@ from sage.misc.lazy_attribute import lazy_attribute
 from sage.sets.disjoint_set import DisjointSet
 from .tensor_free_module import TensorFreeModule
 from .finite_rank_free_module import FiniteRankFreeModule_abstract
+from sage.tensor.modules.comp import CompFullySym, CompWithSym
 
 class TensorFreeSubmodule_comp(TensorFreeModule):
     r"""
@@ -31,6 +32,8 @@ class TensorFreeSubmodule_comp(TensorFreeModule):
         Free module of type-(2,0) tensors
         with Fully symmetric 2-indices components w.r.t. (0, 1, 2)
         on the Rank-3 free module M over the Integer Ring
+        sage: latex(Sym2M)
+        \mathrm{Sym}^{2}\left(M\right)
 
     Canonical injections from submodules are coercions::
 
@@ -63,11 +66,18 @@ class TensorFreeSubmodule_comp(TensorFreeModule):
         self._tensor_type = tuple(tensor_type)
         if ambient is None:
             ambient = fmodule.tensor_module(*tensor_type)
+        ambient_type = ambient.tensor_type()
         self._ambient_module = ambient
         self._sym = sym
         self._antisym = antisym
-        rank = len(list(self._basis_comp().non_redundant_index_generator()))
-        # TODO: Good defaults for name, latex_name
+        basis_comp = self._basis_comp()
+        rank = len(list(basis_comp.non_redundant_index_generator()))
+        # TODO: Good defaults for name, latex_name for more cases
+        if name is None and fmodule._name is not None:
+            if isinstance(basis_comp, CompFullySym) and not ambient_type[1]:
+                name = 'Sym^' + str(ambient_type[0]) + '(' + fmodule._name + ')'
+                latex_name = r'\mathrm{Sym}^{' + str(ambient_type[0]) + r'}\left(' + \
+                  fmodule._latex_name + r'\right)'
         category = fmodule.category().TensorProducts().FiniteDimensional().Subobjects().or_subcategory(category)
         # Skip TensorFreeModule.__init__
         FiniteRankFreeModule_abstract.__init__(self, fmodule._ring, rank, name=name,

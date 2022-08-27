@@ -38,6 +38,7 @@ from copy import copy
 from pprint import pformat, saferepr
 from collections.abc import Iterable
 
+from sage.misc.abstract_method import abstract_method
 from sage.misc.cachefunc import cached_method
 from sage.structure.parent import Parent
 from sage.categories.enumerated_sets import EnumeratedSets
@@ -430,6 +431,45 @@ class AbstractFamily(Parent):
             []
         """
         return []
+
+    @abstract_method
+    def keys(self):
+        """
+        Return the keys of the family.
+
+        EXAMPLES::
+
+            sage: f = Family({3: 'a', 4: 'b', 7: 'd'})
+            sage: sorted(f.keys())
+            [3, 4, 7]
+        """
+
+    @abstract_method(optional=True)
+    def values(self):
+        """
+        Return the elements (values) of this family.
+
+        EXAMPLES::
+
+            sage: f = Family(["c", "a", "b"], lambda x: x + x)
+            sage: sorted(f.values())
+            ['aa', 'bb', 'cc']
+        """
+
+    def items(self):
+        """
+        Return an iterator for key-value pairs.
+
+        A key can only appear once, but if the function is not injective, values may
+        appear multiple times.
+
+        EXAMPLES::
+
+            sage: f = Family([-2, -1, 0, 1, 2], abs)
+            sage: list(f.items())
+            [(-2, 2), (-1, 1), (0, 0), (1, 1), (2, 2)]
+        """
+        return zip(self.keys(), self.values())
 
     def zip(self, f, other, name=None):
         r"""

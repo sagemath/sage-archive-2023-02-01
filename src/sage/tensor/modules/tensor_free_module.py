@@ -736,7 +736,9 @@ class TensorFreeModule(FiniteRankFreeModule_abstract):
             sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
             sage: T = M.tensor_module(1,1)
             sage: e_T = T.basis('e'); e_T
-            <sage.tensor.modules.tensor_free_submodule_basis.TensorFreeSubmoduleBasis_comp... object at ...>
+            Standard basis on the
+             Free module of type-(1,1) tensors on the Rank-3 free module M over the Integer Ring
+             induced by Basis (e_0,e_1,e_2) on the Rank-3 free module M over the Integer Ring
             sage: for a in e_T: a.display()
             e_0⊗e^0
             e_0⊗e^1
@@ -751,7 +753,10 @@ class TensorFreeModule(FiniteRankFreeModule_abstract):
             sage: from sage.tensor.modules.tensor_free_submodule import TensorFreeSubmodule_comp
             sage: Sym2M = TensorFreeSubmodule_comp(M, (2, 0), sym=range(2))
             sage: e_Sym2M = Sym2M.basis('e'); e_Sym2M
-            <sage.tensor.modules.tensor_free_submodule_basis.TensorFreeSubmoduleBasis_comp... object at ...>
+            Standard basis on the
+             Free module of type-(2,0) tensors with Fully symmetric 2-indices components w.r.t. (0, 1, 2)
+              on the Rank-3 free module M over the Integer Ring
+             induced by Basis (e_0,e_1,e_2) on the Rank-3 free module M over the Integer Ring
             sage: for a in e_Sym2M: a.display()
             e_0⊗e_0
             e_0⊗e_1 + e_1⊗e_0

@@ -40,6 +40,14 @@ class TensorFreeSubmodule_comp(TensorFreeModule):
         'T^(6, 0)(M)'
         sage: latex(T60M)
         T^{(6, 0)}\left(M\right)
+        sage: T40Sym45M = TensorFreeSubmodule_comp(M, (6, 0), sym=((4, 5))); T40Sym45M
+        Free module of type-(6,0) tensors with 6-indices components w.r.t. (0, 1, 2),
+         with symmetry on the index positions (4, 5)
+         on the Rank-3 free module M over the Integer Ring
+        sage: T40Sym45M._name
+        'T^{0,1,2,3}(M)⊗Sym^{4,5}(M)'
+        sage: latex(T40Sym45M)
+        T^{\{0,1,2,3\}}(M) \otimes \mathrm{Sym}^{\{4,5\}}(M)
         sage: Sym0123x45M = TensorFreeSubmodule_comp(M, (6, 0), sym=((0, 1, 2, 3), (4, 5))); Sym0123x45M
         Free module of type-(6,0) tensors with 6-indices components w.r.t. (0, 1, 2),
          with symmetry on the index positions (0, 1, 2, 3),
@@ -48,7 +56,7 @@ class TensorFreeSubmodule_comp(TensorFreeModule):
         sage: Sym0123x45M._name
         'Sym^{0,1,2,3}(M)⊗Sym^{4,5}(M)'
         sage: latex(Sym0123x45M)
-        \mathrm{Sym}^{\{0,1,2,3\}}\left(M\right) \otimes \mathrm{Sym}^{\{4,5\}}\left(M\right)
+        \mathrm{Sym}^{\{0,1,2,3\}}(M) \otimes \mathrm{Sym}^{\{4,5\}}(M)
         sage: Sym012x345M = TensorFreeSubmodule_comp(M, (6, 0), sym=((0, 1, 2), (3, 4, 5))); Sym012x345M
         Free module of type-(6,0) tensors with 6-indices components w.r.t. (0, 1, 2),
          with symmetry on the index positions (0, 1, 2),
@@ -57,7 +65,7 @@ class TensorFreeSubmodule_comp(TensorFreeModule):
         sage: Sym012x345M._name
         'Sym^{0,1,2}(M)⊗Sym^{3,4,5}(M)'
         sage: latex(Sym012x345M)
-        \mathrm{Sym}^{\{0,1,2\}}\left(M\right) \otimes \mathrm{Sym}^{\{3,4,5\}}\left(M\right)
+        \mathrm{Sym}^{\{0,1,2\}}(M) \otimes \mathrm{Sym}^{\{3,4,5\}}(M)
         sage: Sym012345M = TensorFreeSubmodule_comp(M, (6, 0), sym=((0, 1, 2, 3, 4, 5))); Sym012345M
         Free module of type-(6,0) tensors
          with Fully symmetric 6-indices components w.r.t. (0, 1, 2)
@@ -65,7 +73,7 @@ class TensorFreeSubmodule_comp(TensorFreeModule):
         sage: Sym012345M._name
         'Sym^6(M)'
         sage: latex(Sym012345M)
-        \mathrm{Sym}^6\left(M\right)
+        \mathrm{Sym}^6(M)
 
     Canonical injections from submodules are coercions::
 
@@ -99,19 +107,25 @@ class TensorFreeSubmodule_comp(TensorFreeModule):
         self._antisym = antisym
         basis_comp = self._basis_comp()
         rank = len(list(basis_comp.non_redundant_index_generator()))
-        # TODO: Good defaults for name, latex_name for more cases
+
         if name is None and fmodule._name is not None:
+            all_indices = tuple(range(tensor_type[0] + tensor_type[1]))
             if isinstance(basis_comp, CompFullySym):
-                sym = [tuple(range(tensor_type[0] + tensor_type[1]))]
+                sym = [all_indices]
                 antisym = []
             elif isinstance(basis_comp, CompFullyAntiSym):
                 sym = []
-                antisym = [tuple(range(tensor_type[0] + tensor_type[1]))]
+                antisym = [all_indices]
             elif isinstance(basis_comp, CompWithSym):
                 sym = basis_comp._sym
                 antisym = basis_comp._antisym
             else:
-                assert False, "full tensor module"
+                sym = antisym = []
+            nosym_0 = [i for i in range(tensor_type[0])
+                       if not any(i in s for s in sym) and not any(i in s for s in antisym)]
+            nosym_1 = [i for i in range(tensor_type[0], tensor_type[0] + tensor_type[1])
+                       if not any(i in s for s in sym) and not any(i in s for s in antisym)]
+            nosym = [s for s in [nosym_0, nosym_1] if s]
 
             def power_name(op, s, latex=False):
                 if s[0] < tensor_type[0]:
@@ -119,6 +133,7 @@ class TensorFreeSubmodule_comp(TensorFreeModule):
                     base = fmodule
                     full = tensor_type[0]
                 else:
+                    assert all(i >= tensor_type[0] for i in s)
                     base = fmodule.dual()
                     full = tensor_type[1]
                 if len(s) == full:
@@ -132,17 +147,21 @@ class TensorFreeSubmodule_comp(TensorFreeModule):
                 if latex:
                     if len(superscript) != 1:
                         superscript = '{' + superscript + '}'
-                    return r'\mathrm{' + op + '}^' + superscript + \
-                        r'\left(' + base._latex_name + r'\right)'
+                    if len(base._latex_name) > 3:
+                        return op + '^' + superscript + r'\left(' + base._latex_name + r'\right)'
+                    else:
+                        return op + '^' + superscript + '(' + base._name + ')'
                 else:
                     return op + '^' + superscript + '(' + base._name + ')'
 
             name = unicode_otimes.join(itertools.chain(
+                (power_name('T', s, latex=False) for s in nosym),
                 (power_name('Sym', s, latex=False) for s in sym),
                 (power_name('ASym', s, latex=False) for s in antisym)))
             latex_name = r' \otimes '.join(itertools.chain(
-                (power_name('Sym', s, latex=True) for s in sym),
-                (power_name('ASym', s, latex=True) for s in antisym)))
+                (power_name('T', s, latex=True) for s in nosym),
+                (power_name(r'\mathrm{Sym}', s, latex=True) for s in sym),
+                (power_name(r'\mathrm{ASym}', s, latex=True) for s in antisym)))
 
         category = fmodule.category().TensorProducts().FiniteDimensional().Subobjects().or_subcategory(category)
         # Skip TensorFreeModule.__init__

@@ -89,15 +89,31 @@ class TensorFreeSubmodule_comp(TensorFreeModule):
 
     TESTS::
 
-        sage: Sym0123x45M = TensorFreeSubmodule_comp(M, (6, 0), sym=((0, 1, 2, 3), (4, 5)))
-        sage: TestSuite(Sym0123x45M).run()
-        Traceback (most recent call last):
-        ...
-        The following tests failed: _test_not_implemented_methods, _test_zero
+        sage: T = TensorFreeSubmodule_comp(M, (4, 4), sym=((0, 1)), antisym=((4, 5))); T
+        Free module of type-(4,4) tensors with 8-indices components w.r.t. (0, 1, 2),
+         with symmetry on the index positions (0, 1),
+         with antisymmetry on the index positions (4, 5)
+         on the Rank-3 free module M over the Integer Ring
+        sage: T._name
+        'T^{2,3}(M)⊗T^{6,7}(M*)⊗Sym^{0,1}(M)⊗ASym^{4,5}(M*)'
+        sage: latex(T)
+        T^{\{2,3\}}(M) \otimes T^{\{6,7\}}(M^*) \otimes \mathrm{Sym}^{\{0,1\}}(M) \otimes \mathrm{ASym}^{\{4,5\}}(M^*)
 
     """
     def __init__(self, fmodule, tensor_type, name=None, latex_name=None,
                  sym=None, antisym=None, *, category=None, ambient=None):
+        r"""
+        TESTS::
+
+            sage: from sage.tensor.modules.tensor_free_submodule import TensorFreeSubmodule_comp
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: e = M.basis('e')
+            sage: Sym0123x45M = TensorFreeSubmodule_comp(M, (6, 0), sym=((0, 1, 2, 3), (4, 5)))
+            sage: TestSuite(Sym0123x45M).run()
+            Traceback (most recent call last):
+            ...
+            The following tests failed: _test_not_implemented_methods, _test_zero
+        """
         self._fmodule = fmodule
         self._tensor_type = tuple(tensor_type)
         if ambient is None:
@@ -150,7 +166,7 @@ class TensorFreeSubmodule_comp(TensorFreeModule):
                     if len(base._latex_name) > 3:
                         return op + '^' + superscript + r'\left(' + base._latex_name + r'\right)'
                     else:
-                        return op + '^' + superscript + '(' + base._name + ')'
+                        return op + '^' + superscript + '(' + base._latex_name + ')'
                 else:
                     return op + '^' + superscript + '(' + base._name + ')'
 

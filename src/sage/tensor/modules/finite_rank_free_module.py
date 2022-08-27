@@ -818,6 +818,24 @@ class FiniteRankFreeModule_abstract(UniqueRepresentation, Parent):
             [  0   0   0]
             [  0   0   0]
 
+        Sending symmetric bilinear forms to matrices::
+
+            sage: T02 = V.tensor_module(0, 2); T02
+            Free module of type-(0,2) tensors on the 3-dimensional vector space over the Rational Field
+            sage: e_T02 = T02.basis("e"); e_T02
+            <sage.tensor.modules.tensor_free_submodule_basis.TensorFreeSubmoduleBasis_comp_with_category object at ...>
+            sage: W = MatrixSpace(QQ, 3)
+            sage: phi_e_T02 = T02.isomorphism_with_fixed_basis(e_T02, codomain=W); phi_e_T02
+            Generic morphism:
+            From: Free module of type-(0,2) tensors on the 3-dimensional vector space over the Rational Field
+            To:   Full MatrixSpace of 3 by 3 dense matrices over Rational Field
+            sage: t = T02.an_element(); t.display()
+            1/2 e^1⊗e^1
+            sage: phi_e_T02(t)
+            [1/2   0   0]
+            [  0   0   0]
+            [  0   0   0]
+
         TESTS::
 
             sage: V = FiniteRankFreeModule(QQ, 3); V

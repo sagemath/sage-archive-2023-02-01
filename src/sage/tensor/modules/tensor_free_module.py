@@ -66,6 +66,7 @@ from sage.tensor.modules.free_module_alt_form import FreeModuleAltForm
 from sage.tensor.modules.free_module_morphism import \
                                                    FiniteRankFreeModuleMorphism
 from sage.tensor.modules.free_module_automorphism import FreeModuleAutomorphism
+from .tensor_free_submodule_basis import TensorFreeSubmoduleBasis_comp
 
 class TensorFreeModule(FiniteRankFreeModule_abstract):
     r"""
@@ -480,6 +481,17 @@ class TensorFreeModule(FiniteRankFreeModule_abstract):
                                       latex_name=autom._latex_name)
             for basis, comp in autom._components.items():
                 resu._components[basis] = comp.copy()
+        elif isinstance(comp, FreeModuleTensor):
+            tensor = comp
+            if self._tensor_type != tensor._tensor_type or \
+               self._fmodule != tensor.base_module():
+                raise TypeError("cannot coerce the {}".format(tensor) +
+                                " to an element of {}".format(self))
+            resu = self.element_class(self._fmodule, self._tensor_type,
+                                      name=name, latex_name=latex_name,
+                                      sym=sym, antisym=antisym)
+            for basis, comp in tensor._components.items():
+                resu._components[basis] = comp.copy()
         else:
             # Standard construction:
             resu = self.element_class(self._fmodule, self._tensor_type,
@@ -594,6 +606,13 @@ class TensorFreeModule(FiniteRankFreeModule_abstract):
             sage: M.tensor_module(0,2)._coerce_map_from_(N.dual_exterior_power(2))
             False
 
+        Coercion from submodules::
+
+            sage: from sage.tensor.modules.tensor_free_submodule import TensorFreeSubmodule_comp
+            sage: Sym01M = TensorFreeSubmodule_comp(M, (2, 0), sym=((0, 1)))
+            sage: M.tensor_module(2,0)._coerce_map_from_(Sym01M)
+            True
+
         """
         from .free_module_homset import FreeModuleHomset
         from .ext_pow_free_module import (ExtPowerFreeModule,
@@ -619,6 +638,11 @@ class TensorFreeModule(FiniteRankFreeModule_abstract):
             # Coercion of an automorphism to a type-(1,1) tensor:
             return self._tensor_type == (1,1) and \
                                     self._fmodule is other.base_module()
+        try:
+            if other.is_submodule(self):
+                return True
+        except AttributeError:
+            pass
         return False
 
     #### End of parent methods
@@ -683,3 +707,61 @@ class TensorFreeModule(FiniteRankFreeModule_abstract):
 
         """
         return self._tensor_type
+
+    @cached_method
+    def basis(self, symbol, latex_symbol=None, from_family=None,
+              indices=None, latex_indices=None, symbol_dual=None,
+              latex_symbol_dual=None):
+        r"""
+        Return the standard basis of ``self`` corresponding to a basis of the base module.
+
+        INPUT:
+
+        - ``symbol``, ``indices`` -- passed to he base module's method
+          :meth:`~sage.tensor.modules.finite_rank_free_module.FiniteRankFreeModule.basis`
+          to select a basis of the :meth:`base_module` of ``self``,
+          or to create it.
+
+        - other parameters -- passed to
+          :meth:`~sage.tensor.modules.finite_rank_free_module.FiniteRankFreeModule.basis`; when
+          the basis does not exist yet, it will be created using these parameters.
+
+        EXAMPLES::
+
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: T = M.tensor_module(1,1)
+            sage: e_T = T.basis('e'); e_T
+            <sage.tensor.modules.tensor_free_submodule_basis.TensorFreeSubmoduleBasis_comp... object at ...>
+            sage: for a in e_T: a.display()
+            e_0⊗e^0
+            e_0⊗e^1
+            e_0⊗e^2
+            e_1⊗e^0
+            e_1⊗e^1
+            e_1⊗e^2
+            e_2⊗e^0
+            e_2⊗e^1
+            e_2⊗e^2
+
+            sage: from sage.tensor.modules.tensor_free_submodule import TensorFreeSubmodule_comp
+            sage: Sym2M = TensorFreeSubmodule_comp(M, (2, 0), sym=range(2))
+            sage: e_Sym2M = Sym2M.basis('e'); e_Sym2M
+            <sage.tensor.modules.tensor_free_submodule_basis.TensorFreeSubmoduleBasis_comp... object at ...>
+            sage: for a in e_Sym2M: a.display()
+            e_0⊗e_0
+            e_0⊗e_1 + e_1⊗e_0
+            e_0⊗e_2 + e_2⊗e_0
+            e_1⊗e_1
+            e_1⊗e_2 + e_2⊗e_1
+            e_2⊗e_2
+        """
+        return TensorFreeSubmoduleBasis_comp(self, symbol=symbol, latex_symbol=latex_symbol,
+                                             indices=indices, latex_indices=latex_indices,
+                                             symbol_dual=symbol_dual, latex_symbol_dual=latex_symbol_dual)
+
+    @cached_method
+    def _basis_comp(self):
+        # Data for TensorFreeSubmoduleBasis_comp
+        frame = tuple(self.base_module().irange())
+        tensor = self.ambient()()
+        return tensor._new_comp(frame)

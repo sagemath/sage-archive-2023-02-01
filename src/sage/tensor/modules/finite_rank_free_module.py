@@ -790,6 +790,16 @@ class FiniteRankFreeModule_abstract(UniqueRepresentation, Parent):
             sage: phi_eW(e[1] + 2 * e[2])
             B['a'] + 2*B['b']
 
+        Providing a :class:`~sage.modules.free_module.Module_free_ambient` as the codomain::
+
+            sage: W = QQ^3
+            sage: phi_eW = V.isomorphism_with_fixed_basis(basis, codomain=W); phi_eW
+            Generic morphism:
+            From: 3-dimensional vector space over the Rational Field
+            To:   Vector space of dimension 3 over Rational Field
+            sage: phi_eW(e[1] + 2 * e[2])
+            (1, 2, 0)
+
         TESTS::
 
             sage: V = FiniteRankFreeModule(QQ, 3); V
@@ -825,7 +835,7 @@ class FiniteRankFreeModule_abstract(UniqueRepresentation, Parent):
         codomain_basis = Family(codomain.basis())
         if isinstance(codomain_basis, TrivialFamily):
             # assume that codomain basis keys are to be ignored
-            key_pairs = enumerate(basis_keys())
+            key_pairs = enumerate(basis.keys())
         else:
             # assume that the keys of the codomain should be used
             key_pairs = zip(codomain_basis.keys(), basis.keys())

@@ -845,6 +845,39 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
         self._general_linear_group = None # to be set by
                                           # self.general_linear_group()
 
+    def construction(self):
+        """
+        The construction functor and base ring for self.
+
+        EXAMPLES::
+
+            sage: FiniteRankFreeModule._clear_cache_() # for doctests only
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: M.construction()
+            (VectorFunctor, Integer Ring)
+            sage: N = FiniteRankFreeModule(ZZ, 3, name='N', start_index=17)
+            sage: N.construction()
+            (VectorFunctor, Integer Ring)
+        """
+        # Try to take it from the category
+        c = super().construction()
+        if c is not None:
+            return c
+        # Implementation restrictions:
+        if self._output_formatter:
+            return None
+        from sage.categories.pushout import VectorFunctor
+        kwds = dict(is_sparse=False,
+                    inner_product_matrix=None,
+                    with_basis=None,
+                    name_mapping={self.base_ring(): self._name} if self._name else None,
+                    latex_name_mapping={self.base_ring(): self._latex_name} if self._latex_name else None)
+        if self._sindex:
+            return (VectorFunctor(basis_keys=list(self.irange()), **kwds),
+                    self.base_ring())
+        return (VectorFunctor(n=self.rank(), **kwds),
+                self.base_ring())
+
     #### Parent methods
 
     def _element_constructor_(self, comp=[], basis=None, name=None,

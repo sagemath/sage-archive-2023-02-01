@@ -471,6 +471,21 @@ def FreeModule(base_ring, rank_or_basis_keys=None, sparse=False, inner_product_m
         sage: _.category()
         Category of finite dimensional vector spaces over Rational Field
 
+        sage: FreeModule(QQ, [1, 2, 3, 4], with_basis=None)
+        4-dimensional vector space over the Rational Field
+        sage: _.category()
+        Category of finite dimensional vector spaces over Rational Field
+
+    TESTS::
+
+        sage: FreeModule(QQ, ['a', 2, 3, 4], with_basis=None)
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: FiniteRankFreeModule only supports integer ranges as basis_keys, got ['a', 2, 3, 4]
+        sage: FreeModule(QQ, [1, 3, 5], with_basis=None)
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: FiniteRankFreeModule only supports integer ranges as basis_keys, got [1, 3, 5]
     """
     if rank_or_basis_keys is not None:
         try:
@@ -481,6 +496,19 @@ def FreeModule(base_ring, rank_or_basis_keys=None, sparse=False, inner_product_m
         if inner_product_matrix is not None:
             raise NotImplementedError
         from sage.tensor.modules.finite_rank_free_module import FiniteRankFreeModule
+        if basis_keys:
+            if not all(key in sage.rings.integer_ring.ZZ for key in basis_keys):
+                raise NotImplementedError(f'FiniteRankFreeModule only supports integer ranges as basis_keys, got {basis_keys}')
+            start_index = min(basis_keys)
+            end_index = max(basis_keys)
+            rank = end_index - start_index + 1
+            # Check that the ordered list of basis_keys is the range from start_index to end_index
+            if (len(basis_keys) != rank
+                or not all(key == index
+                           for key, index in zip(basis_keys,
+                                                 range(start_index, end_index + 1)))):
+                raise NotImplementedError(f'FiniteRankFreeModule only supports integer ranges as basis_keys, got {basis_keys}')
+            return FiniteRankFreeModule(base_ring, rank, start_index=start_index, **args)
         return FiniteRankFreeModule(base_ring, rank, **args)
     elif with_basis == 'standard':
         if rank is not None:

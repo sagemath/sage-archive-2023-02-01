@@ -1101,6 +1101,12 @@ class FreeModuleTensor(ModuleElementWithMutability):
         fmodule = self._fmodule
         if basis is None:
             basis = fmodule._def_basis
+        try:
+            # Standard bases of tensor modules are keyed to the base module's basis,
+            # not to the TensorFreeSubmoduleBasis_comp instance.
+            basis = basis._base_module_basis
+        except AttributeError:
+            pass
         if basis not in self._components:
             # The components must be computed from
             # those in the basis from_basis

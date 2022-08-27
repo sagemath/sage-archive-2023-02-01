@@ -3390,7 +3390,7 @@ class RiemannSurface(object):
 
         Curve from which Riemann surface is obtained.
 
-        EXAMPLE:
+        EXAMPLE::
 
             sage: R.<x,y> = QQ[]
             sage: C = Curve( y^3+x^3-1)

@@ -45,6 +45,23 @@ class TensorFreeSubmoduleBasis_comp(Basis_abstract):
         self._base_module_basis = base_module_basis
         self._comp = tensor_module._basis_comp()
 
+    def _repr_(self):
+        r"""
+        Return a string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: e = M.basis('e')
+            sage: T11 = M.tensor_module(1,1)
+            sage: e_T11 = T11.basis('e')
+            sage: e_T11
+            Standard basis on the
+             Free module of type-(1,1) tensors on the Rank-3 free module M over the Integer Ring
+             induced by Basis (e_0,e_1,e_2) on the Rank-3 free module M over the Integer Ring
+        """
+        return f"Standard basis on the {self._fmodule} induced by {self._base_module_basis}"
+
     def keys(self):
         """
         Return an iterator for the keys (indices) of the family.

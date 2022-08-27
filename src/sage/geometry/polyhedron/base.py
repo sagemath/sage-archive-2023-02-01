@@ -1,24 +1,5 @@
 r"""
-Base class for polyhedra
-
-This is split into several modules, organized as follows:
-
-- :mod:`~sage.geometry.polyhedron.base0` -- basic initialization etc.
-
-- :mod:`~sage.geometry.polyhedron.base1` -- methods defined by the
-                                            :class:`~sage.geometry.convex_set.ConvexSet_base` API
-
-- :mod:`~sage.geometry.polyhedron.base2` -- lattice points
-
-- :mod:`~sage.geometry.polyhedron.base3` -- combinatorial methods
-
-- :mod:`~sage.geometry.polyhedron.base4` -- methods relying on graphs
-
-- :mod:`~sage.geometry.polyhedron.base5` -- constructions of new polyhedra
-
-- :mod:`~sage.geometry.polyhedron.base6` -- plotting and affine projection
-
-- :mod:`~sage.geometry.polyhedron.base7` -- triangulation and volume
+Base class for polyhedra: Miscellaneous methods
 """
 
 # ****************************************************************************
@@ -123,8 +104,8 @@ class Polyhedron_base(Polyhedron_base7):
     - ``Hrep_minimal`` (optional) -- see below
 
     - ``pref_rep`` -- string (default: ``None``);
-       one of``Vrep`` or ``Hrep`` to pick this in case the backend
-       cannot initialize from complete double description
+      one of ``Vrep`` or ``Hrep`` to pick this in case the backend
+      cannot initialize from complete double description
 
     - ``mutable`` -- ignored
 
@@ -416,7 +397,8 @@ class Polyhedron_base(Polyhedron_base7):
 
         OUTPUT:
 
-        The square of the radius, which is in :meth:`base_ring`.
+        The square of the radius, which is in
+        :meth:`~sage.geometry.polyhedron.base0.Polyhedron_base0.base_ring`.
 
         EXAMPLES::
 
@@ -634,7 +616,7 @@ class Polyhedron_base(Polyhedron_base7):
         A :class:`hyperplane arrangement
         <sage.geometry.hyperplane_arrangement.arrangement.HyperplaneArrangementElement>`
         consisting of the hyperplanes defined by the
-        :meth:`Hrepresentation`.
+        :meth:`~sage.geometry.polyhedron.base0.Polyhedron_base0.Hrepresentation`.
         If the polytope is full-dimensional, this is the hyperplane
         arrangement spanned by the facets of the polyhedron.
 
@@ -799,7 +781,7 @@ class Polyhedron_base(Polyhedron_base7):
         r"""
         Test whether ``Y`` is a Minkowski summand.
 
-        See :meth:`minkowski_sum`.
+        See :meth:`~sage.geometry.polyhedron.base5.Polyhedron_base5.minkowski_sum`.
 
         OUTPUT:
 
@@ -841,6 +823,7 @@ class Polyhedron_base(Polyhedron_base7):
         REFERENCE:
 
         See :wikipedia:`Barycentric_subdivision`
+
         Section 6.6, Handbook of Convex Geometry, Volume A, edited by P.M. Gruber and J.M.
         Wills. 1993, North-Holland Publishing Co..
 
@@ -954,7 +937,8 @@ class Polyhedron_base(Polyhedron_base7):
 
         The dictionary has entries for the generators of the ``acting_group``
         and the representatives of conjugacy classes in ``conj_class_reps``. By
-        default, the ``acting_group`` is the ``restricted_automorphism_group``
+        default, the ``acting_group`` is the
+        :meth:`~sage.geometry.polyhedron.base4.Polyhedron_base4.restricted_automorphism_group`
         of the polytope. Each element in ``additional_elts`` also becomes a key.
 
         INPUT:
@@ -963,16 +947,16 @@ class Polyhedron_base(Polyhedron_base7):
           conjugacy classes of the ``acting_group``.
 
         - ``acting_group`` -- a subgroup of polytope's
-          ``restricted_automorphism_group``.
+          :meth:`~sage.geometry.polyhedron.base4.Polyhedron_base4.restricted_automorphism_group`.
 
-        - ``additional_elts`` -- list (default=None). a subset of the
-          ``restricted_automorphism_group`` of the polytope expressed as
-          permutations.
+        - ``additional_elts`` -- list (default=None). A subset of the
+          :meth:`~sage.geometry.polyhedron.base4.Polyhedron_base4.restricted_automorphism_group`
+          of the polytope expressed as permutations.
 
         OUTPUT:
 
-        A dictionary between elements of ``the restricted_automorphism_group``
-        or ``acting_group`` expressed as permutations (keys) and matrices (values).
+        A dictionary between elements of the ``acting_group`` expressed as permutations
+        (keys) and matrices (values).
 
         EXAMPLES:
 

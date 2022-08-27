@@ -1679,7 +1679,7 @@ class LazySymmetricFunctions(LazySeriesRing):
                         p_dict[d] = p_dict.get(d, 0) + f
                 else:
                     for f in x.terms():
-                        d = sum(p.size() for p in f.support())
+                        d = sum(sum(mu.size() for mu in p) for p in f.support())
                         p_dict[d] = p_dict.get(d, 0) + f
                 v = min(p_dict.keys())
                 d = max(p_dict.keys())

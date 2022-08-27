@@ -123,6 +123,7 @@ from sage.rings.infinity import infinity
 from sage.rings.integer_ring import ZZ
 from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+from sage.categories.tensor import tensor
 from sage.data_structures.stream import (
     Stream_add,
     Stream_cauchy_mul,
@@ -3790,6 +3791,14 @@ class LazySymmetricFunction(LazyCauchyProductSeries):
             sage: A = S(s[1,1,1])
             sage: B = S2(X+Y)
             sage: A(B)
+            (s[]#s[1,1,1]+s[1]#s[1,1]+s[1,1]#s[1]+s[1,1,1]#s[])
+
+            sage: H = S(lambda n: s[n])
+            sage: H(S2(X*Y))
+            (s[]#s[]) + (s[1]#s[1]) + (s[1,1]#s[1,1]+s[2]#s[2]) + (s[1,1,1]#s[1,1,1]+s[2,1]#s[2,1]+s[3]#s[3]) + O^7
+            sage: H(S2(X+Y))
+            (s[]#s[]) + (s[1]#s[1]) + (s[1,1]#s[1,1]+s[2]#s[2]) + (s[1,1,1]#s[1,1,1]+s[2,1]#s[2,1]+s[3]#s[3]) + O^7
+(s[]#s[]) + (s[]#s[1]+s[1]#s[]) + (s[]#s[2]+s[1]#s[1]+s[2]#s[]) + (s[]#s[3]+s[1]#s[2]+s[2]#s[1]+s[3]#s[]) + (s[]#s[4]+s[1]#s[3]+s[2]#s[2]+s[3]#s[1]+s[4]#s[]) + (s[]#s[5]+s[1]#s[4]+s[2]#s[3]+s[3]#s[2]+s[4]#s[1]+s[5]#s[]) + (s[]#s[6]+s[1]#s[5]+s[2]#s[4]+s[3]#s[3]+s[4]#s[2]+s[5]#s[1]+s[6]#s[]) + O^7
 
         TESTS::
 
@@ -3859,7 +3868,10 @@ class LazySymmetricFunction(LazyCauchyProductSeries):
                         raise ValueError("can only compose with a positive valuation series")
                     g._coeff_stream._approximate_order = 1
 
-            ps = P._laurent_poly_ring.realization_of().p()
+            if P._arity == 1:
+                ps = P._laurent_poly_ring.realization_of().p()
+            else:
+                ps = tensor([P._laurent_poly_ring._sets[0].realization_of().p()]*P._arity)
             coeff_stream = Stream_plethysm(self._coeff_stream, g._coeff_stream, ps)
         else:
             raise NotImplementedError("only implemented for arity 1")

@@ -1752,19 +1752,21 @@ class Stream_plethysm(Stream_binary):
         """
         # assert g._approximate_order > 0
         val = f._approximate_order * g._approximate_order
-        p_f = Stream_map_coefficients(f, lambda x: x, p)
-        p_g = Stream_map_coefficients(g, lambda x: x, p)
-        self._powers = [p_g] # a cache for the powers of p_g
         if ring is None:
             self._basis = p
         else:
             self._basis = ring
         self._p = p
+        p_g = Stream_map_coefficients(g, lambda x: x, p)
+        self._powers = [p_g] # a cache for the powers of p_g
         R = self._basis.base_ring()
         if HopfAlgebrasWithBasis(R).TensorProducts() in p.categories():
             self._tensor_power = len(p._sets)
+            p_f = Stream_map_coefficients(f, lambda x: x, p._sets[0])
         else:
             self._tensor_power = None
+            p_f = Stream_map_coefficients(f, lambda x: x, p)
+
         self._degree_one = _variables_recursive(R, include=include, exclude=exclude)
         super().__init__(p_f, p_g, f._is_sparse, val)
 
@@ -1795,7 +1797,7 @@ class Stream_plethysm(Stream_binary):
              4*s[1, 1, 1, 1, 1] + 4*s[2, 1, 1, 1] + 2*s[2, 2, 1] + 2*s[3, 1, 1] + s[3, 2] + s[4, 1] + s[5]]
         """
         if not n: # special case of 0
-            return self._left[0]
+            return self._left[0].coefficient([])
 
         return sum((c * self._compute_product(n, la)
                     for k in range(self._left._approximate_order, n+1)

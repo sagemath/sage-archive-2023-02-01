@@ -818,7 +818,8 @@ class FiniteRankFreeModule_abstract(UniqueRepresentation, Parent):
             [  0   0   0]
             [  0   0   0]
 
-        Sending symmetric bilinear forms to matrices::
+        Sending symmetric bilinear forms to matrices (note that they are currently elements
+        of `T^{(0,2)}(M)`, not the symmetric power of `M`)::
 
             sage: T02 = V.tensor_module(0, 2); T02
             Free module of type-(0,2) tensors on the 3-dimensional vector space over the Rational Field
@@ -829,12 +830,17 @@ class FiniteRankFreeModule_abstract(UniqueRepresentation, Parent):
             Generic morphism:
             From: Free module of type-(0,2) tensors on the 3-dimensional vector space over the Rational Field
             To:   Full MatrixSpace of 3 by 3 dense matrices over Rational Field
-            sage: t = T02.an_element(); t.display()
-            1/2 e^1⊗e^1
-            sage: phi_e_T02(t)
-            [1/2   0   0]
-            [  0   0   0]
-            [  0   0   0]
+
+            sage: a = V.sym_bilinear_form()
+            sage: a[1,1], a[1,2], a[1,3] = 1, 2, 3
+            sage: a[2,2], a[2,3] = 4, 5
+            sage: a[3,3] = 6
+            sage: a.display()
+            e^1⊗e^1 + 2 e^1⊗e^2 + 3 e^1⊗e^3 + 2 e^2⊗e^1 + 4 e^2⊗e^2 + 5 e^2⊗e^3 + 3 e^3⊗e^1 + 5 e^3⊗e^2 + 6 e^3⊗e^3
+            sage: phi_e_T02(a)
+            [1 2 3]
+            [2 4 5]
+            [3 5 6]
 
         TESTS::
 

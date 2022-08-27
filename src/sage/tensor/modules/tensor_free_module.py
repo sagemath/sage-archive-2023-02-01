@@ -765,9 +765,3 @@ class TensorFreeModule(FiniteRankFreeModule_abstract):
         frame = tuple(self.base_module().irange())
         tensor = self.ambient()()
         return tensor._new_comp(frame)
-
-    def irange(self):
-        r"""
-        Index generator, labelling the elements of a basis of ``self``.
-        """
-        yield from self._basis_comp().non_redundant_index_generator()

@@ -66,7 +66,8 @@ class TensorFreeSubmodule_comp(TensorFreeModule):
         self._ambient_module = ambient
         self._sym = sym
         self._antisym = antisym
-        rank = len(list(self.irange()))
+        rank = len(list(self._basis_comp().non_redundant_index_generator()))
+        # TODO: Good defaults for name, latex_name
         category = fmodule.category().TensorProducts().FiniteDimensional().Subobjects().or_subcategory(category)
         # Skip TensorFreeModule.__init__
         FiniteRankFreeModule_abstract.__init__(self, fmodule._ring, rank, name=name,

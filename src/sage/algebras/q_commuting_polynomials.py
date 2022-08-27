@@ -19,24 +19,31 @@ AUTHORS:
 from sage.misc.cachefunc import cached_method
 from sage.sets.family import Family
 from sage.rings.infinity import infinity
+from sage.rings.integer_ring import ZZ
 from sage.categories.algebras import Algebras
 from sage.combinat.free_module import CombinatorialFreeModule
-from sage.monoids.free_abelian_monoid import FreeAbelianMonoid, FreeAbelianMonoid_class
+from sage.monoids.free_abelian_monoid import FreeAbelianMonoid
+from sage.matrix.constructor import matrix
+from sage.structure.element import Matrix
 
 class qCommutingPolynomials(CombinatorialFreeModule):
     r"""
     The algebra of `q`-commuting polynomials.
 
-    Let `R` be a commutative ring, and fix an element `q \in R`. We say two
-    distinct variables `x` and `y` `q`-*commute* if they satisfy the relation
+    Let `R` be a commutative ring, and fix an element `q \in R`. Let
+    B = (B_{xy})_{x,y \in I}`  be a skew-symmetric bilinear form with
+    index set `I`. Let `R[I]_{q,B}` denote the polynomial ring in the variables
+    `I` such that we have the `q`-*commuting* relation for `x, y \in I`:
 
     .. MATH::
 
-        x y = q \cdot y x.
+        y x = q^{B_{xy}} \cdot x y.
 
-    These form a graded `R`-algebra with a natural basis given by monomials
-    written in increasing order. These then satisfy a `q`-analog of the
-    classical binomial coefficient theorem:
+    This is a graded `R`-algebra with a natural basis given by monomials
+    written in increasing order with respect to some total order on `I`.
+
+    When `B_{xy} = 1` and `B_{yx} = -1` for all `x < y`, then we have
+    a `q`-analog of the classical binomial coefficient theorem:
 
     .. MATH::
 
@@ -47,14 +54,38 @@ class qCommutingPolynomials(CombinatorialFreeModule):
         sage: q = ZZ['q'].fraction_field().gen()
         sage: R.<x,y> = algebras.qCommutingPolynomials(q)
 
-    We verify the `q`-binomial theorem::
+    We verify a case of the `q`-binomial theorem::
 
         sage: f = (x + y)^10
         sage: all(f[b] == q_binomial(10, b.list()[0]) for b in f.support())
         True
+
+    We now do a computation with a non-standard `B` matrix::
+
+        sage: B = matrix([[0,1,2],[-1,0,3],[-2,-3,0]])
+        sage: B
+        [ 0  1  2]
+        [-1  0  3]
+        [-2 -3  0]
+        sage: q = ZZ['q'].gen()
+        sage: R.<x,y,z> = algebras.qCommutingPolynomials(q, B)
+        sage: y * x
+        q*x*y
+        sage: z * x
+        q^2*x*z
+        sage: z * y
+        q^3*y*z
+
+        sage: f = (x + z)^10
+        sage: all(f[b] == q_binomial(10, b.list()[0], q^2) for b in f.support())
+        True
+
+        sage: f = (y + z)^10
+        sage: all(f[b] == q_binomial(10, b.list()[1], q^3) for b in f.support())
+        True
     """
     @staticmethod
-    def __classcall_private__(cls, q, n=None, base_ring=None, names=None):
+    def __classcall_private__(cls, q, n=None, B=None, base_ring=None, names=None):
         r"""
         Normalize input to ensure a unique representation.
 
@@ -70,13 +101,34 @@ class qCommutingPolynomials(CombinatorialFreeModule):
         if base_ring is not None:
             q = base_ring(q)
 
-        if isinstance(n, FreeAbelianMonoid_class):
-            indices = n
-        else:
-            indices = FreeAbelianMonoid(n, names)
-        return super().__classcall__(cls, q, indices)
+        if B is None and isinstance(n, Matrix):
+            n, B = B, n
 
-    def __init__(self, q, indices):
+        if names is None:
+            raise ValueError("the names of the variables must be given")
+        from sage.structure.category_object import normalize_names
+        if n is None:
+            if isinstance(names, str):
+                n = names.count(',') + 1
+            else:
+                n = len(names)
+        names = normalize_names(n, names)
+        n = len(names)
+        if B is None:
+            B = matrix.zero(ZZ, n)
+            for i in range(n):
+                for j in range(i+1, n):
+                    B[i,j] = 1
+                    B[j,i] = -1
+            B.set_immutable()
+        else:
+            if not B.is_skew_symmetric():
+                raise ValueError("the matrix must be skew symmetric")
+            B = B.change_ring(ZZ)
+            B.set_immutable()
+        return super().__classcall__(cls, q=q, B=B, names=names)
+
+    def __init__(self, q, B, names):
         r"""
         Initialize ``self``.
 
@@ -87,7 +139,9 @@ class qCommutingPolynomials(CombinatorialFreeModule):
             sage: TestSuite(R).run()
         """
         self._q = q
+        self._B = B
         base_ring = q.parent()
+        indices = FreeAbelianMonoid(len(names), names)
         category = Algebras(base_ring).WithBasis().Graded()
         CombinatorialFreeModule.__init__(self, base_ring, indices,
                                          bracket=False, prefix='',
@@ -104,10 +158,13 @@ class qCommutingPolynomials(CombinatorialFreeModule):
             sage: R.<x,y,z> = algebras.qCommutingPolynomials(q)
             sage: R
             q-commuting polynomial ring in x, y, z over Fraction Field of
-             Univariate Polynomial Ring in q over Integer Ring
+             Univariate Polynomial Ring in q over Integer Ring with matrix:
+            [ 0  1  1]
+            [-1  0  1]
+            [-1 -1  0]
         """
         names = ", ".join(self.variable_names())
-        return "{}-commuting polynomial ring in {} over {}".format(self._q, names, self.base_ring())
+        return "{}-commuting polynomial ring in {} over {} with matrix:\n{}".format(self._q, names, self.base_ring(), self._B)
 
     def _latex_(self):
         r"""
@@ -142,7 +199,7 @@ class qCommutingPolynomials(CombinatorialFreeModule):
         return (sum(L), L)
 
     def gen(self, i):
-        """
+        r"""
         Return the ``i``-generator of ``self``.
 
         EXAMPLES::
@@ -260,6 +317,24 @@ class qCommutingPolynomials(CombinatorialFreeModule):
             x^3 + (q^2+q+1)*x^2*y + (q^2+q+1)*x*y^2 + y^3
             sage: (x + y)^4
             x^4 + (q^3+q^2+q+1)*x^3*y + (q^4+q^3+2*q^2+q+1)*x^2*y^2 + (q^3+q^2+q+1)*x*y^3 + y^4
+
+        With a non-standard `B` matrix::
+
+            sage: B = matrix([[0,1,2],[-1,0,3],[-2,-3,0]])
+            sage: q = ZZ['q'].fraction_field().gen()
+            sage: R.<x,y,z> = algebras.qCommutingPolynomials(q, B=B)
+            sage: x * y
+            x*y
+            sage: y * x^2
+            q^2*x^2*y
+            sage: z^2 * x
+            q^4*x*z^2
+            sage: z^2 * x^3
+            q^12*x^3*z^2
+            sage: z^2 * y
+            q^6*y*z^2
+            sage: z^2 * y^3
+            q^18*y^3*z^2
         """
         # Special case for multiplying by 1
         if x == self.one_basis():
@@ -271,6 +346,6 @@ class qCommutingPolynomials(CombinatorialFreeModule):
         Ly = y.list()
 
         # This could be made more efficient
-        qpow = sum(exp * sum(Ly[:i]) for i,exp in enumerate(Lx))
+        qpow = sum(exp * sum(self._B[j,i] * val for j, val in enumerate(Ly[:i])) for i,exp in enumerate(Lx))
         return self.term(x * y, self._q ** qpow)
 

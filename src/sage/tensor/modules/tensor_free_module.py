@@ -428,7 +428,8 @@ class TensorFreeModule(FiniteRankFreeModule_abstract):
                                                 self._fmodule is endo.domain():
                 resu = self.element_class(self._fmodule, (1,1),
                                           name=endo._name,
-                                          latex_name=endo._latex_name)
+                                          latex_name=endo._latex_name,
+                                          parent=self)
                 for basis, mat in endo._matrices.items():
                     resu.add_comp(basis[0])[:] = mat
             else:
@@ -450,7 +451,8 @@ class TensorFreeModule(FiniteRankFreeModule_abstract):
             resu = self.element_class(self._fmodule, (p,0),
                                       name=tensor._name,
                                       latex_name=tensor._latex_name,
-                                      antisym=asym)
+                                      antisym=asym,
+                                      parent=self)
             for basis, comp in tensor._components.items():
                 resu._components[basis] = comp.copy()
         elif isinstance(comp, FreeModuleAltForm):
@@ -467,7 +469,8 @@ class TensorFreeModule(FiniteRankFreeModule_abstract):
                 asym = range(p)
             resu = self.element_class(self._fmodule, (0,p), name=form._name,
                                       latex_name=form._latex_name,
-                                      antisym=asym)
+                                      antisym=asym,
+                                      parent=self)
             for basis, comp in form._components.items():
                 resu._components[basis] = comp.copy()
         elif isinstance(comp, FreeModuleAutomorphism):
@@ -478,7 +481,8 @@ class TensorFreeModule(FiniteRankFreeModule_abstract):
                 raise TypeError("cannot coerce the {}".format(autom) +
                                 " to an element of {}".format(self))
             resu = self.element_class(self._fmodule, (1,1), name=autom._name,
-                                      latex_name=autom._latex_name)
+                                      latex_name=autom._latex_name,
+                                      parent=self)
             for basis, comp in autom._components.items():
                 resu._components[basis] = comp.copy()
         elif isinstance(comp, FreeModuleTensor):
@@ -489,14 +493,15 @@ class TensorFreeModule(FiniteRankFreeModule_abstract):
                                 " to an element of {}".format(self))
             resu = self.element_class(self._fmodule, self._tensor_type,
                                       name=name, latex_name=latex_name,
-                                      sym=sym, antisym=antisym)
+                                      sym=sym, antisym=antisym,
+                                      parent=self)
             for basis, comp in tensor._components.items():
                 resu._components[basis] = comp.copy()
         else:
             # Standard construction:
             resu = self.element_class(self._fmodule, self._tensor_type,
                                       name=name, latex_name=latex_name,
-                                      sym=sym, antisym=antisym)
+                                      sym=sym, antisym=antisym, parent=self)
             if comp:
                 resu.set_comp(basis)[:] = comp
         return resu

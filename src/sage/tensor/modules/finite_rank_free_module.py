@@ -1334,7 +1334,7 @@ class FiniteRankFreeModule(FiniteRankFreeModule_abstract):
         from .free_module_homset import FreeModuleHomset
         return FreeModuleHomset(self, other)
 
-    def tensor_module(self, k, l):
+    def tensor_module(self, k, l, *, sym=None, antisym=None):
         r"""
         Return the free module of all tensors of type `(k, l)` defined on
         ``self``.
@@ -1345,6 +1345,18 @@ class FiniteRankFreeModule(FiniteRankFreeModule_abstract):
           type being `(k, l)`
         - ``l`` -- non-negative integer; the covariant rank, the tensor type
           being `(k, l)`
+        - ``sym`` -- (default: ``None``) a symmetry or a list of symmetries
+          among the tensor arguments: each symmetry is described by a tuple
+          containing the positions of the involved arguments, with the
+          convention ``position = 0`` for the first argument. For instance:
+
+          * ``sym = (0,1)`` for a symmetry between the 1st and 2nd arguments
+          * ``sym = [(0,2), (1,3,4)]`` for a symmetry between the 1st and 3rd
+            arguments and a symmetry between the 2nd, 4th and 5th arguments.
+
+        - ``antisym`` -- (default: ``None``) antisymmetry or list of
+          antisymmetries among the arguments, with the same convention
+          as for ``sym``
 
         OUTPUT:
 
@@ -1374,20 +1386,114 @@ class FiniteRankFreeModule(FiniteRankFreeModule_abstract):
             sage: M.tensor_module(1,0) is M
             True
 
+        By using the arguments ``sym`` and ``antisym``, submodules of a full tensor
+        module can be constructed::
+
+            sage: T = M.tensor_module(4, 4, sym=((0, 1)), antisym=((4, 5))); T
+            Free module of type-(4,4) tensors with 8-indices components w.r.t. (0, 1, 2),
+             with symmetry on the index positions (0, 1),
+             with antisymmetry on the index positions (4, 5)
+             on the Rank-3 free module M over the Integer Ring
+            sage: T._name
+            'T^{2,3}(M)⊗T^{6,7}(M*)⊗Sym^{0,1}(M)⊗ASym^{4,5}(M*)'
+            sage: latex(T)
+            T^{\{2,3\}}(M) \otimes T^{\{6,7\}}(M^*) \otimes \mathrm{Sym}^{\{0,1\}}(M) \otimes \mathrm{ASym}^{\{4,5\}}(M^*)
+
         See :class:`~sage.tensor.modules.tensor_free_module.TensorFreeModule`
+        and :class:`~sage.tensor.modules.tensor_free_module.TensorFreeSubmodule_comp`
         for more documentation.
 
         """
+        if sym or antisym:
+            # TODO: Canonicalize sym, antisym, make hashable
+            key = (k, l, sym, antisym)
+        else:
+            key = (k, l)
         try:
-            return self._tensor_modules[(k,l)]
+            return self._tensor_modules[key]
         except KeyError:
-            if (k, l) == (1, 0):
+            if key == (1, 0):
                 T = self
+            elif sym or antisym:
+                from sage.tensor.modules.tensor_free_submodule import TensorFreeSubmodule_comp
+                T = TensorFreeSubmodule_comp(self, (k, l), sym=sym, antisym=antisym)
             else:
                 from sage.tensor.modules.tensor_free_module import TensorFreeModule
-                T = TensorFreeModule(self, (k,l))
-            self._tensor_modules[(k,l)] = T
+                T = TensorFreeModule(self, (k, l))
+            self._tensor_modules[key] = T
             return T
+
+    def symmetric_power(self, p):
+        r"""
+        Return the `p`-th symmetric power of ``self``.
+
+        EXAMPLES:
+
+        Symmetric powers of a free `\ZZ`-module of rank 3::
+
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: e = M.basis('e')
+            sage: M.symmetric_power(0)
+            Free module of type-(0,0) tensors on the Rank-3 free module M over the Integer Ring
+            sage: M.symmetric_power(1)  # return the module itself
+            Rank-3 free module M over the Integer Ring
+            sage: M.symmetric_power(1) is M
+            True
+            sage: M.symmetric_power(2)
+            Free module of type-(2,0) tensors
+             with Fully symmetric 2-indices components w.r.t. (0, 1, 2)
+             on the Rank-3 free module M over the Integer Ring
+            sage: M.symmetric_power(2).an_element()
+            Type-(2,0) tensor on the Rank-3 free module M over the Integer Ring
+            sage: M.symmetric_power(2).an_element().display()
+            e_0⊗e_0
+            sage: M.symmetric_power(3)
+            Free module of type-(3,0) tensors
+             with Fully symmetric 3-indices components w.r.t. (0, 1, 2)
+             on the Rank-3 free module M over the Integer Ring
+            sage: M.symmetric_power(3).an_element()
+            Type-(3,0) tensor on the Rank-3 free module M over the Integer Ring
+            sage: M.symmetric_power(3).an_element().display()
+            e_0⊗e_0⊗e_0
+        """
+        if p <= 1:
+            return self.tensor_module(p, 0)
+        return self.tensor_module(p, 0, sym=(tuple(range(p)),))
+
+    def dual_symmetric_power(self, p):
+        r"""
+        Return the `p`-th symmetric power of the dual of ``self``.
+
+        EXAMPLES:
+
+        Symmetric powers of the dual of a free `\ZZ`-module of rank 3::
+
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: e = M.basis('e')
+            sage: M.dual_symmetric_power(0)
+            Free module of type-(0,0) tensors on the Rank-3 free module M over the Integer Ring
+            sage: M.dual_symmetric_power(1)  # return the module itself
+            Free module of type-(0,1) tensors on the Rank-3 free module M over the Integer Ring
+            sage: M.dual_symmetric_power(2)
+            Free module of type-(0,2) tensors
+             with Fully symmetric 2-indices components w.r.t. (0, 1, 2)
+             on the Rank-3 free module M over the Integer Ring
+            sage: M.dual_symmetric_power(2).an_element()
+            Type-(0,2) tensor on the Rank-3 free module M over the Integer Ring
+            sage: M.dual_symmetric_power(2).an_element().display()
+            e^0⊗e^0
+            sage: M.dual_symmetric_power(3)
+            Free module of type-(0,3) tensors
+             with Fully symmetric 3-indices components w.r.t. (0, 1, 2)
+             on the Rank-3 free module M over the Integer Ring
+            sage: M.dual_symmetric_power(3).an_element()
+            Type-(0,3) tensor on the Rank-3 free module M over the Integer Ring
+            sage: M.dual_symmetric_power(3).an_element().display()
+            e^0⊗e^0⊗e^0
+        """
+        if p <= 1:
+            return self.tensor_module(0, p)
+        return self.tensor_module(0, p, sym=(tuple(range(p)),))
 
     def exterior_power(self, p):
         r"""
@@ -1420,7 +1526,7 @@ class FiniteRankFreeModule(FiniteRankFreeModule_abstract):
 
         EXAMPLES:
 
-        Exterior powers of the dual of a free `\ZZ`-module of rank 3::
+        Exterior powers of a free `\ZZ`-module of rank 3::
 
             sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
             sage: e = M.basis('e')

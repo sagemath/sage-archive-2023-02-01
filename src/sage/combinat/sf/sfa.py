@@ -1449,6 +1449,27 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
                                distinct=True)
             return self(r)
 
+        def formal_series_ring(self):
+            r"""
+            Return the completion of all formal linear combinations of
+            ``self`` with finite linear combinations in each homogeneous
+            degree (computed lazily).
+
+            EXAMPLES::
+
+                sage: s = SymmetricFunctions(ZZ).s()
+                sage: L = s.formal_series_ring()
+                sage: L
+                Lazy completion of Symmetric Functions over Integer Ring in the Schur basis
+
+            TESTS::
+
+                sage: type(L)
+                <class 'sage.rings.lazy_series_ring.LazySymmetricFunctions_with_category'>
+            """
+            from sage.rings.lazy_series_ring import LazySymmetricFunctions
+            return LazySymmetricFunctions(self)
+
 class FilteredSymmetricFunctionsBases(Category_realization_of_parent):
     r"""
     The category of filtered bases of the ring of symmetric functions.

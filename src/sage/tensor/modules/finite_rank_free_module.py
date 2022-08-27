@@ -800,6 +800,24 @@ class FiniteRankFreeModule_abstract(UniqueRepresentation, Parent):
             sage: phi_eW(e[1] + 2 * e[2])
             (1, 2, 0)
 
+        Sending (1,1)-tensors to matrices::
+
+            sage: T11 = V.tensor_module(1, 1); T11
+            Free module of type-(1,1) tensors on the 3-dimensional vector space over the Rational Field
+            sage: e_T11 = T11.basis("e"); e_T11
+            <sage.tensor.modules.tensor_free_submodule_basis.TensorFreeSubmoduleBasis_comp_with_category object at 0x...>
+            sage: W = MatrixSpace(QQ, 3)
+            sage: phi_e_T11 = T11.isomorphism_with_fixed_basis(e_T11, codomain=W); phi_e_T11
+            Generic morphism:
+            From: Free module of type-(1,1) tensors on the 3-dimensional vector space over the Rational Field
+            To:   Full MatrixSpace of 3 by 3 dense matrices over Rational Field
+            sage: t = T11.an_element(); t.display()
+            1/2 e_1⊗e^1
+            sage: phi_e_T11(t)
+            [1/2   0   0]
+            [  0   0   0]
+            [  0   0   0]
+
         TESTS::
 
             sage: V = FiniteRankFreeModule(QQ, 3); V
@@ -826,7 +844,12 @@ class FiniteRankFreeModule_abstract(UniqueRepresentation, Parent):
             codomain = CombinatorialFreeModule(base_ring, basis.keys(),
                                                prefix=prefix)
         else:
-            if codomain.rank() != self.rank():
+            try:
+                codomain_rank = codomain.rank()
+            except AttributeError:
+                # https://trac.sagemath.org/ticket/34445: MatrixSpace does not have rank
+                codomain_rank = codomain.dimension()
+            if codomain_rank != self.rank():
                 raise ValueError("domain and codomain must have the same rank")
             if codomain.base_ring() != base_ring:
                 raise ValueError("domain and codomain must have the same "

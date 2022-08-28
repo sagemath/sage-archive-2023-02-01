@@ -252,30 +252,57 @@ class TensorFreeSubmodule_comp(TensorFreeModule):
 
     def _element_constructor_(self, comp=[], basis=None, name=None,
                               latex_name=None, sym=None, antisym=None):
+        r"""
+        TESTS::
+
+            sage: from sage.tensor.modules.tensor_free_submodule import TensorFreeSubmodule_comp
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: e = M.basis('e')
+            sage: T60M = M.tensor_module(6, 0)
+            sage: Sym0123x45M = TensorFreeSubmodule_comp(M, (6, 0), sym=((0, 1, 2, 3), (4, 5)))
+            sage: t = Sym0123x45M(e[0]*e[0]*e[0]*e[0]*e[1]*e[2]); t.disp()
+            Traceback (most recent call last):
+            ...
+            ValueError: this tensor does not have the symmetries of
+             Free module of type-(6,0) tensors with 6-indices components w.r.t. (0, 1, 2),
+              with symmetry on the index positions (0, 1, 2, 3),
+              with symmetry on the index positions (4, 5)
+              on the Rank-3 free module M over the Integer Ring
+            sage: t = Sym0123x45M(e[0]*e[0]*e[0]*e[0]*e[1]*e[2] + e[0]*e[0]*e[0]*e[0]*e[2]*e[1]); t.disp()
+            e_0⊗e_0⊗e_0⊗e_0⊗e_1⊗e_2 + e_0⊗e_0⊗e_0⊗e_0⊗e_2⊗e_1
+            sage: t.parent()._name
+            'Sym^{0,1,2,3}(M)⊗Sym^{4,5}(M)'
+        """
         if sym is not None or antisym is not None:
             # Refuse to create a tensor with finer symmetries
             # than those defining the subspace
             if not self._is_symmetry_coarsening_of((sym, antisym), self._basis_comp()):
-                raise ValueError("cannot create a tensor with symmetries {} as an element of {}".
-                                 format((sym, antisym), self))
-        try:
-            comp_parent = comp.parent()
-        except AttributeError:
-            comp_parent = None
-        if comp_parent == self.ambient_module():
-            resu = comp
-            # comp is already a tensor.  If its declared symmetries are coarser
-            # than the symmetries defining self, we can use it directly.
-            if self._is_symmetry_coarsening_of(resu, self._basis_comp()):
-                return resu
+                raise ValueError(f"cannot create a tensor with symmetries {sym=}, {antisym=} "
+                                 f"as an element of {self}")
+
         if sym is None:
             sym = self._basis_comp()._sym
         if antisym is None:
             antisym = self._basis_comp()._antisym
-        resu = super()._element_constructor_(comp=comp,
-                                             basis=basis, name=name,
-                                             latex_name=latex_name,
-                                             sym=sym, antisym=antisym)
+
+        symmetrized = resu = super()._element_constructor_(comp=comp,
+                                                           basis=basis, name=name,
+                                                           latex_name=latex_name,
+                                                           sym=sym, antisym=antisym)
+        # TODO: Implement a fast symmetry check, either as part of the symmetrize method,
+        #       or as a separate method
+        try:
+            for s in sym:
+                symmetrized = symmetrized.symmetrize(*s)
+            for s in antisym:
+                symmetrized = symmetrized.antisymmetrize(*s)
+        except TypeError:
+            # Averaging over the orbits of a tensor that does not have the required
+            # symmetries can lead to "TypeError: no conversion of this rational to integer"
+            raise ValueError(f"this tensor does not have the symmetries of {self}")
+        if symmetrized != resu:
+            raise ValueError(f"this tensor does not have the symmetries of {self}")
+
         return resu
 
     def is_submodule(self, other):

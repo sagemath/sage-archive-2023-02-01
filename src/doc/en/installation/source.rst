@@ -380,29 +380,29 @@ Use the following instructions to get started.
     By default, your username in Cygwin is the same as your username in
     Windows.  This might contain spaces and other traditionally
     non-UNIX-friendly characters, e.g., if it is your full name.  You
-    can check this as follows:
+    can check this as follows::
 
         $ whoami
         Erik M. Bray
 
     This means your default home directory on Cygwin contains this
-    username verbatim; in the above example, `/home/Erik M. Bray`.
+    username verbatim; in the above example, ``/home/Erik M. Bray``.
     It will save some potential trouble if you change your Cygwin home
     directory to contain only alphanumeric characters, for example,
-    `/home/embray`.  The easiest way to do this is to first create
+    ``/home/embray``.  The easiest way to do this is to first create
     the home directory you want to use instead, then create an
-    `/etc/passwd` file specifying that directory as your home, as follows:
+    ``/etc/passwd`` file specifying that directory as your home, as follows::
 
         $ whocanibe=embray
         $ mkdir /home/$whocanibe
         $ mkpasswd.exe -l -u "$(whoami)" | sed -r 's,/home/[^:]+,/home/'$whocanibe, > /etc/passwd
 
     After this, close all Cygwin terminals (ensure nothing in
-    `C:\cygwin64` is running), then start a new Cygwin terminal and
+    ``C:\cygwin64`` is running), then start a new Cygwin terminal and
     your home directory should have moved.
 
-    There are [other ways to do
-    this](https://stackoverflow.com/questions/1494658/how-can-i-change-my-cygwin-home-folder-after-installation),
+    There are `other ways to do
+    this <https://stackoverflow.com/questions/1494658/how-can-i-change-my-cygwin-home-folder-after-installation>`_,
     but the above seems to be the simplest that's still supported.
 
 5.  (Optional) Although it is possible to install Sage's dependencies using the

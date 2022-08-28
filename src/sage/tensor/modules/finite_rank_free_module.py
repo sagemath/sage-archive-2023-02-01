@@ -961,7 +961,10 @@ class FiniteRankFreeModule_abstract(UniqueRepresentation, Parent):
             sage: M._test_isomorphism_with_fixed_basis()
         """
         tester = self._tester(**options)
-        basis = self.basis('test')
+        try:
+            basis = self.basis('test')
+        except AttributeError:
+            return
         morphism = self.isomorphism_with_fixed_basis(basis)
         tester.assertEqual(morphism.codomain().rank(), self.rank())
 

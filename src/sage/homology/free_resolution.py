@@ -70,8 +70,8 @@ from sage.libs.singular.singular import si2sa_resolution
 from sage.libs.singular.function import singular_function
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.abstract_method import abstract_method
+from sage.misc.constructor_baseclass_metaclass import ConstructorBaseclassMetaclass
 from sage.structure.sage_object import SageObject
-from sage.misc.classcall_metaclass import ClasscallMetaclass
 from sage.structure.element import Matrix
 from sage.categories.principal_ideal_domains import PrincipalIdealDomains
 from sage.categories.integral_domains import IntegralDomains
@@ -83,7 +83,7 @@ from sage.rings.ideal import Ideal_generic
 from copy import copy
 
 
-def FreeResolution(module, degrees=None, shifts=None, name='S', graded=False, **kwds):
+def free_resolution_constructor(module, degrees=None, shifts=None, name='S', graded=False, **kwds):
     """
     Constructor.
 
@@ -95,6 +95,8 @@ def FreeResolution(module, degrees=None, shifts=None, name='S', graded=False, **
         sage: r = FreeResolution(m, name='S')
         sage: type(r)
         <class 'sage.homology.free_resolution.FiniteFreeResolution_singular'>
+        sage: isinstance(r, FreeResolution)
+        True
 
         sage: I = S.ideal([y*w - z^2, -x*w + y*z, x*z - y^2])
         sage: r = FreeResolution(I)
@@ -165,10 +167,12 @@ def FreeResolution(module, degrees=None, shifts=None, name='S', graded=False, **
     return FiniteFreeResolution_free_module(module, name=name, **kwds)
 
 
-class FreeResolution_abs(SageObject):
+class FreeResolution(SageObject, metaclass=ConstructorBaseclassMetaclass):
     """
     Abstract base class for free resolutions.
     """
+    __constructor__ = free_resolution_constructor
+
     def __init__(self, module, name='S', **kwds):
         """
         Initialize.
@@ -289,7 +293,7 @@ class FreeResolution_abs(SageObject):
         return self.differential(0).codomain()
 
 
-class FiniteFreeResolution(FreeResolution_abs):
+class FiniteFreeResolution(FreeResolution):
     r"""
     Finite free resolutions.
 

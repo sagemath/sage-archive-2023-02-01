@@ -113,9 +113,7 @@ class TensorFreeSubmoduleBasis_comp(Basis_abstract):
 
             sage: from sage.tensor.modules.tensor_free_submodule import TensorFreeSubmodule_comp
             sage: Sym2M = TensorFreeSubmodule_comp(M, (2, 0), sym=range(2)); Sym2M
-            Free module of type-(2,0) tensors
-            with Fully symmetric 2-indices components w.r.t. (0, 1, 2)
-            on the Rank-3 free module M over the Integer Ring
+            Free module of fully symmetric type-(2,0) tensors on the Rank-3 free module M over the Integer Ring
             sage: eSym2M = Sym2M.basis('e')
             sage: eSym2M[1, 1].display()
             e_1⊗e_1

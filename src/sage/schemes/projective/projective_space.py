@@ -1874,20 +1874,11 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
         EXAMPLES::
 
             sage: P.<x,y> = ProjectiveSpace(QQ, 1)
-            sage: sorted(list(P.points_of_bounded_height(bound=5)))
-            [(0 : 1), (1 : -5), (1 : -4), (1 : -3), (1 : -2), (1 : -1), (1 : 0),
-             (1 : 1), (1 : 2), (1 : 3), (1 : 4), (1 : 5), (2 : -5), (2 : -3),
-             (2 : -1), (2 : 1), (2 : 3), (2 : 5), (3 : -5), (3 : -4), (3 : -2),
-             (3 : -1), (3 : 1), (3 : 2), (3 : 4), (3 : 5), (4 : -5), (4 : -3),
-             (4 : -1), (4 : 1), (4 : 3), (4 : 5), (5 : -4), (5 : -3), (5 : -2),
-             (5 : -1), (5 : 1), (5 : 2), (5 : 3), (5 : 4)]
-
-        ::
-
-            sage: u = QQ['u'].0
-            sage: P.<x,y,z> = ProjectiveSpace(NumberField(u^2 - 2, 'v'), 2)
-            sage: len(list(P.points_of_bounded_height(bound=1.5, tolerance=0.1)))
-            57
+            sage: sorted(list(P.points_of_bounded_height(bound=3)))
+            [(-3 : 1), (-2 : 1), (-3/2 : 1), (-1 : 1),
+             (-2/3 : 1), (-1/2 : 1), (-1/3 : 1), (0 : 1),
+             (1/3 : 1), (1/2 : 1), (2/3 : 1), (1 : 0),
+             (1 : 1), (3/2 : 1), (2 : 1), (3 : 1)]
         """
         from sage.schemes.projective.proj_bdd_height import QQ_points_of_bounded_height, points_of_bounded_height
 
@@ -1910,9 +1901,9 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
         dim = self.dimension_relative()
 
         if field_type:
-            return points_of_bounded_height(dim, B)
+            return points_of_bounded_height(R, dim, B, prec)
         else:
-            return QQ_points_of_bounded_height(R, dim, B, prec)
+            return QQ_points_of_bounded_height(dim, B)
 
     def subscheme_from_Chow_form(self, Ch, dim):
         r"""

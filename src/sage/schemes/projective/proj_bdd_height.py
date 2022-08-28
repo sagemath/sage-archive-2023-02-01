@@ -19,34 +19,51 @@ REFERENCES:
 
 import itertools
 from sage.schemes.projective.projective_space import ProjectiveSpace
-
+from sage.rings.rational_field import QQ
+from sage.arith.all import gcd
 
 def QQ_points_of_bounded_height(dim, bound):
     r"""
     Return an iterator of the points in ``self`` of absolute height of
-    at most the given bound in the rational field.
+    at most ``bound`` in the rational field.
 
     INPUT:
 
-    - ``dim`` -- a positive interger
+    - ``dim`` -- a positive integer
 
     - ``bound`` -- a real number
 
     OUTPUT:
 
     - an iterator of points of bounded height
+
+    EXAMPLES:
+
+        sage: from sage.schemes.projective.proj_bdd_height import QQ_points_of_bounded_height
+        sage: list(QQ_points_of_bounded_height(1, 1))
+        [(0 : 1), (1 : 0), (1 : 1), (-1 : 1)]
+        sage: len(list(QQ_points_of_bounded_height(1, 5)))
+        40
+
+    There are no points of negative height::
+
+        sage: from sage.schemes.projective.proj_bdd_height import QQ_points_of_bounded_height
+        sage: list(QQ_points_of_bounded_height(1, -3))
+        []
     """
     if bound < 1:
-        return
+        return iter(set([]))
     PN = ProjectiveSpace(QQ, dim)
     unit_tuples = list(itertools.product([-1, 1], repeat=dim))
+    points_of_bounded_height = set([])
     increasing_tuples = itertools.combinations_with_replacement(range(bound + 1), dim + 1)
     for t in increasing_tuples:
         if gcd(t) == 1:
             for p in itertools.permutations(t):
                 for u in unit_tuples:
                     new_point = [a*b for a, b in zip(u, p)] + [p[dim]]
-                    yield PN(new_point)
+                    points_of_bounded_height.add(PN(new_point))
+    return iter(points_of_bounded_height)
 
 def points_of_bounded_height(K, dim, bound, prec=53):
     r"""

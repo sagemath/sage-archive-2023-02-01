@@ -231,16 +231,29 @@ class TensorFreeSubmodule_comp(TensorFreeModule):
             sage: e = M.basis('e')
             sage: T60M = M.tensor_module(6, 0)
             sage: Sym0123x45M = TensorFreeSubmodule_comp(M, (6, 0), sym=((0, 1, 2, 3), (4, 5)))
-            sage: com0123x45M = Sym0123x45M.an_element()._components[e]; com0123x45M
-            6-indices components w.r.t. Basis (e_0,e_1,e_2) on the Rank-3 free module M over the Integer Ring
+            sage: ten0123x45M = Sym0123x45M.an_element(); ten0123x45M
+            Type-(6,0) tensor on the Rank-3 free module M over the Integer Ring
+            sage: ten0123x45M.parent()
+            Free module of type-(6,0) tensors on the Rank-3 free module M over the Integer Ring,
+             with symmetry on the index positions (0, 1, 2, 3),
+             with symmetry on the index positions (4, 5)
+            sage: com0123x45M = ten0123x45M._components[e]; com0123x45M
+            6-indices components w.r.t. Basis (e_0,e_1,e_2)
+             on the Rank-3 free module M over the Integer Ring,
+             with symmetry on the index positions (0, 1, 2, 3),
+             with symmetry on the index positions (4, 5)
             sage: Sym012x345M = TensorFreeSubmodule_comp(M, (6, 0), sym=((0, 1, 2), (3, 4, 5)))
             sage: com012x345M = Sym012x345M.an_element()._components[e]; com012x345M
-            6-indices components w.r.t. Basis (e_0,e_1,e_2) on the Rank-3 free module M over the Integer Ring
+            6-indices components w.r.t. Basis (e_0,e_1,e_2)
+             on the Rank-3 free module M over the Integer Ring,
+             with symmetry on the index positions (0, 1, 2),
+             with symmetry on the index positions (3, 4, 5)
             sage: Sym012345M  = TensorFreeSubmodule_comp(M, (6, 0), sym=((0, 1, 2, 3, 4, 5)))
             sage: com012345M  = Sym012345M.an_element()._components[e]; com012345M
-            6-indices components w.r.t. Basis (e_0,e_1,e_2) on the Rank-3 free module M over the Integer Ring
+            Fully symmetric 6-indices components w.r.t. Basis (e_0,e_1,e_2)
+             on the Rank-3 free module M over the Integer Ring
             sage: Sym0123x45M._is_symmetry_coarsening_of(com0123x45M, com012x345M)
-            True
+            False
             sage: Sym0123x45M._is_symmetry_coarsening_of(com012345M, com012x345M)
             True
         """

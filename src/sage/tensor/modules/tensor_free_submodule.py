@@ -41,34 +41,30 @@ class TensorFreeSubmodule_comp(TensorFreeModule):
         sage: latex(T60M)
         T^{(6, 0)}\left(M\right)
         sage: T40Sym45M = TensorFreeSubmodule_comp(M, (6, 0), sym=((4, 5))); T40Sym45M
-        Free module of type-(6,0) tensors with 6-indices components w.r.t. (0, 1, 2),
+        Free module of type-(6,0) tensors on the Rank-3 free module M over the Integer Ring,
          with symmetry on the index positions (4, 5)
-         on the Rank-3 free module M over the Integer Ring
         sage: T40Sym45M._name
         'T^{0,1,2,3}(M)⊗Sym^{4,5}(M)'
         sage: latex(T40Sym45M)
         T^{\{0,1,2,3\}}(M) \otimes \mathrm{Sym}^{\{4,5\}}(M)
         sage: Sym0123x45M = TensorFreeSubmodule_comp(M, (6, 0), sym=((0, 1, 2, 3), (4, 5))); Sym0123x45M
-        Free module of type-(6,0) tensors with 6-indices components w.r.t. (0, 1, 2),
+        Free module of type-(6,0) tensors on the Rank-3 free module M over the Integer Ring,
          with symmetry on the index positions (0, 1, 2, 3),
          with symmetry on the index positions (4, 5)
-         on the Rank-3 free module M over the Integer Ring
         sage: Sym0123x45M._name
         'Sym^{0,1,2,3}(M)⊗Sym^{4,5}(M)'
         sage: latex(Sym0123x45M)
         \mathrm{Sym}^{\{0,1,2,3\}}(M) \otimes \mathrm{Sym}^{\{4,5\}}(M)
         sage: Sym012x345M = TensorFreeSubmodule_comp(M, (6, 0), sym=((0, 1, 2), (3, 4, 5))); Sym012x345M
-        Free module of type-(6,0) tensors with 6-indices components w.r.t. (0, 1, 2),
+        Free module of type-(6,0) tensors on the Rank-3 free module M over the Integer Ring,
          with symmetry on the index positions (0, 1, 2),
          with symmetry on the index positions (3, 4, 5)
-         on the Rank-3 free module M over the Integer Ring
         sage: Sym012x345M._name
         'Sym^{0,1,2}(M)⊗Sym^{3,4,5}(M)'
         sage: latex(Sym012x345M)
         \mathrm{Sym}^{\{0,1,2\}}(M) \otimes \mathrm{Sym}^{\{3,4,5\}}(M)
         sage: Sym012345M = TensorFreeSubmodule_comp(M, (6, 0), sym=((0, 1, 2, 3, 4, 5))); Sym012345M
-        Free module of type-(6,0) tensors
-         with Fully symmetric 6-indices components w.r.t. (0, 1, 2)
+        Free module of fully symmetric type-(6,0) tensors
          on the Rank-3 free module M over the Integer Ring
         sage: Sym012345M._name
         'Sym^6(M)'
@@ -90,10 +86,9 @@ class TensorFreeSubmodule_comp(TensorFreeModule):
     TESTS::
 
         sage: T = TensorFreeSubmodule_comp(M, (4, 4), sym=((0, 1)), antisym=((4, 5))); T
-        Free module of type-(4,4) tensors with 8-indices components w.r.t. (0, 1, 2),
+        Free module of type-(4,4) tensors on the Rank-3 free module M over the Integer Ring,
          with symmetry on the index positions (0, 1),
          with antisymmetry on the index positions (4, 5)
-         on the Rank-3 free module M over the Integer Ring
         sage: T._name
         'T^{2,3}(M)⊗T^{6,7}(M*)⊗Sym^{0,1}(M)⊗ASym^{4,5}(M*)'
         sage: latex(T)
@@ -198,13 +193,13 @@ class TensorFreeSubmodule_comp(TensorFreeModule):
             sage: from sage.tensor.modules.tensor_free_submodule import TensorFreeSubmodule_comp
             sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
             sage: Sym2M = TensorFreeSubmodule_comp(M, (2, 0), sym=range(2)); Sym2M
-            Free module of type-(2,0) tensors
-            with Fully symmetric 2-indices components w.r.t. (0, 1, 2)
-            on the Rank-3 free module M over the Integer Ring
+            Free module of fully symmetric type-(2,0) tensors
+             on the Rank-3 free module M over the Integer Ring
 
         """
-        return "Free module of type-({},{}) tensors with {} on the {}".format(
-            self._tensor_type[0], self._tensor_type[1], self._basis_comp(), self._fmodule)
+        prefix, suffix = self._basis_comp()._repr_symmetry()
+        return "Free module of {}type-({},{}) tensors on the {}{}".format(
+            prefix.lower(), self._tensor_type[0], self._tensor_type[1], self._fmodule, suffix)
 
     def _is_symmetry_coarsening_of(self, coarser_comp, finer_comp):
         self_tensor_type = self.tensor_type()
@@ -261,10 +256,9 @@ class TensorFreeSubmodule_comp(TensorFreeModule):
             Traceback (most recent call last):
             ...
             ValueError: this tensor does not have the symmetries of
-             Free module of type-(6,0) tensors with 6-indices components w.r.t. (0, 1, 2),
+             Free module of type-(6,0) tensors on the Rank-3 free module M over the Integer Ring,
               with symmetry on the index positions (0, 1, 2, 3),
               with symmetry on the index positions (4, 5)
-              on the Rank-3 free module M over the Integer Ring
             sage: t = Sym0123x45M(e[0]*e[0]*e[0]*e[0]*e[1]*e[2] + e[0]*e[0]*e[0]*e[0]*e[2]*e[1]); t.disp()
             e_0⊗e_0⊗e_0⊗e_0⊗e_1⊗e_2 + e_0⊗e_0⊗e_0⊗e_0⊗e_2⊗e_1
             sage: t.parent()._name
@@ -353,13 +347,10 @@ class TensorFreeSubmodule_comp(TensorFreeModule):
             sage: Sym0123x45M = TensorFreeSubmodule_comp(M, (6, 0), sym=((0, 1, 2, 3), (4, 5)))
             sage: Sym0123x45M.lift
             Generic morphism:
-              From: Free module of type-(6,0) tensors
-                    with 6-indices components w.r.t. (0, 1, 2),
-                    with symmetry on the index positions (0, 1, 2, 3),
-                    with symmetry on the index positions (4, 5)
-                    on the Rank-3 free module M over the Integer Ring
-              To:   Free module of type-(6,0) tensors
-                    on the Rank-3 free module M over the Integer Ring
+              From: Free module of type-(6,0) tensors on the Rank-3 free module M over the Integer Ring,
+                     with symmetry on the index positions (0, 1, 2, 3),
+                     with symmetry on the index positions (4, 5)
+              To:   Free module of type-(6,0) tensors on the Rank-3 free module M over the Integer Ring
          """
         return self.module_morphism(function=lambda x: x, codomain=self.ambient())
 
@@ -379,7 +370,8 @@ class TensorFreeSubmodule_comp(TensorFreeModule):
             sage: X = M.tensor_module(6, 0)
             sage: Y = M.tensor_module(6, 0, sym=((0, 1, 2, 3), (4, 5)))
             sage: Y.reduce
-            Generic endomorphism of Free module of type-(6,0) tensors on the 3-dimensional vector space M over the Rational Field
+            Generic endomorphism of
+             Free module of type-(6,0) tensors on the 3-dimensional vector space M over the Rational Field
             sage: t = e[0]*e[0]*e[0]*e[0]*e[1]*e[2]; t.disp()
             e_0⊗e_0⊗e_0⊗e_0⊗e_1⊗e_2 = e_0⊗e_0⊗e_0⊗e_0⊗e_1⊗e_2
             sage: r = Y.reduce(t); r
@@ -396,7 +388,8 @@ class TensorFreeSubmodule_comp(TensorFreeModule):
             sage: X = M.tensor_module(6, 0)
             sage: Y = M.tensor_module(6, 0, sym=((0, 1, 2, 3), (4, 5)))
             sage: Y.reduce
-            Generic endomorphism of Free module of type-(6,0) tensors on the Rank-3 free module M over the Integer Ring
+            Generic endomorphism of
+             Free module of type-(6,0) tensors on the Rank-3 free module M over the Integer Ring
             sage: t = e[0]*e[0]*e[0]*e[0]*e[1]*e[2]; t.disp()
             e_0⊗e_0⊗e_0⊗e_0⊗e_1⊗e_2 = e_0⊗e_0⊗e_0⊗e_0⊗e_1⊗e_2
             sage: Y.reduce(t)
@@ -452,10 +445,9 @@ class TensorFreeSubmodule_comp(TensorFreeModule):
             sage: Y.retract
             Generic morphism:
               From: Free module of type-(6,0) tensors on the Rank-3 free module M over the Integer Ring
-              To:   Free module of type-(6,0) tensors with 6-indices components w.r.t. (0, 1, 2),
-                    with symmetry on the index positions (0, 1, 2, 3),
-                    with symmetry on the index positions (4, 5)
-                    on the Rank-3 free module M over the Integer Ring
+              To:   Free module of type-(6,0) tensors on the Rank-3 free module M over the Integer Ring,
+                     with symmetry on the index positions (0, 1, 2, 3),
+                     with symmetry on the index positions (4, 5)
 
             sage: t = e[0]*e[0]*e[0]*e[0]*e[1]*e[2]; t.disp()
             e_0⊗e_0⊗e_0⊗e_0⊗e_1⊗e_2 = e_0⊗e_0⊗e_0⊗e_0⊗e_1⊗e_2
@@ -463,10 +455,9 @@ class TensorFreeSubmodule_comp(TensorFreeModule):
             Traceback (most recent call last):
             ...
             ValueError: this tensor does not have the symmetries of
-             Free module of type-(6,0) tensors with 6-indices components w.r.t. (0, 1, 2),
+             Free module of type-(6,0) tensors on the Rank-3 free module M over the Integer Ring,
               with symmetry on the index positions (0, 1, 2, 3),
               with symmetry on the index positions (4, 5)
-              on the Rank-3 free module M over the Integer Ring
             sage: t = e[0]*e[0]*e[0]*e[0]*e[1]*e[2] + e[0]*e[0]*e[0]*e[0]*e[2]*e[1]
             sage: y = Y.retract(t); y
             Type-(6,0) tensor on the Rank-3 free module M over the Integer Ring

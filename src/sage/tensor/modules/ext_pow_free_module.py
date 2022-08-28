@@ -58,12 +58,12 @@ REFERENCES:
 from sage.misc.cachefunc import cached_method
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
-from sage.tensor.modules.finite_rank_free_module import FiniteRankFreeModule
+from sage.tensor.modules.finite_rank_free_module import FiniteRankFreeModule_abstract
 from sage.tensor.modules.free_module_tensor import FreeModuleTensor
 from sage.tensor.modules.alternating_contr_tensor import AlternatingContrTensor
 from sage.tensor.modules.free_module_alt_form import FreeModuleAltForm
 
-class ExtPowerFreeModule(FiniteRankFreeModule):
+class ExtPowerFreeModule(FiniteRankFreeModule_abstract):
     r"""
     Exterior power of a free module of finite rank over a commutative
     ring.
@@ -247,10 +247,8 @@ class ExtPowerFreeModule(FiniteRankFreeModule):
         if latex_name is None and fmodule._latex_name is not None:
             latex_name = r'\Lambda^{' + str(degree) + r'}\left(' \
                          + fmodule._latex_name + r'\right)'
-        FiniteRankFreeModule.__init__(self, fmodule._ring, rank,
-                                      name=name, latex_name=latex_name,
-                                      start_index=fmodule._sindex,
-                             output_formatter=fmodule._output_formatter)
+        super().__init__(fmodule._ring, rank,
+                         name=name, latex_name=latex_name)
         fmodule._all_modules.add(self)
 
     #### Parent methods
@@ -427,7 +425,7 @@ class ExtPowerFreeModule(FiniteRankFreeModule):
 #***********************************************************************
 
 
-class ExtPowerDualFreeModule(FiniteRankFreeModule):
+class ExtPowerDualFreeModule(FiniteRankFreeModule_abstract):
     r"""
     Exterior power of the dual of a free module of finite rank
     over a commutative ring.
@@ -648,10 +646,8 @@ class ExtPowerDualFreeModule(FiniteRankFreeModule):
             if latex_name is None and fmodule._latex_name is not None:
                 latex_name = r'\Lambda^{' + str(degree) + r'}\left(' \
                              + fmodule._latex_name + r'^*\right)'
-        FiniteRankFreeModule.__init__(self, fmodule._ring, rank, name=name,
-                                      latex_name=latex_name,
-                                      start_index=fmodule._sindex,
-                                    output_formatter=fmodule._output_formatter)
+        super().__init__(fmodule._ring, rank, name=name,
+                         latex_name=latex_name)
         fmodule._all_modules.add(self)
 
     #### Parent methods

@@ -23,6 +23,7 @@ from sage.rings.rational_field import QQ
 from sage.rings.all import RealField
 from sage.rings.number_field.unit_group import UnitGroup
 from sage.arith.all import gcd
+from sage.rings.number_field.number_field import logarithmic_embedding
 
 def QQ_points_of_bounded_height(dim, bound):
     r"""
@@ -110,7 +111,7 @@ def points_of_bounded_height(K, dim, bound, prec=53):
     class_group_ideal_norms = [a.norm() for a in class_group_ideals]
     norm_bound = bound*max(class_group_ideal_norms)
     fundamental_units = UnitGroup(K).fundamental_units()
-    fund_unit_logs = map(log_map, fundamental_units) # TODO log map
+    fund_unit_logs = map(logarithmic_embedding, fundamental_units)
 
     test_matrix = column_matrix(fund_unit_logs)
     try:
@@ -126,7 +127,7 @@ def points_of_bounded_height(K, dim, bound, prec=53):
             new_unit *= fundamental_units[i]**c[i]
         lll_fund_units.append(new_unit)
     fundamental_units = lll_fund_units
-    fund_unit_logs = map(log_map, fundamental_units)
+    fund_unit_logs = map(logarithmic_embedding, fundamental_units)
 
     possible_norm_set = set([])
     for i in range(class_number):
@@ -145,7 +146,7 @@ def points_of_bounded_height(K, dim, bound, prec=53):
     pr_ideal_gen_logs = dict()
     for key in principal_ideal_gens:
         for y in principal_ideal_gens[key]:
-            pr_ideal_gen_logs[y] = log_map(y)
+            pr_ideal_gen_logs[y] = logarithmic_embedding(y)
     
     fund_parallelotope_vertices = []
     for coefficient_tuple in itertools.product([-1/2, 1/2], repeat=r):
@@ -181,7 +182,7 @@ def points_of_bounded_height(K, dim, bound, prec=53):
     unit_polytope = Polyhedron([v*T_it for v in vertices])
 
     coordinate_space = dict()
-    coordinate_space[0] = [[K(0), log_map(0)]]
+    coordinate_space[0] = [[K(0), logarithmic_embedding(0)]]
     int_points = unit_polytope.integral_points()
 
     units_with_logs = dict()

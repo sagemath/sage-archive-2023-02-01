@@ -1852,18 +1852,12 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
 
     def points_of_bounded_height(self, **kwds):
         r"""
-        Returns an iterator of the points in self of absolute height of at most the given bound.
+        Return an iterator of the points in ``self`` of absolute height of
+        at most the given bound.
 
-        Bound check is strict for the rational field. Requires self to be projective space
-        over a number field. Uses the
-        Doyle-Krumm algorithm 4 (algorithm 5 for imaginary quadratic) for
-        computing algebraic numbers up to a given height [DK2013]_.
+        ALGORITHM:
 
-        The algorithm requires floating point arithmetic, so the user is
-        allowed to specify the precision for such calculations.
-        Additionally, due to floating point issues, points
-        slightly larger than the bound may be returned. This can be controlled
-        by lowering the tolerance.
+        This is an implementation of Algorithm 6 in [Krumm2016]_.
 
         INPUT:
 
@@ -1871,13 +1865,11 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
 
         - ``bound`` - a real number
 
-        - ``tolerance`` - a rational number in (0,1] used in doyle-krumm algorithm-4
-
-        - ``precision`` - the precision to use for computing the elements of bounded height of number fields.
+        - ``precision`` - (default: 53) a positive integer
 
         OUTPUT:
 
-        - an iterator of points in this space
+        - an iterator of points of bounded height
 
         EXAMPLES::
 
@@ -1897,48 +1889,30 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
             sage: len(list(P.points_of_bounded_height(bound=1.5, tolerance=0.1)))
             57
         """
-        if is_RationalField(self.base_ring()):
-            ftype = False  # stores whether the field is a number field or the rational field
-        elif self.base_ring() in NumberFields():  # true for rational field as well, so check is_RationalField first
-            ftype = True
+        from sage.schemes.projective.proj_bdd_height import QQ_points_of_bounded_height, points_of_bounded_height
+
+        R = self.base_ring()
+
+        # whether the field is a number field or the rational field
+        if is_RationalField(R):
+            field_type = False
+        elif R in NumberFields():
+            # true for rational field as well, so check is_RationalField first
+            field_type = True
         else:
             raise NotImplementedError("self must be projective space over a number field")
 
         bound = kwds.pop('bound')
         B = bound**(self.base_ring().absolute_degree())  # convert to relative height
 
-        n = self.dimension_relative()
-        R = self.base_ring()
-        if ftype:
-            zero = R.zero()
-            i = n
-            while not i < 0:
-                P = [zero for _ in range(i)] + [R.one()]
-                P += [zero for _ in range(n - i)]
-                yield self(P)
-                tol = kwds.pop('tolerance', 1e-2)
-                prec = kwds.pop('precision', 53)
-                iters = [R.elements_of_bounded_height(bound=B, tolerance=tol, precision=prec) for _ in range(i)]
-                for x in iters:
-                    next(x)  # put at zero
-                j = 0
-                while j < i:
-                    try:
-                        P[j] = next(iters[j])
-                        yield self(P)
-                        j = 0
-                    except StopIteration:
-                        iters[j] = R.elements_of_bounded_height(bound=B, tolerance=tol, precision=prec)  # reset
-                        next(iters[j])  # put at zero
-                        P[j] = zero
-                        j += 1
-                i -= 1
-        else:  # base ring QQ
-            zero = (0,) * (n + 1)
-            for c in cartesian_product_iterator([srange(-B, B + 1)
-                                                 for _ in range(n + 1)]):
-                if gcd(c) == 1 and c > zero:
-                    yield self.point(c, check=False)
+        prec = kwds.pop('precision', 53)
+
+        dim = self.dimension_relative()
+
+        if field_type:
+            return points_of_bounded_height(dim, B)
+        else:
+            return QQ_points_of_bounded_height(R, dim, B, prec)
 
     def subscheme_from_Chow_form(self, Ch, dim):
         r"""

@@ -110,9 +110,6 @@ class TensorFreeSubmodule_comp(TensorFreeModule):
             sage: e = M.basis('e')
             sage: Sym0123x45M = TensorFreeSubmodule_comp(M, (6, 0), sym=((0, 1, 2, 3), (4, 5)))
             sage: TestSuite(Sym0123x45M).run()
-            Traceback (most recent call last):
-            ...
-            The following tests failed: _test_not_implemented_methods, _test_zero
         """
         self._fmodule = fmodule
         self._tensor_type = tuple(tensor_type)
@@ -260,7 +257,7 @@ class TensorFreeSubmodule_comp(TensorFreeModule):
             sage: e = M.basis('e')
             sage: T60M = M.tensor_module(6, 0)
             sage: Sym0123x45M = TensorFreeSubmodule_comp(M, (6, 0), sym=((0, 1, 2, 3), (4, 5)))
-            sage: t = Sym0123x45M(e[0]*e[0]*e[0]*e[0]*e[1]*e[2]); t.disp()
+            sage: Sym0123x45M(e[0]*e[0]*e[0]*e[0]*e[1]*e[2])
             Traceback (most recent call last):
             ...
             ValueError: this tensor does not have the symmetries of
@@ -289,6 +286,10 @@ class TensorFreeSubmodule_comp(TensorFreeModule):
                                                            basis=basis, name=name,
                                                            latex_name=latex_name,
                                                            sym=sym, antisym=antisym)
+        if not symmetrized._components:
+            # zero tensor - methods symmetrize, antisymmetrize are broken
+            return resu
+
         # TODO: Implement a fast symmetry check, either as part of the symmetrize method,
         #       or as a separate method
         try:
@@ -367,3 +368,54 @@ class TensorFreeSubmodule_comp(TensorFreeModule):
                     on the Rank-3 free module M over the Integer Ring
          """
         return self.module_morphism(function=lambda x: x, codomain=self.ambient())
+
+    @lazy_attribute
+    def retract(self):
+        r"""
+        The retract map from the ambient space.
+
+        This is a partial map, which gives an error for elements not in the subspace.
+
+        Calling this map on elements of the ambient space is the same as calling the
+        element constructor of ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.tensor.modules.tensor_free_submodule import TensorFreeSubmodule_comp
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: e = M.basis('e')
+            sage: X = M.tensor_module(6, 0)
+            sage: Y = M.tensor_module(6, 0, sym=((0, 1, 2, 3), (4, 5)))
+            sage: e_Y = Y.basis('e')
+            sage: Y.retract
+            Generic morphism:
+              From: Free module of type-(6,0) tensors on the Rank-3 free module M over the Integer Ring
+              To:   Free module of type-(6,0) tensors with 6-indices components w.r.t. (0, 1, 2),
+                    with symmetry on the index positions (0, 1, 2, 3),
+                    with symmetry on the index positions (4, 5)
+                    on the Rank-3 free module M over the Integer Ring
+
+            sage: t = e[0]*e[0]*e[0]*e[0]*e[1]*e[2]; t.disp()
+            e_0⊗e_0⊗e_0⊗e_0⊗e_1⊗e_2 = e_0⊗e_0⊗e_0⊗e_0⊗e_1⊗e_2
+            sage: Y.retract(t)
+            Traceback (most recent call last):
+            ...
+            ValueError: this tensor does not have the symmetries of
+             Free module of type-(6,0) tensors with 6-indices components w.r.t. (0, 1, 2),
+              with symmetry on the index positions (0, 1, 2, 3),
+              with symmetry on the index positions (4, 5)
+              on the Rank-3 free module M over the Integer Ring
+            sage: t = e[0]*e[0]*e[0]*e[0]*e[1]*e[2] + e[0]*e[0]*e[0]*e[0]*e[2]*e[1]
+            sage: y = Y.retract(t); y
+            Type-(6,0) tensor on the Rank-3 free module M over the Integer Ring
+            sage: y.disp()
+            e_0⊗e_0⊗e_0⊗e_0⊗e_1⊗e_2 + e_0⊗e_0⊗e_0⊗e_0⊗e_2⊗e_1
+            sage: y.parent()._name
+            'Sym^{0,1,2,3}(M)⊗Sym^{4,5}(M)'
+
+        TESTS::
+
+            sage: all(Y.retract(u.lift()) == u for u in e_Y)
+            True
+        """
+        return self.ambient().module_morphism(function=lambda x: self(x), codomain=self)

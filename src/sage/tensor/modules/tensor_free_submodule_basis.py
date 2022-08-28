@@ -129,8 +129,3 @@ class TensorFreeSubmoduleBasis_comp(Basis_abstract):
         element = tensor_module([])
         element.set_comp(base_module_basis)[index] = 1
         return element
-
-# Todo:
-#       dual basis
-#       add test for dual
-# lift/reduce/retract

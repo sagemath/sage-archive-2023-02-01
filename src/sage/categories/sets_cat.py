@@ -2500,6 +2500,19 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
                     42
                 """
 
+            def construction(self):
+                """
+                The construction functor and the list of Cartesian factors.
+
+                EXAMPLES::
+
+                    sage: C = cartesian_product([QQ, ZZ, ZZ])
+                    sage: C.construction()
+                    (The cartesian_product functorial construction,
+                    (Rational Field, Integer Ring, Integer Ring))
+                """
+                return cartesian_product, self.cartesian_factors()
+
             @abstract_method
             def _cartesian_product_of_elements(self, elements):
                 """

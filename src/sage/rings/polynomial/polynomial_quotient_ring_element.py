@@ -718,7 +718,7 @@ class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_sin
     def rational_reconstruction(self, *args, **kwargs):
         r"""
         Compute a rational reconstruction of this polynomial quotient
-        ring element to its parent.
+        ring element to its cover ring.
 
         This method is a thin convenience wrapper around
         :meth:`Polynomial.rational_reconstruction`.

@@ -754,8 +754,7 @@ class TensorFreeModule(FiniteRankFreeModule_abstract):
             sage: Sym2M = TensorFreeSubmodule_comp(M, (2, 0), sym=range(2))
             sage: e_Sym2M = Sym2M.basis('e'); e_Sym2M
             Standard basis on the
-             Free module of type-(2,0) tensors with Fully symmetric 2-indices components w.r.t. (0, 1, 2)
-              on the Rank-3 free module M over the Integer Ring
+             Free module of fully symmetric type-(2,0) tensors on the Rank-3 free module M over the Integer Ring
              induced by Basis (e_0,e_1,e_2) on the Rank-3 free module M over the Integer Ring
             sage: for a in e_Sym2M: a.display()
             e_0⊗e_0

@@ -20,6 +20,8 @@ REFERENCES:
 import itertools
 from sage.schemes.projective.projective_space import ProjectiveSpace
 from sage.rings.rational_field import QQ
+from sage.rings.all import RealField
+from sage.rings.number_field.unit_group import UnitGroup
 from sage.arith.all import gcd
 
 def QQ_points_of_bounded_height(dim, bound):

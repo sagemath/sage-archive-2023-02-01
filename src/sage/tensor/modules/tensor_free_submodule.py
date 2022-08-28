@@ -179,6 +179,21 @@ class TensorFreeSubmodule_comp(TensorFreeModule):
 
     @cached_method
     def _basis_comp(self):
+        r"""
+        Return an instance of :class:`~sage.tensor.modules.comp.Components`.
+
+        It encodes the prescribed symmetry of ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.tensor.modules.tensor_free_submodule import TensorFreeSubmodule_comp
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: Sym2M = TensorFreeSubmodule_comp(M, (2, 0), sym=range(2)); Sym2M
+            Free module of fully symmetric type-(2,0) tensors on the Rank-3 free module M over the Integer Ring
+            sage: c = Sym2M._basis_comp(); c
+            Fully symmetric 2-indices components w.r.t. (0, 1, 2)
+
+        """
         frame = tuple(self.base_module().irange())
         # Need to call _element_constructor_ explicitly, or the passed arguments are dropped
         tensor = self.ambient()._element_constructor_(sym=self._sym, antisym=self._antisym)

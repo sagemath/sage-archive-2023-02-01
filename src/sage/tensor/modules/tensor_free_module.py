@@ -770,7 +770,22 @@ class TensorFreeModule(FiniteRankFreeModule_abstract):
 
     @cached_method
     def _basis_comp(self):
-        # Data for TensorFreeSubmoduleBasis_comp
+        r"""
+        Return an instance of :class:`~sage.tensor.modules.comp.Components`.
+
+        This implementation returns an instance without symmetry.
+
+        The subclass :class:`~sage.tensor.modules.tensor_free_submodule.TensorFreeSubmodule_comp`
+        overrides this method to encode the prescribed symmetry of the submodule.
+
+        EXAMPLES::
+
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: T = M.tensor_module(1,1)
+            sage: c = T._basis_comp(); c
+            2-indices components w.r.t. (0, 1, 2)
+
+        """
         frame = tuple(self.base_module().irange())
         tensor = self.ambient()()
         return tensor._new_comp(frame)

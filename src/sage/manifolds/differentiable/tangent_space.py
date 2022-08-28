@@ -222,7 +222,7 @@ class TangentSpace(FiniteRankFreeModule):
     """
     Element = TangentVector
 
-    def __init__(self, point):
+    def __init__(self, point, base_ring=None):
         r"""
         Construct the tangent space at a given point.
 
@@ -243,7 +243,9 @@ class TangentSpace(FiniteRankFreeModule):
         latex_name = r"T_{%s}\,%s"%(point._latex_name, manif._latex_name)
         self._point = point
         self._manif = manif
-        FiniteRankFreeModule.__init__(self, SR, manif._dim, name=name,
+        if base_ring is None:
+            base_ring = SR
+        FiniteRankFreeModule.__init__(self, base_ring, manif._dim, name=name,
                                       latex_name=latex_name,
                                       start_index=manif._sindex)
         # Initialization of bases of the tangent space from existing vector

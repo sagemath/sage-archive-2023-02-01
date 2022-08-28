@@ -18,10 +18,23 @@ REFERENCES:
 """
 
 import itertools
+from sage.schemes.projective.projective_space import ProjectiveSpace
+
 
 def QQ_points_of_bounded_height(dim, bound):
     r"""
-    ...
+    Return an iterator of the points in ``self`` of absolute height of
+    at most the given bound in the rational field.
+
+    INPUT:
+
+    - ``dim`` -- a positive interger
+
+    - ``bound`` -- a real number
+
+    OUTPUT:
+
+    - an iterator of points of bounded height
     """
     if bound < 1:
         return
@@ -37,7 +50,26 @@ def QQ_points_of_bounded_height(dim, bound):
 
 def points_of_bounded_height(K, dim, bound, prec=53):
     r"""
-    ...
+    Return an iterator of the points in ``self`` of absolute height of
+    at most the given bound.
+
+    ALGORITHM:
+
+    This is an implementation of Algorithm 6 in [Krumm2016]_.
+
+    INPUT:
+
+    - ``K`` -- a number field
+
+    - ``dim`` -- a positive interger
+
+    - ``bound`` -- a real number
+
+    - ``prec`` -- (default: 53) a positive integer
+
+    OUTPUT:
+
+    - an iterator of points of bounded height
     """
     if bound < 1:
         return

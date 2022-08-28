@@ -3,7 +3,7 @@ Free module bases indexed by component indices
 """
 
 #******************************************************************************
-#       Copyright (C) 2020 Matthias Koeppe
+#       Copyright (C) 2020-2022 Matthias Koeppe
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
@@ -12,7 +12,7 @@ Free module bases indexed by component indices
 #******************************************************************************
 
 from sage.tensor.modules.free_module_basis import Basis_abstract
-from sage.tensor.modules.comp import Components
+
 
 class TensorFreeSubmoduleBasis_comp(Basis_abstract):
     r"""
@@ -122,7 +122,6 @@ class TensorFreeSubmoduleBasis_comp(Basis_abstract):
 
         """
         tensor_module = self._fmodule
-        base_module = tensor_module.base_module()
         base_module_basis = self._base_module_basis
         element = tensor_module([])
         element.set_comp(base_module_basis)[index] = 1

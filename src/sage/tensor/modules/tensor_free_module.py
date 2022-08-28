@@ -552,8 +552,18 @@ class TensorFreeModule(FiniteRankFreeModule_abstract):
             sage: M.tensor_module(2,3)._an_element_().display()
             1/2 e_0⊗e_0⊗e^0⊗e^0⊗e^0
 
+        TESTS::
+
+            sage: from sage.tensor.modules.tensor_free_submodule import TensorFreeSubmodule_comp
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: e = M.basis('e')
+            sage: T60M = M.tensor_module(6, 0)
+            sage: Sym0123x45M = TensorFreeSubmodule_comp(M, (6, 0), sym=((0, 1, 2, 3), (4, 5)))
+            sage: t = Sym0123x45M._an_element_()
+            sage: t.parent() is Sym0123x45M
+            True
         """
-        resu = self.element_class(self._fmodule, self._tensor_type)
+        resu = self.element_class(self._fmodule, self._tensor_type, parent=self)
         # Make sure that the base module has a default basis
         self._fmodule.an_element()
         sindex = self._fmodule._sindex

@@ -282,26 +282,20 @@ class TensorFreeSubmodule_comp(TensorFreeModule):
         if antisym is None:
             antisym = self._basis_comp()._antisym
 
-        symmetrized = resu = super()._element_constructor_(comp=comp,
-                                                           basis=basis, name=name,
-                                                           latex_name=latex_name,
-                                                           sym=sym, antisym=antisym)
-        if not symmetrized._components:
-            # zero tensor - methods symmetrize, antisymmetrize are broken
+        resu = super()._element_constructor_(comp=comp,
+                                             basis=basis, name=name,
+                                             latex_name=latex_name,
+                                             sym=sym, antisym=antisym)
+        if not resu._components:
+            # fast path for zero tensor
             return resu
 
-        # TODO: Implement a fast symmetry check, either as part of the symmetrize method,
-        #       or as a separate method
         try:
-            for s in sym:
-                symmetrized = symmetrized.symmetrize(*s)
-            for s in antisym:
-                symmetrized = symmetrized.antisymmetrize(*s)
+            if self.reduce(resu):
+                raise ValueError(f"this tensor does not have the symmetries of {self}")
         except TypeError:
             # Averaging over the orbits of a tensor that does not have the required
             # symmetries can lead to "TypeError: no conversion of this rational to integer"
-            raise ValueError(f"this tensor does not have the symmetries of {self}")
-        if symmetrized != resu:
             raise ValueError(f"this tensor does not have the symmetries of {self}")
 
         return resu
@@ -368,6 +362,74 @@ class TensorFreeSubmodule_comp(TensorFreeModule):
                     on the Rank-3 free module M over the Integer Ring
          """
         return self.module_morphism(function=lambda x: x, codomain=self.ambient())
+
+    @lazy_attribute
+    def reduce(self):
+        r"""
+        The reduce map.
+
+        This map reduces elements of the ambient space modulo this
+        submodule.
+
+        EXAMPLES::
+
+            sage: from sage.tensor.modules.tensor_free_submodule import TensorFreeSubmodule_comp
+            sage: M = FiniteRankFreeModule(QQ, 3, name='M')
+            sage: e = M.basis('e')
+            sage: X = M.tensor_module(6, 0)
+            sage: Y = M.tensor_module(6, 0, sym=((0, 1, 2, 3), (4, 5)))
+            sage: Y.reduce
+            Generic endomorphism of Free module of type-(6,0) tensors on the 3-dimensional vector space M over the Rational Field
+            sage: t = e[0]*e[0]*e[0]*e[0]*e[1]*e[2]; t.disp()
+            e_0⊗e_0⊗e_0⊗e_0⊗e_1⊗e_2 = e_0⊗e_0⊗e_0⊗e_0⊗e_1⊗e_2
+            sage: r = Y.reduce(t); r
+            Type-(6,0) tensor on the 3-dimensional vector space M over the Rational Field
+            sage: r.disp()
+            1/2 e_0⊗e_0⊗e_0⊗e_0⊗e_1⊗e_2 - 1/2 e_0⊗e_0⊗e_0⊗e_0⊗e_2⊗e_1
+            sage: r.parent()._name
+            'T^(6, 0)(M)'
+
+        If the base ring is not a field, this may fail::
+
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: e = M.basis('e')
+            sage: X = M.tensor_module(6, 0)
+            sage: Y = M.tensor_module(6, 0, sym=((0, 1, 2, 3), (4, 5)))
+            sage: Y.reduce
+            Generic endomorphism of Free module of type-(6,0) tensors on the Rank-3 free module M over the Integer Ring
+            sage: t = e[0]*e[0]*e[0]*e[0]*e[1]*e[2]; t.disp()
+            e_0⊗e_0⊗e_0⊗e_0⊗e_1⊗e_2 = e_0⊗e_0⊗e_0⊗e_0⊗e_1⊗e_2
+            sage: Y.reduce(t)
+            Traceback (most recent call last):
+            ...
+            TypeError: no conversion of this rational to integer
+
+        TESTS::
+
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: e = M.basis('e')
+            sage: X = M.tensor_module(6, 0)
+            sage: Y = M.tensor_module(6, 0, sym=((0, 1, 2, 3), (4, 5)))
+            sage: all(Y.reduce(u.lift()) == 0 for u in Y.basis('e'))
+            True
+        """
+        sym = self._basis_comp()._sym
+        antisym = self._basis_comp()._antisym
+
+        def _reduce_element(x):
+            if not x._components:
+                # zero tensor - methods symmetrize, antisymmetrize are broken
+                return x
+            # TODO: Implement a fast symmetry check, either as part of the symmetrize/antisymmetrize methods,
+            #       or as a separate method
+            symmetrized = x
+            for s in sym:
+                symmetrized = symmetrized.symmetrize(*s)
+            for s in antisym:
+                symmetrized = symmetrized.antisymmetrize(*s)
+            return x - symmetrized
+
+        return self.ambient().module_morphism(function=_reduce_element, codomain=self.ambient())
 
     @lazy_attribute
     def retract(self):

@@ -736,5 +736,5 @@ class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_sin
         m = self.parent().modulus()
         R = m.parent()
         f = R(self._polynomial)
-        return f.lift().rational_reconstruction(m, *args, **kwargs)
+        return f.rational_reconstruction(m, *args, **kwargs)
 

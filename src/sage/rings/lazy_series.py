@@ -3160,8 +3160,7 @@ class LazyLaurentSeries(LazyCauchyProductSeries):
         if coeff_stream[-1]:
             if coeff_stream[0] or coeff_stream[1]:
                 raise ValueError("compositional inverse does not exist")
-            else:
-                raise ValueError("cannot determine whether the compositional inverse exists")
+            raise ValueError("cannot determine whether the compositional inverse exists")
 
         if not coeff_stream[1]:
             raise ValueError("compositional inverse does not exist")
@@ -3581,6 +3580,153 @@ class LazyTaylorSeries(LazyCauchyProductSeries):
 
     compose = __call__
 
+    def revert(self):
+        r"""
+        Return the compositional inverse of ``self``.
+
+        Given a Taylor Series `f`. the compositional inverse is a
+        Laurent Series `g` over the same base ring, such that
+        `(f \circ g)(z) = f(g(z)) = z`.
+
+        The compositional inverse exists if and only if:
+
+        - `val(f) = 1`, or
+
+        - `f = a + b z` with `a, b \neq 0`, or
+
+        EXAMPLES::
+
+            sage: L.<z> = LazyTaylorSeriesRing(QQ)
+            sage: (2*z).revert()
+            1/2*z
+            sage: (z-z^2).revert()
+            z + z^2 + 2*z^3 + 5*z^4 + 14*z^5 + 42*z^6 + 132*z^7 + O(z^8)
+
+            sage: s = L(degree=1, constant=-1)
+            sage: s.revert()
+            -z - z^2 - z^3 + O(z^4)
+
+            sage: s = L(degree=1, constant=1)
+            sage: s.revert()
+            z - z^2 + z^3 - z^4 + z^5 - z^6 + z^7 + O(z^8)
+
+        TESTS::
+
+            sage: L.<z> = LazyTaylorSeriesRing(QQ)
+            sage: s = L(lambda n: 2 if n == 1 else 0, valuation=1); s
+            2*z + O(z^8)
+            sage: s.revert()
+            1/2*z + O(z^8)
+
+            sage: (2+3*z).revert()
+            -2/3 + 1/3*z
+
+            sage: s = L(lambda n: 2 if n == 0 else 3 if n == 1 else 0, valuation=0); s
+            2 + 3*z + O(z^7)
+            sage: s.revert()
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot determine whether the compositional inverse exists
+
+            sage: R.<q,t> = QQ[]
+            sage: L.<z> = LazyTaylorSeriesRing(R.fraction_field())
+            sage: s = L([q], valuation=0, constant=t); s
+            q + t*z + t*z^2 + t*z^3 + O(z^4)
+            sage: s.revert()
+            Traceback (most recent call last):
+            ...
+            ValueError: compositional inverse does not exist
+
+        We look at some cases where the compositional inverse does not exist:
+
+        `f = 0`::
+
+            sage: L(0).revert()
+            Traceback (most recent call last):
+            ...
+            ValueError: compositional inverse does not exist
+            sage: (z - z).revert()
+            Traceback (most recent call last):
+            ...
+            ValueError: compositional inverse does not exist
+
+        `val(f) != 1` and `f(0) * f(1) = 0`::
+
+            sage: (z^2).revert()
+            Traceback (most recent call last):
+            ...
+            ValueError: compositional inverse does not exist
+
+            sage: L(1).revert()
+            Traceback (most recent call last):
+            ...
+            ValueError: compositional inverse does not exist
+
+        Reversion of exact series::
+
+            sage: f = L([1, 2], valuation=0, constant=1)
+            sage: f.revert()
+            Traceback (most recent call last):
+            ...
+            ValueError: compositional inverse does not exist
+
+            sage: f = L([-1, -1], valuation=1, constant=-1)
+            sage: f.revert()
+            (-z) + (-z^2) + (-z^3) + (-z^4) + (-z^5) + O(z^6)
+
+            sage: f = L([-1, 0, -1], valuation=1, constant=-1)
+            sage: f.revert()
+            (-z) + z^3 + (-z^4) + (-2*z^5) + 6*z^6 + z^7 + O(z^8)
+
+            sage: f = L([-1], valuation=1, degree=3, constant=-1)
+            sage: f.revert()
+            (-z) + z^3 + (-z^4) + (-2*z^5) + 6*z^6 + z^7 + O(z^8)
+        """
+        P = self.parent()
+        if P._arity != 1:
+            raise ValueError("arity must be equal to 1")
+        coeff_stream = self._coeff_stream
+        if isinstance(coeff_stream, Stream_zero):
+            raise ValueError("compositional inverse does not exist")
+        if isinstance(coeff_stream, Stream_exact):
+            if coeff_stream._constant:
+                if coeff_stream.order() == 1:
+                    R = P.base_ring()
+                    # we cannot assume that the last initial coefficient
+                    # and the constant differ, see stream.Stream_exact
+                    if (coeff_stream._degree == 1 + len(coeff_stream._initial_coefficients)
+                        and coeff_stream._constant == -R.one()
+                        and all(c == -R.one() for c in coeff_stream._initial_coefficients)):
+                        # self = -z/(1-z); self.revert() = -z/(1-z)
+                        return self
+                else:
+                    raise ValueError("compositional inverse does not exist")
+            else:
+                if coeff_stream._degree == 2:
+                    # self = a + b*z; self.revert() = -a/b + 1/b * z
+                    a = coeff_stream[0]
+                    b = coeff_stream[1]
+                    coeff_stream = Stream_exact((-a/b, 1/b),
+                                                coeff_stream._is_sparse,
+                                                order=0)
+                    return P.element_class(P, coeff_stream)
+
+                if coeff_stream.order() != 1:
+                    raise ValueError("compositional inverse does not exist")
+
+        if not coeff_stream[1]:
+            raise ValueError("compositional inverse does not exist")
+
+        if coeff_stream[0]:
+                raise ValueError("cannot determine whether the compositional inverse exists")
+
+        z = P.gen()
+        g = P(None, valuation=1)
+        g.define(z / ((self / z)(g)))
+        return g
+
+    compositional_inverse = revert
+
     def _format_series(self, formatter, format_strings=False):
         """
         Return nonzero ``self`` formatted by ``formatter``.
@@ -3691,6 +3837,11 @@ class LazyTaylorSeries(LazyCauchyProductSeries):
             True
             sage: g3.polynomial(0)
             1
+
+            sage: L.<z> = LazyTaylorSeriesRing(ZZ)
+            sage: f = z-z^2
+            sage: f.polynomial()
+            -z^2 + z
         """
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
         S = self.parent()
@@ -3709,10 +3860,9 @@ class LazyTaylorSeries(LazyCauchyProductSeries):
         else:
             m = degree + 1
 
-        if names is None:
-            names = S.variable_names()
-
-        return R.sum(self[:m])
+        if S._arity == 1:
+            return R(self[0:m])
+        return R.sum(self[0:m])
 
 
 class LazyCompletionGradedAlgebraElement(LazyCauchyProductSeries):
@@ -4031,12 +4181,12 @@ class LazySymmetricFunction(LazyCompletionGradedAlgebraElement):
 
         """
         P = self.parent()
-        R = P._laurent_poly_ring
         if P._arity != 1:
             raise ValueError("arity must be equal to 1")
         coeff_stream = self._coeff_stream
         if isinstance(coeff_stream, Stream_zero):
             raise ValueError("compositional inverse does not exist")
+        R = P._laurent_poly_ring
         if (isinstance(coeff_stream, Stream_exact)
             and coeff_stream.order() >= 0
             and coeff_stream._degree == 2):

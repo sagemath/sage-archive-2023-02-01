@@ -1149,7 +1149,8 @@ class LazyTaylorSeriesRing(LazySeriesRing):
         names = normalize_names(-1, names)
         self._sparse = sparse
         self._laurent_poly_ring = PolynomialRing(base_ring, names)
-        if len(names) == 1:
+        self._arity = len(names)
+        if self._arity == 1:
             self._internal_poly_ring = self._laurent_poly_ring
         else:
             coeff_ring = PolynomialRing(base_ring, names)

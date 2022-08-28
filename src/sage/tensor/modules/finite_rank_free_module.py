@@ -1271,7 +1271,7 @@ class FiniteRankFreeModule(FiniteRankFreeModule_abstract):
             Free module of fully symmetric type-(0,2) tensors
              on the Rank-3 free module M over the Integer Ring
             sage: M.dual_symmetric_power(2).an_element()
-            Type-(0,2) tensor on the Rank-3 free module M over the Integer Ring
+            Symmetric bilinear form  on the Rank-3 free module M over the Integer Ring
             sage: M.dual_symmetric_power(2).an_element().display()
             e^0⊗e^0
             sage: M.dual_symmetric_power(3)

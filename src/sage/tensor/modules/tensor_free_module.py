@@ -563,7 +563,7 @@ class TensorFreeModule(FiniteRankFreeModule_abstract):
             sage: t.parent() is Sym0123x45M
             True
         """
-        resu = self.element_class(self._fmodule, self._tensor_type, parent=self)
+        resu = self([])
         # Make sure that the base module has a default basis
         self._fmodule.an_element()
         sindex = self._fmodule._sindex

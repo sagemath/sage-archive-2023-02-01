@@ -38,6 +38,15 @@ class TensorFreeSubmoduleBasis_comp(Basis_abstract):
 
     def __init__(self, tensor_module, symbol, latex_symbol=None, indices=None,
                  latex_indices=None, symbol_dual=None, latex_symbol_dual=None):
+        r"""
+        TESTS::
+
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: e = M.basis('e')
+            sage: T11 = M.tensor_module(1,1)
+            sage: e_T11 = T11.basis('e')
+            sage: TestSuite(e_T11).run()
+        """
         base_module = tensor_module.base_module()
         base_module_basis = base_module.basis(symbol, latex_symbol, indices,
                                               latex_indices, symbol_dual, latex_symbol_dual)

@@ -137,7 +137,7 @@ class EnumeratedSets(CategoryWithAxiom):
             sage: S = EnumeratedSets()(Set([1, 2, 3])); S
             {1, 2, 3}
             sage: S.category()
-            Category of facade finite enumerated sets
+            Category of finite enumerated sets
 
         Also Python3 range are now accepted::
 

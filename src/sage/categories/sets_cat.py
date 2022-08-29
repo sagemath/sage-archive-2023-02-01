@@ -247,7 +247,7 @@ class Sets(Category_singleton):
             {1, 2, 3}
 
             sage: S = Sets()([1, 2, 3]); S.category()
-            Category of finite sets
+            Category of finite enumerated sets
             sage: S = Sets()([1, 2, 3], enumerated_set=True); S.category()
             Category of facade finite enumerated sets
 
@@ -1361,7 +1361,7 @@ class Sets(Category_singleton):
                 sage: S.some_elements()
                 [47]
                 sage: S = Set([])
-                sage: S.some_elements()
+                sage: list(S.some_elements())
                 []
 
             This method should return an iterable, *not* an iterator.

@@ -326,7 +326,7 @@ def Family(indices, function=None, hidden_keys=[], hidden_function=None, lazy=Fa
         sage: f = Family({1:'a', 2:'b', 3:'c'}, lazy=True)
         Traceback (most recent call last):
         ...
-        ValueError: lazy keyword only makes sense together with function keyword !
+        ValueError: lazy keyword only makes sense together with function keyword
 
     ::
 
@@ -386,7 +386,7 @@ def Family(indices, function=None, hidden_keys=[], hidden_function=None, lazy=Fa
                              "together with hidden_keys keyword !")
         if function is None:
             if lazy:
-                raise ValueError("lazy keyword only makes sense together with function keyword !")
+                raise ValueError("lazy keyword only makes sense together with function keyword")
             if isinstance(indices, dict):
                 return FiniteFamily(indices)
             if isinstance(indices, (list, tuple) ):
@@ -407,12 +407,13 @@ def Family(indices, function=None, hidden_keys=[], hidden_function=None, lazy=Fa
 
         return LazyFamily(indices, function, name)
     if lazy:
-        raise ValueError("lazy keyword is incompatible with hidden keys !")
+        raise ValueError("lazy keyword is incompatible with hidden keys")
     if hidden_function is None:
         hidden_function = function
     return FiniteFamilyWithHiddenKeys({i: function(i) for i in indices},
                                       hidden_keys, hidden_function,
                                       keys=indices)
+
 
 class AbstractFamily(Parent):
     """

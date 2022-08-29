@@ -1872,7 +1872,7 @@ class CubicBraidGroup(FinitelyPresentedGroup):
             self._create_classical_realization()
 
         if self._classical_invariant_form is None:
-            raise ValueError("no classical invariant form defined!")
+            raise ValueError("no classical invariant form defined")
 
         return self._classical_invariant_form
 

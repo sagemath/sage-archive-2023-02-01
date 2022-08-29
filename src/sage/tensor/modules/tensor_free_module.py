@@ -554,11 +554,10 @@ class TensorFreeModule(FiniteRankFreeModule_abstract):
 
         TESTS::
 
-            sage: from sage.tensor.modules.tensor_free_submodule import TensorFreeSubmodule_sym
             sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
             sage: e = M.basis('e')
             sage: T60M = M.tensor_module(6, 0)
-            sage: Sym0123x45M = TensorFreeSubmodule_sym(M, (6, 0), sym=((0, 1, 2, 3), (4, 5)))
+            sage: Sym0123x45M = M.tensor_module(6, 0, sym=((0, 1, 2, 3), (4, 5)))
             sage: t = Sym0123x45M._an_element_()
             sage: t.parent() is Sym0123x45M
             True
@@ -623,8 +622,7 @@ class TensorFreeModule(FiniteRankFreeModule_abstract):
 
         Coercion from submodules::
 
-            sage: from sage.tensor.modules.tensor_free_submodule import TensorFreeSubmodule_sym
-            sage: Sym01M = TensorFreeSubmodule_sym(M, (2, 0), sym=((0, 1)))
+            sage: Sym01M = M.tensor_module(2, 0, sym=((0, 1)))
             sage: M.tensor_module(2,0)._coerce_map_from_(Sym01M)
             True
 
@@ -760,8 +758,7 @@ class TensorFreeModule(FiniteRankFreeModule_abstract):
             e_2⊗e^1
             e_2⊗e^2
 
-            sage: from sage.tensor.modules.tensor_free_submodule import TensorFreeSubmodule_sym
-            sage: Sym2M = TensorFreeSubmodule_sym(M, (2, 0), sym=range(2))
+            sage: Sym2M = M.tensor_module(2, 0, sym=range(2))
             sage: e_Sym2M = Sym2M.basis('e'); e_Sym2M
             Standard basis on the
              Free module of fully symmetric type-(2,0) tensors on the Rank-3 free module M over the Integer Ring

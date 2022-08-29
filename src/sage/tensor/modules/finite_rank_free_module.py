@@ -703,9 +703,8 @@ class FiniteRankFreeModule_abstract(UniqueRepresentation, Parent):
             sage: M.ambient_module() is M
             True
 
-            sage: from sage.tensor.modules.tensor_free_submodule import TensorFreeSubmodule_sym
             sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
-            sage: Sym0123x45M = TensorFreeSubmodule_sym(M, (6, 0), sym=((0, 1, 2, 3), (4, 5)))
+            sage: Sym0123x45M = M.tensor_module(6, 0, sym=((0, 1, 2, 3), (4, 5)))
             sage: T60M = M.tensor_module(6, 0)
             sage: Sym0123x45M.ambient_module() is T60M
             True

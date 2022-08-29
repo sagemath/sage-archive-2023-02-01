@@ -30,7 +30,6 @@ class TensorFreeSubmodule_sym(TensorFreeModule):
 
     EXAMPLES::
 
-        sage: from sage.tensor.modules.tensor_free_submodule import TensorFreeSubmodule_sym
         sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
         sage: e = M.basis('e')
         sage: T60M = M.tensor_module(6, 0); T60M
@@ -39,14 +38,14 @@ class TensorFreeSubmodule_sym(TensorFreeModule):
         'T^(6, 0)(M)'
         sage: latex(T60M)
         T^{(6, 0)}\left(M\right)
-        sage: T40Sym45M = TensorFreeSubmodule_sym(M, (6, 0), sym=((4, 5))); T40Sym45M
+        sage: T40Sym45M = M.tensor_module(6, 0, sym=((4, 5))); T40Sym45M
         Free module of type-(6,0) tensors on the Rank-3 free module M over the Integer Ring,
          with symmetry on the index positions (4, 5)
         sage: T40Sym45M._name
         'T^{0,1,2,3}(M)⊗Sym^{4,5}(M)'
         sage: latex(T40Sym45M)
         T^{\{0,1,2,3\}}(M) \otimes \mathrm{Sym}^{\{4,5\}}(M)
-        sage: Sym0123x45M = TensorFreeSubmodule_sym(M, (6, 0), sym=((0, 1, 2, 3), (4, 5))); Sym0123x45M
+        sage: Sym0123x45M = M.tensor_module(6, 0, sym=((0, 1, 2, 3), (4, 5))); Sym0123x45M
         Free module of type-(6,0) tensors on the Rank-3 free module M over the Integer Ring,
          with symmetry on the index positions (0, 1, 2, 3),
          with symmetry on the index positions (4, 5)
@@ -54,7 +53,7 @@ class TensorFreeSubmodule_sym(TensorFreeModule):
         'Sym^{0,1,2,3}(M)⊗Sym^{4,5}(M)'
         sage: latex(Sym0123x45M)
         \mathrm{Sym}^{\{0,1,2,3\}}(M) \otimes \mathrm{Sym}^{\{4,5\}}(M)
-        sage: Sym012x345M = TensorFreeSubmodule_sym(M, (6, 0), sym=((0, 1, 2), (3, 4, 5))); Sym012x345M
+        sage: Sym012x345M = M.tensor_module(6, 0, sym=((0, 1, 2), (3, 4, 5))); Sym012x345M
         Free module of type-(6,0) tensors on the Rank-3 free module M over the Integer Ring,
          with symmetry on the index positions (0, 1, 2),
          with symmetry on the index positions (3, 4, 5)
@@ -62,7 +61,7 @@ class TensorFreeSubmodule_sym(TensorFreeModule):
         'Sym^{0,1,2}(M)⊗Sym^{3,4,5}(M)'
         sage: latex(Sym012x345M)
         \mathrm{Sym}^{\{0,1,2\}}(M) \otimes \mathrm{Sym}^{\{3,4,5\}}(M)
-        sage: Sym012345M = TensorFreeSubmodule_sym(M, (6, 0), sym=((0, 1, 2, 3, 4, 5))); Sym012345M
+        sage: Sym012345M = M.tensor_module(6, 0, sym=((0, 1, 2, 3, 4, 5))); Sym012345M
         Free module of fully symmetric type-(6,0) tensors
          on the Rank-3 free module M over the Integer Ring
         sage: Sym012345M._name
@@ -84,7 +83,7 @@ class TensorFreeSubmodule_sym(TensorFreeModule):
 
     TESTS::
 
-        sage: T = TensorFreeSubmodule_sym(M, (4, 4), sym=((0, 1)), antisym=((4, 5))); T
+        sage: T = M.tensor_module(4, 4, sym=((0, 1)), antisym=((4, 5))); T
         Free module of type-(4,4) tensors on the Rank-3 free module M over the Integer Ring,
          with symmetry on the index positions (0, 1),
          with antisymmetry on the index positions (4, 5)
@@ -99,10 +98,9 @@ class TensorFreeSubmodule_sym(TensorFreeModule):
         r"""
         TESTS::
 
-            sage: from sage.tensor.modules.tensor_free_submodule import TensorFreeSubmodule_sym
             sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
             sage: e = M.basis('e')
-            sage: Sym0123x45M = TensorFreeSubmodule_sym(M, (6, 0), sym=((0, 1, 2, 3), (4, 5)))
+            sage: Sym0123x45M = M.tensor_module(6, 0, sym=((0, 1, 2, 3), (4, 5)))
             sage: TestSuite(Sym0123x45M).run()
         """
         self._fmodule = fmodule
@@ -186,9 +184,8 @@ class TensorFreeSubmodule_sym(TensorFreeModule):
 
         EXAMPLES::
 
-            sage: from sage.tensor.modules.tensor_free_submodule import TensorFreeSubmodule_sym
             sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
-            sage: Sym2M = TensorFreeSubmodule_sym(M, (2, 0), sym=range(2)); Sym2M
+            sage: Sym2M = M.tensor_module(2, 0, sym=range(2)); Sym2M
             Free module of fully symmetric type-(2,0) tensors on the Rank-3 free module M over the Integer Ring
             sage: c = Sym2M._basis_sym(); c
             Fully symmetric 2-indices components w.r.t. (0, 1, 2)
@@ -205,9 +202,8 @@ class TensorFreeSubmodule_sym(TensorFreeModule):
 
         EXAMPLES::
 
-            sage: from sage.tensor.modules.tensor_free_submodule import TensorFreeSubmodule_sym
             sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
-            sage: Sym2M = TensorFreeSubmodule_sym(M, (2, 0), sym=range(2)); Sym2M
+            sage: Sym2M = M.tensor_module(2, 0, sym=range(2)); Sym2M
             Free module of fully symmetric type-(2,0) tensors
              on the Rank-3 free module M over the Integer Ring
 
@@ -226,11 +222,10 @@ class TensorFreeSubmodule_sym(TensorFreeModule):
 
         EXAMPLES::
 
-            sage: from sage.tensor.modules.tensor_free_submodule import TensorFreeSubmodule_sym
             sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
             sage: e = M.basis('e')
             sage: T60M = M.tensor_module(6, 0)
-            sage: Sym0123x45M = TensorFreeSubmodule_sym(M, (6, 0), sym=((0, 1, 2, 3), (4, 5)))
+            sage: Sym0123x45M = M.tensor_module(6, 0, sym=((0, 1, 2, 3), (4, 5)))
             sage: ten0123x45M = Sym0123x45M.an_element(); ten0123x45M
             Type-(6,0) tensor on the Rank-3 free module M over the Integer Ring
             sage: ten0123x45M.parent()
@@ -242,13 +237,13 @@ class TensorFreeSubmodule_sym(TensorFreeModule):
              on the Rank-3 free module M over the Integer Ring,
              with symmetry on the index positions (0, 1, 2, 3),
              with symmetry on the index positions (4, 5)
-            sage: Sym012x345M = TensorFreeSubmodule_sym(M, (6, 0), sym=((0, 1, 2), (3, 4, 5)))
+            sage: Sym012x345M = M.tensor_module(6, 0, sym=((0, 1, 2), (3, 4, 5)))
             sage: com012x345M = Sym012x345M.an_element()._components[e]; com012x345M
             6-indices components w.r.t. Basis (e_0,e_1,e_2)
              on the Rank-3 free module M over the Integer Ring,
              with symmetry on the index positions (0, 1, 2),
              with symmetry on the index positions (3, 4, 5)
-            sage: Sym012345M  = TensorFreeSubmodule_sym(M, (6, 0), sym=((0, 1, 2, 3, 4, 5)))
+            sage: Sym012345M  = M.tensor_module(6, 0, sym=((0, 1, 2, 3, 4, 5)))
             sage: com012345M  = Sym012345M.an_element()._components[e]; com012345M
             Fully symmetric 6-indices components w.r.t. Basis (e_0,e_1,e_2)
              on the Rank-3 free module M over the Integer Ring
@@ -302,11 +297,10 @@ class TensorFreeSubmodule_sym(TensorFreeModule):
         r"""
         TESTS::
 
-            sage: from sage.tensor.modules.tensor_free_submodule import TensorFreeSubmodule_sym
             sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
             sage: e = M.basis('e')
             sage: T60M = M.tensor_module(6, 0)
-            sage: Sym0123x45M = TensorFreeSubmodule_sym(M, (6, 0), sym=((0, 1, 2, 3), (4, 5)))
+            sage: Sym0123x45M = M.tensor_module(6, 0, sym=((0, 1, 2, 3), (4, 5)))
             sage: Sym0123x45M(e[0]*e[0]*e[0]*e[0]*e[1]*e[2])
             Traceback (most recent call last):
             ...
@@ -355,12 +349,11 @@ class TensorFreeSubmodule_sym(TensorFreeModule):
 
         EXAMPLES::
 
-            sage: from sage.tensor.modules.tensor_free_submodule import TensorFreeSubmodule_sym
             sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
             sage: T60M = M.tensor_module(6, 0)
-            sage: Sym0123x45M = TensorFreeSubmodule_sym(M, (6, 0), sym=((0, 1, 2, 3), (4, 5)))
-            sage: Sym012x345M = TensorFreeSubmodule_sym(M, (6, 0), sym=((0, 1, 2), (3, 4, 5)))
-            sage: Sym012345M  = TensorFreeSubmodule_sym(M, (6, 0), sym=((0, 1, 2, 3, 4, 5)))
+            sage: Sym0123x45M = M.tensor_module(6, 0, sym=((0, 1, 2, 3), (4, 5)))
+            sage: Sym012x345M = M.tensor_module(6, 0, sym=((0, 1, 2), (3, 4, 5)))
+            sage: Sym012345M  = M.tensor_module(6, 0, sym=((0, 1, 2, 3, 4, 5)))
             sage: Sym012345M.is_submodule(Sym012345M)
             True
             sage: Sym012345M.is_submodule(Sym0123x45M)
@@ -397,9 +390,8 @@ class TensorFreeSubmodule_sym(TensorFreeModule):
 
         EXAMPLES::
 
-            sage: from sage.tensor.modules.tensor_free_submodule import TensorFreeSubmodule_sym
             sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
-            sage: Sym0123x45M = TensorFreeSubmodule_sym(M, (6, 0), sym=((0, 1, 2, 3), (4, 5)))
+            sage: Sym0123x45M = M.tensor_module(6, 0, sym=((0, 1, 2, 3), (4, 5)))
             sage: Sym0123x45M.lift
             Generic morphism:
               From: Free module of type-(6,0) tensors on the Rank-3 free module M over the Integer Ring,
@@ -419,7 +411,6 @@ class TensorFreeSubmodule_sym(TensorFreeModule):
 
         EXAMPLES::
 
-            sage: from sage.tensor.modules.tensor_free_submodule import TensorFreeSubmodule_sym
             sage: M = FiniteRankFreeModule(QQ, 3, name='M')
             sage: e = M.basis('e')
             sage: X = M.tensor_module(6, 0)
@@ -491,7 +482,6 @@ class TensorFreeSubmodule_sym(TensorFreeModule):
 
         EXAMPLES::
 
-            sage: from sage.tensor.modules.tensor_free_submodule import TensorFreeSubmodule_sym
             sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
             sage: e = M.basis('e')
             sage: X = M.tensor_module(6, 0)

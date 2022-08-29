@@ -99,6 +99,51 @@ We can change the base ring::
     1/4*z^-1 - 3/8 + 1/16*z - 17/32*z^2 + 5/64*z^3 - 29/128*z^4 + 165/256*z^5 + O(z^6)
     sage: hinv.valuation()
     -1
+
+TESTS::
+
+    sage: def check(L, z, verbose=False):
+    ....:     # division
+    ....:     lf = [0, L(0), 1, L(1), z, 1 + z, 2 + z + z^2]
+    ....:     lg = [3, L(3), 1 + z, 2 + z + z^2]
+    ....:     for f in lf:
+    ....:         for g in lg:
+    ....:             try:
+    ....:                 h = f / g
+    ....:                 if verbose: print("(%s) / (%s) = %s" % (f, g, h))
+    ....:             except Exception as e:
+    ....:                 print("%s in (%s) / (%s)" % (e, f, g))
+    ....:     # composition
+    ....:     f = L(0)
+    ....:     l = [(f, 0), (f, L(0)), (f, 2), (f, L(2)), (f, 2 + z + z^2), (f, 3/(1 - 2*z))]
+    ....:     f = L(1)
+    ....:     l.extend([(f, 0), (f, L(0)), (f, 2), (f, L(2)), (f, 2 + z + z^2), (f, 3/(1 - 2*z))])
+    ....:     f = 2 + z + z^2
+    ....:     l.extend([(f, 0), (f, L(0)), (f, 2), (f, L(2)), (f, 2 + z + z^2), (f, 3/(1 - 2*z))])
+    ....:     f = 3/(2 - 3*z)
+    ....:     l.extend([(f, 0), (f, L(0)), (f, 3*z/(1 - 2*z))])
+    ....:     for f, g in l:
+    ....:         try:
+    ....:             h = f(g)
+    ....:             if verbose: print("(%s)(%s) = %s" % (f, g, h))
+    ....:         except Exception as e:
+    ....:             print("%s in (%s)(%s)" % (e, f, g))
+    ....:     # reversion
+    ....:     l = [2 + 3*z, 3*z + 2*z^2, 3*z/(1 - 2*z - 3*z^2)]
+    ....:     for f in l:
+    ....:         try:
+    ....:             h = f.revert()
+    ....:             if verbose: print("(%s)^{(-1)} = %s" % (f, h))
+    ....:         except Exception as e:
+    ....:             print("%s in (%s).revert()" % (e, f))
+
+    sage: L.<z> = LazyLaurentSeriesRing(QQ)
+    sage: check(L, z)
+    sage: L.<z> = LazyTaylorSeriesRing(QQ)
+    sage: check(L, z)
+    sage: p = SymmetricFunctions(QQ).p()
+    sage: L = LazySymmetricFunctions(p)
+    sage: check(L, L(p[1]))
 """
 
 # ****************************************************************************

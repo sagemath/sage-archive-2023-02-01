@@ -458,6 +458,29 @@ class IntegerVector(ClonableArray):
             raise ValueError("all entries must be non-negative")
 
 
+    def trim(self):
+        """
+        Remove trailing zeros from the integer vector.
+
+        EXAMPLES::
+
+            sage: IV = IntegerVectors()
+            sage: IV([5,3,5,1,0,0]).trim()
+            [5, 3, 5, 1]
+            sage: IV([5,0,5,1,0]).trim()
+            [5, 0, 5, 1]
+            sage: IV([4,3,3]).trim()
+            [4, 3, 3]
+            sage: IV([0,0,0]).trim()
+            []
+        """
+        v = list(self)
+        if all(i == 0 for i in v):
+            return self.parent()([])
+        while not v[-1]:
+            v = v[:-1]
+        return self.parent()(v)
+
 class IntegerVectors(Parent, metaclass=ClasscallMetaclass):
     """
     The class of (non-negative) integer vectors.

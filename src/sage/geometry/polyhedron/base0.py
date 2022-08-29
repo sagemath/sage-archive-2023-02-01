@@ -313,8 +313,8 @@ class Polyhedron_base0(Element, sage.geometry.abc.Polyhedron):
             sage: P = Polyhedron(vertices = [[1, 0], [0, 1]], rays = [[1, 1]], backend='normaliz') # optional - pynormaliz
             sage: sage_input(P)                                                                    # optional - pynormaliz
             Polyhedron(backend='normaliz', base_ring=QQ, rays=[(QQ(1), QQ(1))], vertices=[(QQ(0), QQ(1)), (QQ(1), QQ(0))])
-            sage: P = Polyhedron(vertices = [[1, 0], [0, 1]], rays = [[1, 1]], backend='polymake') # optional - polymake
-            sage: sage_input(P)                                                                    # optional - polymake
+            sage: P = Polyhedron(vertices = [[1, 0], [0, 1]], rays = [[1, 1]], backend='polymake') # optional - jupymake
+            sage: sage_input(P)                                                                    # optional - jupymake
             Polyhedron(backend='polymake', base_ring=QQ, rays=[(QQ(1), QQ(1))], vertices=[(QQ(1), QQ(0)), (QQ(0), QQ(1))])
        """
         kwds = dict()

@@ -11957,7 +11957,7 @@ class NumberField_quadratic(NumberField_absolute, sage.rings.abc.NumberField_qua
         EXAMPLES::
 
             sage: Z = QuadraticField(7)
-            sage: polymake(Z)    # optional - polymake # indirect doctest
+            sage: polymake(Z)    # optional - jupymake # indirect doctest
             QuadraticExtension
 
         """

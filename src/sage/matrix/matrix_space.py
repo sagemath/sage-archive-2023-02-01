@@ -2338,9 +2338,9 @@ class MatrixSpace(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: polymake(MatrixSpace(QQ,3))                   # optional - polymake
+            sage: polymake(MatrixSpace(QQ,3))                   # optional - jupymake
             Matrix<Rational>
-            sage: polymake(MatrixSpace(QuadraticField(5),3))    # optional - polymake
+            sage: polymake(MatrixSpace(QuadraticField(5),3))    # optional - jupymake
             Matrix<QuadraticExtension>
         """
         from sage.interfaces.polymake import polymake

@@ -368,7 +368,7 @@ class Polyhedron_base3(Polyhedron_base2):
         tester.info("\n  Running the test suite of self.combinatorial_polyhedron()")
         TestSuite(self.combinatorial_polyhedron()).run(verbose=tester._verbose,
                                                        prefix=tester._prefix+"  ")
-        tester.info(tester._prefix+" ", newline = False)
+        tester.info(tester._prefix + " ", newline=False)
 
     def face_generator(self, face_dimension=None, algorithm=None, **kwds):
         r"""

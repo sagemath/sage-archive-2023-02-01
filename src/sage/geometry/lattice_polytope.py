@@ -2022,7 +2022,7 @@ class LatticePolytopeClass(ConvexSet_compact, Hashable, sage.geometry.abc.Lattic
                                             ambient_facet_indices=facets)
 
             return lattice_from_incidences(
-                vertex_to_facets, facet_to_vertices, LPFace, key = id(self))
+                vertex_to_facets, facet_to_vertices, LPFace, key=id(self))
         else:
             # Get face lattice as a sublattice of the ambient one
             allowed_indices = frozenset(self._ambient_vertex_indices)
@@ -2061,7 +2061,7 @@ class LatticePolytopeClass(ConvexSet_compact, Hashable, sage.geometry.abc.Lattic
                     L.add_edge(face_to_index[face], next_index)
             D = {i:f for i,f in enumerate(faces)}
             L.relabel(D)
-            return FinitePoset(L, faces, key = id(self))
+            return FinitePoset(L, faces, key=id(self))
 
     def faces(self, dim=None, codim=None):
         r"""

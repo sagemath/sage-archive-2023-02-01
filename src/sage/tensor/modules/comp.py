@@ -1773,12 +1773,12 @@ class Components(SageObject):
                              "same starting index")
         if isinstance(other, CompWithSym):
             sym = []
-            if other._sym != []:
+            if other._sym:
                 for s in other._sym:
                     ns = tuple(s[i]+self._nid for i in range(len(s)))
                     sym.append(ns)
             antisym = []
-            if other._antisym != []:
+            if other._antisym:
                 for s in other._antisym:
                     ns = tuple(s[i]+self._nid for i in range(len(s)))
                     antisym.append(ns)
@@ -3011,7 +3011,12 @@ class CompWithSym(Components):
             ([(2, 1)], [])
         """
         result_sym = []
-        if sym is not None and sym != []:
+        if sym is None:
+            sym = []
+        else:
+            # Handle the case that sym is an iterator
+            sym = list(sym)
+        if sym:
             if isinstance(sym[0], (int, Integer)):
                 # a single symmetry is provided as a tuple or a range object;
                 # it is converted to a 1-item list:
@@ -3026,7 +3031,12 @@ class CompWithSym(Components):
                                          " not in [0," + str(nb_indices-1) + "]")
                 result_sym.append(tuple(isym))
         result_antisym = []
-        if antisym is not None and antisym != []:
+        if antisym is None:
+            antisym = []
+        else:
+            # Handle the case that antisym is an iterator
+            antisym = list(antisym)
+        if antisym:
             if isinstance(antisym[0], (int, Integer)):
                 # a single antisymmetry is provided as a tuple or a range
                 # object; it is converted to a 1-item list:
@@ -3535,7 +3545,7 @@ class CompWithSym(Components):
                         com = tuple(set(isym).intersection(set(osym)))
                         if len(com) > 1:
                             common_antisym.append(com)
-                if common_sym != [] or common_antisym != []:
+                if common_sym or common_antisym:
                     result = CompWithSym(self._ring, self._frame, self._nid,
                                          self._sindex, self._output_formatter,
                                          common_sym, common_antisym)
@@ -3643,11 +3653,11 @@ class CompWithSym(Components):
         sym = list(self._sym)
         antisym = list(self._antisym)
         if isinstance(other, CompWithSym):
-            if other._sym != []:
+            if other._sym:
                 for s in other._sym:
                     ns = tuple(s[i]+self._nid for i in range(len(s)))
                     sym.append(ns)
-            if other._antisym != []:
+            if other._antisym:
                 for s in other._antisym:
                     ns = tuple(s[i]+self._nid for i in range(len(s)))
                     antisym.append(ns)
@@ -3973,7 +3983,7 @@ class CompWithSym(Components):
         si = self._sindex
         imax = self._dim - 1 + si
         ind = [si for k in range(self._nid)]
-        sym = self._sym.copy() # we may modify this in the following
+        sym = list(self._sym)  # we may modify this in the following
         antisym = self._antisym
         for pos in range(self._nid):
             for isym in antisym:

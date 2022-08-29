@@ -1,4 +1,6 @@
 {
+    // This settings file is not ignored by git. It should be kept in sync with
+    // the trac repo.
     "python.defaultInterpreterPath": "./venv/bin/python3",
     "files.exclude": {
         "**/__pycache__": true,
@@ -23,6 +25,9 @@
     "python.testing.unittestEnabled": false,
     "python.linting.pycodestyleEnabled": true,
     "python.linting.enabled": true,
+    // The following pycodestyle arguments are the same as the pycodestyle-minimal
+    // tox environnment, see the file SAGE_ROOT/src/tox.ini
+    "python.linting.pycodestyleArgs": ["--select=E111,E306,E401,E701,E702,E703,W605,E711,E712,E713,E721,E722"],
     "cSpell.words": [
         "furo",
         "Conda",

@@ -3757,7 +3757,7 @@ def fill_isogeny_matrix(M):
         [ 6  3  2 18  1  9]
         [ 6  3 18  2  9  1]
     """
-    from sage.matrix.all import Matrix
+    from sage.matrix.constructor import Matrix
     from sage.rings.infinity import Infinity
 
     n = M.nrows()

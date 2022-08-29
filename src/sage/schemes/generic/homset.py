@@ -383,7 +383,7 @@ class SchemeHomset_generic(HomsetWithBase):
             return self.domain()._morphism(self, x, check=check)
 
         from sage.categories.map import Map
-        from sage.categories.all import Rings
+        from sage.categories.rings import Rings
         if isinstance(x, Map) and x.category_for().is_subcategory(Rings()):
             # x is a morphism of Rings
             return SchemeMorphism_spec(self, x, check=check)

@@ -42,7 +42,10 @@ We can also construct the product by specifying the dimensions and the base ring
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.misc_c import prod
-from sage.rings.all import (PolynomialRing, QQ, Integer, CommutativeRing)
+from sage.rings.integer import Integer
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+from sage.rings.rational_field import QQ
+from sage.rings.ring import CommutativeRing
 from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
 from sage.categories.fields import Fields
 from sage.rings.polynomial.polydict import ETuple

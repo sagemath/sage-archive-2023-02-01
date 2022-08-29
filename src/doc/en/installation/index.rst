@@ -80,10 +80,6 @@ Windows
       can use any of the installation methods described below for
       Linux.
 
-    - Alternatively, in particular if you cannot use WSL, install
-      `Cygwin <https://cygwin.com/>`_ and then build SageMath from source
-      as described in section :ref:`sec-installation-from-sources`.
-
 Linux
 =====
 

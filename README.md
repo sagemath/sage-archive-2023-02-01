@@ -38,7 +38,7 @@ Supported Platforms
 -------------------
 
 Sage attempts to support all major Linux distributions, recent versions of
-macOS, and Windows (using Windows Subsystem for Linux, Cygwin, or
+macOS, and Windows (using Windows Subsystem for Linux or
 virtualization).
 
 Detailed information on supported platforms for a specific version of Sage
@@ -59,57 +59,6 @@ your Windows.  Then all instructions for installation in Linux apply.
 
 As an alternative, you can also run Linux on Windows using Docker (see
 above) or other virtualization solutions.
-
-Finally, Sage also works on the 64-bit version of `Cygwin
-<https://cygwin.com/>`_. If you wish to use Cygwin, use the following
-instructions to get started.
-
-1.  Download [cygwin64](https://cygwin.com/install.html) (do not get
-    the 32-bit version; it is not supported by Sage).
-
-2.  Run the `setup-x86_64.exe` graphical installer.  Pick the default
-    options in most cases.  At the package selection screen, use the
-    search bar to find and select at least the following packages:
-    `bzip2`, `coreutils`, `curl`, `gawk`, `gzip`, `tar`, `wget`, `git`.
-
-3.  Start the Cygwin terminal and ensure you get a working bash prompt.
-
-4.  Make sure the path of your Cygwin home directory does not contain
-    space characters.
-
-    By default, your username in Cygwin is the same as your username in
-    Windows.  This might contain spaces and other traditionally
-    non-UNIX-friendly characters, e.g., if it is your full name.  You
-    can check this as follows:
-
-        $ whoami
-        Erik M. Bray
-
-    This means your default home directory on Cygwin contains this
-    username verbatim; in the above example, `/home/Erik M. Bray`.
-    It will save some potential trouble if you change your Cygwin home
-    directory to contain only alphanumeric characters, for example,
-    `/home/embray`.  The easiest way to do this is to first create
-    the home directory you want to use instead, then create an
-    `/etc/passwd` file specifying that directory as your home, as follows:
-
-        $ whocanibe=embray
-        $ mkdir /home/$whocanibe
-        $ mkpasswd.exe -l -u "$(whoami)" | sed -r 's,/home/[^:]+,/home/'$whocanibe, > /etc/passwd
-
-    After this, close all Cygwin terminals (ensure nothing in
-    `C:\cygwin64` is running), then start a new Cygwin terminal and
-    your home directory should have moved.
-
-    There are [other ways to do
-    this](https://stackoverflow.com/questions/1494658/how-can-i-change-my-cygwin-home-folder-after-installation),
-    but the above seems to be the simplest that's still supported.
-
-5.  Install the package manager `apt-cyg`:
-
-        $ curl -OL https://rawgit.com/transcode-open/apt-cyg/master/apt-cyg
-        $ install apt-cyg /usr/local/bin
-        $ rm -f apt-cyg
 
 [macOS] Preparing the Platform
 ------------------------------
@@ -155,7 +104,7 @@ Like many other software packages, Sage is built from source using
 `./configure`, followed by `make`.  However, we strongly recommend to
 read the following step-by-step instructions for building Sage.
 
-The instructions cover all of Linux, macOS, and Cygwin.
+The instructions cover all of Linux, macOS, and WSL.
 
 More details, providing a background for these instructions, can be found
 in the [section "Install from Source Code"](https://doc.sagemath.org/html/en/installation/source.html).
@@ -185,9 +134,6 @@ in the Installation Guide.
       Beware of this convenience when compiling for macOS. Ignoring exact
       capitalization when changing into :envvar:`SAGE_ROOT` can lead to build
       errors for dependencies requiring exact capitalization in path names.
-
-    - [Cygwin] Avoid building in home directories of Windows domain
-      users or in paths with capital letters.
 
 2.  Download/unpack or clone the sources.
 
@@ -229,12 +175,12 @@ in the Installation Guide.
       line endings are used.
 
       Therefore it is crucial that you unpack the source tree from the
-      Cygwin (or WSL) `bash` using the Cygwin (or WSL) `tar` utility
-      and not using other Windows tools (including mingw). Likewise,
-      when using `git`, it is recommended (but not necessary) to use
-      the Cygwin (or WSL) version of `git`.
+      WSL `bash` using the WSL `tar` utility and not using other
+      Windows tools (including mingw). Likewise, when using `git`, it
+      is recommended (but not necessary) to use the WSL version of
+      `git`.
 
-3.  [Linux, Cygwin] Install the required minimal build prerequisites.
+3.  [Linux, WSL] Install the required minimal build prerequisites.
 
     - Compilers: `gcc`, `gfortran`, `g++` (GCC 6.3 to 12.x and recent
       versions of Clang (LLVM) are supported).
@@ -252,7 +198,6 @@ in the Installation Guide.
     [build/pkgs/_prereq/distros](build/pkgs/_prereq/distros),
     the files
     [arch.txt](build/pkgs/_prereq/distros/arch.txt),
-    [cygwin.txt](build/pkgs/_prereq/distros/cygwin.txt),
     [debian.txt](build/pkgs/_prereq/distros/debian.txt)
     (also for Ubuntu, Linux Mint, etc.),
     [fedora.txt](build/pkgs/_prereq/distros/fedora.txt)

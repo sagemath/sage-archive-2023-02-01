@@ -79,7 +79,7 @@ the following source types:
      (see :ref:`section-spkg-install`);
 
    - Sage records the version number of the package installed using a file in
-     ``$SAGE_LOCAL/var/lib/sage/installed/`` and will re-run the installation
+     ``$SAGE_LOCAL/var/lib/sage/installed/`` and will rerun the installation
      if ``package-version.txt`` changes.
 
 #. A ``wheel`` package:
@@ -93,7 +93,7 @@ the following source types:
    - its version number is defined by the required file ``package-version.txt``;
 
    - Sage records the version number of the package installed using a file in
-     ``$SAGE_LOCAL/var/lib/sage/installed/`` and will re-run the installation
+     ``$SAGE_LOCAL/var/lib/sage/installed/`` and will rerun the installation
      if ``package-version.txt`` changes.
 
 #. A ``pip`` package:
@@ -121,7 +121,7 @@ the following source types:
      (see :ref:`section-spkg-install`);
 
    - Sage records the version number of the package installed using a file in
-     ``$SAGE_LOCAL/var/lib/sage/installed/`` and will re-run the installation
+     ``$SAGE_LOCAL/var/lib/sage/installed/`` and will rerun the installation
      if ``package-version.txt`` changes.
 
 #. A ``dummy`` package:

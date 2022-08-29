@@ -571,6 +571,9 @@ class EllipticCurveIsogeny(EllipticCurveHom):
         over a number field, then the codomain is a global minimal
         model where this exists.
 
+      - ``"short_weierstrass"``: The codomain is a short Weierstrass curve,
+        assuming one exists.
+
       - ``"montgomery"``: The codomain is an (untwisted) Montgomery
         curve, assuming one exists over this field.
 
@@ -1058,8 +1061,9 @@ class EllipticCurveIsogeny(EllipticCurveHom):
         if self._domain.defining_polynomial()(*P):
             raise ValueError(f"{P} not on {self._domain}")
 
+        k = Sequence(P).universe()
+
         if not P:
-            k = Sequence(tuple(P)).universe()
             return self._codomain(0).change_ring(k)
 
         Q = P.xy()
@@ -1082,7 +1086,6 @@ class EllipticCurveIsogeny(EllipticCurveHom):
         if self.__post_isomorphism is not None:
             Q = baseWI.__call__(self.__post_isomorphism, Q)
 
-        k = Sequence(tuple(P) + tuple(Q)).universe()
         return self._codomain.base_extend(k).point(Q)
 
     def _call_(self, P):

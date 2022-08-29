@@ -207,8 +207,8 @@ in the Installation Guide.
     [void.txt](build/pkgs/_prereq/distros/void.txt), or visit
     https://doc.sagemath.org/html/en/reference/spkg/_prereq.html#spkg-prereq
 
-4.  [Git] If you plan to work with ticket branches that make changes
-    to packages, install the bootstrapping prerequisites. See the
+4.  [Git] If you plan to do Sage development or otherwise work with ticket branches
+    and not only releases, install the bootstrapping prerequisites. See the
     files in the folder
     [build/pkgs/_bootstrap/distros](build/pkgs/_bootstrap/distros), or
     visit

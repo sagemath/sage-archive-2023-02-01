@@ -126,7 +126,7 @@ processor. On Linux, this means you need a recent version of
 Python for venv
 ^^^^^^^^^^^^^^^
 
-By default, Sage will try to use system's `python3` to set up a virtual
+By default, Sage will try to use system's ``python3`` to set up a virtual
 environment, a.k.a. `venv <https://docs.python.org/3.10/library/venv.html>`_
 rather than building a Python 3 installation from scratch.
 Use the ``configure`` option ``--without-system-python3`` in case you want Python 3
@@ -168,6 +168,22 @@ On Redhat-derived systems not all perl components are installed by
 default and you might have to install the ``perl-ExtUtils-MakeMaker``
 package.
 
+On Linux systems (e.g., Ubuntu, Redhat, etc), ``ar`` and ``ranlib`` are in the
+`binutils <https://www.gnu.org/software/binutils/>`_ package.
+The other programs are usually located in packages with their respective names.
+Assuming you have sufficient privileges, you can install the ``binutils`` and
+other necessary/standard components. The lists provided below are longer than
+the minimal prerequisites, which are basically ``binutils``, ``gcc``/``clang``, ``make``,
+``tar``, but there is no real need to build compilers and other standard tools
+and libraries on a modern Linux system, in order to be able to build Sage.
+If you do not have the privileges to do this, ask your system administrator to
+do this, or build the components from source code.
+The method of installing additional software varies from distribution to
+distribution, but on a `Debian <https://www.debian.org/>`_ based system (e.g.
+`Ubuntu <https://www.ubuntu.com/>`_ or `Mint <https://www.linuxmint.com/>`_),
+you would use
+:wikipedia:`apt-get <Advanced_Packaging_Tool>`.
+
 Installing prerequisites
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -186,55 +202,83 @@ either ``perl`` is not installed, or it is installed but not in your
 
 .. _sec-installation-from-sources-linux-recommended-installation:
 
-Linux recommended installation
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-On Linux systems (e.g., Ubuntu, Redhat, etc), ``ar`` and ``ranlib`` are in the
-`binutils <https://www.gnu.org/software/binutils/>`_ package.
-The other programs are usually located in packages with their respective names.
-Assuming you have sufficient privileges, you can install the ``binutils`` and
-other necessary/standard components. The lists provided below are longer than
-the minimal prerequisites, which are basically ``binutils``, ``gcc``/``clang``, ``make``,
-``tar``, but there is no real need to build compilers and other standard tools
-and libraries on a modern Linux system, in order to be able to build Sage.
-If you do not have the privileges to do this, ask your system administrator to
-do this, or build the components from source code.
-The method of installing additional software varies from distribution to
-distribution, but on a `Debian <https://www.debian.org/>`_ based system (e.g.
-`Ubuntu <https://www.ubuntu.com/>`_ or `Mint <https://www.linuxmint.com/>`_),
-you would use
-:wikipedia:`apt-get <Advanced_Packaging_Tool>`.
+Debian/Ubuntu prerequisite installation
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 On Debian ("buster" or newer) or Ubuntu ("bionic" or newer):
 
 .. literalinclude:: debian.txt
 
-On Fedora / Redhat / CentOS:
+If you wish to do Sage development, additionally install the following:
 
-.. literalinclude:: fedora.txt
+.. literalinclude:: debian-develop.txt
 
-On Arch Linux:
+For all users, we recommend the following:
 
-.. literalinclude:: arch.txt
+.. literalinclude:: debian-recommended.txt
 
 In addition to these, if you don't want Sage to build optional packages that might
 be available from your OS, cf. the growing list of such packages on :trac:`27330`,
-install on Debian ("buster" or newer) or Ubuntu ("bionic" or newer):
+install:
 
 .. literalinclude:: debian-optional.txt
 
-On Fedora / Redhat / CentOS:
+Fedora/Redhat/CentOS prerequisite installation
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. literalinclude:: fedora.txt
+
+If you wish to do Sage development, additionally install the following:
+
+.. literalinclude:: fedora-develop.txt
+
+For all users, we recommend the following:
+
+.. literalinclude:: fedora-recommended.txt
+
+In addition to these, if you don't want Sage to build optional packages that might
+be available from your OS, cf. the growing list of such packages on :trac:`27330`,
+install:
 
 .. literalinclude:: fedora-optional.txt
 
-On Arch Linux:
+Arch Linux prerequisite installation
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. literalinclude:: arch.txt
+
+If you wish to do Sage development, additionally install the following:
+
+.. literalinclude:: arch-develop.txt
+
+For all users, we recommend the following:
+
+.. literalinclude:: arch-recommended.txt
+
+In addition to these, if you don't want Sage to build optional packages that might
+be available from your OS, cf. the growing list of such packages on :trac:`27330`,
+install:
 
 .. literalinclude:: arch-optional.txt
 
-On other Linux systems, you might use
-:wikipedia:`rpm <RPM_Package_Manager>`,
-:wikipedia:`yum <Yellowdog_Updater,_Modified>`,
-or other package managers.
+OpenSUSE prerequisite installation
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. literalinclude:: opensuse.txt
+
+If you wish to do Sage development, additionally install the following:
+
+.. literalinclude:: opensuse-develop.txt
+
+For all users, we recommend the following:
+
+.. literalinclude:: opensuse-recommended.txt
+
+In addition to these, if you don't want Sage to build optional packages that might
+be available from your OS, cf. the growing list of such packages on :trac:`27330`,
+install:
+
+.. literalinclude:: opensuse-optional.txt
 
 .. _section_macprereqs:
 
@@ -299,6 +343,14 @@ Sage, run ::
 (replacing ``SAGE_ROOT`` by Sage's home directory). You can add a
 command like this to your shell profile if you want the settings to
 persist between shell sessions.
+
+If you wish to do Sage development, additionally install the following:
+
+.. literalinclude:: homebrew-develop.txt
+
+For all users, we recommend the following:
+
+.. literalinclude:: homebrew-recommended.txt
 
 Some additional optional packages are taken care of by:
 

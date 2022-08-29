@@ -171,10 +171,12 @@ cdef class GabowEdgeConnectivity:
     cdef queue[int] incident_edges_Q  # queue of edges
 
     cdef int num_start_f_trees # number of f-trees at the beginning of an iteration
+    cdef int num_joins # number of joined vertices from dfs
     cdef int* T # whether the an edge is in the proven k-intersection
     cdef bint* visited  # for method find_dfs_tree
+    cdef bint dfs # whether or not we should use dfs-based fast initialization
 
-    def __init__(self, G):
+    def __init__(self, G, dfs=True):
         r"""
         Initialize this object.
 
@@ -189,6 +191,7 @@ cdef class GabowEdgeConnectivity:
             sage: GabowEdgeConnectivity(D).edge_connectivity()
             4
         """
+        self.dfs = dfs
         self.ec_checked = False
         from sage.graphs.digraph import DiGraph
         if not isinstance(G, DiGraph):
@@ -368,31 +371,33 @@ cdef class GabowEdgeConnectivity:
         cdef int njoins = 0
         cdef int z
 
-        # There's only one f-tree, so we already have a complete k-intersection
-        # We save the edges and advance to the next iteration
-        if self.num_start_f_trees < self.n-1:
-            self.re_init(tree)
-        else:
-            # There are several f-trees, and we try to join them 
-            while njoins < self.num_start_f_trees-1:
-                # Get the root of an active subtree or INT_MAX if none exists
-                z = self.choose_root()
-                while z != INT_MAX:
-                    if self.search_joining(z):
-                        # We have augmented the root of the corresponding f_tree
-                        njoins += 1
-                    else:
-                        # We cannot find a tree
-                        return False
-
-                    z = self.choose_root()
-
-                # Trace the paths in order to transfer the edges to the appropriate
-                # tree Ti
-                self.augmentation_algorithm()
-                # Reinitialize data structures and make all f_trees active for next round
+        self.num_start_f_trees = self.n - self.num_joins
+        # There are fewer than n f-trees, and prepare to join thme
+        # If there's only one f-tree, we just save the edges and advance to the next iteration
+        if self.dfs:
+            if self.num_start_f_trees < self.n - 1:
                 self.re_init(tree)
-                sig_check()
+
+        # There are n f-trees, and we try to join them 
+        while njoins < self.num_start_f_trees-1:
+            # Get the root of an active subtree or INT_MAX if none exists
+            z = self.choose_root()
+            while z != INT_MAX:
+                if self.search_joining(z):
+                    # We have augmented the root of the corresponding f_tree
+                    njoins += 1
+                else:
+                    # We cannot find a tree
+                    return False
+
+                z = self.choose_root()
+
+            # Trace the paths in order to transfer the edges to the appropriate
+            # tree Ti
+            self.augmentation_algorithm()
+            # Reinitialize data structures and make all f_trees active for next round
+            self.re_init(tree)
+            sig_check()
 
         return True
 
@@ -432,10 +437,11 @@ cdef class GabowEdgeConnectivity:
             self.root[j] = j
             self.forests[j] = True
         
-        self.num_start_f_trees = 0
+        self.num_joins = 0
         
         # Initialize T_k to be a DFS spanning forest of G \ T
-        self.compute_dfs_tree()
+        if self.dfs:
+            self.compute_dfs_tree()
 
         # Set inactive the f-trees of the root vertex
         self.forests[self.root_vertex] = False
@@ -493,6 +499,7 @@ cdef class GabowEdgeConnectivity:
                 self.root[v] = r
                 self.forests[v] = False
                 self.my_edge_state[e_id] = self.current_tree
+                self.num_joins += 1
                 # recursively find more vertices and grow the subtree rooted at r
                 self.find_dfs_tree(v, r)
         
@@ -935,14 +942,16 @@ cdef class GabowEdgeConnectivity:
 
         # Arrange the edges of each tree
         for j in range(tree + 1):
-            for e in range(len(self.tree_edges[j])):
-                e_id = self.tree_edges[j][e]
-                self.T[e_id] = False
+            if self.dfs:
+                for e in range(len(self.tree_edges[j])):
+                    e_id = self.tree_edges[j][e]
+                    self.T[e_id] = False
             self.tree_edges[j].clear()
         for j in range(self.m):
             if self.my_edge_state[j] != self.UNUSED:
                 self.tree_edges[self.my_edge_state[j]].push_back(j)
-                self.T[j] = True
+                if self.dfs:
+                    self.T[j] = True
 
         for j in range(tree + 1):
             if not j or j == tree or self.tree_flag[j]:

@@ -92,11 +92,11 @@ def points_of_bounded_height(K, dim, bound, prec=53):
     - an iterator of points of bounded height
     """
     if bound < 1:
-        return
+        return []
 
     r1, r2 = K.signature()
     r = r1 + r2 - 1
-    K_degree = K.degree() 
+    K_degree = K.degree()
     K_embeddings = K.places(prec=prec)
     roots_of_unity = K.roots_of_unity()
     unit_tuples = list(itertools.product(roots_of_unity, repeat=dim))
@@ -134,7 +134,7 @@ def points_of_bounded_height(K, dim, bound, prec=53):
     for i in range(class_number):
         for k in range(1, bound + 1):
             possible_norm_set.add(k*class_group_ideal_norms[i])
-    
+
     principal_ideal_gens = dict()
     negative_norm_units = K.elements_of_norm(-1)
     if len(negative_norm_units) == 0:
@@ -148,22 +148,22 @@ def points_of_bounded_height(K, dim, bound, prec=53):
     for key in principal_ideal_gens:
         for y in principal_ideal_gens[key]:
             pr_ideal_gen_logs[y] = log_embed(y)
-    
+
     fund_parallelotope_vertices = []
     for coefficient_tuple in itertools.product([-1/2, 1/2], repeat=r):
         vertex = sum([coefficient_tuple[i]*fund_unit_logs[i] for i in range(r)])
         fund_parallelotope_vertices.append(vertex)
-      
+
     D_numbers = []
     for v in range(r + 1):
         D_numbers.append(max([vertex[v] for vertex in fund_parallelotope_vertices]))
-    
+
     A_numbers = []
     for v in range(r + 1):
         A_numbers.append(min([pr_ideal_gen_logs[y][v] for y in pr_ideal_gen_logs]))
-    
+
     aux_constant = (1/K_degree)*Reals(norm_bound).log()
-    
+
     L_numbers = []
     for v in range(r1):
         L_numbers.append(aux_constant + D_numbers[v] - A_numbers[v])
@@ -225,7 +225,7 @@ def points_of_bounded_height(K, dim, bound, prec=53):
                         bool1 = all(g_log[i] <= a_const + D_numbers[i] for i in range(r1))
                         bool2 = all(g_log[j] <= 2*a_const + D_numbers[j] for j in range(r1, r + 1))
                         if bool1 and bool2:
-                            a_coordinates.append(pair)    
+                            a_coordinates.append(pair)
 
         t = len(a_coordinates) - 1
         points_in_class_a = set([])
@@ -239,4 +239,6 @@ def points_of_bounded_height(K, dim, bound, prec=53):
                 for p in itertools.permutations(point_coordinates):
                     for u in unit_tuples:
                         new_point = [i*j for i, j in zip(u, p)] + [p[dim]]
-                        yield PN(new_point)
+                        points_in_class_a.add(PN(new_point))
+        points_of_bdd_height += list(points_in_class_a)
+    return points_of_bdd_height

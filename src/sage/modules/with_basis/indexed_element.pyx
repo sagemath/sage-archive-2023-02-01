@@ -5,7 +5,7 @@ An element in an indexed free module
 AUTHORS:
 
 - Travis Scrimshaw (03-2017): Moved code from :mod:`sage.combinat.free_module`.
-- Travis Scrimshaw (29-08-2022): Implemented an idempotent copy.
+- Travis Scrimshaw (29-08-2022): Implemented ``copy`` as the identity map.
 """
 
 #*****************************************************************************

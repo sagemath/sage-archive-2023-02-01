@@ -436,7 +436,6 @@ class ExtPowerFreeModule(FiniteRankFreeModule_abstract):
         """
         return self._degree
 
-
 #***********************************************************************
 
 

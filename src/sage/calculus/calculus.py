@@ -1140,7 +1140,7 @@ def minpoly(ex, var='x', algorithm=None, bits=None, degree=None, epsilon=0):
             raise ValueError("Could not find minimal polynomial (%s bits, degree %s)." % (bits, degree))
 
     if algorithm is None or algorithm == 'algebraic':
-        from sage.rings.all import QQbar
+        from sage.rings.qqbar import QQbar
         return QQ[var](QQbar(ex).minpoly())
 
     raise ValueError("Unknown algorithm: %s" % algorithm)

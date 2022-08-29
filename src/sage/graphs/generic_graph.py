@@ -10871,7 +10871,7 @@ class GenericGraph(GenericGraph_pyx):
         except AttributeError:
             assoc = self._assoc = {}
 
-        self._assoc[vertex] = object
+        assoc[vertex] = object
 
     def get_vertex(self, vertex):
         """
@@ -22965,17 +22965,18 @@ class GenericGraph(GenericGraph_pyx):
         except EmptySetError:
             return False
 
+
     def is_isomorphic(self, other, certificate=False, verbosity=0, edge_labels=False):
         r"""
         Tests for isomorphism between self and other.
 
         INPUT:
 
-        -  ``certificate`` -- if True, then output is `(a, b)`, where `a`
-           is a boolean and `b` is either a map or ``None``.
+        - ``certificate`` -- if True, then output is `(a, b)`, where `a`
+          is a boolean and `b` is either a map or ``None``
 
-        -  ``edge_labels`` -- boolean (default: ``False``); if ``True`` allows
-           only permutations respecting edge labels.
+        - ``edge_labels`` -- boolean (default: ``False``); if ``True`` allows
+          only permutations respecting edge labels
 
         OUTPUT:
 
@@ -23200,10 +23201,12 @@ class GenericGraph(GenericGraph_pyx):
         if not self.order() and not other.order():
             return (True, None) if certificate else True
 
-        if (self.is_directed() != other.is_directed() or self.order() != other.order() or
-            self.size() != other.size() or self.degree_sequence() != other.degree_sequence()):
+        if (self.is_directed() != other.is_directed() or
+                self.order() != other.order() or
+                self.size() != other.size() or
+                self.degree_sequence() != other.degree_sequence()):
             if certificate:
-                return False,None
+                return False, None
             else:
                 return False
 
@@ -23215,36 +23218,53 @@ class GenericGraph(GenericGraph_pyx):
             if edge_labels and sorted(self.edge_labels(), key=str) != sorted(other.edge_labels(), key=str):
                 return (False, None) if certificate else False
             else:
-                G, partition, relabeling, G_edge_labels = graph_isom_equivalent_non_edge_labeled_graph(self, return_relabeling=True, ignore_edge_labels=(not edge_labels), return_edge_labels=True)
-                self_vertices = sum(partition,[])
-                G2, partition2, relabeling2, G2_edge_labels = graph_isom_equivalent_non_edge_labeled_graph(other, return_relabeling=True, ignore_edge_labels=(not edge_labels), return_edge_labels=True)
+                ret = graph_isom_equivalent_non_edge_labeled_graph(self, return_relabeling=True,
+                                                                   ignore_edge_labels=(not edge_labels),
+                                                                   return_edge_labels=True)
+                G, partition, relabeling, G_edge_labels = ret
+                self_vertices = sum(partition, [])
+                ret = graph_isom_equivalent_non_edge_labeled_graph(other, return_relabeling=True,
+                                                                   ignore_edge_labels=(not edge_labels),
+                                                                   return_edge_labels=True)
+                G2, partition2, relabeling2, G2_edge_labels = ret
+
                 if [len(_) for _ in partition] != [len(_) for _ in partition2]:
                     return (False, None) if certificate else False
-                multilabel = (lambda e:e) if edge_labels else (lambda e:[[None, el[1]] for el in e])
+
+                if edge_labels:
+                    def multilabel(e):
+                        return e
+                else:
+                    def multilabel(e):
+                        return [[None, el[1]] for el in e]
+
                 if [multilabel(_) for _ in G_edge_labels] != [multilabel(_) for _ in G2_edge_labels]:
                     return (False, None) if certificate else False
-                partition2 = sum(partition2,[])
+                partition2 = sum(partition2, [])
                 other_vertices = partition2
         else:
             G = self
             partition = [self_vertices]
             G2 = other
             partition2 = other_vertices
-        G_to = {u: i for i,u in enumerate(self_vertices)}
-        from sage.graphs.graph import Graph
-        from sage.graphs.digraph import DiGraph
-        DoDG = DiGraph if self._directed else Graph
+        G_to = {u: i for i, u in enumerate(self_vertices)}
+        if self._directed:
+            from sage.graphs.digraph import DiGraph
+            DoDG = DiGraph
+        else:
+            from sage.graphs.graph import Graph
+            DoDG = Graph
         H = DoDG(len(self_vertices), loops=G.allows_loops())
         HB = H._backend
-        for u,v in G.edge_iterator(labels=False):
+        for u, v in G.edge_iterator(labels=False):
             HB.add_edge(G_to[u], G_to[v], None, G._directed)
         G = HB.c_graph()[0]
         partition = [[G_to[vv] for vv in cell] for cell in partition]
         GC = G
-        G2_to = {u: i for i,u in enumerate(other_vertices)}
+        G2_to = {u: i for i, u in enumerate(other_vertices)}
         H2 = DoDG(len(other_vertices), loops=G2.allows_loops())
         H2B = H2._backend
-        for u,v in G2.edge_iterator(labels=False):
+        for u, v in G2.edge_iterator(labels=False):
             H2B.add_edge(G2_to[u], G2_to[v], None, G2._directed)
         G2 = H2B.c_graph()[0]
         partition2 = [G2_to[vv] for vv in partition2]
@@ -23448,7 +23468,6 @@ class GenericGraph(GenericGraph_pyx):
             ....:             assert gcan0 == gcan1, (edges, labels, part, pp)
             ....:             assert gcan0 == gcan2, (edges, labels, part, pp)
         """
-
         # Check parameter combinations
         if algorithm not in [None, 'sage', 'bliss']:
             raise ValueError("'algorithm' must be equal to 'bliss', 'sage', or None")
@@ -23492,21 +23511,21 @@ class GenericGraph(GenericGraph_pyx):
         if edge_labels or self.has_multiple_edges():
             G, partition, relabeling = graph_isom_equivalent_non_edge_labeled_graph(self, partition, return_relabeling=True)
             G_vertices = list(chain(*partition))
-            G_to = {u: i for i,u in enumerate(G_vertices)}
+            G_to = {u: i for i, u in enumerate(G_vertices)}
             DoDG = DiGraph if self._directed else Graph
             H = DoDG(len(G_vertices), loops=G.allows_loops())
             HB = H._backend
-            for u,v in G.edge_iterator(labels=False):
+            for u, v in G.edge_iterator(labels=False):
                 HB.add_edge(G_to[u], G_to[v], None, G._directed)
             GC = HB.c_graph()[0]
             partition = [[G_to[vv] for vv in cell] for cell in partition]
-            a,b,c = search_tree(GC, partition, certificate=True, dig=dig)
+            a, b, c = search_tree(GC, partition, certificate=True, dig=dig)
             # c is a permutation to the canonical label of G, which depends only on isomorphism class of self.
             H = copy(self)
             c_new = {v: c[G_to[relabeling[v]]] for v in self}
         else:
             G_vertices = list(chain(*partition))
-            G_to = {u: i for i,u in enumerate(G_vertices)}
+            G_to = {u: i for i, u in enumerate(G_vertices)}
             DoDG = DiGraph if self._directed else Graph
             H = DoDG(len(G_vertices), loops=self.allows_loops())
             HB = H._backend
@@ -23514,7 +23533,7 @@ class GenericGraph(GenericGraph_pyx):
                 HB.add_edge(G_to[u], G_to[v], None, self._directed)
             GC = HB.c_graph()[0]
             partition = [[G_to[vv] for vv in cell] for cell in partition]
-            a,b,c = search_tree(GC, partition, certificate=True, dig=dig)
+            a, b, c = search_tree(GC, partition, certificate=True, dig=dig)
             H = copy(self)
             c_new = {v: c[G_to[v]] for v in G_to}
         H.relabel(c_new)
@@ -23523,8 +23542,8 @@ class GenericGraph(GenericGraph_pyx):
         else:
             return H
 
-    def is_cayley(self, return_group = False, mapping = False,
-                  generators = False, allow_disconnected = False):
+    def is_cayley(self, return_group=False, mapping=False,
+                  generators=False, allow_disconnected=False):
         r"""
         Check whether the graph is a Cayley graph.
 
@@ -23629,11 +23648,11 @@ class GenericGraph(GenericGraph_pyx):
             ....:                               generators = True)
             (False, False, False)
         """
-        if self.order() == 0:
+        if not self:
             n = return_group + mapping + generators
-            if n == 0:
+            if not n:
                 return False
-            return tuple([False] * (n+1))
+            return tuple([False] * (n + 1))
 
         compute_map = mapping or generators
         certificate = return_group or compute_map
@@ -23642,7 +23661,7 @@ class GenericGraph(GenericGraph_pyx):
             if allow_disconnected and self.is_vertex_transitive():
                 C = self.connected_components_subgraphs()
                 if certificate:
-                    c, CG = C[0].is_cayley(return_group = True)
+                    c, CG = C[0].is_cayley(return_group=True)
                     if c:
                         from sage.groups.perm_gps.permgroup import PermutationGroup
                         I = [C[0].is_isomorphic(g, certificate=True)[1] for g in C]
@@ -23652,24 +23671,24 @@ class GenericGraph(GenericGraph_pyx):
                                 for h in CG.gens()] + \
                                [[tuple([M[v] for M in I])
                                  for v in C[0].vertices(sort=False)]]
-                        G = PermutationGroup(gens, domain = self.vertices(sort=False))
+                        G = PermutationGroup(gens, domain=self.vertices(sort=False))
                 else:
-                    c = C[0].is_cayley(return_group = False)
-        elif not self.allows_loops() and not self.allows_multiple_edges() and \
-                self.density() > Rational(1)/Rational(2):
+                    c = C[0].is_cayley(return_group=False)
+        elif (not self.allows_loops() and not self.allows_multiple_edges() and
+              self.density() > Rational(1)/Rational(2)):
             if certificate:
-                c, G = self.complement().is_cayley(return_group = True,
-                                                   allow_disconnected = True)
+                c, G = self.complement().is_cayley(return_group=True,
+                                                   allow_disconnected=True)
             else:
-                c = self.complement().is_cayley(return_group = False,
-                                                allow_disconnected = True)
+                c = self.complement().is_cayley(return_group=False,
+                                                allow_disconnected=True)
         else:
             A = self.automorphism_group()
             if certificate:
-                G = A.has_regular_subgroup(return_group = True)
+                G = A.has_regular_subgroup(return_group=True)
                 c = G is not None
             else:
-                c = A.has_regular_subgroup(return_group = False)
+                c = A.has_regular_subgroup(return_group=False)
         if c and compute_map:
             v = next(self.vertex_iterator())
             map = {(f**-1)(v): f for f in G}
@@ -23912,7 +23931,7 @@ class GenericGraph(GenericGraph_pyx):
             raise ValueError('the parameter alpha must be strictly positive')
 
         n = self.order()
-        if n == 0 :
+        if not n:
             raise ValueError('graph is empty')
         if vertices is None:
             vertices = self.vertices(sort=True)
@@ -23930,7 +23949,7 @@ class GenericGraph(GenericGraph_pyx):
             raise ValueError('the parameter alpha must be less than the reciprocal of the spectral radius of the graph')
 
         In = matrix.identity(n)
-        K =  (In - alpha * A.transpose()).inverse() - In
+        K = (In - alpha * A.transpose()).inverse() - In
         if nonedgesonly:
             onesmat = matrix(QQ, n, n, lambda i, j: 1)
             Missing = onesmat - A - In
@@ -23938,7 +23957,7 @@ class GenericGraph(GenericGraph_pyx):
         else:
             return K
 
-    def katz_centrality(self, alpha , u=None):
+    def katz_centrality(self, alpha, u=None):
         r"""
         Return the Katz centrality of vertex `u`.
 
@@ -24118,7 +24137,7 @@ class GenericGraph(GenericGraph_pyx):
         dim = self.num_verts()
         e = identity_matrix(dim).rows()
         dic = {v: e[i] for i, v in enumerate(self)}
-        vertices = ((dic[i] + dic[j]) for i,j in self.edge_iterator(sort_vertices=False, labels=False))
+        vertices = ((dic[i] + dic[j]) for i, j in self.edge_iterator(sort_vertices=False, labels=False))
         parent = Polyhedra(ZZ, dim, backend=backend)
         return parent([vertices, [], []], None)
 
@@ -24249,13 +24268,13 @@ class GenericGraph(GenericGraph_pyx):
         dim = self.num_verts()
         e = identity_matrix(dim).rows()
         dic = {v: e[i] for i, v in enumerate(self)}
-        vertices = chain(((dic[i] - dic[j]) for i,j in self.edge_iterator(sort_vertices=False, labels=False)),
-                         ((dic[j] - dic[i]) for i,j in self.edge_iterator(sort_vertices=False, labels=False)))
+        vertices = chain(((dic[i] - dic[j]) for i, j in self.edge_iterator(sort_vertices=False, labels=False)),
+                         ((dic[j] - dic[i]) for i, j in self.edge_iterator(sort_vertices=False, labels=False)))
         parent = Polyhedra(ZZ, dim, backend=backend)
         return parent([vertices, [], []], None)
 
 
-def tachyon_vertex_plot(g, bgcolor=(1,1,1),
+def tachyon_vertex_plot(g, bgcolor=(1, 1, 1),
                         vertex_colors=None,
                         vertex_size=0.06,
                         pos3d=None,
@@ -24286,12 +24305,12 @@ def tachyon_vertex_plot(g, bgcolor=(1,1,1),
     from math import sqrt
     from sage.plot.plot3d.tachyon import Tachyon
 
-    c = [0,0,0]
+    c = [0, 0, 0]
     r = []
     verts = list(g)
 
     if vertex_colors is None:
-        vertex_colors = {(1,0,0): verts}
+        vertex_colors = {(1, 0, 0): verts}
     try:
         for v in verts:
             c[0] += pos3d[v][0]
@@ -24324,14 +24343,17 @@ def tachyon_vertex_plot(g, bgcolor=(1,1,1),
     i = 0
     for color in vertex_colors:
         i += 1
-        TT.texture('node_color_%d'%i, ambient=0.1, diffuse=0.9,
+        TT.texture('node_color_%d' % i, ambient=0.1, diffuse=0.9,
                    specular=0.03, opacity=1.0, color=color)
         for v in vertex_colors[color]:
-            TT.sphere((pos3d[v][0], pos3d[v][1], pos3d[v][2]), vertex_size, 'node_color_%d'%i)
+            TT.sphere((pos3d[v][0], pos3d[v][1], pos3d[v][2]), vertex_size, 'node_color_%d' % i)
 
     return TT, pos3d
 
-def graph_isom_equivalent_non_edge_labeled_graph(g, partition=None, standard_label=None, return_relabeling=False, return_edge_labels=False, inplace=False, ignore_edge_labels=False):
+
+def graph_isom_equivalent_non_edge_labeled_graph(g, partition=None, standard_label=None,
+                                                 return_relabeling=False, return_edge_labels=False,
+                                                 inplace=False, ignore_edge_labels=False):
     r"""
     Helper function for canonical labeling of edge labeled (di)graphs.
 
@@ -24549,12 +24571,11 @@ def graph_isom_equivalent_non_edge_labeled_graph(g, partition=None, standard_lab
 
     # We build the list of distinct edge labels
     edge_labels = []
-    for _,_,label in G.edge_iterator():
+    for _, _, label in G.edge_iterator():
         if label != standard_label and label not in edge_labels:
             edge_labels.append(label)
 
     edge_labels = sorted(edge_labels, key=str)
-
 
     # We now add to G, for each edge (u, v, l), a new vertex i in [n..n + m] and
     # arcs (u, i, None) and (i, v, None). We record for each distinct label l
@@ -24571,7 +24592,7 @@ def graph_isom_equivalent_non_edge_labeled_graph(g, partition=None, standard_lab
         edges = list(G._backend.iterator_edges(G, True))
 
     i = G_order
-    for u,v,l in edges:
+    for u, v, l in edges:
         if l != standard_label:
             for el, part in edge_partition:
                 if el == l:
@@ -24621,7 +24642,7 @@ def graph_isom_equivalent_non_edge_labeled_graph(g, partition=None, standard_lab
 
     else:
         # Flatten edge_partition to [list of edges, list of edges, ...]
-        edge_partition = [part for _,part in edge_partition]
+        edge_partition = [part for _, part in edge_partition]
 
     new_partition = [part for part in chain(partition, edge_partition) if part]
 

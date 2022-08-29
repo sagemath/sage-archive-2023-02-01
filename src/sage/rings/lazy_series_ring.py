@@ -65,6 +65,7 @@ from sage.data_structures.stream import (
     Stream_uninitialized
 )
 
+
 class LazySeriesRing(UniqueRepresentation, Parent):
     """
     Abstract base class for lazy series.
@@ -690,6 +691,7 @@ class LazySeriesRing(UniqueRepresentation, Parent):
         """
         return self.base_ring().is_exact()
 
+
 class LazyLaurentSeriesRing(LazySeriesRing):
     """
     The ring of lazy Laurent series.
@@ -1116,6 +1118,7 @@ class LazyLaurentSeriesRing(LazySeriesRing):
 
 ######################################################################
 
+
 class LazyTaylorSeriesRing(LazySeriesRing):
     """
     The ring of (possibly multivariate) lazy Taylor series.
@@ -1480,6 +1483,7 @@ class LazyTaylorSeriesRing(LazySeriesRing):
         return self.element_class(self, coeff_stream)
 
 ######################################################################
+
 
 class LazyCompletionGradedAlgebra(LazySeriesRing):
     r"""

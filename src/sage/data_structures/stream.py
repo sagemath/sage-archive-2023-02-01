@@ -101,6 +101,7 @@ from sage.combinat.integer_vector_weighted import iterator_fast as wt_int_vec_it
 from sage.combinat.sf.sfa import _variables_recursive, _raise_variables
 from sage.categories.hopf_algebras_with_basis import HopfAlgebrasWithBasis
 
+
 class Stream():
     """
     Abstract base class for all streams.
@@ -481,7 +482,7 @@ class Stream_inexact(Stream):
             for i in self._cache:
                 if i in other._cache and other._cache[i] != self._cache[i]:
                     return True
-        else: # they are dense
+        else:  # they are dense
             # Make ``self`` have the smaller approximate order.
             if self._approximate_order > other._approximate_order:
                 self, other = other, self
@@ -500,6 +501,7 @@ class Stream_inexact(Stream):
                     return True
 
         return False
+
 
 class Stream_exact(Stream):
     r"""
@@ -1460,7 +1462,7 @@ class Stream_dirichlet_convolve(Stream_binary):
     """
     def __init__(self, left, right):
         """
-        Initalize ``self``.
+        Initialize ``self``.
 
             sage: from sage.data_structures.stream import (Stream_dirichlet_convolve, Stream_function, Stream_exact)
             sage: f = Stream_function(lambda n: n, ZZ, True, 1)
@@ -1758,7 +1760,7 @@ class Stream_plethysm(Stream_binary):
             self._basis = ring
         self._p = p
         p_g = Stream_map_coefficients(g, lambda x: x, p)
-        self._powers = [p_g] # a cache for the powers of p_g
+        self._powers = [p_g]  # a cache for the powers of p_g
         R = self._basis.base_ring()
         if HopfAlgebrasWithBasis(R).TensorProducts() in p.categories():
             self._tensor_power = len(p._sets)
@@ -1796,7 +1798,7 @@ class Stream_plethysm(Stream_binary):
              3*s[1, 1, 1, 1] + 2*s[2, 1, 1] + s[2, 2] + s[3, 1] + s[4],
              4*s[1, 1, 1, 1, 1] + 4*s[2, 1, 1, 1] + 2*s[2, 2, 1] + 2*s[3, 1, 1] + s[3, 2] + s[4, 1] + s[5]]
         """
-        if not n: # special case of 0
+        if not n:  # special case of 0
             if self._tensor_power is None:
                 return self._left[0]
             return self._basis(self._left[0].coefficient([]))
@@ -2132,6 +2134,7 @@ class Stream_neg(Stream_unary):
         """
         return self._series.is_nonzero()
 
+
 class Stream_cauchy_invert(Stream_unary):
     """
     Operator for multiplicative inverse of the stream.
@@ -2241,6 +2244,7 @@ class Stream_cauchy_invert(Stream_unary):
         """
         return True
 
+
 class Stream_map_coefficients(Stream_inexact):
     r"""
     The stream with ``function`` applied to each nonzero
@@ -2348,6 +2352,7 @@ class Stream_map_coefficients(Stream_inexact):
         """
         return (isinstance(other, type(self)) and self._series == other._series
                 and self._ring == other._ring and self._function == other._function)
+
 
 class Stream_shift(Stream_inexact):
     """

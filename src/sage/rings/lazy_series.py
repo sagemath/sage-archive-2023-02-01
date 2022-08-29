@@ -99,7 +99,6 @@ We can change the base ring::
     1/4*z^-1 - 3/8 + 1/16*z - 17/32*z^2 + 5/64*z^3 - 29/128*z^4 + 165/256*z^5 + O(z^6)
     sage: hinv.valuation()
     -1
-
 """
 
 # ****************************************************************************
@@ -143,6 +142,7 @@ from sage.data_structures.stream import (
     Stream_dirichlet_invert,
     Stream_plethysm
 )
+
 
 class LazyModuleElement(Element):
     r"""
@@ -569,8 +569,9 @@ class LazyModuleElement(Element):
         """
         Test whether ``self`` is not zero.
 
-        An unitialized series returns ``True`` as it is considered as a
-        formal variable, such as a generator of a polynomial ring.
+        An uninitialized series returns ``True`` as it is considered
+        as a formal variable, such as a generator of a polynomial
+        ring.
 
         TESTS::
 
@@ -1830,7 +1831,7 @@ class LazyModuleElement(Element):
             n = ZZ(n)
             if n % 2:
                 h = 4 ** ((n + 1) // 2)
-                return bernoulli(n + 1) * h * (h -1) / factorial(n + 1)
+                return bernoulli(n + 1) * h * (h - 1) / factorial(n + 1)
             return ZZ.zero()
         return P(f, valuation=1)(self)
 
@@ -2262,7 +2263,7 @@ class LazyCauchyProductSeries(LazyModuleElement):
             # coefficients of q.
             if right._constant:
                 d = right._degree
-                c = left._constant # this is zero
+                c = left._constant  # this is zero
                 # left._constant must be 0 and thus len(il) >= 1
                 for k in range(len(il)-1):
                     c += il[k] * right._constant
@@ -2270,14 +2271,14 @@ class LazyCauchyProductSeries(LazyModuleElement):
                 c += il[-1] * right._constant
             elif left._constant:
                 d = left._degree
-                c = right._constant # this is zero
+                c = right._constant  # this is zero
                 # left._constant must be 0 and thus len(il) >= 1
                 for k in range(len(ir)-1):
                     c += left._constant * ir[k]
                     initial_coefficients[d - lv + k] += c
                 c += left._constant * ir[-1]
             else:
-                c = left._constant # this is zero
+                c = left._constant  # this is zero
             coeff_stream = Stream_exact(initial_coefficients,
                                         P._sparse,
                                         order=lv + rv,
@@ -2436,7 +2437,7 @@ class LazyCauchyProductSeries(LazyModuleElement):
                 return P.element_class(P, coeff_stream)
             if (len(initial_coefficients) == 2
                 and not (initial_coefficients[0] + initial_coefficients[1])
-                and  not coeff_stream._constant):
+                and not coeff_stream._constant):
                 v = -coeff_stream.order()
                 c = ~initial_coefficients[0]
                 coeff_stream = Stream_exact((),
@@ -2940,7 +2941,7 @@ class LazyLaurentSeries(LazyCauchyProductSeries):
             sage: f(g) == f.polynomial()(g)
             True
         """
-        # f = self and compute f(g)
+        # Find a good parent for the result
         from sage.structure.element import get_coercion_model
         cm = get_coercion_model()
         P = cm.common_parent(self.base_ring(), parent(g))
@@ -3227,7 +3228,7 @@ class LazyLaurentSeries(LazyCauchyProductSeries):
             raise ValueError("compositional inverse does not exist")
 
         if coeff_stream[0]:
-                raise ValueError("cannot determine whether the compositional inverse exists")
+            raise ValueError("cannot determine whether the compositional inverse exists")
 
         z = P.gen()
         g = P(None, valuation=1)
@@ -3405,6 +3406,7 @@ class LazyLaurentSeries(LazyCauchyProductSeries):
         if not poly:
             return strformat("O({})".format(formatter(z**m)))
         return formatter(poly) + strformat(" + O({})".format(formatter(z**m)))
+
 
 class LazyTaylorSeries(LazyCauchyProductSeries):
     r"""
@@ -3629,8 +3631,7 @@ class LazyTaylorSeries(LazyCauchyProductSeries):
                             raise ValueError("can only compose with a positive valuation series")
                         h._coeff_stream._approximate_order = 2
 
-
-        # We now ahave that every element of g has a _coeff_stream
+        # We now have that every element of g has a _coeff_stream
         sorder = self._coeff_stream._approximate_order
         if len(g) == 1:
             g0 = g[0]
@@ -3796,7 +3797,7 @@ class LazyTaylorSeries(LazyCauchyProductSeries):
             raise ValueError("compositional inverse does not exist")
 
         if coeff_stream[0]:
-                raise ValueError("cannot determine whether the compositional inverse exists")
+            raise ValueError("cannot determine whether the compositional inverse exists")
 
         z = P.gen()
         g = P(None, valuation=1)
@@ -3931,7 +3932,7 @@ class LazyTaylorSeries(LazyCauchyProductSeries):
 
         if degree is None:
             if (isinstance(self._coeff_stream, Stream_exact)
-                  and not self._coeff_stream._constant):
+                and not self._coeff_stream._constant):
                 m = self._coeff_stream._degree
             else:
                 raise ValueError("not a polynomial")
@@ -4422,7 +4423,7 @@ class LazySymmetricFunction(LazyCompletionGradedAlgebraElement):
 
         if degree is None:
             if (isinstance(self._coeff_stream, Stream_exact)
-                  and not self._coeff_stream._constant):
+                and not self._coeff_stream._constant):
                 m = self._coeff_stream._degree
             else:
                 raise ValueError("not a symmetric function")
@@ -4430,6 +4431,7 @@ class LazySymmetricFunction(LazyCompletionGradedAlgebraElement):
             m = degree + 1
 
         return R.sum(self[:m])
+
 
 class LazyDirichletSeries(LazyModuleElement):
     r"""
@@ -4537,12 +4539,12 @@ class LazyDirichletSeries(LazyModuleElement):
             and not left._constant
             and left._initial_coefficients == (P._internal_poly_ring.base_ring().one(),)
             and left.order() == 1):
-            return other # self == 1
+            return other  # self == 1
         if (isinstance(right, Stream_exact)
             and not right._constant
             and right._initial_coefficients == (P._internal_poly_ring.base_ring().one(),)
             and right.order() == 1):
-            return self # other == 1
+            return self  # other == 1
         coeff = Stream_dirichlet_convolve(left, right)
         # Performing exact arithmetic is slow because the series grow large
         #   very quickly as we are multiplying the degree

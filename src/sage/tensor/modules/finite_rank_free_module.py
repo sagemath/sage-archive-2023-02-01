@@ -1197,9 +1197,16 @@ class FiniteRankFreeModule(FiniteRankFreeModule_abstract):
         and :class:`~sage.tensor.modules.tensor_free_module.TensorFreeSubmodule_sym`
         for more documentation.
 
+        TESTS::
+
+            sage: M = FiniteRankFreeModule(ZZ, 2)
+            sage: M.tensor_module(2, 0, sym=(0,1)) is M.symmetric_power(2)
+            True
         """
+        from .comp import CompWithSym, CompFullyAntiSym
+
+        sym, antisym = CompWithSym._canonicalize_sym_antisym(k + l, sym, antisym)
         if sym or antisym:
-            # TODO: Canonicalize sym, antisym, make hashable
             key = (k, l, sym, antisym)
         else:
             key = (k, l)

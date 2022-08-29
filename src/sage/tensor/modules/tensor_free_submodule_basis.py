@@ -1,5 +1,5 @@
 r"""
-Free module bases indexed by component indices
+Standard bases of free submodules of tensor modules defined by some monoterm symmetries
 """
 
 #******************************************************************************
@@ -16,7 +16,7 @@ from sage.tensor.modules.free_module_basis import Basis_abstract
 
 class TensorFreeSubmoduleBasis_sym(Basis_abstract):
     r"""
-    Standard basis of a tensor module with prescribed symmetries.
+    Standard basis of a free submodule of a tensor module with prescribed monoterm symmetries.
 
     EXAMPLES::
 

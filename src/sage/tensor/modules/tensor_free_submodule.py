@@ -1,5 +1,5 @@
 r"""
-Free submodules of tensor products of free modules
+Free submodules of tensor modules defined by monoterm symmetries
 """
 
 #******************************************************************************
@@ -26,8 +26,7 @@ from .finite_rank_free_module import FiniteRankFreeModule_abstract
 class TensorFreeSubmodule_sym(TensorFreeModule):
     r"""
     Class for free submodules of tensor products of free modules
-    that are defined by the symmetries of a
-    :class:`~sage.tensor.modules.comp.Components` object.
+    that are defined by some monoterm symmetries.
 
     EXAMPLES::
 
@@ -182,7 +181,8 @@ class TensorFreeSubmodule_sym(TensorFreeModule):
         r"""
         Return an instance of :class:`~sage.tensor.modules.comp.Components`.
 
-        It encodes the prescribed symmetry of ``self``.
+        In the current implementation of :class:`~sage.tensor.modules.tensor_free_submodule.TensorFreeSubmodule_sym`,
+        it encodes the prescribed symmetry of ``self``.
 
         EXAMPLES::
 

@@ -3008,7 +3008,7 @@ class CompWithSym(Components):
 
             sage: from sage.tensor.modules.comp import CompWithSym
             sage: CompWithSym._canonicalize_sym_antisym(6, [(2, 1)])
-            ([(2, 1)], [])
+            (((1, 2),), ())
         """
         result_sym = []
         if sym is None:
@@ -3023,8 +3023,8 @@ class CompWithSym(Components):
                 sym = [tuple(sym)]
             for isym in sym:
                 if len(isym) < 2:
-                    raise IndexError("at least two index positions must be " +
-                                     "provided to define a symmetry")
+                    # Drop trivial symmetry
+                    continue
                 for i in isym:
                     if i < 0 or i > nb_indices - 1:
                         raise IndexError("invalid index position: " + str(i) +
@@ -3043,8 +3043,8 @@ class CompWithSym(Components):
                 antisym = [tuple(antisym)]
             for isym in antisym:
                 if len(isym) < 2:
-                    raise IndexError("at least two index positions must be " +
-                                     "provided to define an antisymmetry")
+                    # Drop trivial antisymmetry
+                    continue
                 for i in isym:
                     if i < 0 or i > nb_indices - 1:
                         raise IndexError("invalid index position: " + str(i) +
@@ -3060,6 +3060,11 @@ class CompWithSym(Components):
             # There is a repeated index position:
             raise IndexError("incompatible lists of symmetries: the same " +
                              "index position appears more than once")
+        # Canonicalize sort order, make tuples
+        result_sym = [tuple(sorted(s)) for s in result_sym]
+        result_antisym = [tuple(sorted(s)) for s in result_antisym]
+        result_sym = tuple(sorted(result_sym))
+        result_antisym = tuple(sorted(result_antisym))
         return result_sym, result_antisym
 
     def _repr_(self):
@@ -3392,9 +3397,9 @@ class CompWithSym(Components):
              [[0, 7, 8], [-7, 0, 9], [-8, -9, 0]]]
             sage: c1 = c.swap_adjacent_indices(0,1,3)
             sage: c._antisym   # c is antisymmetric with respect to the last pair of indices...
-            [(1, 2)]
+            ((1, 2),)
             sage: c1._antisym  #...while c1 is antisymmetric with respect to the first pair of indices
-            [(0, 1)]
+            ((0, 1),)
             sage: c[0,1,2]
             3
             sage: c1[1,2,0]
@@ -3415,6 +3420,8 @@ class CompWithSym(Components):
         for s in self._antisym:
             new_s = [new_lpos.index(pos) for pos in s]
             result._antisym.append(tuple(sorted(new_s)))
+        result._sym, result._antisym = self._canonicalize_sym_antisym(
+            self._nid, result._sym, result._antisym)
         # The values:
         for ind, val in self._comp.items():
             new_ind = ind[:pos1] + ind[pos2:pos3] + ind[pos1:pos2] + ind[pos3:]
@@ -4159,7 +4166,7 @@ class CompWithSym(Components):
             (0, 0, 1)
             ], with symmetry on the index positions (0, 1), with symmetry on the index positions (2, 3)
             sage: a1._sym  # a1 has two distinct symmetries:
-            [(0, 1), (2, 3)]
+            ((0, 1), (2, 3))
             sage: a[0,1,2,0] == a[0,0,2,1]  # a is symmetric w.r.t. positions 1 and 3
             True
             sage: a1[0,1,2,0] == a1[0,0,2,1] # a1 is not
@@ -4437,10 +4444,10 @@ class CompWithSym(Components):
             (1, 0, 0),
             (0, 1, 0),
             (0, 0, 1)
-            ], with antisymmetry on the index positions (1, 3),
-               with antisymmetry on the index positions (0, 2)
+            ], with antisymmetry on the index positions (0, 2),
+               with antisymmetry on the index positions (1, 3)
             sage: s._antisym  # the antisymmetry (0,1,2) has been reduced to (0,2), since 1 is involved in the new antisymmetry (1,3):
-            [(1, 3), (0, 2)]
+            ((0, 2), (1, 3))
 
         Partial antisymmetrization of 4-indices components with a symmetry on
         the first two indices::

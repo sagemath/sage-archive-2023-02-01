@@ -703,9 +703,9 @@ class FiniteRankFreeModule_abstract(UniqueRepresentation, Parent):
             sage: M.ambient_module() is M
             True
 
-            sage: from sage.tensor.modules.tensor_free_submodule import TensorFreeSubmodule_comp
+            sage: from sage.tensor.modules.tensor_free_submodule import TensorFreeSubmodule_sym
             sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
-            sage: Sym0123x45M = TensorFreeSubmodule_comp(M, (6, 0), sym=((0, 1, 2, 3), (4, 5)))
+            sage: Sym0123x45M = TensorFreeSubmodule_sym(M, (6, 0), sym=((0, 1, 2, 3), (4, 5)))
             sage: T60M = M.tensor_module(6, 0)
             sage: Sym0123x45M.ambient_module() is T60M
             True
@@ -1195,7 +1195,7 @@ class FiniteRankFreeModule(FiniteRankFreeModule_abstract):
             T^{\{2,3\}}(M) \otimes T^{\{6,7\}}(M^*) \otimes \mathrm{Sym}^{\{0,1\}}(M) \otimes \mathrm{ASym}^{\{4,5\}}(M^*)
 
         See :class:`~sage.tensor.modules.tensor_free_module.TensorFreeModule`
-        and :class:`~sage.tensor.modules.tensor_free_module.TensorFreeSubmodule_comp`
+        and :class:`~sage.tensor.modules.tensor_free_module.TensorFreeSubmodule_sym`
         for more documentation.
 
         """
@@ -1210,8 +1210,8 @@ class FiniteRankFreeModule(FiniteRankFreeModule_abstract):
             if key == (1, 0):
                 T = self
             elif sym or antisym:
-                from sage.tensor.modules.tensor_free_submodule import TensorFreeSubmodule_comp
-                T = TensorFreeSubmodule_comp(self, (k, l), sym=sym, antisym=antisym)
+                from sage.tensor.modules.tensor_free_submodule import TensorFreeSubmodule_sym
+                T = TensorFreeSubmodule_sym(self, (k, l), sym=sym, antisym=antisym)
             else:
                 from sage.tensor.modules.tensor_free_module import TensorFreeModule
                 T = TensorFreeModule(self, (k, l))

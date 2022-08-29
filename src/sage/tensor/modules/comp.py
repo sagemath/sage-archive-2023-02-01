@@ -2996,7 +2996,21 @@ class CompWithSym(Components):
         """
         Components.__init__(self, ring, frame, nb_indices, start_index,
                             output_formatter)
-        self._sym = []
+        self._sym, self._antisym = self._canonicalize_sym_antisym(
+            nb_indices, sym, antisym)
+
+    @staticmethod
+    def _canonicalize_sym_antisym(nb_indices, sym=None, antisym=None):
+        r"""
+        Bring sym and antisym into their canonical form.
+
+        EXAMPLES::
+
+            sage: from sage.tensor.modules.comp import CompWithSym
+            sage: CompWithSym._canonicalize_sym_antisym(6, [(2, 1)])
+            ([(2, 1)], [])
+        """
+        result_sym = []
         if sym is not None and sym != []:
             if isinstance(sym[0], (int, Integer)):
                 # a single symmetry is provided as a tuple or a range object;
@@ -3007,11 +3021,11 @@ class CompWithSym(Components):
                     raise IndexError("at least two index positions must be " +
                                      "provided to define a symmetry")
                 for i in isym:
-                    if i<0 or i>self._nid-1:
+                    if i < 0 or i > nb_indices - 1:
                         raise IndexError("invalid index position: " + str(i) +
-                                         " not in [0," + str(self._nid-1) + "]")
-                self._sym.append(tuple(isym))
-        self._antisym = []
+                                         " not in [0," + str(nb_indices-1) + "]")
+                result_sym.append(tuple(isym))
+        result_antisym = []
         if antisym is not None and antisym != []:
             if isinstance(antisym[0], (int, Integer)):
                 # a single antisymmetry is provided as a tuple or a range
@@ -3022,20 +3036,21 @@ class CompWithSym(Components):
                     raise IndexError("at least two index positions must be " +
                                      "provided to define an antisymmetry")
                 for i in isym:
-                    if i<0 or i>self._nid-1:
+                    if i < 0 or i > nb_indices - 1:
                         raise IndexError("invalid index position: " + str(i) +
-                                         " not in [0," + str(self._nid-1) + "]")
-                self._antisym.append(tuple(isym))
+                                         " not in [0," + str(nb_indices - 1) + "]")
+                result_antisym.append(tuple(isym))
         # Final consistency check:
         index_list = []
-        for isym in self._sym:
+        for isym in result_sym:
             index_list += isym
-        for isym in self._antisym:
+        for isym in result_antisym:
             index_list += isym
         if len(index_list) != len(set(index_list)):
             # There is a repeated index position:
             raise IndexError("incompatible lists of symmetries: the same " +
-                             "index position appears more then once")
+                             "index position appears more than once")
+        return result_sym, result_antisym
 
     def _repr_(self):
         r"""

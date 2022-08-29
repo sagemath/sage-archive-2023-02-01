@@ -532,6 +532,20 @@ class PermutationGroup_generic(FiniteGroup):
 
     _libgap = None
 
+    def __copy__(self):
+        r"""
+        Return a "copy" of ``self`` by returning ``self``.
+
+        EXAMPLES::
+
+            sage: G = PermutationGroup(((1,2), (4,5)))
+            sage: copy(G) is G
+            True
+        """
+        return self
+
+    __deepcopy__ = __copy__
+
     def construction(self):
         """
         Return the construction of ``self``.

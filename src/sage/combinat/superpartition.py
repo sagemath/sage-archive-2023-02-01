@@ -255,7 +255,7 @@ class SuperPartition(ClonableArray,
 
     def _repr_pair(self) -> str:
         r"""
-        Represention of a super partition as a pair.
+        Representation of a super partition as a pair.
 
         A super partition is represented by a list consisting of the
         antisymmetric and symmetric parts.
@@ -273,7 +273,7 @@ class SuperPartition(ClonableArray,
 
     def _repr_list(self) -> str:
         r"""
-        Represention of a super partition as a list.
+        Representation of a super partition as a list.
 
         A super partition is represented by a list consisting of the
         negative values for the antisymmetric part listed first followed

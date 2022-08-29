@@ -4842,7 +4842,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         Computes the values of the elementary symmetric polynomials evaluated
         on the ``n`` multiplier spectra of this dynamical system.
 
-        The sigma invariants are the symetric polynomials evaluated on the
+        The sigma invariants are the symmetric polynomials evaluated on the
         characteristic polynomial of the multipliers. See [Hutz2019]_ for
         the full definition. Spepcifically, this function returns either
         the following polynomial or its coefficients (with signs

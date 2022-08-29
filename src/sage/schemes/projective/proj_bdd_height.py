@@ -70,8 +70,8 @@ def QQ_points_of_bounded_height(dim, bound):
 
 def points_of_bounded_height(K, dim, bound, prec=53):
     r"""
-    Return an iterator of the points in ``self`` of absolute height of
-    at most the given bound.
+    Return an iterator of the points in ``K`` with dimension ``dim`` of
+    absolute height of at most ``bound``.
 
     ALGORITHM:
 
@@ -102,7 +102,6 @@ def points_of_bounded_height(K, dim, bound, prec=53):
     unit_tuples = list(itertools.product(roots_of_unity, repeat=dim))
 
     PN = ProjectiveSpace(K, dim)
-    #R = K.base_ring()
     log_embed = K.logarithmic_embedding()
 
     Reals = RealField(prec)

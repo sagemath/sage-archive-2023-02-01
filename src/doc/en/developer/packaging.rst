@@ -84,8 +84,11 @@ the following source types:
 
 #. A ``wheel`` package:
 
-   - comes from the (non-platform) wheel file named in the required file
-     ``checksums.ini`` and hosted on the Sage mirrors;
+   - comes from the wheel file named in the required file ``checksums.ini``
+     and hosted on the Sage mirrors;
+
+   - per policy, only non-platform wheels are allowed, i.e., ``*-none-any.whl``
+     files;
 
    - its version number is defined by the required file ``package-version.txt``;
 
@@ -1210,6 +1213,9 @@ must meet the following requirements:
 
 - **Build Support**. The code must build on all the fully supported
   platforms (Linux, macOS, Cygwin); see :ref:`chapter-portability_testing`.
+  It must be installed either from source as a normal package,
+  or as a Python (non-platform) wheel package, see
+  :ref:`section-package-source-types`.
 
 - **Quality**. The code should be "better" than any other available
   code (that passes the two above criteria), and the authors need to

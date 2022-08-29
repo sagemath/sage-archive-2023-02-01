@@ -1663,11 +1663,11 @@ class SphericalBesselJ(BuiltinFunction):
             sage: spherical_bessel_J(3, x)._sympy_()
             jn(3, x)
         """
+        conversions = dict(mathematica='SphericalBesselJ',
+                           maxima='spherical_bessel_j',
+                           sympy='jn')
         BuiltinFunction.__init__(self, 'spherical_bessel_J', nargs=2,
-                                 conversions=dict(mathematica=
-                                                  'SphericalBesselJ',
-                                                  maxima='spherical_bessel_j',
-                                                  sympy='jn'))
+                                 conversions=conversions)
 
     def _evalf_(self, n, z, parent, algorithm=None):
         r"""
@@ -1761,11 +1761,11 @@ class SphericalBesselY(BuiltinFunction):
             sage: spherical_bessel_Y(3, x)._sympy_()
             yn(3, x)
         """
+        conversions = dict(mathematica='SphericalBesselY',
+                           maxima='spherical_bessel_y',
+                           sympy='yn')
         BuiltinFunction.__init__(self, 'spherical_bessel_Y', nargs=2,
-                                 conversions=dict(mathematica=
-                                                  'SphericalBesselY',
-                                                  maxima='spherical_bessel_y',
-                                                  sympy='yn'))
+                                 conversions=conversions)
 
     def _evalf_(self, n, z, parent, algorithm=None):
         r"""
@@ -1859,10 +1859,10 @@ class SphericalHankel1(BuiltinFunction):
             sage: spherical_hankel1
             spherical_hankel1
         """
+        conversions = dict(mathematica='SphericalHankelH1',
+                           maxima='spherical_hankel1')
         BuiltinFunction.__init__(self, 'spherical_hankel1', nargs=2,
-                                 conversions=dict(mathematica=
-                                                  'SphericalHankelH1',
-                                                  maxima='spherical_hankel1'))
+                                 conversions=conversions)
 
     def _evalf_(self, n, z, parent, algorithm=None):
         r"""
@@ -1961,9 +1961,8 @@ class SphericalHankel2(BuiltinFunction):
             spherical_hankel2
         """
         BuiltinFunction.__init__(self, 'spherical_hankel2', nargs=2,
-                                 conversions=dict(mathematica=
-                                                  'SphericalHankelH2',
-                                                  maxima='spherical_hankel2'))
+            conversions=dict(mathematica='SphericalHankelH2',
+                             maxima='spherical_hankel2'))
 
     def _evalf_(self, n, z, parent, algorithm=None):
         r"""

@@ -1805,7 +1805,7 @@ class NormalFormGame(SageObject, MutableMapping):
         """
         if Game is None:
             raise NotImplementedError("gambit is not installed")
-        g = self._gambit_(maximization = maximization)
+        g = self._gambit_(maximization=maximization)
         output = ExternalLPSolver().solve(g)
         nasheq = Parser(output).format_gambit(g)
         return sorted(nasheq)

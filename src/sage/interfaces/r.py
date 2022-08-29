@@ -476,13 +476,12 @@ class R(ExtraTabCompletion, Interface):
             sage: r == loads(dumps(r))  # optional - rpy2
             True
         """
-
         Interface.__init__(
                 self,
-                name = 'r', # The capitalized version of this is used for printing.
+                name='r', # The capitalized version of this is used for printing.
         )
         self._seed = seed
-        self._initialized = False # done lazily
+        self._initialized = False  # done lazily
 
     def _lazy_init(self):
         """

@@ -20570,11 +20570,11 @@ class GenericGraph(GenericGraph_pyx):
 
         return self.graphplot(**plot_kwds).show(**kwds)
 
-    def plot3d(self, bgcolor=(1,1,1),
-                     vertex_colors=None, vertex_size=0.06, vertex_labels=False,
-                     edge_colors=None, edge_size=0.02, edge_size2=0.0325,
-                     pos3d=None, color_by_label=False,
-                     engine='threejs', **kwds):
+    def plot3d(self, bgcolor=(1, 1, 1),
+               vertex_colors=None, vertex_size=0.06, vertex_labels=False,
+               edge_colors=None, edge_size=0.02, edge_size2=0.0325,
+               pos3d=None, color_by_label=False,
+               engine='threejs', **kwds):
         r"""
         Plot a graph in three dimensions.
 
@@ -20671,7 +20671,11 @@ class GenericGraph(GenericGraph_pyx):
 
         ::
 
-            sage: D = DiGraph({0: [1, 10, 19], 1: [8, 2], 2: [3, 6], 3: [19, 4], 4: [17, 5], 5: [6, 15], 6: [7], 7: [8, 14], 8: [9], 9: [10, 13], 10: [11], 11: [12, 18], 12: [16, 13], 13: [14], 14: [15], 15: [16], 16: [17], 17: [18], 18: [19], 19: []})
+            sage: D = DiGraph({0: [1, 10, 19], 1: [8, 2], 2: [3, 6], 3: [19, 4],
+            ....:              4: [17, 5], 5: [6, 15], 6: [7], 7: [8, 14],
+            ....:              8: [9], 9: [10, 13], 10: [11], 11: [12, 18],
+            ....:              12: [16, 13], 13: [14], 14: [15], 15: [16], 16: [17],
+            ....:              17: [18], 18: [19], 19: []})
             sage: D.plot3d().show() # long time
 
         ::
@@ -20739,14 +20743,14 @@ class GenericGraph(GenericGraph_pyx):
                     R = rainbow(l)
                     vertex_colors = {R[i]: partition[i] for i in range(l)}
                 else:
-                    vertex_colors = {(1,0,0) : list(self)}
+                    vertex_colors = {(1, 0, 0) : list(self)}
 
             if color_by_label:
                 if edge_colors is  None:
-                        # do the coloring
-                        edge_colors = self._color_by_label(format=color_by_label)
+                    # do the coloring
+                    edge_colors = self._color_by_label(format=color_by_label)
             elif edge_colors is None:
-                edge_colors = {(0,0,0) : self.edges(sort=False)}
+                edge_colors = {(0, 0, 0) : self.edges(sort=False)}
 
             # by default turn off the frame
             if 'frame' not in kwds:
@@ -20789,35 +20793,39 @@ class GenericGraph(GenericGraph_pyx):
                     edge_colors = self._color_by_label(format=color_by_label)
 
             if edge_colors is None:
-                edge_colors = {(0,0,0) : self.edges(sort=False)}
+                edge_colors = {(0, 0, 0) : self.edges(sort=False)}
 
             i = 0
 
             for color in edge_colors:
                 i += 1
-                TT.texture('edge_color_%d'%i, ambient=0.1, diffuse=0.9, specular=0.03, opacity=1.0, color=color)
+                TT.texture('edge_color_%d' % i, ambient=0.1, diffuse=0.9,
+                           specular=0.03, opacity=1.0, color=color)
                 if self._directed:
                     for u,v,l in edge_colors[color]:
                         TT.fcylinder((pos3d[u][0], pos3d[u][1], pos3d[u][2]),
-                                     (pos3d[v][0], pos3d[v][1], pos3d[v][2]), edge_size, 'edge_color_%d'%i)
+                                     (pos3d[v][0], pos3d[v][1], pos3d[v][2]),
+                                     edge_size, 'edge_color_%d' % i)
                         TT.fcylinder((0.25 * pos3d[u][0] + 0.75 * pos3d[v][0],
                                       0.25 * pos3d[u][1] + 0.75 * pos3d[v][1],
                                       0.25 * pos3d[u][2] + 0.75 * pos3d[v][2]),
-                                     (pos3d[v][0], pos3d[v][1], pos3d[v][2]), edge_size2,'edge_color_%d'%i)
+                                     (pos3d[v][0], pos3d[v][1], pos3d[v][2]),
+                                     edge_size2, 'edge_color_%d' % i)
                 else:
                     for u, v, l in edge_colors[color]:
                         TT.fcylinder((pos3d[u][0], pos3d[u][1], pos3d[u][2]),
-                                     (pos3d[v][0], pos3d[v][1], pos3d[v][2]), edge_size,'edge_color_%d'%i)
+                                     (pos3d[v][0], pos3d[v][1], pos3d[v][2]),
+                                     edge_size, 'edge_color_%d' % i)
 
             return TT
 
         else:
-            raise TypeError("rendering engine (%s) not implemented"%engine)
+            raise TypeError("rendering engine (%s) not implemented" % engine)
 
-    def show3d(self, bgcolor=(1,1,1), vertex_colors=None, vertex_size=0.06,
-                     edge_colors=None, edge_size=0.02, edge_size2=0.0325,
-                     pos3d=None, color_by_label=False,
-                     engine='threejs', **kwds):
+    def show3d(self, bgcolor=(1, 1, 1), vertex_colors=None, vertex_size=0.06,
+               edge_colors=None, edge_size=0.02, edge_size2=0.0325,
+               pos3d=None, color_by_label=False,
+               engine='threejs', **kwds):
         """
         Plot the graph and show the resulting plot.
 
@@ -20882,7 +20890,9 @@ class GenericGraph(GenericGraph_pyx):
             sage: A5 = AlternatingGroup(5); A5
             Alternating group of order 5!/2 as a permutation group
             sage: G = A5.cayley_graph()
-            sage: G.show3d(vertex_size=0.03, edge_size=0.01, edge_size2=0.02, vertex_colors={(1,1,1): list(G)}, bgcolor=(0,0,0), color_by_label=True, iterations=200) # long time
+            sage: G.show3d(vertex_size=0.03, edge_size=0.01, edge_size2=0.02,
+            ....:          vertex_colors={(1,1,1): list(G)}, bgcolor=(0,0,0),
+            ....:          color_by_label=True, iterations=200)  # long time
 
         Some :class:`~sage.plot.plot3d.tachyon.Tachyon` examples::
 
@@ -20937,15 +20947,14 @@ class GenericGraph(GenericGraph_pyx):
             return label[vertex]
         return get_label
 
-    ### String representation to be used by other programs
+    # String representation to be used by other programs
     @options(labels="string",
-            vertex_labels=True, edge_labels=False,
-            edge_color=None, edge_colors=None,
-            edge_options=(),
-            color_by_label=False,
-            rankdir='down',
-            subgraph_clusters=[],
-    )
+             vertex_labels=True, edge_labels=False,
+             edge_color=None, edge_colors=None,
+             edge_options=(),
+             color_by_label=False,
+             rankdir='down',
+             subgraph_clusters=[])
     def graphviz_string(self, **options):
         r"""
         Return a representation in the ``dot`` language.
@@ -21470,10 +21479,10 @@ class GenericGraph(GenericGraph_pyx):
             for color in options['edge_colors'].keys():
                 for edge in options['edge_colors'][color]:
                     assert isinstance(edge, (list, tuple)) and len(edge) >= 2 and len(edge) <= 3,\
-                        "%s is not a valid format for edge"%(edge)
+                        "%s is not a valid format for edge" % (edge)
                     u = edge[0]
                     v = edge[1]
-                    assert self.has_edge(*edge), "%s is not an edge"%(edge)
+                    assert self.has_edge(*edge), "%s is not an edge" % (edge)
                     if len(edge) == 2:
                         if self.has_multiple_edges():
                             for label in self.edge_label(u, v):
@@ -21492,10 +21501,10 @@ class GenericGraph(GenericGraph_pyx):
         if options['rankdir'] != "down":
             directions = {'up': 'BT', 'down': 'TB', 'left': 'RL', 'right': 'LR'}
             if options['rankdir'] not in directions:
-                raise ValueError("rankdir should be one of %s"%directions.keys())
-            s += '  rankdir=%s\n'%(directions[options['rankdir']])
+                raise ValueError("rankdir should be one of %s" % directions.keys())
+            s += '  rankdir=%s\n' % (directions[options['rankdir']])
         if (options['vertex_labels'] and
-            options['labels'] == "latex"): # not a perfect option name
+                options['labels'] == "latex"):  # not a perfect option name
             # TODO: why do we set this only for latex labels?
             s += '  node [shape="plaintext"];\n'
 
@@ -21504,11 +21513,11 @@ class GenericGraph(GenericGraph_pyx):
             if not options['vertex_labels']:
                 node_options = ""
             elif options['labels'] == "latex":
-                node_options = " [label=\" \", texlbl=\"$%s$\"]"%quoted_latex(v)
+                node_options = " [label=\" \", texlbl=\"$%s$\"]" % quoted_latex(v)
             else:
-                node_options = " [label=\"%s\"]" %quoted_str(v)
+                node_options = " [label=\"%s\"]" % quoted_str(v)
 
-            s += '  %s %s;\n'%(key(v), node_options)
+            s += '  %s %s;\n' % (key(v), node_options)
         s += "\n"
 
         # subgraphs clusters for loop
@@ -21522,7 +21531,7 @@ class GenericGraph(GenericGraph_pyx):
             s += '}\n\n'
 
         if default_color is not None:
-            s += 'edge [color="%s"];\n'%default_color
+            s += 'edge [color="%s"];\n' % default_color
 
         # edges for loop
         for u, v, label in self.edge_iterator():
@@ -21531,17 +21540,17 @@ class GenericGraph(GenericGraph_pyx):
                 'backward': False,
                 'dot': None,
                 'edge_string': default_edge_string,
-                'color'   : default_color,
-                'label'   : label,
+                'color' : default_color,
+                'label' : label,
                 'label_style': options['labels'] if options['edge_labels'] else None
                 }
             for f in edge_option_functions:
-                edge_options.update(f((u, v,label)))
+                edge_options.update(f((u, v, label)))
 
             if not edge_options['edge_string'] in ['--', '->']:
-                raise ValueError("edge_string(='{}') in edge_options dict for the "
-                        "edge ({}, {}) should be '--' "
-                        "or '->'".format(edge_options['edge_string'], u, v))
+                raise ValueError("edge_string(='{}') in edge_options dict for "
+                                 "the edge ({}, {}) should be '--' or '->'"
+                                 .format(edge_options['edge_string'], u, v))
 
             dot_options = []
 
@@ -21552,9 +21561,9 @@ class GenericGraph(GenericGraph_pyx):
             label = edge_options['label']
             if label is not None and edge_options['label_style'] is not None:
                 if edge_options['label_style'] == 'latex':
-                    dot_options.append('label=" ", texlbl="$%s$"'%quoted_latex(label))
+                    dot_options.append('label=" ", texlbl="$%s$"' % quoted_latex(label))
                 else:
-                    dot_options.append('label="%s"'% label)
+                    dot_options.append('label="%s"' % label)
 
             if edge_options['color'] != default_color:
                 col = edge_options['color']
@@ -21577,13 +21586,14 @@ class GenericGraph(GenericGraph_pyx):
                 dot_options.append('dir={}'.format(edge_options['dir']))
             else:
                 raise ValueError("dir(='{}') in edge_options dict for the"
-                        " edge ({}, {}) should be 'forward', 'back', 'both',"
-                        " or 'none'".format(edge_options['dir'], u, v))
+                                 " edge ({}, {}) should be 'forward', 'back',"
+                                 " 'both', or 'none'"
+                                 .format(edge_options['dir'], u, v))
 
-            s+= '  %s %s %s' % (key(u), edge_options['edge_string'], key(v))
+            s += '  %s %s %s' % (key(u), edge_options['edge_string'], key(v))
             if dot_options:
                 s += " [" + ", ".join(dot_options)+"]"
-            s+= ";\n"
+            s += ";\n"
         s += "}"
 
         return s
@@ -21623,7 +21633,7 @@ class GenericGraph(GenericGraph_pyx):
         with open(filename, 'wt') as file:
             file.write(self.graphviz_string(**options))
 
-    ### Spectrum
+    # Spectrum
 
     def spectrum(self, laplacian=False):
         r"""

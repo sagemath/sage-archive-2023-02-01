@@ -1162,16 +1162,17 @@ class Sets(Category_singleton):
             # The intention is to raise an exception only if this is
             # run as a sub-testsuite of a larger testsuite.
             is_sub_testsuite = (tester is not None)
-            tester = self._tester(tester = tester, **options)
+            tester = self._tester(tester=tester, **options)
             # Or do we want to run the test on some_elements?
             try:
                 an_element = self.an_element()
             except EmptySetError:
                 return
             tester.info("\n  Running the test suite of self.an_element()")
-            TestSuite(an_element).run(verbose = tester._verbose, prefix = tester._prefix+"  ",
-                                      raise_on_failure = is_sub_testsuite)
-            tester.info(tester._prefix+" ", newline = False)
+            TestSuite(an_element).run(verbose=tester._verbose,
+                                      prefix=tester._prefix + "  ",
+                                      raise_on_failure=is_sub_testsuite)
+            tester.info(tester._prefix + " ", newline=False)
 
         def _test_elements_eq_reflexive(self, **options):
             """
@@ -2712,7 +2713,7 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
             """
             return [Sets().Facade()]
 
-        def example(self, base_ring = None, set = None):
+        def example(self, base_ring=None, set=None):
             r"""
             Return an example of set with multiple realizations, as
             per :meth:`Category.example`.

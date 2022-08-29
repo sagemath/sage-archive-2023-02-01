@@ -732,7 +732,7 @@ class TensorFreeModule(FiniteRankFreeModule_abstract):
 
         INPUT:
 
-        - ``symbol``, ``indices`` -- passed to he base module's method
+        - ``symbol``, ``indices`` -- passed to the base module's method
           :meth:`~sage.tensor.modules.finite_rank_free_module.FiniteRankFreeModule.basis`
           to select a basis of the :meth:`base_module` of ``self``,
           or to create it.

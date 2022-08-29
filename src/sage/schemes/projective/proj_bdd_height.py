@@ -23,7 +23,12 @@ from sage.rings.rational_field import QQ
 from sage.rings.all import RealField
 from sage.rings.number_field.unit_group import UnitGroup
 from sage.arith.all import gcd
-from sage.matrix.constructor import column_matrix
+from sage.matrix.constructor import matrix, column_matrix
+from sage.libs.pari.all import pari
+from sage.modules.free_module_element import vector
+from sage.rings.integer import Integer
+from sage.geometry.polyhedron.constructor import Polyhedron
+
 
 def QQ_points_of_bounded_height(dim, bound):
     r"""
@@ -107,28 +112,33 @@ def points_of_bounded_height(K, dim, bound, prec=53):
     Reals = RealField(prec)
     logB = Reals(bound).log()
 
+    points_of_bdd_height = []
+
     class_group_ideals = [c.ideal() for c in K.class_group()]
     class_number = len(class_group_ideals)
     class_group_ideal_norms = [a.norm() for a in class_group_ideals]
     norm_bound = bound*max(class_group_ideal_norms)
     fundamental_units = UnitGroup(K).fundamental_units()
-    fund_unit_logs = map(log_embed, fundamental_units)
+    fund_unit_logs = list(map(log_embed, fundamental_units))
 
     test_matrix = column_matrix(fund_unit_logs)
-    try:
-        test_matrix.change_ring(QQ)
-    except ValueError:
-        raise ValueError('prec too low.')
+    #try:
+    #    test_matrix.change_ring(QQ)
+    #except ValueError:
+    #    raise ValueError('prec too low.')
 
-    cut_fund_unit_logs = column_matrix(fund_unit_logs).delete_rows([r])
+    cut_fund_unit_logs = test_matrix.delete_rows([r])
     lll_fund_units = []
-    for c in pari(cut_fund_unit_logs).qflll().python().columns():
+    for c in cut_fund_unit_logs.columns():
+    #for c in pari(cut_fund_unit_logs).qflll().python().columns():
         new_unit = 1
         for i in range(r):
+            print(fundamental_units[i])
+            print(c[i])
             new_unit *= fundamental_units[i]**c[i]
         lll_fund_units.append(new_unit)
     fundamental_units = lll_fund_units
-    fund_unit_logs = map(log_embed, fundamental_units)
+    fund_unit_logs = list(map(log_embed, fundamental_units))
 
     possible_norm_set = set([])
     for i in range(class_number):
@@ -173,8 +183,8 @@ def points_of_bounded_height(K, dim, bound, prec=53):
 
     T = column_matrix(fund_unit_logs).delete_rows([r]).change_ring(QQ)
 
-    M = ((-1)*matrix.identity(r)).insert_row(r, [1 for i in range(r)])
-    M = M.transpose().insert_row(0, [0 for i in range(r + 1)]).transpose()
+    M = ((-1)*matrix.identity(r)).insert_row(r, [Integer(1) for i in range(r)])
+    M = M.transpose().insert_row(0, [Integer(0) for i in range(r + 1)]).transpose()
     M = M.change_ring(QQ)
     M.set_column(0, L_numbers)
     vertices = map(vector, Polyhedron(ieqs=list(M)).vertices())
@@ -218,7 +228,7 @@ def points_of_bounded_height(K, dim, bound, prec=53):
 
         for k in range(bound + 1):
             norm = k*a_norm
-            if coordinate_space.has_key(norm):
+            if norm in coordinate_space:
                 for pair in coordinate_space[norm]:
                     g, g_log = pair
                     if g in a:

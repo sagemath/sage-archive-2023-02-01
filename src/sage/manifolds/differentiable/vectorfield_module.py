@@ -787,7 +787,7 @@ class VectorFieldModule(UniqueRepresentation, Parent):
                 # a single antisymmetry is provided as a tuple or a
                 # range object; it is converted to a 1-item list:
                 antisym = [tuple(antisym)]
-            if isinstance(antisym, list):
+            if isinstance(antisym, (tuple, list)):
                 antisym0 = antisym[0]
             else:
                 antisym0 = antisym
@@ -799,7 +799,7 @@ class VectorFieldModule(UniqueRepresentation, Parent):
                 # a single antisymmetry is provided as a tuple or a
                 # range object; it is converted to a 1-item list:
                 antisym = [tuple(antisym)]
-            if isinstance(antisym, list):
+            if isinstance(antisym, (tuple, list)):
                 antisym0 = antisym[0]
             else:
                 antisym0 = antisym
@@ -2102,7 +2102,7 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
                 # a single antisymmetry is provided as a tuple or a
                 # range object; it is converted to a 1-item list:
                 antisym = [tuple(antisym)]
-            if isinstance(antisym, list):
+            if isinstance(antisym, (tuple, list)):
                 antisym0 = antisym[0]
             else:
                 antisym0 = antisym
@@ -2114,7 +2114,7 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
                 # a single antisymmetry is provided as a tuple or a
                 # range object; it is converted to a 1-item list:
                 antisym = [tuple(antisym)]
-            if isinstance(antisym, list):
+            if isinstance(antisym, (tuple, list)):
                 antisym0 = antisym[0]
             else:
                 antisym0 = antisym

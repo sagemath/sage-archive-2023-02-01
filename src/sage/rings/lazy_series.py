@@ -2706,7 +2706,7 @@ class LazyLaurentSeries(LazyCauchyProductSeries):
         r"""
         Return the composition of ``self`` with ``g``.
 
-        Given two Laurent Series `f` and `g` over the same base ring, the
+        Given two Laurent series `f` and `g` over the same base ring, the
         composition `(f \circ g)(z) = f(g(z))` is defined if and only if:
 
         - `g = 0` and `val(f) >= 0`,
@@ -2907,7 +2907,7 @@ class LazyLaurentSeries(LazyCauchyProductSeries):
             ZeroDivisionError: the valuation of the series must be nonnegative
 
         `g \neq 0` and `val(g) \leq 0` and `f` has infinitely many
-        non-zero coefficients`::
+        non-zero coefficients::
 
             sage: g = z^-1 + z^-2
             sage: g.valuation() <= 0
@@ -3110,8 +3110,8 @@ class LazyLaurentSeries(LazyCauchyProductSeries):
         r"""
         Return the compositional inverse of ``self``.
 
-        Given a Laurent Series `f`. the compositional inverse is a
-        Laurent Series `g` over the same base ring, such that
+        Given a Laurent series `f`, the compositional inverse is a
+        Laurent series `g` over the same base ring, such that
         `(f \circ g)(z) = f(g(z)) = z`.
 
         The compositional inverse exists if and only if:
@@ -3343,10 +3343,10 @@ class LazyLaurentSeries(LazyCauchyProductSeries):
         A Laurent polynomial if the valuation of the series is negative or
         a polynomial otherwise.
 
-        If ``degree`` is not ``None``, the terms of the series of degree
-        greater than ``degree`` are truncated first. If ``degree`` is ``None``
-        and the series is not a polynomial or a Laurent polynomial, a
-        ``ValueError`` is raised.
+        If ``degree`` is not ``None``, the terms of the series of
+        degree greater than ``degree`` are first truncated.  If
+        ``degree`` is ``None`` and the series is not a polynomial or
+        a Laurent polynomial, a ``ValueError`` is raised.
 
         EXAMPLES::
 
@@ -3387,6 +3387,7 @@ class LazyLaurentSeries(LazyCauchyProductSeries):
 
             sage: L.zero().polynomial()
             0
+
         """
         S = self.parent()
 
@@ -3481,12 +3482,21 @@ class LazyTaylorSeries(LazyCauchyProductSeries):
         The arity of ``self`` must be equal to the number of
         arguments provided.
 
-        Given two Taylor Series `f` and `g` over the same base ring, the
-        composition `(f \circ g)(z) = f(g(z))` is defined if and only if:
+        Given a Taylor series `f` of arity `n` and a tuple of Taylor
+        series `g = (g_1,\dots, g_n)` over the same base ring, the
+        composition `f \circ g` is defined if and only if for each
+        `1\leq k\leq n`:
 
-        - `g = 0` and `val(f) >= 0`,
-        - `g` is non-zero and `f` has only finitely many non-zero coefficients,
-        - `g` is non-zero and `val(g) > 0`.
+        - `g_i` is zero, or
+        - setting all variables except the `i`th in `f` to zero
+          yields a polynomial, or
+        - `val(g_i) > 0`.
+
+        If `f` is a univariate 'exact' series, we can check whether
+        `f` is a actually a polynomial.  However, if `f` is a
+        multivariate series, we have no way to test whether setting
+        all but one variable of `f` to zero yields a polynomial,
+        except if `f` itself is 'exact' and therefore a polynomial.
 
         INPUT:
 
@@ -3615,8 +3625,33 @@ class LazyTaylorSeries(LazyCauchyProductSeries):
             sage: gp.define(z / f(gp))
             sage: gp
             z + z^2 + 2*z^3 + 5*z^4 + 14*z^5 + 42*z^6 + 132*z^7 + O(z^8)
+
+        Check that composing the zero series with anything yields zero::
+
+            sage: T.<x,y> = LazyTaylorSeriesRing(QQ)
+            sage: M.<a, b> = LazyTaylorSeriesRing(QQ)
+            sage: T(0)(1/(1-a), a+b)
+            0
+
+        Check that composing `f` with zero series yields the constant term of `f`::
+
+            sage: T(3/(1-x-2*y))(0, 0)
+            3
+
+        Check that we can compose a polynomial with anything::
+
+            sage: T(1-x-2*y + x*y^2)(1, 3)
+            3
+
+            sage: T(1-x-2*y + x*y^2)(1 + a, 3)
+            3 + 8*a
+
+            sage: T(1-x-2*y + x*y^2)(1/(1-a), 3)
+            3 + 8*a + 8*a^2 + 8*a^3 + 8*a^4 + 8*a^5 + 8*a^6 + O(a,b)^7
+
         """
-        if len(g) != len(self.parent().variable_names()):
+        fP = parent(self)
+        if len(g) != fP._arity:
             raise ValueError("arity of must be equal to the number of arguments provided")
 
         # Find a good parent for the result
@@ -3624,8 +3659,20 @@ class LazyTaylorSeries(LazyCauchyProductSeries):
         cm = get_coercion_model()
         P = cm.common_parent(self.base_ring(), *[parent(h) for h in g])
 
-        # f has finite length
-        if isinstance(self._coeff_stream, Stream_exact) and not self._coeff_stream._constant:
+        # f = 0
+        if isinstance(self._coeff_stream, Stream_zero):
+            return P.zero()
+
+        # g = (0, ..., 0)
+        if all((not isinstance(h, LazyModuleElement) and not h)
+               or (isinstance(h, LazyModuleElement)
+                   and isinstance(h._coeff_stream, Stream_zero))
+               for h in g):
+            return P(self[0])
+
+        # f has finite length and f != 0
+        if (isinstance(self._coeff_stream, Stream_exact)
+            and not self._coeff_stream._constant):
             # constant polynomial
             poly = self.polynomial()
             if poly.is_constant():
@@ -3640,7 +3687,6 @@ class LazyTaylorSeries(LazyCauchyProductSeries):
         from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing_univariate
         from sage.rings.lazy_series_ring import LazySeriesRing
         if not isinstance(P, LazySeriesRing):
-            fP = parent(self)
             if fP._laurent_poly_ring.has_coerce_map_from(P):
                 S = fP._laurent_poly_ring
                 P = fP
@@ -3708,8 +3754,8 @@ class LazyTaylorSeries(LazyCauchyProductSeries):
         r"""
         Return the compositional inverse of ``self``.
 
-        Given a Taylor Series `f`. the compositional inverse is a
-        Laurent Series `g` over the same base ring, such that
+        Given a Taylor series `f`, the compositional inverse is a
+        Laurent series `g` over the same base ring, such that
         `(f \circ g)(z) = f(g(z)) = z`.
 
         The compositional inverse exists if and only if:
@@ -3932,9 +3978,10 @@ class LazyTaylorSeries(LazyCauchyProductSeries):
 
         OUTPUT:
 
-        If ``degree`` is not ``None``, the terms of the series of degree greater
-        than ``degree`` are truncated first. If ``degree`` is ``None`` and the
-        series is not a polynomial polynomial, a ``ValueError`` is raised.
+        If ``degree`` is not ``None``, the terms of the series of
+        degree greater than ``degree`` are first truncated.  If
+        ``degree`` is ``None`` and the series is not a polynomial
+        polynomial, a ``ValueError`` is raised.
 
         EXAMPLES::
 
@@ -3966,6 +4013,7 @@ class LazyTaylorSeries(LazyCauchyProductSeries):
             sage: f = z-z^2
             sage: f.polynomial()
             -z^2 + z
+
         """
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
         S = self.parent()
@@ -4077,24 +4125,35 @@ class LazySymmetricFunction(LazyCompletionGradedAlgebraElement):
         sage: s = SymmetricFunctions(ZZ).s()
         sage: L = LazySymmetricFunctions(s)
     """
-    def __call__(self, *args, check=True):
+    def __call__(self, *g, check=True):
         r"""
-        Return the composition of ``self`` with ``args``.
+        Return the composition of ``self`` with ``g``.
 
         The arity of ``self`` must be equal to the number of
         arguments provided.
 
-        Given two lazy symmetric functions `f` and `g` over the same
-        base ring, the composition (or plethysm) `(f \circ g)` is
-        defined if and only if:
+        Given a lazy symmetric function `f` of arity `n` and a tuple
+        of lazy symmetric functions `g = (g_1,\dots, g_n)` over the
+        same base ring, the composition (or plethysm) `(f \circ g)`
+        is defined if and only if for each `1\leq k\leq n`:
 
-        - `g = 0`,
-        - `g` is non-zero and `f` has only finitely many non-zero coefficients,
-        - `g` is non-zero and `val(g) > 0`.
+        - `g_i = 0`, or
+        - setting all alphabets except the `i`th in `f` to zero
+          yields a symmetric function with only finitely many
+          non-zero coefficients, or
+        - `val(g) > 0`.
+
+        If `f` is a univariate 'exact' lazy symmetric function, we
+        can check whether `f` has only finitely many non-zero
+        coefficients.  However, if `f` has larger arity, we have no
+        way to test whether setting all but one alphabets of `f` to
+        zero yields a polynomial, except if `f` itself is 'exact' and
+        therefore a symmetric function with only finitely many
+        non-zero coefficients.
 
         INPUT:
 
-        - ``args`` -- other (lazy) symmetric functions
+        - ``g`` -- other (lazy) symmetric functions
 
         .. TODO::
 
@@ -4176,28 +4235,64 @@ class LazySymmetricFunction(LazyCompletionGradedAlgebraElement):
             Traceback (most recent call last):
             ...
             ValueError: can only compose with a positive valuation series
+
+        Check that composing the zero series with anything yields
+        zero in the correct parent::
+
+            sage: e = SymmetricFunctions(QQ).e()
+            sage: h = SymmetricFunctions(QQ).h()
+            sage: s = SymmetricFunctions(QQ).s()
+            sage: p = SymmetricFunctions(QQ).p()
+            sage: L = LazySymmetricFunctions(tensor([e, h]))
+            sage: r = (L(0)(s[1], p[1])); r
+            0
+            sage: r.parent()
+            Symmetric Functions over Rational Field in the Schur basis
+
+        Check that composing `f` with zero series yields the constant term of `f`::
+
+            sage: f = 3*L(tensor([s[1], s[1]]))
+            sage: f(0, 0)
+            0
+            sage: (3+f)(0, 0)
+            3
         """
-        if len(args) != self.parent()._arity:
+        fP = parent(self)
+        if len(g) != fP._arity:
             raise ValueError("arity must be equal to the number of arguments provided")
+
+        # we actually do not need this
         from sage.combinat.sf.sfa import is_SymmetricFunction
-        if not all(isinstance(g, LazySymmetricFunction) or is_SymmetricFunction(g) or not g for g in args):
-            raise ValueError("all arguments must be (possibly lazy) symmetric functions")
+        # if not all(isinstance(h, LazySymmetricFunction)
+        #            or is_SymmetricFunction(h) or not h for h in g):
+        #     raise ValueError("all arguments must be (possibly lazy) symmetric functions")
 
+        # Find a good parent for the result
+        from sage.structure.element import get_coercion_model
+        cm = get_coercion_model()
+        P = cm.common_parent(self.base_ring(), *[parent(h) for h in g])
+
+        # f = 0
         if isinstance(self._coeff_stream, Stream_zero):
-            return self
+            return P.zero()
 
-        if len(args) == 1:
-            g = args[0]
-            P = g.parent()
+        # g = (0, ..., 0)
+        if all((not isinstance(h, LazyModuleElement) and not h)
+               or (isinstance(h, LazyModuleElement)
+                   and isinstance(h._coeff_stream, Stream_zero))
+               for h in g):
+            f = self[0]
+            # FIXME: TypeError: unable to convert 0 to a rational
+            if f:
+                return P(f.leading_coefficient())
+            return P.zero()
 
-            # Handle other types of 0s
-            if not isinstance(g, LazySymmetricFunction) and not g:
-                return P(self[0].leading_coefficient())
-
+        if len(g) == 1:
+            g = g[0]
             if (isinstance(self._coeff_stream, Stream_exact)
                 and not self._coeff_stream._constant):
                 f = self.symmetric_function()
-                if is_SymmetricFunction(g):
+                if not isinstance(g, LazySymmetricFunction):
                     return f(g)
                 # g must be a LazySymmetricFunction
                 if (isinstance(g._coeff_stream, Stream_exact)
@@ -4422,9 +4517,10 @@ class LazySymmetricFunction(LazyCompletionGradedAlgebraElement):
 
         OUTPUT:
 
-        If ``degree`` is not ``None``, the terms of the series of degree greater
-        than ``degree`` are truncated first. If ``degree`` is ``None`` and the
-        series is not a polynomial polynomial, a ``ValueError`` is raised.
+        If ``degree`` is not ``None``, the terms of the series of
+        degree greater than ``degree`` are first truncated.  If
+        ``degree`` is ``None`` and the series is not a polynomial
+        polynomial, a ``ValueError`` is raised.
 
         EXAMPLES::
 
@@ -4459,6 +4555,7 @@ class LazySymmetricFunction(LazyCompletionGradedAlgebraElement):
             0
             sage: f4.symmetric_function(0)
             s[]
+
         """
         S = self.parent()
         R = S._laurent_poly_ring

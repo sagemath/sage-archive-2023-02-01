@@ -3093,6 +3093,14 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             sage: r - f(g, include=[])
             (a2*b1^2-a2*b1)*p[2] + (a2*b111^2-a2*b111)*p[2, 2, 2] + (a2*b21^2-a2*b21)*p[4, 2]
 
+        Check that we can compute the plethysm with a constant::
+
+            sage: p[2,2,1](2)
+            8
+
+            sage: p[2,2,1](a1)
+            a1^5
+
         .. TODO::
 
             The implementation of plethysm in

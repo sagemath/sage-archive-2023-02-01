@@ -181,6 +181,9 @@ class TensorFreeSubmodule_comp(TensorFreeModule):
         raise NotImplementedError
 
     def construction(self):
+        # TODO: Adapt from the code for the default name/latex_name in __init__.
+        # Define the symmetry group and its action (https://trac.sagemath.org/ticket/32029),
+        # use a construction functor for quotienting by the action
         return None
 
     @cached_method

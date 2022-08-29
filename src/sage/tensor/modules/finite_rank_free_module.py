@@ -704,9 +704,8 @@ class FiniteRankFreeModule_abstract(UniqueRepresentation, Parent):
             sage: M.ambient_module() is M
             True
 
-            sage: from sage.tensor.modules.tensor_free_submodule import TensorFreeSubmodule_comp
             sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
-            sage: Sym0123x45M = TensorFreeSubmodule_comp(M, (6, 0), sym=((0, 1, 2, 3), (4, 5)))
+            sage: Sym0123x45M = M.tensor_module(6, 0, sym=((0, 1, 2, 3), (4, 5)))
             sage: T60M = M.tensor_module(6, 0)
             sage: Sym0123x45M.ambient_module() is T60M
             True
@@ -1429,12 +1428,19 @@ class FiniteRankFreeModule(FiniteRankFreeModule_abstract):
             T^{\{2,3\}}(M) \otimes T^{\{6,7\}}(M^*) \otimes \mathrm{Sym}^{\{0,1\}}(M) \otimes \mathrm{ASym}^{\{4,5\}}(M^*)
 
         See :class:`~sage.tensor.modules.tensor_free_module.TensorFreeModule`
-        and :class:`~sage.tensor.modules.tensor_free_module.TensorFreeSubmodule_comp`
+        and :class:`~sage.tensor.modules.tensor_free_module.TensorFreeSubmodule_sym`
         for more documentation.
 
+        TESTS::
+
+            sage: M = FiniteRankFreeModule(ZZ, 2)
+            sage: M.tensor_module(2, 0, sym=(0,1)) is M.symmetric_power(2)
+            True
         """
+        from .comp import CompWithSym, CompFullyAntiSym
+
+        sym, antisym = CompWithSym._canonicalize_sym_antisym(k + l, sym, antisym)
         if sym or antisym:
-            # TODO: Canonicalize sym, antisym, make hashable
             key = (k, l, sym, antisym)
         else:
             key = (k, l)
@@ -1444,8 +1450,8 @@ class FiniteRankFreeModule(FiniteRankFreeModule_abstract):
             if key == (1, 0):
                 T = self
             elif sym or antisym:
-                from sage.tensor.modules.tensor_free_submodule import TensorFreeSubmodule_comp
-                T = TensorFreeSubmodule_comp(self, (k, l), sym=sym, antisym=antisym)
+                from sage.tensor.modules.tensor_free_submodule import TensorFreeSubmodule_sym
+                T = TensorFreeSubmodule_sym(self, (k, l), sym=sym, antisym=antisym)
             else:
                 from sage.tensor.modules.tensor_free_module import TensorFreeModule
                 T = TensorFreeModule(self, (k, l))
@@ -2031,7 +2037,7 @@ class FiniteRankFreeModule(FiniteRankFreeModule_abstract):
                 # a single antisymmetry is provided as a tuple or a range
                 # object; it is converted to a 1-item list:
                 antisym = [tuple(antisym)]
-            if isinstance(antisym, list):
+            if isinstance(antisym, (tuple, list)):
                 antisym0 = antisym[0]
             else:
                 antisym0 = antisym
@@ -2043,7 +2049,7 @@ class FiniteRankFreeModule(FiniteRankFreeModule_abstract):
                 # a single antisymmetry is provided as a tuple or a range
                 # object; it is converted to a 1-item list:
                 antisym = [tuple(antisym)]
-            if isinstance(antisym, list):
+            if isinstance(antisym, (tuple, list)):
                 antisym0 = antisym[0]
             else:
                 antisym0 = antisym

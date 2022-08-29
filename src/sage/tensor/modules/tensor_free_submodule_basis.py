@@ -1,5 +1,5 @@
 r"""
-Free module bases indexed by component indices
+Standard bases of free submodules of tensor modules defined by some monoterm symmetries
 """
 
 #******************************************************************************
@@ -14,9 +14,9 @@ Free module bases indexed by component indices
 from sage.tensor.modules.free_module_basis import Basis_abstract
 
 
-class TensorFreeSubmoduleBasis_comp(Basis_abstract):
+class TensorFreeSubmoduleBasis_sym(Basis_abstract):
     r"""
-    Standard basis of a tensor module with prescribed symmetries.
+    Standard basis of a free submodule of a tensor module with prescribed monoterm symmetries.
 
     EXAMPLES::
 
@@ -52,7 +52,7 @@ class TensorFreeSubmoduleBasis_comp(Basis_abstract):
                                               latex_indices, symbol_dual, latex_symbol_dual)
         super().__init__(tensor_module, symbol, latex_symbol, indices, latex_indices)
         self._base_module_basis = base_module_basis
-        self._comp = tensor_module._basis_comp()
+        self._comp = tensor_module._basis_sym()
 
     def _repr_(self):
         r"""
@@ -120,8 +120,8 @@ class TensorFreeSubmoduleBasis_comp(Basis_abstract):
             sage: e11[1, 2].display()
             e_1⊗e^2
 
-            sage: from sage.tensor.modules.tensor_free_submodule import TensorFreeSubmodule_comp
-            sage: Sym2M = TensorFreeSubmodule_comp(M, (2, 0), sym=range(2)); Sym2M
+            sage: from sage.tensor.modules.tensor_free_submodule import TensorFreeSubmodule_sym
+            sage: Sym2M = TensorFreeSubmodule_sym(M, (2, 0), sym=range(2)); Sym2M
             Free module of fully symmetric type-(2,0) tensors on the Rank-3 free module M over the Integer Ring
             sage: eSym2M = Sym2M.basis('e')
             sage: eSym2M[1, 1].display()

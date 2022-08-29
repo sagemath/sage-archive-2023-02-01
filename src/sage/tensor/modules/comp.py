@@ -1806,12 +1806,12 @@ class Components(SageObject):
                              "same starting index")
         if isinstance(other, CompWithSym):
             sym = []
-            if other._sym != []:
+            if other._sym:
                 for s in other._sym:
                     ns = tuple(s[i]+self._nid for i in range(len(s)))
                     sym.append(ns)
             antisym = []
-            if other._antisym != []:
+            if other._antisym:
                 for s in other._antisym:
                     ns = tuple(s[i]+self._nid for i in range(len(s)))
                     antisym.append(ns)
@@ -3029,46 +3029,76 @@ class CompWithSym(Components):
         """
         Components.__init__(self, ring, frame, nb_indices, start_index,
                             output_formatter)
-        self._sym = []
-        if sym is not None and sym != []:
+        self._sym, self._antisym = self._canonicalize_sym_antisym(
+            nb_indices, sym, antisym)
+
+    @staticmethod
+    def _canonicalize_sym_antisym(nb_indices, sym=None, antisym=None):
+        r"""
+        Bring sym and antisym into their canonical form.
+
+        EXAMPLES::
+
+            sage: from sage.tensor.modules.comp import CompWithSym
+            sage: CompWithSym._canonicalize_sym_antisym(6, [(2, 1)])
+            (((1, 2),), ())
+        """
+        result_sym = []
+        if sym is None:
+            sym = []
+        else:
+            # Handle the case that sym is an iterator
+            sym = list(sym)
+        if sym:
             if isinstance(sym[0], (int, Integer)):
                 # a single symmetry is provided as a tuple or a range object;
                 # it is converted to a 1-item list:
                 sym = [tuple(sym)]
             for isym in sym:
                 if len(isym) < 2:
-                    raise IndexError("at least two index positions must be " +
-                                     "provided to define a symmetry")
+                    # Drop trivial symmetry
+                    continue
                 for i in isym:
-                    if i<0 or i>self._nid-1:
+                    if i < 0 or i > nb_indices - 1:
                         raise IndexError("invalid index position: " + str(i) +
-                                         " not in [0," + str(self._nid-1) + "]")
-                self._sym.append(tuple(isym))
-        self._antisym = []
-        if antisym is not None and antisym != []:
+                                         " not in [0," + str(nb_indices-1) + "]")
+                result_sym.append(tuple(isym))
+        result_antisym = []
+        if antisym is None:
+            antisym = []
+        else:
+            # Handle the case that antisym is an iterator
+            antisym = list(antisym)
+        if antisym:
             if isinstance(antisym[0], (int, Integer)):
                 # a single antisymmetry is provided as a tuple or a range
                 # object; it is converted to a 1-item list:
                 antisym = [tuple(antisym)]
             for isym in antisym:
                 if len(isym) < 2:
-                    raise IndexError("at least two index positions must be " +
-                                     "provided to define an antisymmetry")
+                    # Drop trivial antisymmetry
+                    continue
                 for i in isym:
-                    if i<0 or i>self._nid-1:
+                    if i < 0 or i > nb_indices - 1:
                         raise IndexError("invalid index position: " + str(i) +
-                                         " not in [0," + str(self._nid-1) + "]")
-                self._antisym.append(tuple(isym))
+                                         " not in [0," + str(nb_indices - 1) + "]")
+                result_antisym.append(tuple(isym))
         # Final consistency check:
         index_list = []
-        for isym in self._sym:
+        for isym in result_sym:
             index_list += isym
-        for isym in self._antisym:
+        for isym in result_antisym:
             index_list += isym
         if len(index_list) != len(set(index_list)):
             # There is a repeated index position:
             raise IndexError("incompatible lists of symmetries: the same " +
-                             "index position appears more then once")
+                             "index position appears more than once")
+        # Canonicalize sort order, make tuples
+        result_sym = [tuple(sorted(s)) for s in result_sym]
+        result_antisym = [tuple(sorted(s)) for s in result_antisym]
+        result_sym = tuple(sorted(result_sym))
+        result_antisym = tuple(sorted(result_antisym))
+        return result_sym, result_antisym
 
     def _repr_symmetry(self):
         r"""
@@ -3394,9 +3424,9 @@ class CompWithSym(Components):
              [[0, 7, 8], [-7, 0, 9], [-8, -9, 0]]]
             sage: c1 = c.swap_adjacent_indices(0,1,3)
             sage: c._antisym   # c is antisymmetric with respect to the last pair of indices...
-            [(1, 2)]
+            ((1, 2),)
             sage: c1._antisym  #...while c1 is antisymmetric with respect to the first pair of indices
-            [(0, 1)]
+            ((0, 1),)
             sage: c[0,1,2]
             3
             sage: c1[1,2,0]
@@ -3417,6 +3447,8 @@ class CompWithSym(Components):
         for s in self._antisym:
             new_s = [new_lpos.index(pos) for pos in s]
             result._antisym.append(tuple(sorted(new_s)))
+        result._sym, result._antisym = self._canonicalize_sym_antisym(
+            self._nid, result._sym, result._antisym)
         # The values:
         for ind, val in self._comp.items():
             new_ind = ind[:pos1] + ind[pos2:pos3] + ind[pos1:pos2] + ind[pos3:]
@@ -3547,7 +3579,7 @@ class CompWithSym(Components):
                         com = tuple(set(isym).intersection(set(osym)))
                         if len(com) > 1:
                             common_antisym.append(com)
-                if common_sym != [] or common_antisym != []:
+                if common_sym or common_antisym:
                     result = CompWithSym(self._ring, self._frame, self._nid,
                                          self._sindex, self._output_formatter,
                                          common_sym, common_antisym)
@@ -3655,11 +3687,11 @@ class CompWithSym(Components):
         sym = list(self._sym)
         antisym = list(self._antisym)
         if isinstance(other, CompWithSym):
-            if other._sym != []:
+            if other._sym:
                 for s in other._sym:
                     ns = tuple(s[i]+self._nid for i in range(len(s)))
                     sym.append(ns)
-            if other._antisym != []:
+            if other._antisym:
                 for s in other._antisym:
                     ns = tuple(s[i]+self._nid for i in range(len(s)))
                     antisym.append(ns)
@@ -3985,7 +4017,7 @@ class CompWithSym(Components):
         si = self._sindex
         imax = self._dim - 1 + si
         ind = [si for k in range(self._nid)]
-        sym = self._sym.copy() # we may modify this in the following
+        sym = list(self._sym)  # we may modify this in the following
         antisym = self._antisym
         for pos in range(self._nid):
             for isym in antisym:
@@ -4161,7 +4193,7 @@ class CompWithSym(Components):
             (0, 0, 1)
             ], with symmetry on the index positions (0, 1), with symmetry on the index positions (2, 3)
             sage: a1._sym  # a1 has two distinct symmetries:
-            [(0, 1), (2, 3)]
+            ((0, 1), (2, 3))
             sage: a[0,1,2,0] == a[0,0,2,1]  # a is symmetric w.r.t. positions 1 and 3
             True
             sage: a1[0,1,2,0] == a1[0,0,2,1] # a1 is not
@@ -4439,10 +4471,10 @@ class CompWithSym(Components):
             (1, 0, 0),
             (0, 1, 0),
             (0, 0, 1)
-            ], with antisymmetry on the index positions (1, 3),
-               with antisymmetry on the index positions (0, 2)
+            ], with antisymmetry on the index positions (0, 2),
+               with antisymmetry on the index positions (1, 3)
             sage: s._antisym  # the antisymmetry (0,1,2) has been reduced to (0,2), since 1 is involved in the new antisymmetry (1,3):
-            [(1, 3), (0, 2)]
+            ((0, 2), (1, 3))
 
         Partial antisymmetrization of 4-indices components with a symmetry on
         the first two indices::

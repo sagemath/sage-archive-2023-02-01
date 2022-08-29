@@ -3456,6 +3456,11 @@ cdef class Expression(Expression_abc):
             sage: val = pi - 2286635172367940241408/1029347477390786609545*sqrt(2)
             sage: bool(val>0)
             False
+
+        Check that :trac:`34341` is fixed::
+
+            sage: bool(x^2 + 2*x + 1 != (x + 1)^2)
+            False
         """
         if self.is_relational():
             # constants are wrappers around Sage objects, compare directly
@@ -3499,8 +3504,8 @@ cdef class Expression(Expression_abc):
 
             # Use interval fields to try and falsify the relation
             if not need_assumptions:
-                if pynac_result == relational_notimplemented and self.operator()==operator.ne:
-                    return not (self.lhs()-self.rhs()).is_trivial_zero()
+                if pynac_result == relational_notimplemented and self.operator() == operator.ne:
+                    return not (self.lhs()-self.rhs()).is_zero()
                 res = self.test_relation()
                 if res in (True, False):
                     return res

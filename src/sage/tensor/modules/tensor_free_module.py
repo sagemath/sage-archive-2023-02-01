@@ -770,6 +770,24 @@ class TensorFreeModule(FiniteRankFreeModule_abstract):
             e_1⊗e_1
             e_1⊗e_2 + e_2⊗e_1
             e_2⊗e_2
+
+            sage: M = FiniteRankFreeModule(ZZ, 2)
+            sage: e = M.basis('e')
+            sage: f = M.basis('f', from_family=(-e[1], e[0]))
+            sage: for b in f: b.display()
+            f_0 = -e_1
+            f_1 = e_0
+            sage: S = M.tensor_module(2, 0, sym=(0,1))
+            sage: fS = S.basis('f')
+            sage: for b in fS: b.display()
+            e_1⊗e_1
+            -e_0⊗e_1 - e_1⊗e_0
+            e_0⊗e_0
+            sage: for b in fS: b.display(f)
+            f_0⊗f_0
+            f_0⊗f_1 + f_1⊗f_0
+            f_1⊗f_1
+
         """
         return TensorFreeSubmoduleBasis_sym(self, symbol=symbol, latex_symbol=latex_symbol,
                                              indices=indices, latex_indices=latex_indices,

@@ -1802,7 +1802,7 @@ class FiniteRankFreeModule(FiniteRankFreeModule_abstract):
         TestSuite(b).run(verbose=tester._verbose, prefix=tester._prefix + "  ",
                          raise_on_failure=is_sub_testsuite)
 
-    def tensor(self, tensor_type, name=None, latex_name=None, sym=None,
+    def _tensor(self, tensor_type, name=None, latex_name=None, sym=None,
                antisym=None):
         r"""
         Construct a tensor on the free module ``self``.
@@ -1892,6 +1892,14 @@ class FiniteRankFreeModule(FiniteRankFreeModule_abstract):
         return self.tensor_module(*tensor_type).element_class(self,
                                  tensor_type, name=name, latex_name=latex_name,
                                  sym=sym, antisym=antisym)
+
+    def tensor(self, *args, **kwds):
+        # Until https://trac.sagemath.org/ticket/30373 is done,
+        # TensorProductFunctor._functor_name is "tensor", so this method
+        # also needs to double as the tensor product construction
+        if isinstance(args[0], Parent):
+            return self.tensor_product(*args, **kwds)
+        return self._tensor(*args, **kwds)
 
     def tensor_from_comp(self, tensor_type, comp, name=None, latex_name=None):
         r"""

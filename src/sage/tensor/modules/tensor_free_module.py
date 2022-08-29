@@ -811,3 +811,8 @@ class TensorFreeModule(FiniteRankFreeModule_abstract):
         frame = tuple(self.base_module().irange())
         tensor = self.ambient()()
         return tensor._new_comp(frame)
+
+    # Until https://trac.sagemath.org/ticket/30373 is done,
+    # TensorProductFunctor._functor_name is "tensor"
+    def tensor(self, *others):
+        return self.tensor_product(*others)

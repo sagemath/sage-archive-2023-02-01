@@ -1171,7 +1171,6 @@ class LazyLaurentSeriesRing(LazySeriesRing):
             q = ZZ['q'].fraction_field().gen()
         if q not in self.base_ring():
             raise ValueError("q must be in the base ring")
-        from .lazy_series_ring import LazyLaurentSeriesRing
         from sage.arith.misc import binomial
         qP = q.parent()
         one = qP.one()
@@ -1209,7 +1208,6 @@ class LazyLaurentSeriesRing(LazySeriesRing):
 
         - :wikipedia:`Euler_function`
         """
-        from .lazy_series_ring import LazyLaurentSeriesRing
         def coeff(n):
             k = ZZ(24 * n + 1)
             m, rem = k.sqrtrem()

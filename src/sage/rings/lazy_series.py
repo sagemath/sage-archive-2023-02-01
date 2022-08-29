@@ -569,6 +569,9 @@ class LazyModuleElement(Element):
         """
         Test whether ``self`` is not zero.
 
+        An unitialized series returns ``True`` as it is considered as a
+        formal variable, such as a generator of a polynomial ring.
+
         TESTS::
 
             sage: L.<z> = LazyLaurentSeriesRing(GF(2))
@@ -603,11 +606,41 @@ class LazyModuleElement(Element):
             1
             sage: bool(M)
             True
+
+        Uninitialized series::
+
+            sage: g = L(None, valuation=0)
+            sage: bool(g)
+            True
+            sage: g.define(0)
+            sage: bool(g)
+            False
+
+            sage: g = L(None, valuation=0)
+            sage: bool(g)
+            True
+            sage: g.define(1 + z)
+            sage: bool(g)
+            True
+
+            sage: g = L(None, valuation=0)
+            sage: bool(g)
+            True
+            sage: g.define(1 + z*g)
+            sage: bool(g)
+            True
         """
         if isinstance(self._coeff_stream, Stream_zero):
             return False
         if isinstance(self._coeff_stream, Stream_exact):
             return True
+        if isinstance(self._coeff_stream, Stream_uninitialized):
+            if self._coeff_stream._target is None:
+                return True
+            if isinstance(self._coeff_stream._target, Stream_zero):
+                return False
+            if isinstance(self._coeff_stream._target, Stream_exact):
+                return True
         if self.parent()._sparse:
             cache = self._coeff_stream._cache
             if any(cache[a] for a in cache):
@@ -625,7 +658,7 @@ class LazyModuleElement(Element):
 
         INPUT:
 
-        - ``s`` -- a Laurent polynomial
+        - ``s`` -- a lazy series
 
         EXAMPLES:
 
@@ -756,6 +789,16 @@ class LazyModuleElement(Element):
             ...
             ValueError: series already defined
 
+            sage: e = L(None, valuation=0)
+            sage: e.define(1)
+            sage: e
+            1
+
+            sage: e = L(None, valuation=0)
+            sage: e.define((1 + z).polynomial())
+            sage: e
+            1 + z
+
             sage: D = LazyDirichletSeriesRing(QQ, "s")
             sage: L.<z> = LazyLaurentSeriesRing(QQ)
             sage: e = L(lambda n: 1/factorial(n), 0)
@@ -767,6 +810,15 @@ class LazyModuleElement(Element):
         """
         if not isinstance(self._coeff_stream, Stream_uninitialized) or self._coeff_stream._target is not None:
             raise ValueError("series already defined")
+
+        if not isinstance(s, LazyModuleElement):
+            s = self.parent()(s)
+
+        # Special case when it has a trivial definition
+        if isinstance(s._coeff_stream, (Stream_zero, Stream_exact)):
+            self._coeff_stream = s._coeff_stream
+            return
+
         self._coeff_stream._target = s._coeff_stream
 
     # an alias for compatibility with padics
@@ -2878,6 +2930,15 @@ class LazyLaurentSeries(LazyCauchyProductSeries):
             3
             sage: parent(three)
             Univariate Polynomial Ring in x over Rational Field
+
+        Consistency check when `g` is an uninitialized series between a
+        polynomial `f` as both a polynomial and a lazy series::
+
+            sage: L.<z> = LazyLaurentSeriesRing(QQ)
+            sage: f = 1 + z
+            sage: g = L(None, valuation=0)
+            sage: f(g) == f.polynomial()(g)
+            True
         """
         # f = self and compute f(g)
         from sage.structure.element import get_coercion_model
@@ -3490,6 +3551,23 @@ class LazyTaylorSeries(LazyCauchyProductSeries):
             ...
             TypeError: no common canonical parent for objects with parents: ...
 
+        Consistency check when `g` is an uninitialized series between a
+        polynomial `f` as both a polynomial and a lazy series::
+
+            sage: L.<z> = LazyTaylorSeriesRing(QQ)
+            sage: f = 1 - z
+            sage: g = L(None, valuation=1)
+            sage: f(g) == f.polynomial()(g)
+            True
+
+            sage: g = L(None, valuation=1)
+            sage: g.define(z / (1 - g))
+            sage: g
+            z + z^2 + 2*z^3 + 5*z^4 + 14*z^5 + 42*z^6 + 132*z^7 + O(z^8)
+            sage: gp = L(None, valuation=1)
+            sage: gp.define(z / f(gp))
+            sage: gp
+            z + z^2 + 2*z^3 + 5*z^4 + 14*z^5 + 42*z^6 + 132*z^7 + O(z^8)
         """
         if len(g) != len(self.parent().variable_names()):
             raise ValueError("arity of must be equal to the number of arguments provided")

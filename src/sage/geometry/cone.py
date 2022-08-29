@@ -3533,21 +3533,15 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container, ConvexSet_c
 
             sage: quadrant = Cone([(1,0), (0,1)])
             sage: quadrant.an_affine_basis()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: this function is not implemented for unbounded polyhedra
+            [(0, 0), (1, 0), (0, 1)]
             sage: ray = Cone([(1, 1)])
             sage: ray.an_affine_basis()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: this function is not implemented for unbounded polyhedra
+            [(0, 0), (1, 1)]
             sage: line = Cone([(1,0), (-1,0)])
             sage: line.an_affine_basis()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: this function is not implemented for unbounded polyhedra
+            [(1, 0), (0, 0)]
         """
-        return self.polyhedron().an_affine_basis()
+        return [vector(v) for v in self.polyhedron().an_affine_basis()]
 
     @cached_method
     def strict_quotient(self):

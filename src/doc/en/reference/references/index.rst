@@ -3330,6 +3330,11 @@ REFERENCES:
             *Combinatorics of symmetric designs*.
             Cambridge University Press, 2006.
 
+.. [JS2000] \A. Joellenbeck, M. Schocker.
+            "Cyclic Characters of Symmetric Groups".
+            J. Algebraic Combin., **12** (2000), 155-161.
+            :doi:`10.1023/A:1026592027019`.
+
 .. [JS2010] \B. Jones, A. Schilling.
             "Affine structures and a tableau model for `E_6` crystals",
             J. Algebra. **324** (2010). 2512-2542.

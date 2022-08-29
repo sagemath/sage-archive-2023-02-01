@@ -356,7 +356,7 @@ class GenericSymbolicSubring(SymbolicRing):
             TypeError: x is not contained in Symbolic Subring accepting the variable a
         """
         expression = super()._element_constructor_(x)
-        assert(expression.parent() is self)
+        assert expression.parent() is self
         if not all(self.has_valid_variable(var)
                    for var in expression.variables()):
             raise TypeError('%s is not contained in %s' % (x, self))

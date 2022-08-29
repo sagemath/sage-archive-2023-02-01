@@ -4204,7 +4204,7 @@ class PermutationGroup_generic(FiniteGroup):
             sage: H.is_normal(G)
             False
         """
-        if not(self.is_subgroup(other)):
+        if not self.is_subgroup(other):
             raise TypeError("%s must be a subgroup of %s" % (self, other))
         return bool(other._libgap_().IsNormal(self))
 

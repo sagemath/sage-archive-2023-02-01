@@ -3186,10 +3186,10 @@ class RationalPolyhedralFan(IntegralRayCollection, Callable, Container):
             pass
 
         def is_not_facet(I):
-            return all(not(I <= f) for f in facets)
+            return all(not (I <= f) for f in facets)
 
         def is_in_SR(I):
-            return all(not(I >= sr) for sr in SR)
+            return all(not (I >= sr) for sr in SR)
 
         # Generators of SR are index sets I = {i1, ..., ik}
         # called "primitive collections" such that

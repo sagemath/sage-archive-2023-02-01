@@ -2205,11 +2205,11 @@ class NormalFormGame(SageObject, MutableMapping):
             False
         """
         # Check that supports are obeyed
-        if not(all(a[i] > 0 for i in p1_support) and
-               all(b[j] > 0 for j in p2_support) and
-               all(a[i] == 0 for i in range(len(a))
+        if not (all(a[i] > 0 for i in p1_support) and
+                all(b[j] > 0 for j in p2_support) and
+                all(a[i] == 0 for i in range(len(a))
                     if i not in p1_support) and
-               all(b[j] == 0 for j in range(len(b))
+                all(b[j] == 0 for j in range(len(b))
                     if j not in p2_support)):
             return False
 

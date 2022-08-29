@@ -1386,7 +1386,8 @@ from sage.rings.infinity import Infinity
 class EnumeratedFamily(LazyFamily):
     r"""
     :class:`EnumeratedFamily` turns an enumerated set ``c`` into a family
-    indexed by the set `\{0,\dots, |c|-1\}`.
+    indexed by the set `\{0,\dots, |c|-1\}` (or ``NN`` if `|c|` is
+    countably infinite).
 
     Instances should be created via the :func:`Family` factory. See its
     documentation for examples and tests.
@@ -1414,6 +1415,8 @@ class EnumeratedFamily(LazyFamily):
             True
             sage: Family(Permutations()).keys()
             Non negative integers
+            sage: type(Family(NN))
+            <class 'sage.sets.family.EnumeratedFamily_with_category'>
         """
         if enumset.cardinality() == Infinity:
             baseset = NonNegativeIntegers()

@@ -453,7 +453,8 @@ cd "$PKG_NAME" || exit $?
 
 case "$PKG_SRC" in
     *.whl)
-        # (Non-platform) wheel. Do not extract, do not create a src directory,
+        # (Platform-independent) wheel
+        # Do not extract, do not create a src directory,
         # just copy to dist/ and create a simple install script.
         mkdir -p dist
         cp "$PKG_SRC" dist/

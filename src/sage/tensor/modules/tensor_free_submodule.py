@@ -177,6 +177,12 @@ class TensorFreeSubmodule_comp(TensorFreeModule):
                                                latex_name=latex_name,
                                                category=category, ambient=ambient)
 
+    def tensor_factors(self):
+        raise NotImplementedError
+
+    def construction(self):
+        return None
+
     @cached_method
     def _basis_comp(self):
         r"""

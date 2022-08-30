@@ -1203,7 +1203,7 @@ class FiniteRankFreeModule(FiniteRankFreeModule_abstract):
             sage: M.tensor_module(2, 0, sym=(0,1)) is M.symmetric_power(2)
             True
         """
-        from .comp import CompWithSym, CompFullyAntiSym
+        from .comp import CompWithSym
 
         sym, antisym = CompWithSym._canonicalize_sym_antisym(k + l, sym, antisym)
         if sym or antisym:

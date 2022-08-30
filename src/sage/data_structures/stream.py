@@ -97,6 +97,7 @@ AUTHORS:
 from sage.rings.integer_ring import ZZ
 from sage.rings.infinity import infinity
 from sage.arith.misc import divisors
+from sage.misc.misc_c import prod
 from sage.combinat.integer_vector_weighted import iterator_fast as wt_int_vec_iter
 from sage.combinat.sf.sfa import _variables_recursive, _raise_variables
 from sage.categories.hopf_algebras_with_basis import HopfAlgebrasWithBasis
@@ -1814,21 +1815,21 @@ class Stream_plethysm(Stream_binary):
             if self._right[0]:
                 assert self._degree_f is not None, "the plethysm with a lazy symmetric function of valuation 0 is defined only for symmetric functions of finite support"
 
-                return sum((c * self._compute_product(n, la)
+                return sum((c * self.compute_product(n, la)
                             for k in range(self._left._approximate_order, self._degree_f)
                             for la, c in self._left[k]),
                            self._basis.zero())
 
-        return sum((c * self._compute_product(n, la)
+        return sum((c * self.compute_product(n, la)
                     for k in range(self._left._approximate_order, n+1)
                     for la, c in self._left[k]),
                    self._basis.zero())
 
-    def _compute_product(self, n, la):
-        """
+    def compute_product(self, n, la):
+        r"""
         Compute the product ``c * p[la](self._right)`` in degree ``n``.
 
-        TESTS::
+        EXAMPLES::
 
             sage: from sage.data_structures.stream import Stream_plethysm, Stream_exact, Stream_function, Stream_zero
             sage: s = SymmetricFunctions(QQ).s()
@@ -1859,27 +1860,34 @@ class Stream_plethysm(Stream_binary):
             sage: all(h._compute_product(k, Partition([2, 2, 1])) == B.restrict_degree(k) for k in range(7))
             True
         """
+        # This is the approximate order of the result
+        rao = self._right._approximate_order
+        ret_approx_order = rao * sum(la)
         ret = self._basis.zero()
+        if n < ret_approx_order:
+            return ret
+
         la_exp = la.to_exp()
         wgt = [i for i, m in enumerate(la_exp, 1) if m]
         exp = [m for m in la_exp if m]
-        for k in wt_int_vec_iter(n, wgt):
+        wgt.reverse()
+        exp.reverse()
+        for k in wt_int_vec_iter(n - ret_approx_order, wgt):
             # TODO: it may make a big difference here if the
-            # approximate order would be updated
-            if any(d < self._right._approximate_order * m
-                   for m, d in zip(exp, k)):
-                continue
-            prod = self._basis.one()
-            for i, m, d in zip(wgt, exp, k):
-                prod *= self._stretched_power_restrict_degree(i, m, d)
-            ret += prod
+            #   approximate order would be updated.
+            # The test below is based off not removing the flxed block
+            #if any(d < self._right._approximate_order * m
+            #       for m, d in zip(exp, k)):
+            #    continue
+            ret += prod(self.stretched_power_restrict_degree(i, m, rao * m + d)
+                        for i, m, d in zip(wgt, exp, k))
         return ret
 
-    def _stretched_power_restrict_degree(self, i, m, d):
-        """
+    def stretched_power_restrict_degree(self, i, m, d):
+        r"""
         Return the degree ``d*i`` part of ``p([i]*m)(g)``.
 
-        TESTS::
+        EXAMPLES::
 
             sage: from sage.data_structures.stream import Stream_plethysm, Stream_exact, Stream_function, Stream_zero
             sage: s = SymmetricFunctions(QQ).s()
@@ -1908,11 +1916,11 @@ class Stream_plethysm(Stream_binary):
         # integer and not a symmetric function
         if power_d:
             if self._tensor_power is None:
-                terms = {m.stretch(i): raised_c for m, c in power_d
+                terms = {mon.stretch(i): raised_c for mon, c in power_d
                          if (raised_c := _raise_variables(c, i, self._degree_one))}
             else:
-                terms = {tuple((mu.stretch(i) for mu in m)): raised_c
-                         for m, c in power_d
+                terms = {tuple((mu.stretch(i) for mu in mon)): raised_c
+                         for mon, c in power_d
                          if (raised_c := _raise_variables(c, i, self._degree_one))}
             return self._p.element_class(self._p, terms)
 

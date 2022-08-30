@@ -473,13 +473,20 @@ class IntegerVector(ClonableArray):
             [4, 3, 3]
             sage: IV([0,0,0]).trim()
             []
+
+            sage: IV = IntegerVectors(k=4)
+            sage: v = IV([4,3,2,0]).trim(); v
+            [4, 3, 2]
+            sage: v.parent()
+            Integer vectors
         """
+        P = IntegerVectors()
         v = list(self)
         if all(i == 0 for i in v):
-            return self.parent()([])
+            return P.element_class(P, [], check=False)
         while not v[-1]:
             v = v[:-1]
-        return self.parent()(v)
+        return P.element_class(P, v, check=False)
 
 class IntegerVectors(Parent, metaclass=ClasscallMetaclass):
     """

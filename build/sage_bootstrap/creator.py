@@ -99,6 +99,9 @@ class PackageCreator(object):
                 f.write('cd src\nsdh_pip_install .\n')
             with open(os.path.join(self.path, 'install-requires.txt'), 'w+') as f:
                 f.write('{0}\n'.format(pypi_package_name))
+        elif source == 'wheel':
+            with open(os.path.join(self.path, 'install-requires.txt'), 'w+') as f:
+                f.write('{0}\n'.format(pypi_package_name))
         elif source == 'pip':
             with open(os.path.join(self.path, 'requirements.txt'), 'w+') as f:
                 f.write('{0}\n'.format(pypi_package_name))

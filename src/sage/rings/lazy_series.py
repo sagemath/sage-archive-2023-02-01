@@ -4656,12 +4656,14 @@ class LazySymmetricFunction(LazyCompletionGradedAlgebraElement):
         return P.element_class(P, coeff_stream)
 
     def functorial_composition(self, *args):
-        r"""Return the functorial composition of ``self`` and ``g``.
+        r"""
+        Return the functorial composition of ``self`` and ``g``.
 
-        If `F` and `G` are species, their functorial composition is the species
-        `F \Box G` obtained by setting `(F \Box G) [A] = F[ G[A] ]`.
-        In other words, an `(F \Box G)`-structure on a set `A` of labels is an
-        `F`-structure whose labels are the set of all `G`-structures on `A`.
+        If `F` and `G` are species, their functorial composition is
+        the species `F \Box G` obtained by setting `(F \Box G) [A] =
+        F[ G[A] ]`.  In other words, an `(F \Box G)`-structure on a
+        set `A` of labels is an `F`-structure whose labels are the
+        set of all `G`-structures on `A`.
 
         It can be shown (as in section 2.2 of [BLL]_) that there is a
         corresponding operation on cycle indices:
@@ -4674,6 +4676,12 @@ class LazySymmetricFunction(LazyCompletionGradedAlgebraElement):
             \, p_{1}^{\sigma_{1}} p_{2}^{\sigma_{2}} \cdots.
 
         This method implements that operation on cycle index series.
+
+        .. WARNING::
+
+            The operation `f \Box g` only makes sense when `g`
+            corresponds to a permutation representation, i.e., a
+            group action.
 
         EXAMPLES:
 
@@ -4724,11 +4732,10 @@ class LazySymmetricFunction(LazyCompletionGradedAlgebraElement):
 
         Check a corner case::
 
+            sage: h = SymmetricFunctions(QQ).h()
             sage: L = LazySymmetricFunctions(h)
-            sage: Ep = L(lambda n: h[n-1]*h[1], valuation=1); Ep
-            h[1] + (h[1,1]) + (h[2,1]) + (h[3,1]) + (h[4,1]) + (h[5,1]) + (h[6,1]) + O^8
-            sage: Ep.functorial_composition(L([3*h[0]]))
-            3*h[]
+            sage: L(h[2,1]).functorial_composition(L([3*h[0]]))
+            3*h[] + O^7
 
         """
         if len(args) != self.parent()._arity:
@@ -4749,9 +4756,11 @@ class LazySymmetricFunction(LazyCompletionGradedAlgebraElement):
             f = Stream_map_coefficients(self._coeff_stream, lambda x: x, p)
 
             def g_cycle_type(s):
+                # the cycle type of G[sigma] of any permutation sigma
+                # with cycle type s
                 if not s:
                     if g[0]:
-                        return Partition([ZZ(g[0].coefficient([]))])
+                        return Partition([1]*ZZ(g[0].coefficient([])))
                     return Partition([])
                 res = []
                 # in the species case, k is at most
@@ -4774,8 +4783,10 @@ class LazySymmetricFunction(LazyCompletionGradedAlgebraElement):
                 res = p(0)
                 for s in Partitions(n):
                     t = g_cycle_type(s)
-                    q = t.aut() * f[t.size()].coefficient(t) / s.aut()
-                    res += q * p(s)
+                    f_t = f[t.size()]
+                    if f_t:
+                        q = t.aut() * f_t.coefficient(t) / s.aut()
+                        res += q * p(s)
                 return res
 
             coeff_stream = Stream_function(coefficient, R, P._sparse, 0)

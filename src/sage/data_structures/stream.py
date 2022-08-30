@@ -1870,12 +1870,14 @@ class Stream_plethysm(Stream_binary):
         la_exp = la.to_exp()
         wgt = [i for i, m in enumerate(la_exp, 1) if m]
         exp = [m for m in la_exp if m]
+        # the docstring of wt_int_vec_iter, i.e., iterator_fast,
+        # states that the weights should be weakly decreasing
         wgt.reverse()
         exp.reverse()
         for k in wt_int_vec_iter(n - ret_approx_order, wgt):
             # TODO: it may make a big difference here if the
             #   approximate order would be updated.
-            # The test below is based off not removing the flxed block
+            # The test below is based on not removing the fixed block
             #if any(d < self._right._approximate_order * m
             #       for m, d in zip(exp, k)):
             #    continue

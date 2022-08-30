@@ -10,6 +10,7 @@ We provide lazy implementations for various `\NN`-graded rings.
 
     :class:`LazyLaurentSeriesRing` | The ring of lazy Laurent series.
     :class:`LazyTaylorSeriesRing` | The ring of (possibly multivariate) lazy Taylor series.
+    :class:`LazyCompletionGradedAlgebra` | The completion of a graded alebra consisting of formal series.
     :class:`LazySymmetricFunctions` | The ring of (possibly multivariate) lazy symmetric functions.
     :class:`LazyDirichletSeriesRing` | The ring of lazy Dirichlet series.
 
@@ -51,6 +52,7 @@ from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.lazy_series import (LazyModuleElement,
                                     LazyLaurentSeries,
                                     LazyTaylorSeries,
+                                    LazyCompletionGradedAlgebraElement,
                                     LazySymmetricFunction,
                                     LazyDirichletSeries)
 from sage.structure.global_options import GlobalOptions
@@ -62,6 +64,7 @@ from sage.data_structures.stream import (
     Stream_exact,
     Stream_uninitialized
 )
+
 
 class LazySeriesRing(UniqueRepresentation, Parent):
     """
@@ -688,6 +691,7 @@ class LazySeriesRing(UniqueRepresentation, Parent):
         """
         return self.base_ring().is_exact()
 
+
 class LazyLaurentSeriesRing(LazySeriesRing):
     """
     The ring of lazy Laurent series.
@@ -1114,6 +1118,7 @@ class LazyLaurentSeriesRing(LazySeriesRing):
 
 ######################################################################
 
+
 class LazyTaylorSeriesRing(LazySeriesRing):
     """
     The ring of (possibly multivariate) lazy Taylor series.
@@ -1479,27 +1484,50 @@ class LazyTaylorSeriesRing(LazySeriesRing):
 
 ######################################################################
 
-class LazySymmetricFunctions(LazySeriesRing):
-    """
-    The ring of lazy symmetric functions.
+
+class LazyCompletionGradedAlgebra(LazySeriesRing):
+    r"""
+    The completion of a graded alebra consisting of formal series.
+
+    For a graded algebra `A`, we can form a completion of `A` consisting of
+    all formal series of `A` such that each homogeneous component is
+    a finite linear combination of basis elements of `A`.
 
     INPUT:
 
-    - ``basis`` -- the ring of symmetric functions
+    - ``basis`` -- a graded algebra
     - ``names`` -- name(s) of the alphabets
-    - ``sparse`` -- (default: ``True``) whether we use a sparse or a dense representation
+    - ``sparse`` -- (default: ``True``) whether we use a sparse or
+      a dense representation
 
     EXAMPLES::
 
-        sage: s = SymmetricFunctions(ZZ).s()
-        sage: LazySymmetricFunctions(s)
-        Lazy Symmetric Functions over Integer Ring in the Schur basis
+        sage: NCSF = NonCommutativeSymmetricFunctions(QQ)
+        sage: S = NCSF.Complete()
+        sage: L = S.formal_series_ring()
+        sage: L
+        Lazy completion of Non-Commutative Symmetric Functions over the Rational Field in the Complete basis
 
-        sage: m = SymmetricFunctions(ZZ).m()
-        sage: LazySymmetricFunctions(tensor([s, m]))
-        Lazy Symmetric Functions over Integer Ring in the Schur basis # Symmetric Functions over Integer Ring in the monomial basis
+        sage: f = 1 / (1 - L(S[1]))
+        sage: f
+        S[] + S[1] + (S[1,1]) + (S[1,1,1]) + (S[1,1,1,1]) + (S[1,1,1,1,1]) + (S[1,1,1,1,1,1]) + O^7
+        sage: g = 1 / (1 - L(S[2]))
+        sage: g
+        S[] + S[2] + (S[2,2]) + (S[2,2,2]) + O^7
+        sage: f * g
+        S[] + S[1] + (S[1,1]+S[2]) + (S[1,1,1]+S[1,2])
+         + (S[1,1,1,1]+S[1,1,2]+S[2,2]) + (S[1,1,1,1,1]+S[1,1,1,2]+S[1,2,2])
+         + (S[1,1,1,1,1,1]+S[1,1,1,1,2]+S[1,1,2,2]+S[2,2,2]) + O^7
+        sage: g * f
+        S[] + S[1] + (S[1,1]+S[2]) + (S[1,1,1]+S[2,1])
+         + (S[1,1,1,1]+S[2,1,1]+S[2,2]) + (S[1,1,1,1,1]+S[2,1,1,1]+S[2,2,1])
+         + (S[1,1,1,1,1,1]+S[2,1,1,1,1]+S[2,2,1,1]+S[2,2,2]) + O^7
+        sage: f * g - g * f
+        (S[1,2]-S[2,1]) + (S[1,1,2]-S[2,1,1])
+         + (S[1,1,1,2]+S[1,2,2]-S[2,1,1,1]-S[2,2,1])
+         + (S[1,1,1,1,2]+S[1,1,2,2]-S[2,1,1,1,1]-S[2,2,1,1]) + O^7
     """
-    Element = LazySymmetricFunction
+    Element = LazyCompletionGradedAlgebraElement
 
     def __init__(self, basis, sparse=True, category=None):
         """
@@ -1533,7 +1561,11 @@ class LazySymmetricFunctions(LazySeriesRing):
         Parent.__init__(self, base=base_ring, category=category)
         self._sparse = sparse
         self._laurent_poly_ring = basis
-        self._internal_poly_ring = PolynomialRing(self._laurent_poly_ring, "DUMMY_VARIABLE")
+        if self._laurent_poly_ring not in Rings().Commutative():
+            from sage.algebras.free_algebra import FreeAlgebra
+            self._internal_poly_ring = FreeAlgebra(self._laurent_poly_ring, 1, "DUMMY_VARIABLE")
+        else:
+            self._internal_poly_ring = PolynomialRing(self._laurent_poly_ring, "DUMMY_VARIABLE")
 
     def _repr_(self):
         """
@@ -1543,9 +1575,9 @@ class LazySymmetricFunctions(LazySeriesRing):
 
             sage: s = SymmetricFunctions(GF(2)).s()
             sage: LazySymmetricFunctions(s)
-            Lazy Symmetric Functions over Finite Field of size 2 in the Schur basis
+            Lazy completion of Symmetric Functions over Finite Field of size 2 in the Schur basis
         """
-        return "Lazy {}".format(self._laurent_poly_ring)
+        return "Lazy completion of {}".format(self._laurent_poly_ring)
 
     def _latex_(self):
         r"""
@@ -1572,21 +1604,23 @@ class LazySymmetricFunctions(LazySeriesRing):
             sage: L = LazySymmetricFunctions(m)
             sage: L._monomial(s[2,1], 3)
             2*m[1, 1, 1] + m[2, 1]
-
         """
         L = self._laurent_poly_ring
         return L(c)
 
     def _element_constructor_(self, x=None, valuation=None, degree=None, check=True):
-        """
-        Construct a lazy symmetric function from ``x``.
+        r"""
+        Construct a lazy element in ``self`` from ``x``.
 
         INPUT:
 
-        - ``x`` -- data used to the define a symmetric function
-        - ``valuation`` -- integer (optional); integer; a lower bound for the valuation of the series
-        - ``degree`` -- (optional) the degree when the symmetric function has finite support
-        - ``check`` -- (optional) check that coefficients are homogeneous of the correct degree when they are retrieved
+        - ``x`` -- data used to the define a lazy element
+        - ``valuation`` -- integer (optional); integer; a lower bound for
+          the valuation of the series
+        - ``degree`` -- (optional) the degree when the lazy element
+          has finite support
+        - ``check`` -- (optional) check that coefficients are homogeneous of
+          the correct degree when they are retrieved
 
         EXAMPLES::
 
@@ -1640,24 +1674,22 @@ class LazySymmetricFunctions(LazySeriesRing):
             sage: L(lambda n: n)[3];
             Traceback (most recent call last):
             ...
-            ValueError: coefficient 3*h[] # e[] should be a symmetric function of homogeneous degree 3 but has degree 0
+            ValueError: coefficient 3*h[] # e[] should be an element of homogeneous degree 3 but has degree 0
 
             sage: L([1, 2, 3]);
             Traceback (most recent call last):
             ...
-            ValueError: coefficient 2*h[] # e[] should be a symmetric function of homogeneous degree 1 but has degree 0
+            ValueError: coefficient 2*h[] # e[] should be an element of homogeneous degree 1 but has degree 0
 
             sage: L(lambda n: n, degree=3);
             Traceback (most recent call last):
             ...
-            ValueError: coefficient h[] # e[] should be a symmetric function of homogeneous degree 1 but has degree 0
-
+            ValueError: coefficient h[] # e[] should be an element of homogeneous degree 1 but has degree 0
         """
         if valuation is None:
             valuation = 0
         if valuation < 0:
-            raise ValueError("the valuation of a lazy symmetric function must be nonnegative")
-
+            raise ValueError("the valuation of a lazy completion element must be nonnegative")
 
         R = self._laurent_poly_ring
         if x is None:
@@ -1680,10 +1712,14 @@ class LazySymmetricFunctions(LazySeriesRing):
                         p_dict[d] = p_dict.get(d, 0) + f
                 else:
                     for f in x.terms():
-                        d = sum(p.size() for p in f.support())
+                        try:
+                            d = f.degree()
+                        except (TypeError, ValueError, AttributeError):
+                            # FIXME: Fallback for symmetric functions in multiple variables
+                            d = sum(sum(mu.size() for mu in p) for p in f.support())
                         p_dict[d] = p_dict.get(d, 0) + f
-                v = min(p_dict.keys())
-                d = max(p_dict.keys())
+                v = min(p_dict)
+                d = max(p_dict)
                 p_list = [p_dict.get(i, 0) for i in range(v, d + 1)]
 
                 coeff_stream = Stream_exact(p_list, self._sparse,
@@ -1692,7 +1728,7 @@ class LazySymmetricFunctions(LazySeriesRing):
                                             degree=degree)
             return self.element_class(self, coeff_stream)
 
-        if isinstance(x, LazySymmetricFunction):
+        if isinstance(x, self.Element):
             if x._coeff_stream._is_sparse is self._sparse:
                 return self.element_class(self, x._coeff_stream)
             # TODO: Implement a way to make a self._sparse copy
@@ -1707,17 +1743,25 @@ class LazySymmetricFunctions(LazySeriesRing):
                     if d1 == d:
                         return
                 except ValueError:
-                    raise ValueError("coefficient %s should be a symmetric function of homogeneous degree %s" % (f, d))
-                raise ValueError("coefficient %s should be a symmetric function of homogeneous degree %s but has degree %s" % (f, d, d1))
+                    raise ValueError("coefficient %s should be an element of homogeneous degree %s" % (f, d))
+                raise ValueError("coefficient %s should be an element of homogeneous degree %s but has degree %s" % (f, d, d1))
         else:
             def check_homogeneous_of_degree(f, d):
                 if not f:
                     return
                 for m in f.monomials():
-                    for t in m.support():
-                        d1 = sum(p.size() for p in t)
-                        if d1 != d:
-                            raise ValueError("coefficient %s should be a symmetric function of homogeneous degree %s but has degree %s" % (f, d, d1))
+                    try:
+                        d1 = m.degree()
+                    except AttributeError:
+                        # FIXME: Fallback for symmetric functions in multiple variables
+                        for t in m.support():
+                            d1 = sum(p.size() for p in t)
+                            if d1 != d:
+                                raise ValueError("coefficient %s should be an element of homogeneous degree %s but has degree %s" % (f, d, d1))
+                    except (TypeError, ValueError):
+                        raise ValueError("coefficient %s is not homogeneous")
+                    if d1 != d:
+                        raise ValueError("coefficient %s should be an element of homogeneous degree %s but has degree %s" % (f, d, d1))
 
         if isinstance(x, (tuple, list)):
             if degree is None:
@@ -1751,7 +1795,7 @@ class LazySymmetricFunctions(LazySeriesRing):
             else:
                 coeff_stream = Stream_function(x, coeff_ring, self._sparse, valuation)
             return self.element_class(self, coeff_stream)
-        raise ValueError(f"unable to convert {x} into a lazy symmetric function")
+        raise ValueError(f"unable to convert {x} into a lazy completion element")
 
     def _an_element_(self):
         """
@@ -1767,6 +1811,32 @@ class LazySymmetricFunctions(LazySeriesRing):
         R = self._laurent_poly_ring
         coeff_stream = Stream_exact([R.one()], self._sparse, order=1, constant=0)
         return self.element_class(self, coeff_stream)
+
+
+######################################################################
+
+class LazySymmetricFunctions(LazyCompletionGradedAlgebra):
+    """
+    The ring of lazy symmetric functions.
+
+    INPUT:
+
+    - ``basis`` -- the ring of symmetric functions
+    - ``names`` -- name(s) of the alphabets
+    - ``sparse`` -- (default: ``True``) whether we use a sparse or a dense representation
+
+    EXAMPLES::
+
+        sage: s = SymmetricFunctions(ZZ).s()
+        sage: LazySymmetricFunctions(s)
+        Lazy completion of Symmetric Functions over Integer Ring in the Schur basis
+
+        sage: m = SymmetricFunctions(ZZ).m()
+        sage: LazySymmetricFunctions(tensor([s, m]))
+        Lazy completion of Symmetric Functions over Integer Ring in the Schur basis # Symmetric Functions over Integer Ring in the monomial basis
+    """
+    Element = LazySymmetricFunction
+
 
 ######################################################################
 

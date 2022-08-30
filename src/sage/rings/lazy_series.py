@@ -4804,7 +4804,7 @@ class LazySymmetricFunction(LazyCompletionGradedAlgebraElement):
         N[\varnothing] = \varnothing`, their arithmetic product is
         the species `M \boxdot N` of "`M`-assemblies of cloned
         `N`-structures".  This operation is defined and several
-        examples are given in [MM]_.
+        examples are given in [MM2008]_.
 
         The cycle index series for `M \boxdot N` can be computed in
         terms of the component series `Z_M` and `Z_N`, as implemented

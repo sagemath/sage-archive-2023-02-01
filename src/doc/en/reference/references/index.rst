@@ -95,7 +95,7 @@ REFERENCES:
              graphs and isoperimetric inequalities*, The Annals of Probability
              32 (2004), no.  3A, 1727-1745.
 
-.. [ASV2020] Federico Ardila, Mariel Supina, and Andrés R. Vindas-Meléndez, 
+.. [ASV2020] Federico Ardila, Mariel Supina, and Andrés R. Vindas-Meléndez,
          *The Equivariant Ehrhart Theory of the Permutahedron*,
          Proc. Amer. Math. Soc. Volume 148, Number 12, 2020, pp. 5091--5107.
 
@@ -4181,6 +4181,7 @@ REFERENCES:
 .. [MagmaHGM] *Hypergeometric motives* in Magma,
    http://magma.maths.usyd.edu.au/~watkins/papers/HGM-chapter.pdf
 
+
 .. [Mar1980] Jacques Martinet, Petits discriminants des corps de
              nombres, Journ. Arithm. 1980, Cambridge Univ. Press,
              1982, 151--193.
@@ -4355,6 +4356,11 @@ REFERENCES:
 .. [MM1998] Gunter Malle and Andrew Mathas.
             *Symmetric cyclotomic Hecke algebras* J. Algebra.
             **205** (1998) pp. 275-293.
+
+.. [MM2008] Manel Maia and Miguel Méndez.
+            On the arithmetic product of combinatorial species.
+            Discrete Mathematics (2008), Volume 308, Issue 23, pp. 5407-5427,
+            :arxiv:`math/0503436v2`.
 
 .. [MM2015] \J. Matherne and \G. Muller, *Computing upper cluster algebras*,
             Int. Math. Res. Not. IMRN, 2015, 3121-3149.
@@ -5415,7 +5421,7 @@ REFERENCES:
 .. [St1986] Richard Stanley. *Two poset polytopes*,
             Discrete Comput. Geom. (1986), :doi:`10.1007/BF02187680`
 
-.. [Stap2011] Alan Stapledon. *Equivariant Ehrhart Theory*. 
+.. [Stap2011] Alan Stapledon. *Equivariant Ehrhart Theory*.
               Advances in Mathematics 226 (2011), no. 4, 3622-3654
 
 .. [Sta1973] \H. M. Stark, Class-Numbers of Complex Quadratic

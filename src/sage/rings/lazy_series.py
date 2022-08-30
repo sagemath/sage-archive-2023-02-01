@@ -4800,13 +4800,13 @@ class LazySymmetricFunction(LazyCompletionGradedAlgebraElement):
         r"""
         Return the arithmetic product of ``self`` with ``g``.
 
-        For species `M` and `N` such that `M[\\varnothing] =
-        N[\\varnothing] = \\varnothing`, their arithmetic product is
-        the species `M \\boxdot N` of "`M`-assemblies of cloned
+        For species `M` and `N` such that `M[\varnothing] =
+        N[\varnothing] = \varnothing`, their arithmetic product is
+        the species `M \boxdot N` of "`M`-assemblies of cloned
         `N`-structures".  This operation is defined and several
         examples are given in [MM]_.
 
-        The cycle index series for `M \\boxdot N` can be computed in
+        The cycle index series for `M \boxdot N` can be computed in
         terms of the component series `Z_M` and `Z_N`, as implemented
         in this method.
 
@@ -4823,14 +4823,14 @@ class LazySymmetricFunction(LazyCompletionGradedAlgebraElement):
         cycle index series defined in terms of ``self`` and ``g``
         such that if ``self`` and ``g`` are the cycle index series of
         two species `M` and `N`, their arithmetic product is the
-        cycle index series of the species `M \\boxdot N`.
+        cycle index series of the species `M \boxdot N`.
 
         EXAMPLES:
 
         For `C` the species of (oriented) cycles and `L_{+}` the
-        species of nonempty linear orders, `C \\boxdot L_{+}`
+        species of nonempty linear orders, `C \boxdot L_{+}`
         corresponds to the species of "regular octopuses"; a `(C
-        \\boxdot L_{+})`-structure is a cycle of some length, each of
+        \boxdot L_{+})`-structure is a cycle of some length, each of
         whose elements is an ordered list of a length which is
         consistent for all the lists in the structure. ::
 
@@ -4850,10 +4850,10 @@ class LazySymmetricFunction(LazyCompletionGradedAlgebraElement):
             sage: [R[n].coefficient([1]*n) for n in range(8)]
             [0, 1, 3, 8, 42, 144, 1440, 5760]
 
-        It is shown in [MM]_ that the exponential generating function
-        for regular octopuses satisfies `(C \\boxdot L_{+}) (x) =
-        \\sum_{n \geq 1} \\sigma (n) (n - 1)! \\frac{x^{n}}{n!}`
-        (where `\\sigma (n)` is the sum of the divisors of `n`). ::
+        It is shown in [MM2008]_ that the exponential generating function
+        for regular octopuses satisfies `(C \boxdot L_{+}) (x) =
+        \sum_{n \geq 1} \sigma (n) (n - 1)! \frac{x^{n}}{n!}`
+        (where `\sigma (n)` is the sum of the divisors of `n`). ::
 
             sage: [sum(divisors(i))*factorial(i-1) for i in range(1,8)]
             [1, 3, 8, 42, 144, 1440, 5760]
@@ -4864,9 +4864,7 @@ class LazySymmetricFunction(LazyCompletionGradedAlgebraElement):
 
         REFERENCES:
 
-        .. [MM] \M. Maia and M. Mendez. "On the arithmetic product of combinatorial species".
-           Discrete Mathematics, vol. 308, issue 23, 2008, pp. 5407-5427.
-           :arxiv:`math/0503436v2`.
+        - [MM2008]_
 
         """
         from itertools import product, repeat, chain
@@ -4891,27 +4889,35 @@ class LazySymmetricFunction(LazyCompletionGradedAlgebraElement):
                 assert not f[0]
                 assert not g[0]
 
-            # We first define an operation `\\boxtimes` on partitions as in Lemma 2.1 of [MM]_.
+            # We first define an operation `\boxtimes` on partitions
+            # as in Lemma 2.1 of [MM2008]_.
             def arith_prod_of_partitions(l1, l2):
-                # Given two partitions `l_1` and `l_2`, we construct a new partition `l_1 \\boxtimes l_2` by
-                # the following procedure: each pair of parts `a \\in l_1` and `b \\in l_2` contributes
-                # `\\gcd (a, b)`` parts of size `\\lcm (a, b)` to `l_1 \\boxtimes l_2`. If `l_1` and `l_2`
-                # are partitions of integers `n` and `m`, respectively, then `l_1 \\boxtimes l_2` is a
-                # partition of `nm`.  Finally, we return the corresponding powersum symmetric function.
+                # Given two partitions `l_1` and `l_2`, we construct
+                # a new partition `l_1 \boxtimes l_2` by the
+                # following procedure: each pair of parts `a \in l_1`
+                # and `b \in l_2` contributes `\gcd (a, b)`` parts of
+                # size `\lcm (a, b)` to `l_1 \boxtimes l_2`. If `l_1`
+                # and `l_2` are partitions of integers `n` and `m`,
+                # respectively, then `l_1 \boxtimes l_2` is a
+                # partition of `nm`.  Finally, we return the
+                # corresponding powersum symmetric function.
                 term_iterable = chain.from_iterable(repeat(lcm(pair), gcd(pair))
                                                     for pair in product(l1, l2))
                 return p(Partition(sorted(term_iterable, reverse=True)))
 
-            # We then extend this to an operation on symmetric functions as per eq. (52) of [MM]_.
-            # (Maia and Mendez, in [MM]_, are talking about polynomials instead of symmetric
-            # functions, but this boils down to the same: Their x_i corresponds to the i-th power
-            # sum symmetric function.)
+            # We then extend this to an operation on symmetric
+            # functions as per eq. (52) of [MM]_.  (Maia and Mendez,
+            # in [MM]_, are talking about polynomials instead of
+            # symmetric functions, but this boils down to the same:
+            # Their x_i corresponds to the i-th power sum symmetric
+            # function.)
             def arith_prod_sf(x, y):
                 return p._apply_multi_module_morphism(x, y, arith_prod_of_partitions)
 
-            # Sage stores cycle index series by degree.
-            # Thus, to compute the arithmetic product `Z_M \\boxdot Z_N` it is useful
-            # to compute all terms of a given degree `n` at once.
+            # Sage stores cycle index series by degree.  Thus, to
+            # compute the arithmetic product `Z_M \boxdot Z_N` it is
+            # useful to compute all terms of a given degree `n` at
+            # once.
             def coefficient(n):
                 if n == 0:
                     res = p.zero()

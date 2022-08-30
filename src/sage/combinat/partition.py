@@ -4752,23 +4752,82 @@ class Partition(CombinatorialElement):
             res.append(_Partitions(tmp))
         return res
 
+    def vertical_border_strip_cells(self, k):
+        """
+        Return a list of all the vertical border strips of length ``k``
+        which can be added to ``self``, where each horizontal border strip is
+        a ``generator`` of cells.
+
+        EXAMPLES::
+
+            sage: list(Partition([]).vertical_border_strip_cells(0))
+            []
+            sage: list(Partition([3,2,1]).vertical_border_strip_cells(0))
+            []
+            sage: list(Partition([]).vertical_border_strip_cells(2))
+            [[(0, 0), (1, 0)]]
+            sage: list(Partition([2,2]).vertical_border_strip_cells(2))
+            [[(0, 2), (1, 2)], 
+             [(0, 2), (2, 0)],
+             [(2, 0), (3, 0)]]
+            sage: list(Partition([3,2,2]).vertical_border_strip_cells(2))
+            [[(0, 3), (1, 2)],
+             [(0, 3), (3, 0)],
+             [(1, 2), (2, 2)],
+             [(1, 2), (3, 0)],
+             [(3, 0), (4, 0)]]
+        """
+        if k == 0:
+            return []
+
+        shelf = []
+        res = []
+        i = 0
+        ell = len(self._list)
+        while i < ell:
+            tmp = 1
+            while i+1 < ell and self._list[i] == self._list[i+1]:
+                tmp += 1
+                i += 1
+            if i == ell-1 and i > 0 and self._list[i] != self._list[i-1]:
+                tmp = 1
+            shelf.append(tmp)
+            i += 1
+
+        # added the last shelf on the right side of
+        # the first line
+        shelf.append(k)
+        # list all of the positions for cells
+        tmp = self._list + [0]*k
+        for iv in IntegerListsBackend_invlex(k, length=len(shelf),
+                                             ceiling=shelf,
+                                             check=False)._iter():
+            j = 0
+            current_strip = []
+            for t in range(len(iv)):
+                for _ in range(iv[t]):
+                    current_strip.append((j, tmp[j]))
+                    j += 1
+                j = sum(shelf[:t+1])    
+            yield current_strip
+
     def horizontal_border_strip_cells(self, k):
         """
         Return a list of all the horizontal border strips of length ``k``
         which can be added to ``self``, where each horizontal border strip is
-        represented as a list of cells.
+        a ``generator`` of cells.
 
         EXAMPLES::
 
-            sage: Partition([]).horizontal_border_strip_cells(0)
+            sage: list(Partition([]).horizontal_border_strip_cells(0))
             []
-            sage: Partition([3,2,1]).horizontal_border_strip_cells(0)
+            sage: list(Partition([3,2,1]).horizontal_border_strip_cells(0))
             []
-            sage: Partition([]).horizontal_border_strip_cells(2)
+            sage: list(Partition([]).horizontal_border_strip_cells(2))
             [[(0, 0), (0, 1)]]
-            sage: Partition([2,2]).horizontal_border_strip_cells(2)
+            sage: list(Partition([2,2]).horizontal_border_strip_cells(2))
             [[(0, 2), (0, 3)], [(0, 2), (2, 0)], [(2, 0), (2, 1)]]
-            sage: Partition([3,2,2]).horizontal_border_strip_cells(2)
+            sage: list(Partition([3,2,2]).horizontal_border_strip_cells(2))
             [[(0, 3), (0, 4)],
              [(0, 3), (1, 2)],
              [(0, 3), (3, 0)],
@@ -4802,66 +4861,7 @@ class Partition(CombinatorialElement):
             # mapping[i] is the row index, val is the number of cells added to the row.
             for i, val in enumerate(iv):
                 tmp.extend((mapping[i], L[mapping[i]] + j) for j in range(val))
-            res.append(tmp)
-        return res
-
-    def vertical_border_strip_cells(self, k):
-        """
-        Return a list of all the vertical border strips of length ``k``
-        which can be added to ``self``, where each horizontal border strip is
-        represented as a list of cells.
-
-        EXAMPLES::
-
-            sage: Partition([]).vertical_border_strip_cells(0)
-            []
-            sage: Partition([3,2,1]).vertical_border_strip_cells(0)
-            []
-            sage: Partition([]).vertical_border_strip_cells(2)
-            [[(0, 0), (1, 0)]]
-            sage: Partition([2,2]).vertical_border_strip_cells(2)
-            [[(0, 2), (1, 2)], 
-             [(0, 2), (2, 0)],
-             [(2, 0), (3, 0)]]
-            sage: Partition([3,2,2]).vertical_border_strip_cells(2)
-            [[(0, 3), (1, 2)],
-             [(0, 3), (3, 0)],
-             [(1, 2), (2, 2)],
-             [(1, 2), (3, 0)],
-             [(3, 0), (4, 0)]]
-        """
-        if k == 0:
-            return []
-
-        shelf = []
-        res = []
-        i = 0
-        ell = len(self._list)
-        while i < ell:
-            tmp = 1
-            while i+1 < ell and self._list[i] == self._list[i+1]:
-                tmp += 1
-                i += 1
-            if i == ell-1 and i > 0 and self._list[i] != self._list[i-1]:
-                tmp = 1
-            shelf.append(tmp)
-            i += 1
-
-        # added the last shelf on the right side of
-        # the first line
-        shelf.append(k)
-        # list all of the positions for cells
-        for iv in IntegerListsBackend_invlex(k, length=len(shelf), ceiling=shelf, check=False)._iter():
-            tmp = self._list + [0]*k
-            j = 0
-            current_strip = []
-            for t in range(len(iv)):
-                for _ in range(iv[t]):
-                    current_strip.append((j, tmp[j]))
-                    j += 1
-                j = sum(shelf[:t+1])    
-            res.append(current_strip)
-        return res
+            yield tmp
 
     def remove_horizontal_border_strip(self, k):
         """

@@ -99,6 +99,9 @@ from sage.rings.infinity import infinity
 from sage.arith.misc import divisors
 from sage.misc.misc_c import prod
 from sage.combinat.integer_vector_weighted import iterator_fast as wt_int_vec_iter
+from sage.combinat.sf.sfa import _variables_recursive, _raise_variables
+from sage.categories.hopf_algebras_with_basis import HopfAlgebrasWithBasis
+
 
 class Stream():
     """
@@ -480,7 +483,7 @@ class Stream_inexact(Stream):
             for i in self._cache:
                 if i in other._cache and other._cache[i] != self._cache[i]:
                     return True
-        else: # they are dense
+        else:  # they are dense
             # Make ``self`` have the smaller approximate order.
             if self._approximate_order > other._approximate_order:
                 self, other = other, self
@@ -499,6 +502,7 @@ class Stream_inexact(Stream):
                     return True
 
         return False
+
 
 class Stream_exact(Stream):
     r"""
@@ -542,7 +546,8 @@ class Stream_exact(Stream):
 
         # We do not insist that the last entry of
         # initial_coefficients is different from constant in case
-        # comparisons can be expensive such as in the symbolic ring
+        # comparisons can be expensive such as in the symbolic ring,
+        # but we remove zeros
         for i, v in enumerate(initial_coefficients):
             if v:
                 order += i
@@ -1458,7 +1463,7 @@ class Stream_dirichlet_convolve(Stream_binary):
     """
     def __init__(self, left, right):
         """
-        Initalize ``self``.
+        Initialize ``self``.
 
             sage: from sage.data_structures.stream import (Stream_dirichlet_convolve, Stream_function, Stream_exact)
             sage: f = Stream_function(lambda n: n, ZZ, True, 1)
@@ -1667,7 +1672,8 @@ class Stream_plethysm(Stream_binary):
     INPUT:
 
     - ``f`` -- a :class:`Stream`
-    - ``g`` -- a :class:`Stream` with positive order
+    - ``g`` -- a :class:`Stream` with positive order, unless ``f`` is
+      of :class:`Stream_exact`.
     - ``p`` -- the powersum symmetric functions
     - ``ring`` (optional, default ``None``) -- the ring the result
       should be in, by default ``p``
@@ -1698,12 +1704,20 @@ class Stream_plethysm(Stream_binary):
          s[1, 1, 1] + s[2, 1] + 2*s[3],
          s[1, 1, 1, 1] + s[2, 1, 1] + 3*s[3, 1] + 2*s[4]]
 
+    This class also handles the plethysm of an exact stream with a
+    stream of order `0`::
+
+        sage: from sage.data_structures.stream import Stream_exact
+        sage: f = Stream_exact([s[1]], True, order=1)
+        sage: g = Stream_function(lambda n: s[n], s, True, 0)
+        sage: r = Stream_plethysm(f, g, p, s)
+        sage: [r[n] for n in range(3)]
+        [s[], s[1], s[2]]
+
     TESTS:
 
     Check corner cases::
 
-        sage: from sage.data_structures.stream import Stream_exact
-        sage: p = SymmetricFunctions(QQ).p()
         sage: f0 = Stream_exact([p([])], True)
         sage: f1 = Stream_exact([p[1]], True, order=1)
         sage: f2 = Stream_exact([p[2]], True, order=2 )
@@ -1748,37 +1762,27 @@ class Stream_plethysm(Stream_binary):
             sage: g = Stream_function(lambda n: s[n-1,1], s, True, 2)
             sage: h = Stream_plethysm(f, g, p)
         """
-        # handle degree one elements
-        if include is not None and exclude is not None:
-            raise RuntimeError("include and exclude cannot both be specified")
-        R = p.base_ring()
-
-        if include is not None:
-            degree_one = [R(g) for g in include]
-        else:
-            try:
-                degree_one = [R(g) for g in R.variable_names_recursive()]
-            except AttributeError:
-                try:
-                    degree_one = R.gens()
-                except NotImplementedError:
-                    degree_one = []
-            if exclude is not None:
-                degree_one = [g for g in degree_one if g not in exclude]
-
-        self._degree_one = [g for g in degree_one if g != R.one()]
-
         # assert g._approximate_order > 0
         val = f._approximate_order * g._approximate_order
-        p_f = Stream_map_coefficients(f, lambda x: x, p)
-        p_g = Stream_map_coefficients(g, lambda x: x, p)
-        self._powers = [p_g] # a cache for the powers of p_g
         if ring is None:
             self._basis = p
         else:
             self._basis = ring
         self._p = p
-
+        p_g = Stream_map_coefficients(g, lambda x: x, p)
+        self._powers = [p_g]  # a cache for the powers of p_g
+        R = self._basis.base_ring()
+        if HopfAlgebrasWithBasis(R).TensorProducts() in p.categories():
+            self._tensor_power = len(p._sets)
+            p_f = Stream_map_coefficients(f, lambda x: x, p._sets[0])
+        else:
+            self._tensor_power = None
+            p_f = Stream_map_coefficients(f, lambda x: x, p)
+        if isinstance(f, Stream_exact) and not f._constant:
+            self._degree_f = f._degree
+        else:
+            self._degree_f = None
+        self._degree_one = _variables_recursive(R, include=include, exclude=exclude)
         super().__init__(p_f, p_g, f._is_sparse, val)
 
     def get_coefficient(self, n):
@@ -1807,71 +1811,122 @@ class Stream_plethysm(Stream_binary):
              3*s[1, 1, 1, 1] + 2*s[2, 1, 1] + s[2, 2] + s[3, 1] + s[4],
              4*s[1, 1, 1, 1, 1] + 4*s[2, 1, 1, 1] + 2*s[2, 2, 1] + 2*s[3, 1, 1] + s[3, 2] + s[4, 1] + s[5]]
         """
-        if not n: # special case of 0
-            return self._left[0]
+        if not n:  # special case of 0
+            if self._right[0]:
+                assert self._degree_f is not None, "the plethysm with a lazy symmetric function of valuation 0 is defined only for symmetric functions of finite support"
 
-        return sum((c * self._compute_product(n, la)
+                return sum((c * self.compute_product(n, la)
+                            for k in range(self._left._approximate_order, self._degree_f)
+                            for la, c in self._left[k]),
+                           self._basis.zero())
+
+        return sum((c * self.compute_product(n, la)
                     for k in range(self._left._approximate_order, n+1)
                     for la, c in self._left[k]),
                    self._basis.zero())
 
-    def _compute_product(self, n, la):
-        """
+    def compute_product(self, n, la):
+        r"""
         Compute the product ``c * p[la](self._right)`` in degree ``n``.
 
         EXAMPLES::
 
-            sage: from sage.data_structures.stream import Stream_plethysm, Stream_exact, Stream_function
+            sage: from sage.data_structures.stream import Stream_plethysm, Stream_exact, Stream_function, Stream_zero
             sage: s = SymmetricFunctions(QQ).s()
             sage: p = SymmetricFunctions(QQ).p()
-            sage: f = Stream_function(lambda n: s[n], s, True, 1)
+            sage: f = Stream_zero(True) # irrelevant for this test
             sage: g = Stream_exact([s[2], s[3]], False, 0, 4, 2)
             sage: h = Stream_plethysm(f, g, p)
-            sage: ret = h._compute_product(7, Partition([2, 1])); ret
+            sage: A = h._compute_product(7, Partition([2, 1])); A
             1/12*p[2, 2, 1, 1, 1] + 1/4*p[2, 2, 2, 1] + 1/6*p[3, 2, 2]
              + 1/12*p[4, 1, 1, 1] + 1/4*p[4, 2, 1] + 1/6*p[4, 3]
-            sage: ret == p[2,1](s[2] + s[3]).homogeneous_component(7)
+            sage: A == p[2, 1](s[2] + s[3]).homogeneous_component(7)
+            True
+
+            sage: p2 = tensor([p, p])
+            sage: f = Stream_zero(True) # irrelevant for this test
+            sage: g = Stream_function(lambda n: sum(tensor([p[k], p[n-k]]) for k in range(n+1)), p2, True, 1)
+            sage: h = Stream_plethysm(f, g, p2)
+            sage: A = h._compute_product(7, Partition([2, 1]))
+            sage: B = p[2, 1](sum(g[n] for n in range(7)))
+            sage: B = p2.element_class(p2, {m: c for m, c in B if sum(mu.size() for mu in m) == 7})
+            sage: A == B
+            True
+
+            sage: f = Stream_zero(True) # irrelevant for this test
+            sage: g = Stream_function(lambda n: s[n], p, True, 0)
+            sage: h = Stream_plethysm(f, g, p)
+            sage: B = p[2, 2, 1](sum(s[i] for i in range(7)))
+            sage: all(h._compute_product(k, Partition([2, 2, 1])) == B.restrict_degree(k) for k in range(7))
             True
         """
+        # This is the approximate order of the result
+        rao = self._right._approximate_order
+        ret_approx_order = rao * sum(la)
         ret = self._basis.zero()
+        if n < ret_approx_order:
+            return ret
+
         la_exp = la.to_exp()
         wgt = [i for i, m in enumerate(la_exp, 1) if m]
         exp = [m for m in la_exp if m]
-        for k in wt_int_vec_iter(n, wgt):
+        # the docstring of wt_int_vec_iter, i.e., iterator_fast,
+        # states that the weights should be weakly decreasing
+        wgt.reverse()
+        exp.reverse()
+        for k in wt_int_vec_iter(n - ret_approx_order, wgt):
             # TODO: it may make a big difference here if the
-            # approximate order would be updated
-            if any(d < self._right._approximate_order * m
-                   for m, d in zip(exp, k)):
-                continue
-            temp = self._basis.one()
-            for i, m, d in zip(wgt, exp, k):
-                temp *= self._stretched_power_restrict_degree(i, m, d)
-            ret += temp
+            #   approximate order would be updated.
+            # The test below is based on not removing the fixed block
+            #if any(d < self._right._approximate_order * m
+            #       for m, d in zip(exp, k)):
+            #    continue
+            ret += prod(self.stretched_power_restrict_degree(i, m, rao * m + d)
+                        for i, m, d in zip(wgt, exp, k))
         return ret
 
-    def _scale_part(self, mu, i):
-        return mu.__class__(mu.parent(), [j * i for j in mu])
-
-    def _raise_c(self, c, i):
-        return c.subs(**{str(g): g ** i
-                         for g in self._degree_one})
-
-    def _stretched_power_restrict_degree(self, i, m, d):
-        """
+    def stretched_power_restrict_degree(self, i, m, d):
+        r"""
         Return the degree ``d*i`` part of ``p([i]*m)(g)``.
+
+        EXAMPLES::
+
+            sage: from sage.data_structures.stream import Stream_plethysm, Stream_exact, Stream_function, Stream_zero
+            sage: s = SymmetricFunctions(QQ).s()
+            sage: p = SymmetricFunctions(QQ).p()
+            sage: f = Stream_zero(False) # irrelevant for this test
+            sage: g = Stream_exact([s[2], s[3]], False, 0, 4, 2)
+            sage: h = Stream_plethysm(f, g, p)
+            sage: A = h._stretched_power_restrict_degree(2, 3, 6)
+            sage: A == p[2,2,2](s[2] + s[3]).homogeneous_component(12)
+            True
+
+            sage: p2 = tensor([p, p])
+            sage: f = Stream_zero(True) # irrelevant for this test
+            sage: g = Stream_function(lambda n: sum(tensor([p[k], p[n-k]]) for k in range(n+1)), p2, True, 1)
+            sage: h = Stream_plethysm(f, g, p2)
+            sage: A = h._stretched_power_restrict_degree(2, 3, 6)
+            sage: B = p[2,2,2](sum(g[n] for n in range(7)))
+            sage: B = p2.element_class(p2, {m: c for m, c in B if sum(mu.size() for mu in m) == 12})
+            sage: A == B
+            True
         """
         while len(self._powers) < m:
             self._powers.append(Stream_cauchy_mul(self._powers[-1], self._powers[0]))
-        power = self._powers[m-1]
-
-        # we have to check power[d] for zero because it might be an
+        power_d = self._powers[m-1][d]
+        # we have to check power_d for zero because it might be an
         # integer and not a symmetric function
-        if power[d]:
-            terms = [(self._scale_part(m, i), self._raise_c(c, i)) for m, c in power[d]]
-        else:
-            terms = []
+        if power_d:
+            if self._tensor_power is None:
+                terms = {mon.stretch(i): raised_c for mon, c in power_d
+                         if (raised_c := _raise_variables(c, i, self._degree_one))}
+            else:
+                terms = {tuple((mu.stretch(i) for mu in mon)): raised_c
+                         for mon, c in power_d
+                         if (raised_c := _raise_variables(c, i, self._degree_one))}
+            return self._p.element_class(self._p, terms)
 
-        return self._p.sum_of_terms(terms, distinct = True)
+        return self._p.zero()
 
 
 #####################################################################
@@ -2112,6 +2167,7 @@ class Stream_neg(Stream_unary):
         """
         return self._series.is_nonzero()
 
+
 class Stream_cauchy_invert(Stream_unary):
     """
     Operator for multiplicative inverse of the stream.
@@ -2221,6 +2277,7 @@ class Stream_cauchy_invert(Stream_unary):
         """
         return True
 
+
 class Stream_map_coefficients(Stream_inexact):
     r"""
     The stream with ``function`` applied to each nonzero
@@ -2328,6 +2385,7 @@ class Stream_map_coefficients(Stream_inexact):
         """
         return (isinstance(other, type(self)) and self._series == other._series
                 and self._ring == other._ring and self._function == other._function)
+
 
 class Stream_shift(Stream_inexact):
     """

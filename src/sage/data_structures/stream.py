@@ -1837,7 +1837,7 @@ class Stream_plethysm(Stream_binary):
             sage: f = Stream_zero(True) # irrelevant for this test
             sage: g = Stream_exact([s[2], s[3]], False, 0, 4, 2)
             sage: h = Stream_plethysm(f, g, p)
-            sage: A = h._compute_product(7, Partition([2, 1])); A
+            sage: A = h.compute_product(7, Partition([2, 1])); A
             1/12*p[2, 2, 1, 1, 1] + 1/4*p[2, 2, 2, 1] + 1/6*p[3, 2, 2]
              + 1/12*p[4, 1, 1, 1] + 1/4*p[4, 2, 1] + 1/6*p[4, 3]
             sage: A == p[2, 1](s[2] + s[3]).homogeneous_component(7)
@@ -1847,7 +1847,7 @@ class Stream_plethysm(Stream_binary):
             sage: f = Stream_zero(True) # irrelevant for this test
             sage: g = Stream_function(lambda n: sum(tensor([p[k], p[n-k]]) for k in range(n+1)), p2, True, 1)
             sage: h = Stream_plethysm(f, g, p2)
-            sage: A = h._compute_product(7, Partition([2, 1]))
+            sage: A = h.compute_product(7, Partition([2, 1]))
             sage: B = p[2, 1](sum(g[n] for n in range(7)))
             sage: B = p2.element_class(p2, {m: c for m, c in B if sum(mu.size() for mu in m) == 7})
             sage: A == B
@@ -1857,7 +1857,7 @@ class Stream_plethysm(Stream_binary):
             sage: g = Stream_function(lambda n: s[n], p, True, 0)
             sage: h = Stream_plethysm(f, g, p)
             sage: B = p[2, 2, 1](sum(s[i] for i in range(7)))
-            sage: all(h._compute_product(k, Partition([2, 2, 1])) == B.restrict_degree(k) for k in range(7))
+            sage: all(h.compute_product(k, Partition([2, 2, 1])) == B.restrict_degree(k) for k in range(7))
             True
         """
         # This is the approximate order of the result
@@ -1897,7 +1897,7 @@ class Stream_plethysm(Stream_binary):
             sage: f = Stream_zero(False) # irrelevant for this test
             sage: g = Stream_exact([s[2], s[3]], False, 0, 4, 2)
             sage: h = Stream_plethysm(f, g, p)
-            sage: A = h._stretched_power_restrict_degree(2, 3, 6)
+            sage: A = h.stretched_power_restrict_degree(2, 3, 6)
             sage: A == p[2,2,2](s[2] + s[3]).homogeneous_component(12)
             True
 
@@ -1905,7 +1905,7 @@ class Stream_plethysm(Stream_binary):
             sage: f = Stream_zero(True) # irrelevant for this test
             sage: g = Stream_function(lambda n: sum(tensor([p[k], p[n-k]]) for k in range(n+1)), p2, True, 1)
             sage: h = Stream_plethysm(f, g, p2)
-            sage: A = h._stretched_power_restrict_degree(2, 3, 6)
+            sage: A = h.stretched_power_restrict_degree(2, 3, 6)
             sage: B = p[2,2,2](sum(g[n] for n in range(7)))
             sage: B = p2.element_class(p2, {m: c for m, c in B if sum(mu.size() for mu in m) == 12})
             sage: A == B

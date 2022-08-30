@@ -1023,6 +1023,40 @@ class Components(SageObject):
             for i in range(si, nsi):
                 self._set_value_list(ind + [i], format_type, val[i-si])
 
+    def items(self):
+        r"""
+        Return an iterable of ``(indices, value)`` elements.
+
+        This may (but is not guaranteed to) suppress zero values.
+
+        EXAMPLES::
+
+            sage: from sage.tensor.modules.comp import Components, CompWithSym
+
+            sage: c = Components(ZZ, (ZZ^2).basis(), 3)
+            sage: c[0,1,0], c[1,0,1], c[1,1,1] = -2, 5, 3
+            sage: list(c.items())
+            [((0, 1, 0), -2), ((1, 0, 1), 5), ((1, 1, 1), 3)]
+
+            sage: c = CompWithSym(ZZ, (ZZ^2).basis(), 3, sym=((1, 2)))
+            sage: c[0,1,0], c[1,0,1], c[1,1,1] = -2, 5, 3
+            sage: list(c.items())
+            [((0, 0, 1), -2),
+            ((0, 1, 0), -2),
+            ((1, 0, 1), 5),
+            ((1, 1, 0), 5),
+            ((1, 1, 1), 3)]
+
+        """
+        for ind in self.index_generator():
+            val = self[ind]
+            if hasattr(val, 'is_trivial_zero'):
+                zero_value = val.is_trivial_zero()
+            else:
+                zero_value = val == 0
+            if not zero_value:
+                yield ind, val
+
     def display(self, symbol, latex_symbol=None, index_positions=None,
                 index_labels=None, index_latex_labels=None,
                 format_spec=None, only_nonzero=True, only_nonredundant=False):

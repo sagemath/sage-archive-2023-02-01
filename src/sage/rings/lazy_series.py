@@ -4222,8 +4222,7 @@ class LazySymmetricFunction(LazyCompletionGradedAlgebraElement):
             True
             sage: f = 1 / (1 - S(s[2]))
             sage: g = S(s[1]) / (1 - S(s[1]))
-            sage: h = f(g)
-            sage: h
+            sage: f(g)
             s[] + s[2] + (s[1,1,1]+2*s[2,1]+s[3])
              + (2*s[1,1,1,1]+4*s[2,1,1]+5*s[2,2]+5*s[3,1]+3*s[4])
              + (2*s[1,1,1,1,1]+10*s[2,1,1,1]+14*s[2,2,1]+18*s[3,1,1]+16*s[3,2]+14*s[4,1]+4*s[5])
@@ -4261,12 +4260,6 @@ class LazySymmetricFunction(LazyCompletionGradedAlgebraElement):
         if len(g) != fP._arity:
             raise ValueError("arity must be equal to the number of arguments provided")
 
-        # we actually do not need this
-        from sage.combinat.sf.sfa import is_SymmetricFunction
-        # if not all(isinstance(h, LazySymmetricFunction)
-        #            or is_SymmetricFunction(h) or not h for h in g):
-        #     raise ValueError("all arguments must be (possibly lazy) symmetric functions")
-
         # Find a good parent for the result
         from sage.structure.element import get_coercion_model
         cm = get_coercion_model()
@@ -4291,12 +4284,14 @@ class LazySymmetricFunction(LazyCompletionGradedAlgebraElement):
             g = g[0]
             if (isinstance(self._coeff_stream, Stream_exact)
                 and not self._coeff_stream._constant):
-                f = self.symmetric_function()
+
                 if not isinstance(g, LazySymmetricFunction):
+                    f = self.symmetric_function()
                     return f(g)
-                # g must be a LazySymmetricFunction
+
                 if (isinstance(g._coeff_stream, Stream_exact)
                     and not g._coeff_stream._constant):
+                    f = self.symmetric_function()
                     gs = g.symmetric_function()
                     return P(f(gs))
 
@@ -4308,8 +4303,8 @@ class LazySymmetricFunction(LazyCompletionGradedAlgebraElement):
                 P = LazySymmetricFunctions(R)
                 g = P(g)
 
-            # self has (potentially) infinitely many terms
-            if check:
+            if check and not (isinstance(self._coeff_stream, Stream_exact)
+                              and not self._coeff_stream._constant):
                 if g._coeff_stream._approximate_order == 0:
                     if g[0]:
                         raise ValueError("can only compose with a positive valuation series")

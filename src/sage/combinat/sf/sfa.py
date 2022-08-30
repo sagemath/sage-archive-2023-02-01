@@ -3073,6 +3073,31 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             sage: sum(s[mu](X)*s[mu.conjugate()](Y) for mu in P5) == sum(m[mu](X)*e[mu](Y) for mu in P5)
             True
 
+        Sage can also do the plethysm with an element in the completion::
+
+            sage: L = LazySymmetricFunctions(s)
+            sage: f = s[2,1]
+            sage: g = L(s[1]) / (1 - L(s[1])); g
+            s[1] + (s[1,1]+s[2]) + (s[1,1,1]+2*s[2,1]+s[3])
+             + (s[1,1,1,1]+3*s[2,1,1]+2*s[2,2]+3*s[3,1]+s[4])
+             + (s[1,1,1,1,1]+4*s[2,1,1,1]+5*s[2,2,1]+6*s[3,1,1]+5*s[3,2]+4*s[4,1]+s[5])
+             + ... + O^8
+            sage: fog = f(g)
+            sage: fog[:8]
+            [s[2, 1],
+             s[1, 1, 1, 1] + 3*s[2, 1, 1] + 2*s[2, 2] + 3*s[3, 1] + s[4],
+             2*s[1, 1, 1, 1, 1] + 8*s[2, 1, 1, 1] + 10*s[2, 2, 1]
+             + 12*s[3, 1, 1] + 10*s[3, 2] + 8*s[4, 1] + 2*s[5],
+             3*s[1, 1, 1, 1, 1, 1] + 17*s[2, 1, 1, 1, 1] + 30*s[2, 2, 1, 1]
+             + 16*s[2, 2, 2] + 33*s[3, 1, 1, 1] + 54*s[3, 2, 1] + 16*s[3, 3]
+             + 33*s[4, 1, 1] + 30*s[4, 2] + 17*s[5, 1] + 3*s[6],
+             5*s[1, 1, 1, 1, 1, 1, 1] + 30*s[2, 1, 1, 1, 1, 1] + 70*s[2, 2, 1, 1, 1]
+             + 70*s[2, 2, 2, 1] + 75*s[3, 1, 1, 1, 1] + 175*s[3, 2, 1, 1]
+             + 105*s[3, 2, 2] + 105*s[3, 3, 1] + 100*s[4, 1, 1, 1] + 175*s[4, 2, 1]
+             + 70*s[4, 3] + 75*s[5, 1, 1] + 70*s[5, 2] + 30*s[6, 1] + 5*s[7]]
+            sage: parent(fog)
+            Lazy completion of Symmetric Functions over Rational Field in the Schur basis
+
         .. SEEALSO::
 
             :meth:`frobenius`
@@ -3089,41 +3114,59 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             sage: f = a1*p[1] + a2*p[2] + a11*p[1,1]
             sage: g = b1*p[1] + b21*p[2,1] + b111*p[1,1,1]
             sage: r = f(g); r
-            a1*b1*p[1] + a11*b1^2*p[1, 1] + a1*b111*p[1, 1, 1] + 2*a11*b1*b111*p[1, 1, 1, 1] + a11*b111^2*p[1, 1, 1, 1, 1, 1] + a2*b1^2*p[2] + a1*b21*p[2, 1] + 2*a11*b1*b21*p[2, 1, 1] + 2*a11*b21*b111*p[2, 1, 1, 1, 1] + a11*b21^2*p[2, 2, 1, 1] + a2*b111^2*p[2, 2, 2] + a2*b21^2*p[4, 2]
+            a1*b1*p[1] + a11*b1^2*p[1, 1] + a1*b111*p[1, 1, 1]
+             + 2*a11*b1*b111*p[1, 1, 1, 1] + a11*b111^2*p[1, 1, 1, 1, 1, 1]
+             + a2*b1^2*p[2] + a1*b21*p[2, 1] + 2*a11*b1*b21*p[2, 1, 1]
+             + 2*a11*b21*b111*p[2, 1, 1, 1, 1] + a11*b21^2*p[2, 2, 1, 1]
+             + a2*b111^2*p[2, 2, 2] + a2*b21^2*p[4, 2]
             sage: r - f(g, include=[])
             (a2*b1^2-a2*b1)*p[2] + (a2*b111^2-a2*b111)*p[2, 2, 2] + (a2*b21^2-a2*b21)*p[4, 2]
 
         Check that we can compute the plethysm with a constant::
 
             sage: p[2,2,1](2)
-            8
+            8*p[]
 
             sage: p[2,2,1](a1)
-            a1^5
+            a1^5*p[]
 
         .. TODO::
 
             The implementation of plethysm in
             :class:`sage.data_structures.stream.Stream_plethysm` seems
             to be faster.  This should be investigated.
-
         """
         parent = self.parent()
+        if not self:
+            return self
+
         R = parent.base_ring()
         tHA = HopfAlgebrasWithBasis(R).TensorProducts()
-        tensorflag = tHA in x.parent().categories()
-        if not (is_SymmetricFunction(x) or tensorflag):
-            raise TypeError("only know how to compute plethysms "
-                            "between symmetric functions or tensors "
-                            "of symmetric functions")
+        from sage.structure.element import parent as get_parent
+        Px = get_parent(x)
+        tensorflag = Px in tHA
+        if not tensorflag and Px is not R:
+            if not is_SymmetricFunction(x):
+                from sage.rings.lazy_series import LazySymmetricFunction
+                if isinstance(x, LazySymmetricFunction):
+                    from sage.rings.lazy_series_ring import LazySymmetricFunctions
+                    L = LazySymmetricFunctions(parent)
+                    return L(self)(x)
+
+                # Try to coerce into a symmetric function
+                phi = parent.coerce_map_from(Px)
+                if phi is None:
+                    raise TypeError("only know how to compute plethysms "
+                                    "between symmetric functions or tensors "
+                                    "of symmetric functions")
+                x = phi(x)
+
         p = parent.realization_of().power()
-        if self == parent.zero():
-            return self
 
         degree_one = _variables_recursive(R, include=include, exclude=exclude)
 
         if tensorflag:
-            tparents = x.parent()._sets
+            tparents = Px._sets
             s = sum(d * prod(sum(_raise_variables(c, r, degree_one)
                                  * tensor([p[r].plethysm(base(la))
                                            for base, la in zip(tparents, trm)])

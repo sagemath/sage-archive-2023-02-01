@@ -4656,7 +4656,7 @@ class LazySymmetricFunction(LazyCompletionGradedAlgebraElement):
         return P.element_class(P, coeff_stream)
 
     def functorial_composition(self, *args):
-        r"""Returns the functorial composition of ``self`` and ``g``.
+        r"""Return the functorial composition of ``self`` and ``g``.
 
         If `F` and `G` are species, their functorial composition is the species
         `F \Box G` obtained by setting `(F \Box G) [A] = F[ G[A] ]`.
@@ -4704,6 +4704,32 @@ class LazySymmetricFunction(LazyCompletionGradedAlgebraElement):
             8
 
         labellings of their vertices with two 1's and two 2's.
+
+
+        The derivative of the symmetric function `\sum_n h_n`, times
+        `p_1` is the neutral element with respect to functorial
+        composition::
+
+            sage: p = SymmetricFunctions(QQ).p()
+            sage: h = SymmetricFunctions(QQ).h()
+            sage: L = LazySymmetricFunctions(h)
+            sage: E = L(lambda n: h[n])
+            sage: Ep = p[1]*E.derivative_with_respect_to_p1(); Ep
+            h[1] + (h[1,1]) + (h[2,1]) + (h[3,1]) + (h[4,1]) + (h[5,1]) + O^7
+            sage: f = L(lambda n: randint(3, 6)*h[n])
+            sage: f - Ep.functorial_composition(f)
+            O^7
+
+        TESTS:
+
+        Check a corner case::
+
+            sage: L = LazySymmetricFunctions(h)
+            sage: Ep = L(lambda n: h[n-1]*h[1], valuation=1); Ep
+            h[1] + (h[1,1]) + (h[2,1]) + (h[3,1]) + (h[4,1]) + (h[5,1]) + (h[6,1]) + O^8
+            sage: Ep.functorial_composition(L([3*h[0]]))
+            3*h[]
+
         """
         if len(args) != self.parent()._arity:
             raise ValueError("arity must be equal to the number of arguments provided")

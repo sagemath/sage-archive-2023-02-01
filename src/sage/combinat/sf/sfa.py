@@ -3127,8 +3127,18 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             sage: p[2,2,1](2)
             8*p[]
 
+            sage: p[2,2,1](int(2))
+            8*p[]
+
             sage: p[2,2,1](a1)
             a1^5*p[]
+
+            sage: X = algebras.Shuffle(QQ, 'ab')
+            sage: Y = algebras.Shuffle(QQ, 'bc')
+            sage: T = tensor([X,Y])
+            sage: s = SymmetricFunctions(T).s()
+            sage: s(2*T.one())
+            (2*B[word:]#B[word:])*s[]
 
         .. TODO::
 
@@ -3145,8 +3155,11 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
         from sage.structure.element import parent as get_parent
         Px = get_parent(x)
         tensorflag = Px in tHA
-        if not tensorflag and Px is not R:
-            if not is_SymmetricFunction(x):
+        if not is_SymmetricFunction(x):
+            if Px is R:  # Handle stuff that is directly in the base ring
+                x = parent(x)
+            elif (not tensorflag or any(not isinstance(factor, SymmetricFunctionAlgebra_generic)
+                                        for factor in Px._sets)):
                 from sage.rings.lazy_series import LazySymmetricFunction
                 if isinstance(x, LazySymmetricFunction):
                     from sage.rings.lazy_series_ring import LazySymmetricFunctions
@@ -3155,11 +3168,12 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
 
                 # Try to coerce into a symmetric function
                 phi = parent.coerce_map_from(Px)
-                if phi is None:
+                if phi is not None:
+                    x = phi(x)
+                elif not tensorflag:
                     raise TypeError("only know how to compute plethysms "
                                     "between symmetric functions or tensors "
                                     "of symmetric functions")
-                x = phi(x)
 
         p = parent.realization_of().power()
 

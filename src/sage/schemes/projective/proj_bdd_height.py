@@ -116,21 +116,22 @@ def points_of_bounded_height(K, dim, bound, prec=53):
 
     class_group_ideals = [c.ideal() for c in K.class_group()]
     class_number = len(class_group_ideals)
-    class_group_ideal_norms = [a.norm() for a in class_group_ideals]
-    norm_bound = bound*max(class_group_ideal_norms)
+    class_group_ideal_norms = [i.norm() for i in class_group_ideals]
+    norm_bound = bound * max(class_group_ideal_norms)
     fundamental_units = UnitGroup(K).fundamental_units()
     fund_unit_logs = list(map(log_embed, fundamental_units))
+    mat = column_matrix(fund_unit_logs)
 
-    test_matrix = column_matrix(fund_unit_logs)
-    #try:
-    #    test_matrix.change_ring(QQ)
-    #except ValueError:
-    #    raise ValueError('prec too low.')
+    test_matrix = mat
+    try:
+       test_matrix.change_ring(QQ)
+    except ValueError:
+       raise ValueError('prec too low.')
 
-    cut_fund_unit_logs = test_matrix.delete_rows([r])
+    cut_fund_unit_logs = mat.delete_rows([r])
     lll_fund_units = []
-    for c in cut_fund_unit_logs.columns():
     #for c in pari(cut_fund_unit_logs).qflll().python().columns():
+    for c in cut_fund_unit_logs.columns():
         new_unit = 1
         for i in range(r):
             print(fundamental_units[i])
@@ -172,7 +173,7 @@ def points_of_bounded_height(K, dim, bound, prec=53):
     for v in range(r + 1):
         A_numbers.append(min([pr_ideal_gen_logs[y][v] for y in pr_ideal_gen_logs]))
 
-    aux_constant = (1/K_degree)*Reals(norm_bound).log()
+    aux_constant = (1/K_degree) * Reals(norm_bound).log()
 
     L_numbers = []
     for v in range(r1):
@@ -212,9 +213,9 @@ def points_of_bounded_height(K, dim, bound, prec=53):
                 y_log = pr_ideal_gen_logs[y]
                 g_log = unit_log + y_log
                 bool1 = all(g_log[i] <= aux_constant + D_numbers[i] for i in range(r1))
-                bool2 = all(g_log[j] <= 2*aux_constant + D_numbers[j] for j in range(r1, r + 1))
+                bool2 = all(g_log[j] <= 2 * aux_constant + D_numbers[j] for j in range(r1, r + 1))
                 if bool1 and bool2:
-                    g = unit*y
+                    g = unit * y
                     coordinate_list.append([g, g_log])
         if len(coordinate_list) > 0:
             coordinate_space[norm] = coordinate_list
@@ -227,13 +228,13 @@ def points_of_bounded_height(K, dim, bound, prec=53):
         a_coordinates = []
 
         for k in range(bound + 1):
-            norm = k*a_norm
+            norm = k * a_norm
             if norm in coordinate_space:
                 for pair in coordinate_space[norm]:
                     g, g_log = pair
                     if g in a:
                         bool1 = all(g_log[i] <= a_const + D_numbers[i] for i in range(r1))
-                        bool2 = all(g_log[j] <= 2*a_const + D_numbers[j] for j in range(r1, r + 1))
+                        bool2 = all(g_log[j] <= 2 * a_const + D_numbers[j] for j in range(r1, r + 1))
                         if bool1 and bool2:
                             a_coordinates.append(pair)
 

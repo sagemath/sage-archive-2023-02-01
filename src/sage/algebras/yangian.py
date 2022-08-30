@@ -1001,7 +1001,10 @@ class GradedYangianLoop(GradedYangianBase):
         EXAMPLES::
 
             sage: grY = Yangian(QQ, 4).graded_algebra()
-            sage: TestSuite(grY).run()  # long time
+            sage: g = grY.indices().gens()
+            sage: x = grY(g[1,1,1] * g[1,1,2]^2 * g[1,1,3]^3 * g[3,1,1])
+            sage: elts = [grY(g[1,1,1]), grY(g[2,1,1]), x]
+            sage: TestSuite(grY).run(elements=elts)  # long time
         """
         if Y._filtration != 'loop':
             raise ValueError("the Yangian must have the loop filtration")

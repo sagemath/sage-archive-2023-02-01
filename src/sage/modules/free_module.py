@@ -1777,10 +1777,20 @@ class Module_free_ambient(Module):
             sage: ascii_art(res.chain_complex())
                         [x - y   y*z]
                         [    z   x*z]
-             0 <-- C_0 <-------------- C_1 <-- 0 
+             0 <-- C_0 <-------------- C_1 <-- 0
         """
-        from sage.homology.free_resolution import FreeResolution
-        return FreeResolution(self, *args, **kwds)
+        from sage.rings.polynomial.multi_polynomial_libsingular import MPolynomialRing_libsingular
+        if isinstance(self.base_ring(), MPolynomialRing_libsingular):
+            from sage.homology.free_resolution import FiniteFreeResolution_singular
+            return FiniteFreeResolution_singular(self, *args, **kwds)
+
+        if isinstance(self, FreeModule_generic):
+            from sage.homology.free_resolution import FiniteFreeResolution_free_module
+            return FiniteFreeResolution_free_module(self, *args, **kwds)
+
+        raise NotImplementedError("the module must be a free module or "
+                                  "have the base ring be a polynomial ring using Singular")
+
 
     def graded_free_resolution(self, *args, **kwds):
         r"""
@@ -1812,7 +1822,8 @@ class Module_free_ambient(Module):
             from sage.homology.graded_resolution import GradedFiniteFreeResolution_free_module
             return GradedFiniteFreeResolution_free_module(self, *args, **kwds)
 
-        raise NotImplementedError("the module must be a free module or have the base ring be a polynomial ring using Singular")
+        raise NotImplementedError("the module must be a free module or "
+                                  "have the base ring be a polynomial ring using Singular")
 
 
 class FreeModule_generic(Module_free_ambient):

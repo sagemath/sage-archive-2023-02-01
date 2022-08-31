@@ -119,6 +119,17 @@ class FreeResolution(SageObject, metaclass=ClasscallMetaclass):
             sage: r = FreeResolution(I)
             sage: type(r)
             <class 'sage.homology.free_resolution.FiniteFreeResolution_free_module'>
+
+            sage: R.<x,y> = QQ[]
+            sage: I = R.ideal([x^2, y^3])
+            sage: Q = R.quo(I)
+            sage: Q.is_integral_domain()
+            False
+            sage: xb, yb = Q.gens()
+            sage: FreeResolution(Q.ideal([xb]))  # has torsion
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: the module must be a free module or have the base ring be a polynomial ring using Singular
         """
         # The module might still be free even if is_free_module is False.
         # This is just to handle the cases when we trivially know it is.
@@ -726,7 +737,9 @@ class FiniteFreeResolution_singular(FiniteFreeResolution):
 
     - ``module`` -- a submodule of a free module `M` of rank `n` over `S` or
       an ideal of a multi-variate polynomial ring
+
     - ``name`` -- string (optional); name of the base ring
+
     - ``algorithm`` -- (default: ``'heuristic'``) Singular algorithm
       to compute a resolution of ``ideal``
 
@@ -820,17 +833,6 @@ class FiniteFreeResolution_singular(FiniteFreeResolution):
             sage: M = m.image()
             sage: r = FreeResolution(M, name='S')
             sage: TestSuite(r).run(skip=['_test_pickling'])
-
-            sage: R.<x,y> = QQ[]
-            sage: I = R.ideal([x^2, y^3])
-            sage: Q = R.quo(I)
-            sage: Q.is_integral_domain()
-            False
-            sage: xb, yb = Q.gens()
-            sage: FreeResolution(Q.ideal([xb]))  # has torsion
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: the module must be a free module or have the base ring be a polynomial ring using Singular
         """
         self._algorithm = algorithm
         super().__init__(module, name=name, **kwds)

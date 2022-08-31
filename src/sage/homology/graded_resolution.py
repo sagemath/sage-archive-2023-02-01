@@ -87,6 +87,7 @@ from sage.homology.free_resolution import (FiniteFreeResolution,
                                            FiniteFreeResolution_free_module,
                                            FiniteFreeResolution_singular)
 
+
 class GradedFiniteFreeResolution(FiniteFreeResolution):
     r"""
     Graded finite free resolutions.
@@ -190,6 +191,7 @@ class GradedFiniteFreeResolution(FiniteFreeResolution):
             shifts = self._shifts
         else:
             shifts = self._res_shifts[i - 1]
+
         if not shifts:
             return '0'
 
@@ -310,6 +312,7 @@ class GradedFiniteFreeResolution(FiniteFreeResolution):
 
         return kpoly
 
+
 class GradedFiniteFreeResolution_free_module(GradedFiniteFreeResolution, FiniteFreeResolution_free_module):
     r"""
     Graded free resolution of free modules.
@@ -351,7 +354,8 @@ class GradedFiniteFreeResolution_free_module(GradedFiniteFreeResolution, FiniteF
         super().__init__(module, degrees=degrees, *args, **kwds)
 
         if len(self._degrees) > 1 and any(d != 1 for d in self._degrees):
-            raise NotImplementedError("only the natural grading supported when more than one generator")
+            raise NotImplementedError("only the natural grading supported "
+                                      "when more than one generator")
 
     @lazy_attribute
     def _maps(self):
@@ -399,7 +403,6 @@ class GradedFiniteFreeResolution_free_module(GradedFiniteFreeResolution, FiniteF
             sage: res._res_shifts
             [[9]]
         """
-
         def compute_degree(base, i):
             """
             Compute the degree by ``base * deg + shift``,
@@ -422,10 +425,11 @@ class GradedFiniteFreeResolution_free_module(GradedFiniteFreeResolution, FiniteF
 
         def find_deg(i):
             for j in range(M.nrows()):
-                ret = M[j,i].degree() 
+                ret = M[j,i].degree()
                 if ret != -1:
                     return ret
             raise NotImplementedError("a generator maps to 0")
+
         self._res_shifts = [[compute_degree(find_deg(i), i)
                              for i in range(M.ncols())]]
         return [M]

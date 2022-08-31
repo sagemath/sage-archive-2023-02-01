@@ -865,9 +865,9 @@ cdef number *sa2si_QQ(Rational r, ring *_ring):
 
     INPUT:
 
-    - ``r`` - a sage rational number
+    - ``r`` -- a sage rational number
 
-    - ``_ ring`` - a (pointer to) a singular ring, where the resul will live
+    - ``_ ring`` -- a (pointer to) a singular ring, where the resul will live
 
     OUTPUT:
 
@@ -895,9 +895,9 @@ cdef number *sa2si_GFqGivaro(int quo, ring *_ring):
 
     INPUT:
 
-    - ``quo`` - a sage integer
+    - ``quo`` -- a sage integer
 
-    - ``_ ring`` - a (pointer to) a singular ring, where the resul will live
+    - ``_ ring`` -- a (pointer to) a singular ring, where the resul will live
 
     OUTPUT:
 
@@ -963,9 +963,9 @@ cdef number *sa2si_GFqNTLGF2E(FFgf2eE elem, ring *_ring):
 
     INPUT:
 
-    - ``elem`` - a sage element of a ntl_gf2e finite field
+    - ``elem`` -- a sage element of a ntl_gf2e finite field
 
-    - ``_ ring`` - a (pointer to) a singular ring, where the resul will live
+    - ``_ ring`` -- a (pointer to) a singular ring, where the resul will live
 
     OUTPUT:
 
@@ -1028,9 +1028,9 @@ cdef number *sa2si_GFq_generic(object elem, ring *_ring):
 
     INPUT:
 
-    - ``elem`` - a sage element of a generic finite field
+    - ``elem`` -- a sage element of a generic finite field
 
-    - ``_ ring`` - a (pointer to) a singular ring, where the resul will live
+    - ``_ ring`` -- a (pointer to) a singular ring, where the resul will live
 
     OUTPUT:
 
@@ -1094,14 +1094,13 @@ cdef number *sa2si_transext_QQ(object elem, ring *_ring):
 
     INPUT:
 
-    - ``elem`` - a sage element of a FractionField of polynomials over the rationals
+    - ``elem`` -- a sage element of a FractionField of polynomials over the rationals
 
-    - ``_ ring`` - a (pointer to) a singular ring, where the resul will live
+    - ``_ ring`` -- a (pointer to) a singular ring, where the resul will live
 
     OUTPUT:
 
     - A (pointer to) a singular number
-
 
     TESTS::
 
@@ -1245,14 +1244,13 @@ cdef number *sa2si_transext_FF(object elem, ring *_ring):
 
     INPUT:
 
-    - ``elem`` - a sage element of a FractionField of polynomials over the rationals
+    - ``elem`` -- a sage element of a FractionField of polynomials over the rationals
 
-    - ``_ ring`` - a (pointer to) a singular ring, where the resul will live
+    - ``_ ring`` -- a (pointer to) a singular ring, where the resul will live
 
     OUTPUT:
 
     - A (pointer to) a singular number
-
 
     TESTS::
 
@@ -1346,9 +1344,9 @@ cdef number *sa2si_NF(object elem, ring *_ring):
 
     INPUT:
 
-    - ``elem`` - a sage element of a NumberField
+    - ``elem`` -- a sage element of a NumberField
 
-    - ``_ ring`` - a (pointer to) a singular ring, where the resul will live
+    - ``_ ring`` -- a (pointer to) a singular ring, where the resul will live
 
     OUTPUT:
 
@@ -1437,14 +1435,13 @@ cdef number *sa2si_ZZ(Integer d, ring *_ring):
 
     INPUT:
 
-    - ``elem`` - a sage Integer
+    - ``elem`` -- a sage Integer
 
-    - ``_ ring`` - a (pointer to) a singular ring, where the resul will live
+    - ``_ ring`` -- a (pointer to) a singular ring, where the resul will live
 
     OUTPUT:
 
     - A (pointer to) a singular number
-
 
     TESTS::
 
@@ -1650,7 +1647,7 @@ cdef object si2sa_intvec(intvec *v):
 
     INPUT:
 
-    - ``v`` -- a (pointer to) a singular intvec
+    - ``v`` -- a (pointer to) singular intvec
 
     OUTPUT:
 

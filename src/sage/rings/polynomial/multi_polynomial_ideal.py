@@ -1794,8 +1794,8 @@ class MPolynomialIdeal_singular_repr(
             sage: res
             S^1 <-- S^2 <-- S^1 <-- 0
             sage: ascii_art(res.chain_complex())
-                                        [-x^2]      
-                        [  y x^2]       [   y]      
+                                        [-x^2]
+                        [  y x^2]       [   y]
              0 <-- C_0 <---------- C_1 <------- C_2 <-- 0
 
             sage: q = ZZ['q'].fraction_field().gen()

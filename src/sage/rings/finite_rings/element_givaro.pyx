@@ -1,7 +1,7 @@
 # distutils: libraries = givaro gmp m
 # distutils: language = c++
 r"""
-Givaro Field Elements
+Givaro finite field flements
 
 Sage includes the Givaro finite field library, for highly optimized
 arithmetic in finite fields.

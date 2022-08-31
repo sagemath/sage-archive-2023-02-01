@@ -88,7 +88,7 @@ from sage.categories.finite_fields import FiniteFields
 from sage.categories.number_fields import NumberFields
 from sage.categories.homset import Hom, End
 from sage.categories.fields import Fields
-from sage.homology.graded_resolution import GradedFreeResolution
+from sage.homology.graded_resolution import GradedFiniteFreeResolution_singular
 
 _NumberFields = NumberFields()
 _FiniteFields = FiniteFields()
@@ -2691,7 +2691,7 @@ class SchemeMorphism_polynomial_projective_subscheme_field(SchemeMorphism_polyno
         I = G.defining_ideal()  # a bihomogeneous ideal
 
         degrees = xn*[vector([1,0])] + yn*[vector([0,1])]
-        res = GradedFreeResolution(I, degrees, algorithm='shreyer')
+        res = GradeFinitedFreeResolution_singular(I, degrees, algorithm='shreyer')
         kpoly = res.K_polynomial()
 
         L = kpoly.parent()

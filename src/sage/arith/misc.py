@@ -3229,6 +3229,9 @@ def CRT_list(v, moduli):
     ``moduli``, find a single element that reduces to each element of
     ``v`` modulo the corresponding moduli.
 
+    The result is computed using a binary tree. In typical cases,
+    this scales much better than folding the list from one side.
+
     .. SEEALSO::
 
         - :func:`crt`
@@ -3298,13 +3301,13 @@ def CRT_list(v, moduli):
         return ZZ.zero()
     if len(v) == 1:
         return moduli[0].parent()(v[0])
-    x = v[0]
-    m = moduli[0]
     from sage.arith.functions import lcm
-    for i in range(1, len(v)):
-        x = CRT(x, v[i], m, moduli[i])
-        m = lcm(m, moduli[i])
-    return x % m
+    while len(v) > 1:
+        for i in range(0, len(v)-1, 2):
+            v[i] = CRT(v[i], v[i+1], moduli[i], moduli[i+1])
+            moduli[i] = lcm(moduli[i], moduli[i+1])
+        v, moduli = v[::2], moduli[::2]
+    return v[0] % moduli[0]
 
 
 def CRT_basis(moduli):

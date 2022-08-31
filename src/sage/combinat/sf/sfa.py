@@ -4977,7 +4977,6 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
         # then convert back.
         parent = self.parent()
         m = parent.realization_of().monomial()
-        from sage.combinat.partition import Partition
         dct = {lam.stretch(n): coeff for lam, coeff in m(self)}
         result_in_m_basis = m._from_dict(dct)
         return parent(result_in_m_basis)

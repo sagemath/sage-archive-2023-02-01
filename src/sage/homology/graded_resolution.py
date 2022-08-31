@@ -129,9 +129,9 @@ class GradedFiniteFreeResolution(FiniteFreeResolution):
             ....:             [5*x^2, 4*x^2]])
             sage: res = FreeResolution(M, graded=True)
             sage: res
-            S(0)⊕S(0) <-- S(-2)⊕S(0) <-- 0
+            S(0)⊕S(0) <-- S(-2)⊕S(-2) <-- 0
             sage: res._res_shifts
-            [[2, 0]]
+            [[2, 2]]
         """
         super().__init__(module, name=name, **kwds)
 

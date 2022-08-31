@@ -2691,7 +2691,7 @@ class SchemeMorphism_polynomial_projective_subscheme_field(SchemeMorphism_polyno
         I = G.defining_ideal()  # a bihomogeneous ideal
 
         degrees = xn*[vector([1,0])] + yn*[vector([0,1])]
-        res = GradeFinitedFreeResolution_singular(I, degrees, algorithm='shreyer')
+        res = GradedFiniteFreeResolution_singular(I, degrees, algorithm='shreyer')
         kpoly = res.K_polynomial()
 
         L = kpoly.parent()

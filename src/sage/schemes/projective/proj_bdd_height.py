@@ -130,12 +130,9 @@ def points_of_bounded_height(K, dim, bound, prec=53):
 
     cut_fund_unit_logs = mat.delete_rows([r])
     lll_fund_units = []
-    #for c in pari(cut_fund_unit_logs).qflll().python().columns():
-    for c in cut_fund_unit_logs.columns():
+    for c in pari(cut_fund_unit_logs).qflll().python():
         new_unit = 1
         for i in range(r):
-            print(fundamental_units[i])
-            print(c[i])
             new_unit *= fundamental_units[i]**c[i]
         lll_fund_units.append(new_unit)
     fundamental_units = lll_fund_units

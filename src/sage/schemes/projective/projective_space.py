@@ -1879,6 +1879,13 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
              (-2/3 : 1), (-1/2 : 1), (-1/3 : 1), (0 : 1),
              (1/3 : 1), (1/2 : 1), (2/3 : 1), (1 : 0),
              (1 : 1), (3/2 : 1), (2 : 1), (3 : 1)]
+
+        ::
+
+            sage: u = QQ['u'].0
+            sage: P.<x,y,z> = ProjectiveSpace(NumberField(u^2 - 2, 'v'), 2)
+            sage: len(list(P.points_of_bounded_height(bound=2)))
+            265
         """
         from sage.schemes.projective.proj_bdd_height import QQ_points_of_bounded_height, points_of_bounded_height
 

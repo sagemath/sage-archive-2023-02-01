@@ -95,9 +95,29 @@ def points_of_bounded_height(K, dim, bound, prec=53):
     OUTPUT:
 
     - an iterator of points of bounded height
+
+    EXAMPLES:
+
+        sage: from sage.schemes.projective.proj_bdd_height import points_of_bounded_height
+        sage: R.<x> = PolynomialRing(QQ)
+        sage: K.<a> = NumberField(x^3 + 5)
+        sage: list(points_of_bounded_height(K, 2, -3))
+        []
+        sage: list(points_of_bounded_height(K, 2, 2))
+        [(1 : 0 : 1), (-1 : 0 : 1), (0 : -1 : 1), (0 : 1 : 0),
+         (1 : 1 : 0), (-1 : 1 : 1), (1 : -1 : 1), (-1 : -1 : 1),
+         (1 : 0 : 0), (-1 : 1 : 0), (0 : 0 : 1), (1 : 1 : 1),
+         (0 : 1 : 1)]
+
+    ::
+
+        sage: from sage.schemes.projective.proj_bdd_height import points_of_bounded_height
+        sage: K.<a> = QuadraticField(3)
+        sage: list(points_of_bounded_height(K, 1, 1))
+        [(0 : 1), (1 : 0), (1 : 1), (-1 : 1)]
     """
     if bound < 1:
-        return []
+        return iter([])
 
     r1, r2 = K.signature()
     r = r1 + r2 - 1
@@ -249,4 +269,6 @@ def points_of_bounded_height(K, dim, bound, prec=53):
                         new_point = [i*j for i, j in zip(u, p)] + [p[dim]]
                         points_in_class_a.add(PN(new_point))
         points_of_bdd_height += list(points_in_class_a)
-    return points_of_bdd_height
+
+    return iter(points_of_bdd_height)
+

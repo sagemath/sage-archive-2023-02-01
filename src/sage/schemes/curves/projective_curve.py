@@ -139,17 +139,16 @@ AUTHORS:
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.cachefunc import cached_method
 
-from sage.categories.all import hom
 from sage.categories.fields import Fields
+from sage.categories.homset import hom, Hom, End
 from sage.categories.number_fields import NumberFields
-from sage.categories.homset import Hom, End
 
 from sage.interfaces.singular import singular
 from sage.matrix.constructor import matrix
 from builtins import sum as add
 from sage.misc.sage_eval import sage_eval
 
-from sage.rings.all import degree_lowest_rational_function
+from sage.rings.polynomial.multi_polynomial_element import degree_lowest_rational_function
 from sage.rings.integer_ring import IntegerRing
 from sage.rings.number_field.number_field import NumberField
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
@@ -1691,6 +1690,15 @@ class ProjectivePlaneCurve_field(ProjectivePlaneCurve, ProjectiveCurve_field):
         .. WARNING::
 
             This functionality requires the ``sirocco`` package to be installed.
+
+        TESTS::
+
+            sage: P.<x,y,z>=ProjectiveSpace(QQ,2)
+            sage: f=z^2*y^3-z*(33*x*z+2*x^2+8*z^2)*y^2+(21*z^2+21*x*z-x^2)*(z^2+11*x*z-x^2)*y+(x-18*z)*(z^2+11*x*z-x^2)^2
+            sage: C = P.curve(f)
+            sage: C.fundamental_group() # optional - sirocco
+            Finitely presented group < x1, x3 | (x3^-1*x1^-1*x3*x1^-1)^2*x3^-1, x3*(x1^-1*x3^-1)^2*x1^-1*(x3*x1)^2 >
+
         """
         from sage.schemes.curves.zariski_vankampen import fundamental_group
         F = self.base_ring()
@@ -1868,7 +1876,7 @@ class ProjectivePlaneCurve_finite_field(ProjectivePlaneCurve_field):
         """
         g = self.defining_polynomial()
         K = g.parent().base_ring()
-        from sage.rings.polynomial.all import PolynomialRing
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
         R = PolynomialRing(K,'X')
         X = R.gen()
         one = K.one()

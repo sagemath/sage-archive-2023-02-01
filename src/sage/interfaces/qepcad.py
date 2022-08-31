@@ -628,14 +628,16 @@ def _qepcad_atoms(formula):
 
     - `formula` (string) - a quantifier-free formula.
 
-    .. note:: this function is pis-aller used for doctesting, not a complete
-    parser, which should be written in a further ticket.
+    .. NOTE::
+
+        This function is pis-aller used for doctesting, not a complete
+        parser, which should be written in a further ticket.
 
     EXAMPLES::
 
-    sage: from sage.interfaces.qepcad import _qepcad_atoms
-    sage: _qepcad_atoms('y^5 + 4 y + 8 >= 0 /\\ y <= 0 /\\ [ y = 0 \\/ y^5 + 4 y + 8 = 0 ]')
-    {'y <= 0', 'y = 0', 'y^5 + 4 y + 8 = 0', 'y^5 + 4 y + 8 >= 0'}
+        sage: from sage.interfaces.qepcad import _qepcad_atoms
+        sage: _qepcad_atoms('y^5 + 4 y + 8 >= 0 /\\ y <= 0 /\\ [ y = 0 \\/ y^5 + 4 y + 8 = 0 ]')
+        {'y <= 0', 'y = 0', 'y^5 + 4 y + 8 = 0', 'y^5 + 4 y + 8 >= 0'}
     """
     return set(i.strip() for i in flatten([i.split('\\/') for i in formula.replace('[','').replace(']','').split('/\\')]))
 
@@ -685,7 +687,7 @@ def _update_command_info():
     cache = {}
 
     with open(os.path.join(SAGE_LOCAL, 'share/qepcad', 'qepcad.help')) as help:
-        assert(help.readline().strip() == '@')
+        assert help.readline().strip() == '@'
 
         while True:
             cmd_line = help.readline()
@@ -696,7 +698,7 @@ def _update_command_info():
                 break
 
             (cmd, id, phases, kind) = cmd_line.split()
-            assert(help.readline().strip() == '@')
+            assert help.readline().strip() == '@'
 
             help_text = ''
             help_line = help.readline()
@@ -2449,8 +2451,8 @@ class QepcadCell:
                 saw_signs = True
             if saw_signs and 'Level' in line:
                 (lev, n, colon, signs) = line.split()
-                assert(lev == 'Level' and colon == ':')
-                assert(int(n) == len(all_signs) + 1)
+                assert lev == 'Level' and colon == ':'
+                assert int(n) == len(all_signs) + 1
                 signs = signs.replace('+','1').replace('-','-1').replace(')',',)')
                 all_signs.append(sage_eval(signs))
             if 'PRIMITIVE' in line:
@@ -2463,13 +2465,13 @@ class QepcadCell:
             if 'Coordinate ' in line:
                 (coord_n, val) = line.split('=')
                 n = int(coord_n.split()[1])
-                assert(n == len(all_coordinates) + 1)
+                assert n == len(all_coordinates) + 1
                 if n == self._level and saw_extended:
                     grab_extended = True
                 else:
                     all_coordinates.append(val)
             elif grab_extended:
-                assert('=' in line)
+                assert '=' in line
                 grab_extended = False
                 all_coordinates.append(line.split('=')[1])
 

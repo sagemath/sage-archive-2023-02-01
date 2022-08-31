@@ -31,12 +31,13 @@ import subprocess
 import sys
 from pathlib import Path
 
+
 class JmolData(SageObject):
     r"""
-    .. todo::
+    .. TODO::
 
-       Create an animated image file (GIF) if spin is on and put data
-       extracted from a file into a variable/string/structure to return
+        Create an animated image file (GIF) if spin is on and put data
+        extracted from a file into a variable/string/structure to return
     """
     def __init__(self):
         """
@@ -74,7 +75,7 @@ class JmolData(SageObject):
         targetfile,
         datafile, #name (path) of data file Jmol can read or script file telling it what to read or load
         datafile_cmd='script', #"script" or "load"
-        image_type ='PNG', #PNG, JPG, GIF
+        image_type='PNG', #PNG, JPG, GIF
         figsize=5,
         **kwds):
         r"""

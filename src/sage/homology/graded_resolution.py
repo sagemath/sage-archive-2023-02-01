@@ -96,11 +96,14 @@ class GradedFiniteFreeResolution(FiniteFreeResolution):
 
     - ``module`` -- a homogeneous submodule of a free module `M` of rank `n`
       over `S` or a homogeneous ideal of a multivariate polynomial ring `S`
+
     - ``degrees`` -- (default: a list with all entries `1`) a list of integers
       or integer vectors giving degrees of variables of `S`
+
     - ``shifts`` -- a list of integers or integer vectors giving shifts of
       degrees of `n` summands of the free module `M`; this is a list of zero
       degrees of length `n` by default
+
     - ``name`` -- a string; name of the base ring
 
     .. WARNING::
@@ -121,9 +124,9 @@ class GradedFiniteFreeResolution(FiniteFreeResolution):
         An overdetermined system over a PID::
 
             sage: from sage.homology.free_resolution import FreeResolution
-            sage: M = matrix([[x^2, 2],
-            ....:             [3*x^2, 5],
-            ....:             [5*x^2, 4]])
+            sage: M = matrix([[x^2, 2*x^2],
+            ....:             [3*x^2, 5*x^2],
+            ....:             [5*x^2, 4*x^2]])
             sage: res = FreeResolution(M, graded=True)
             sage: res
             S(0)⊕S(0) <-- S(-2)⊕S(0) <-- 0
@@ -330,13 +333,6 @@ class GradedFiniteFreeResolution_free_module(GradedFiniteFreeResolution, FiniteF
         sage: res = FreeResolution(M, graded=True)
         sage: res
         S(0)⊕S(0)⊕S(0) <-- S(-3)⊕S(-1) <-- 0
-
-        sage: M = matrix([[x^2, 2],
-        ....:             [3*x^2, 5],
-        ....:             [5*x^2, 4]])
-        sage: res = FreeResolution(M, graded=True)
-        sage: res
-        S(0)⊕S(0) <-- S(-2)⊕S(0) <-- 0
     """
     def __init__(self, module, degrees=None, *args, **kwds):
         """
@@ -381,18 +377,6 @@ class GradedFiniteFreeResolution_free_module(GradedFiniteFreeResolution, FiniteF
             ]
             sage: res._res_shifts
             [[3, 1]]
-
-            sage: M = matrix([[x^2, 2],
-            ....:             [3*x^2, 5],
-            ....:             [5*x^2, 4]])
-            sage: res = FreeResolution(M, graded=True)
-            sage: res._maps
-            [
-            [x^2   0]
-            [  2  -1]
-            ]
-            sage: res._res_shifts
-            [[2, 0]]
 
             sage: I = R.ideal([x^4])
             sage: res = I.graded_free_resolution(shifts=[1], degrees=[2])

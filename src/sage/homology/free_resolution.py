@@ -70,6 +70,7 @@ from sage.libs.singular.singular import si2sa_resolution
 from sage.libs.singular.function import singular_function
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.abstract_method import abstract_method
+from sage.misc.classcall_metaclass import ClasscallMetaclass
 from sage.structure.sage_object import SageObject
 from sage.structure.element import Matrix
 from sage.categories.principal_ideal_domains import PrincipalIdealDomains

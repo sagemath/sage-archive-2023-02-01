@@ -3306,7 +3306,26 @@ class LazyLaurentSeries(LazyCauchyProductSeries):
             sage: (1/(1-z)).derivative(z)
             1 + 2*z + 3*z^2 + 4*z^3 + 5*z^4 + 6*z^5 + 7*z^6 + O(z^7)
 
-        TESTS::
+        TESTS:
+
+        Check the derivative of the logarithm:
+
+            sage: L.<z> = LazyLaurentSeriesRing(QQ)
+            sage: -log(1-z).derivative()
+            1 + z + z^2 + z^3 + z^4 + z^5 + z^6 + O(z^7)
+
+        Check that differentiation of 'exact' series with nonzero
+        constant works::
+
+            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
+            sage: f = L([1,2], valuation=-2, constant=1)
+            sage: f
+            z^-2 + 2*z^-1 + 1 + z + z^2 + O(z^3)
+            sage: f.derivative()
+            -2*z^-3 - 2*z^-2 + 1 + 2*z + 3*z^2 + 4*z^3 + O(z^4)
+
+        Check that differentiation with respect to a variable other
+        than the series variable works::
 
             sage: R.<q> = QQ[]
             sage: L.<z> = LazyLaurentSeriesRing(R)

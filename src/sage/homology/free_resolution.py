@@ -216,11 +216,11 @@ class FreeResolution(SageObject, metaclass=ClasscallMetaclass):
             sage: m1 = matrix(S, 1, [z^2 - y*w, y*z - x*w, y^2 - x*z])
             sage: r = FreeResolution(m1, name='S')
             sage: print(FreeResolution._repr_(r))
-            Free resolution with initial map:
+            Free resolution of the row space of the matrix:
             [z^2 - y*w y*z - x*w y^2 - x*z]
         """
         if isinstance(self._module, Matrix):
-            return f"Free resolution of the :\n{self._module}"
+            return f"Free resolution of the row space of the matrix:\n{self._module}"
         return f"Free resolution of {self._module}"
 
     def _repr_module(self, i):

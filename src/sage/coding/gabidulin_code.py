@@ -196,7 +196,7 @@ class GabidulinCode(AbstractLinearRankMetricCode):
 
         self._twisting_homomorphism = twisting_homomorphism
 
-        super(GabidulinCode, self).__init__(base_field, sub_field, length, "VectorEvaluation", "Gao")
+        super().__init__(base_field, sub_field, length, "VectorEvaluation", "Gao")
 
         if length > self.extension_degree():
             raise ValueError("'length' can be at most the degree of the extension, {}".format(self.extension_degree()))
@@ -427,7 +427,7 @@ class GabidulinVectorEvaluationEncoder(Encoder):
         """
         if not isinstance(code, GabidulinCode):
             raise ValueError("code has to be a Gabidulin code")
-        super(GabidulinVectorEvaluationEncoder, self).__init__(code)
+        super().__init__(code)
 
     def _repr_(self):
         """
@@ -530,9 +530,9 @@ class GabidulinPolynomialEvaluationEncoder(Encoder):
 
         (p(\alpha_1), \dots, p(\alpha_n)).
 
-    TESTS::
+    TESTS:
 
-    This module uses the following experimental feature:
+    This module uses the following experimental feature.
     This test block is here only to trigger the experimental warning so it does not
     interferes with doctests::
 
@@ -581,7 +581,7 @@ class GabidulinPolynomialEvaluationEncoder(Encoder):
         """
         if not isinstance(code, GabidulinCode):
             raise ValueError("code has to be a Gabidulin code")
-        super(GabidulinPolynomialEvaluationEncoder, self).__init__(code)
+        super().__init__(code)
 
     def _repr_(self):
         """
@@ -810,7 +810,7 @@ class GabidulinGaoDecoder(Decoder):
         """
         if not isinstance(code, GabidulinCode):
             raise ValueError("code has to be a Gabidulin code")
-        super(GabidulinGaoDecoder, self).__init__(code, code.ambient_space(), "PolynomialEvaluation")
+        super().__init__(code, code.ambient_space(), "PolynomialEvaluation")
 
     def _repr_(self):
         """

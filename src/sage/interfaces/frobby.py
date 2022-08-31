@@ -78,12 +78,12 @@ class Frobby:
             print("Frobby command: ", repr(command))
             print("Frobby input:\n", input)
 
-        process = Popen(command, stdin = PIPE, stdout = PIPE, stderr = PIPE)
+        process = Popen(command, stdin=PIPE, stdout=PIPE, stderr=PIPE)
         if input:
             frinput = str_to_bytes(input)
         else:
             frinput = None
-        output, err = process.communicate(input = frinput)
+        output, err = process.communicate(input=frinput)
         output = bytes_to_str(output)
         err = bytes_to_str(err)
 
@@ -361,7 +361,7 @@ class Frobby:
         A list of rows of the matrix, where each row is represented as
         a list of integers.
 
-        EXAMPLES::
+        EXAMPLES:
 
         The format is straight-forward, as this example shows. ::
 

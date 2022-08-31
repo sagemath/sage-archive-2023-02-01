@@ -532,6 +532,20 @@ class PermutationGroup_generic(FiniteGroup):
 
     _libgap = None
 
+    def __copy__(self):
+        r"""
+        Return a "copy" of ``self`` by returning ``self``.
+
+        EXAMPLES::
+
+            sage: G = PermutationGroup(((1,2), (4,5)))
+            sage: copy(G) is G
+            True
+        """
+        return self
+
+    __deepcopy__ = __copy__
+
     def construction(self):
         """
         Return the construction of ``self``.
@@ -1527,7 +1541,7 @@ class PermutationGroup_generic(FiniteGroup):
 
             sage: g = graphs.PetersenGraph()
             sage: g.relabel(list("abcdefghik"))
-            sage: g.vertices()
+            sage: g.vertices(sort=True)
             ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'k']
             sage: ag = g.automorphism_group()
             sage: a = ag.representative_action('a','b')
@@ -4190,7 +4204,7 @@ class PermutationGroup_generic(FiniteGroup):
             sage: H.is_normal(G)
             False
         """
-        if not(self.is_subgroup(other)):
+        if not self.is_subgroup(other):
             raise TypeError("%s must be a subgroup of %s" % (self, other))
         return bool(other._libgap_().IsNormal(self))
 

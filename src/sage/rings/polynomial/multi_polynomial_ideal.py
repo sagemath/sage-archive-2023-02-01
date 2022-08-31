@@ -549,14 +549,22 @@ class MPolynomialIdeal_singular_base_repr:
     @libsingular_gb_standard_options
     def _groebner_cover(self):
         r"""
-        Compute the Groebner cover of the ideal.
+        Compute the Gröbner cover of the ideal.
 
-        The Groebner cover is a partition of the space of parmeters,
-        such that the groebner basis is constant for each of the parts.
+        The Gröbner cover is a partition of the space of parmeters,
+        such that the Gröbner basis is constant for each of the parts.
 
-        The parts are given by two set of equations: the parameters
-        in the part are the ones that satosfy the first, but don't
-        satisfy the second ones.
+        OUTPUT:
+
+        A list of parts. Each element of this list contains:
+
+            - The leading monomials of the Gröbner basis in the part
+            - The Gröbner basis in the part
+            - A list of components of the part. Each component is
+            has two lists of equations. The parameters in the
+            part are those that satisfy the first list of
+            equations, but do not satisfy the second one.
+
 
         EXAMPLES::
 
@@ -575,11 +583,10 @@ class MPolynomialIdeal_singular_base_repr:
         """
         from sage.rings.fraction_field import FractionField_generic
         F = self.base_ring()
-        if not isinstance(F, FractionField_generic):
-            raise TypeError("The base ring must be a field with parameters")
         from sage.rings.polynomial.multi_polynomial_ring_base import is_MPolynomialRing
         from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
-        if not is_MPolynomialRing(F.ring()) and not is_PolynomialRing (F.ring()):
+        if (not isinstance(F, FractionField_generic) or
+            (not is_MPolynomialRing(F.ring()) and not is_PolynomialRing (F.ring()))):
             raise TypeError("The base ring must be a field with parameters")
         from sage.libs.singular.function import singular_function, lib
         from sage.arith.functions import lcm
@@ -4479,7 +4486,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
 
     def groebner_cover(self):
         r"""
-        Compute the Groebner cover of the ideal, over a field with parameters.
+        Compute the Gröbner cover of the ideal, over a field with parameters.
 
         The Groebner cover is a partition of the space of parameters, such that the
         Groebner basis in each part is given by the same expression.
@@ -4507,18 +4514,19 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
 
 
         """
-        gc= self._groebner_cover()
+        gc = self._groebner_cover()
         from sage.schemes.affine import affine_subscheme
         from sage.schemes.affine.affine_space import AffineSpace
         F = self.base_ring()
         A = AffineSpace(F.base_ring(), F.ngens(), list(F.gens_dict().keys()))
         result = {}
+        ring = F.ring()
         for segment in gc:
             for piece in segment[2]:
-                X = A.subscheme([F.ring()(c) for c in piece[0]])
-                Y = A.subscheme([F.ring()(c) for c in piece[1][0]])
+                X = A.subscheme([ring(c) for c in piece[0]])
+                Y = A.subscheme([ring(c) for c in piece[1][0]])
                 for pol in piece[1][1:]:
-                    Y = Y.union(A.subscheme([F.ring()(c) for c in pol]))
+                    Y = Y.union(A.subscheme([ring(c) for c in pol]))
                 result[Y.complement(X)] = segment[1]
         return result
 

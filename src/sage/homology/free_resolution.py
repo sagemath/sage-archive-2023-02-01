@@ -83,95 +83,90 @@ from sage.rings.ideal import Ideal_generic
 from copy import copy
 
 
-def free_resolution_constructor(module, degrees=None, shifts=None, name='S', graded=False, **kwds):
-    """
-    Constructor.
-
-    TESTS::
-
-        sage: from sage.homology.free_resolution import FreeResolution
-        sage: S.<x,y,z,w> = PolynomialRing(QQ)
-        sage: m = matrix(S, 1, [z^2 - y*w, y*z - x*w, y^2 - x*z]).transpose()
-        sage: r = FreeResolution(m, name='S')
-        sage: type(r)
-        <class 'sage.homology.free_resolution.FiniteFreeResolution_singular'>
-        sage: isinstance(r, FreeResolution)
-        True
-
-        sage: I = S.ideal([y*w - z^2, -x*w + y*z, x*z - y^2])
-        sage: r = FreeResolution(I)
-        sage: type(r)
-        <class 'sage.homology.free_resolution.FiniteFreeResolution_singular'>
-
-        sage: R.<x> = QQ[]
-        sage: M = R^3
-        sage: v = M([x^2, 2*x^2, 3*x^2])
-        sage: w = M([0, x, 2*x])
-        sage: S = M.submodule([v, w])
-        sage: r = FreeResolution(S)
-        sage: type(r)
-        <class 'sage.homology.free_resolution.FiniteFreeResolution_free_module'>
-
-        sage: I = R.ideal([x^4 + 3*x^2 + 2])
-        sage: r = FreeResolution(I)
-        sage: type(r)
-        <class 'sage.homology.free_resolution.FiniteFreeResolution_free_module'>
-    """
-    # The module might still be free even if is_free_module is False.
-    # This is just to handle the cases when we trivially know it is.
-    is_free_module = False
-    if isinstance(module, Ideal_generic):
-        S = module.ring()
-        if len(module.gens()) == 1 and S in IntegralDomains():
-            is_free_module = True
-    elif isinstance(module, Module_free_ambient):
-        S = module.base_ring()
-        if (S in PrincipalIdealDomains()
-            or isinstance(module, FreeModule_generic)):
-            is_free_module = True
-    elif isinstance(module, Matrix):
-        S = module.base_ring()
-        if S in PrincipalIdealDomains():
-            module = module.echelon_form()
-            if module.nrows() > module.rank():
-                module = module.submatrix(nrows=module.rank())
-                module.set_immutable()
-            is_free_module = True
-        if not module.is_immutable():
-            # We need to make an immutable copy of the matrix
-            module = copy(module)
-            module.set_immutable()
-    else:
-        raise TypeError('no module, matrix, or ideal')
-
-    if not is_free_module:
-        from sage.rings.polynomial.multi_polynomial_libsingular import MPolynomialRing_libsingular
-        if not isinstance(S, MPolynomialRing_libsingular):
-            raise NotImplementedError("the module must be a free module or "
-                                      "the base ring must be a polynomial ring using Singular")
-
-        if graded or degrees is not None or shifts is not None:
-            # We are computing a graded resolution
-            from sage.homology.graded_resolution import GradedFiniteFreeResolution_singular
-            return GradedFiniteFreeResolution_singular(module, degrees=degrees, shifts=shifts, name=name, **kwds)
-
-        return FiniteFreeResolution_singular(module, name=name, **kwds)
-
-    # Otherwise we know it is a free module
-
-    if graded or degrees is not None or shifts is not None:
-        # We are computing a graded resolution
-        from sage.homology.graded_resolution import GradedFiniteFreeResolution_free_module
-        return GradedFiniteFreeResolution_free_module(module, degrees=degrees, shifts=shifts, name=name, **kwds)
-
-    return FiniteFreeResolution_free_module(module, name=name, **kwds)
-
-
-class FreeResolution(SageObject, metaclass=ConstructorBaseclassMetaclass):
+class FreeResolution(SageObject, metaclass=ClasscallMetaclass):
     """
     Abstract base class for free resolutions.
     """
-    __constructor__ = free_resolution_constructor
+    @staticmethod
+    def __classcall_private__(cls, module, degrees=None, shifts=None, name='S', graded=False, **kwds):
+        """
+        Dispatch to the correct constructor.
+
+        TESTS::
+
+            sage: from sage.homology.free_resolution import FreeResolution
+            sage: S.<x,y,z,w> = PolynomialRing(QQ)
+            sage: m = matrix(S, 1, [z^2 - y*w, y*z - x*w, y^2 - x*z]).transpose()
+            sage: r = FreeResolution(m, name='S')
+            sage: type(r)
+            <class 'sage.homology.free_resolution.FiniteFreeResolution_singular'>
+
+            sage: I = S.ideal([y*w - z^2, -x*w + y*z, x*z - y^2])
+            sage: r = FreeResolution(I)
+            sage: type(r)
+            <class 'sage.homology.free_resolution.FiniteFreeResolution_singular'>
+
+            sage: R.<x> = QQ[]
+            sage: M = R^3
+            sage: v = M([x^2, 2*x^2, 3*x^2])
+            sage: w = M([0, x, 2*x])
+            sage: S = M.submodule([v, w])
+            sage: r = FreeResolution(S)
+            sage: type(r)
+            <class 'sage.homology.free_resolution.FiniteFreeResolution_free_module'>
+
+            sage: I = R.ideal([x^4 + 3*x^2 + 2])
+            sage: r = FreeResolution(I)
+            sage: type(r)
+            <class 'sage.homology.free_resolution.FiniteFreeResolution_free_module'>
+        """
+        # The module might still be free even if is_free_module is False.
+        # This is just to handle the cases when we trivially know it is.
+        is_free_module = False
+        if isinstance(module, Ideal_generic):
+            S = module.ring()
+            if len(module.gens()) == 1 and S in IntegralDomains():
+                is_free_module = True
+        elif isinstance(module, Module_free_ambient):
+            S = module.base_ring()
+            if (S in PrincipalIdealDomains()
+                or isinstance(module, FreeModule_generic)):
+                is_free_module = True
+        elif isinstance(module, Matrix):
+            S = module.base_ring()
+            if S in PrincipalIdealDomains():
+                module = module.echelon_form()
+                if module.nrows() > module.rank():
+                    module = module.submatrix(nrows=module.rank())
+                    module.set_immutable()
+                is_free_module = True
+            if not module.is_immutable():
+                # We need to make an immutable copy of the matrix
+                module = copy(module)
+                module.set_immutable()
+        else:
+            raise TypeError('no module, matrix, or ideal')
+
+        if not is_free_module:
+            from sage.rings.polynomial.multi_polynomial_libsingular import MPolynomialRing_libsingular
+            if not isinstance(S, MPolynomialRing_libsingular):
+                raise NotImplementedError("the module must be a free module or have the base ring be a polynomial ring using Singular")
+
+            if graded or degrees is not None or shifts is not None:
+                # We are computing a graded resolution
+                from sage.homology.graded_resolution import GradedFiniteFreeResolution_singular
+                return GradedFiniteFreeResolution_singular(module, degrees=degrees, shifts=shifts, name=name, **kwds)
+
+            return FiniteFreeResolution_singular(module, name=name, **kwds)
+
+        # Otherwise we know it is a free module
+
+        if graded or degrees is not None or shifts is not None:
+            # We are computing a graded resolution
+            from sage.homology.graded_resolution import GradedFiniteFreeResolution_free_module
+            return GradedFiniteFreeResolution_free_module(module, degrees=degrees, shifts=shifts, name=name, **kwds)
+
+        return FiniteFreeResolution_free_module(module, name=name, **kwds)
 
     def __init__(self, module, name='S', **kwds):
         """
@@ -585,7 +580,7 @@ class FiniteFreeResolution(FreeResolution):
         r"""
         Return the matrix whose column space is ``self._module``.
 
-        If ``self._module`` is an ideal, then returns just the ideal.
+        If ``self._module`` is an ideal, then just the ideal is returned.
 
         TESTS::
 

@@ -303,7 +303,7 @@ class LazyModuleElement(Element):
 
     coefficient = __getitem__
 
-    def map_coefficients(self, func, ring=None):
+    def map_coefficients(self, func):
         r"""
         Return the series with ``func`` applied to each nonzero
         coefficient of ``self``.
@@ -378,8 +378,7 @@ class LazyModuleElement(Element):
                                         degree=coeff_stream._degree,
                                         constant=BR(c))
             return P.element_class(P, coeff_stream)
-        R = P._internal_poly_ring.base_ring()
-        coeff_stream = Stream_map_coefficients(self._coeff_stream, func, R)
+        coeff_stream = Stream_map_coefficients(self._coeff_stream, func)
         return P.element_class(P, coeff_stream)
 
     def truncate(self, d):
@@ -3101,7 +3100,7 @@ class LazyLaurentSeries(LazyCauchyProductSeries):
             def coefficient(n):
                 return sum(self[i] * (g**i)[n] for i in range(n+1))
             R = P._internal_poly_ring.base_ring()
-            coeff_stream = Stream_function(coefficient, R, P._sparse, 1)
+            coeff_stream = Stream_function(coefficient, P._sparse, 1)
             return P.element_class(P, coeff_stream)
 
         coeff_stream = Stream_cauchy_compose(self._coeff_stream, g._coeff_stream)
@@ -3380,8 +3379,7 @@ class LazyLaurentSeries(LazyCauchyProductSeries):
         coeff_stream = Stream_derivative(self._coeff_stream, order)
         if vars:
             coeff_stream = Stream_map_coefficients(coeff_stream,
-                                                   lambda c: c.derivative(vars),
-                                                   R)
+                                                   lambda c: c.derivative(vars))
         return P.element_class(P, coeff_stream)
 
     def approximate_series(self, prec, name=None):
@@ -3832,7 +3830,7 @@ class LazyTaylorSeries(LazyCauchyProductSeries):
                 # we assume that the valuation of self[i](g) is at least i
                 def coefficient(n):
                     return sum(self[i] * (g0**i)[n] for i in range(n+1))
-                coeff_stream = Stream_function(coefficient, R, P._sparse, 1)
+                coeff_stream = Stream_function(coefficient, P._sparse, 1)
                 return P.element_class(P, coeff_stream)
 
             coeff_stream = Stream_cauchy_compose(self._coeff_stream, g0._coeff_stream)
@@ -3847,7 +3845,7 @@ class LazyTaylorSeries(LazyCauchyProductSeries):
                 # Make sure the element returned from the composition is in P
                 r += P(self[i](g))[n]
             return r
-        coeff_stream = Stream_function(coefficient, R, P._sparse, sorder * gv)
+        coeff_stream = Stream_function(coefficient, P._sparse, sorder * gv)
         return P.element_class(P, coeff_stream)
 
     compose = __call__
@@ -4050,10 +4048,11 @@ class LazyTaylorSeries(LazyCauchyProductSeries):
             return self
 
         if P._arity > 1:
+            v = gen_vars + vars
+            d = -len(gen_vars)
             coeff_stream = Stream_shift(Stream_map_coefficients(coeff_stream,
-                                                                lambda c: c.derivative(gen_vars + vars),
-                                                                P._laurent_poly_ring),
-                                        -len(gen_vars))
+                                                                lambda c: R(c).derivative(v)),
+                                        d)
             return P.element_class(P, coeff_stream)
 
         if (isinstance(coeff_stream, Stream_exact)
@@ -4077,8 +4076,7 @@ class LazyTaylorSeries(LazyCauchyProductSeries):
         coeff_stream = Stream_derivative(self._coeff_stream, order)
         if vars:
             coeff_stream = Stream_map_coefficients(coeff_stream,
-                                                   lambda c: c.derivative(vars),
-                                                   R)
+                                                   lambda c: c.derivative(vars))
         return P.element_class(P, coeff_stream)
 
     def _format_series(self, formatter, format_strings=False):
@@ -4666,8 +4664,7 @@ class LazySymmetricFunction(LazyCompletionGradedAlgebraElement):
             raise ValueError("arity must be equal to 1")
 
         coeff_stream = Stream_shift(Stream_map_coefficients(self._coeff_stream,
-                                                            lambda c: c.derivative_with_respect_to_p1(n),
-                                                            P._laurent_poly_ring),
+                                                            lambda c: c.derivative_with_respect_to_p1(n)),
                                     -n)
         return P.element_class(P, coeff_stream)
 
@@ -4982,7 +4979,7 @@ class LazyDirichletSeries(LazyModuleElement):
             except ValueError:
                 return ZZ.zero()
         R = P._internal_poly_ring.base_ring()
-        return P.element_class(P, Stream_function(coefficient, R, P._sparse, 1))
+        return P.element_class(P, Stream_function(coefficient, P._sparse, 1))
 
     def _format_series(self, formatter, format_strings=False):
         """

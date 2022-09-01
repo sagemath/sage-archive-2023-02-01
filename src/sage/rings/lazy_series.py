@@ -4375,7 +4375,7 @@ class LazySymmetricFunction(LazyCompletionGradedAlgebraElement):
             sage: E1 = S(lambda n: s[n], valuation=1)
             sage: E = 1 + E1
             sage: P = E(E1)
-            sage: [s(x) for x in P[:5]]
+            sage: P[:5]
             [s[], s[1], 2*s[2], s[2, 1] + 3*s[3], 2*s[2, 2] + 2*s[3, 1] + 5*s[4]]
 
         The plethysm with a tensor product is also implemented::
@@ -4496,14 +4496,15 @@ class LazySymmetricFunction(LazyCompletionGradedAlgebraElement):
                     g._coeff_stream._approximate_order = 1
 
             if P._arity == 1:
-                ps = P._laurent_poly_ring.realization_of().p()
+                ps = R.realization_of().p()
             else:
-                ps = tensor([P._laurent_poly_ring._sets[0].realization_of().p()]*P._arity)
-            coeff_stream = Stream_plethysm(self._coeff_stream, g._coeff_stream, ps)
+                ps = tensor([R._sets[0].realization_of().p()]*P._arity)
+            coeff_stream = Stream_plethysm(self._coeff_stream, g._coeff_stream,
+                                           ps, R)
+            return P.element_class(P, coeff_stream)
+
         else:
             raise NotImplementedError("only implemented for arity 1")
-
-        return P.element_class(P, coeff_stream)
 
     plethysm = __call__
 
@@ -4675,14 +4676,22 @@ class LazySymmetricFunction(LazyCompletionGradedAlgebraElement):
         r"""
         Return the functorial composition of ``self`` and ``g``.
 
-        If `F` and `G` are species, their functorial composition is
-        the species `F \Box G` obtained by setting `(F \Box G) [A] =
-        F[ G[A] ]`.  In other words, an `(F \Box G)`-structure on a
-        set `A` of labels is an `F`-structure whose labels are the
-        set of all `G`-structures on `A`.
+        Let `X` be a finite set of cardinality `m`.  For a group
+        action of the symmetric group `g: S_n \to S_X` and a
+        (possibly virtual) representation of the symmetric group on
+        `X`, `f: S_X \to GL(V)`, the functorial composition is the
+        (virtual) representation of the symmetric group `f \Box g:
+        S_n \to GL(V)` given by `\sigma \mapsto f(g(\sigma))`.
 
-        It can be shown (as in section 2.2 of [BLL]_) that there is a
-        corresponding operation on cycle indices:
+        This is more naturally phrased in the language of
+        combinatorial species.  Let `F` and `G` be species, then
+        their functorial composition is the species `F \Box G` with
+        `(F \Box G) [A] = F[ G[A] ]`.  In other words, an `(F \Box
+        G)`-structure on a set `A` of labels is an `F`-structure
+        whose labels are the set of all `G`-structures on `A`.
+
+        The Frobenius character (or cycle index series) of `F \Box G`
+        can be computed as follows, see section 2.2 of [BLL]_):
 
         .. MATH::
 
@@ -4690,8 +4699,6 @@ class LazySymmetricFunction(LazyCompletionGradedAlgebraElement):
             \sum_{\sigma \in \mathfrak{S}_{n}}
             \operatorname{fix} F[ (G[\sigma])_{1}, (G[\sigma])_{2}, \ldots ]
             \, p_{1}^{\sigma_{1}} p_{2}^{\sigma_{2}} \cdots.
-
-        This method implements that operation on cycle index series.
 
         .. WARNING::
 
@@ -4701,9 +4708,10 @@ class LazySymmetricFunction(LazyCompletionGradedAlgebraElement):
 
         EXAMPLES:
 
-        The species `G` of simple graphs can be expressed in terms of a functorial
-        composition: `G = \mathfrak{p} \Box \mathfrak{p}_{2}`, where
-        `\mathfrak{p}` is the :class:`~sage.combinat.species.subset_species.SubsetSpecies`.::
+        The species `G` of simple graphs can be expressed in terms of
+        a functorial composition: `G = \mathfrak{p} \Box
+        \mathfrak{p}_{2}`, where `\mathfrak{p}` is the
+        :class:`~sage.combinat.species.subset_species.SubsetSpecies`.::
 
             sage: R.<q> = QQ[]
             sage: h = SymmetricFunctions(R).h()
@@ -4735,12 +4743,22 @@ class LazySymmetricFunction(LazyCompletionGradedAlgebraElement):
 
             sage: p = SymmetricFunctions(QQ).p()
             sage: h = SymmetricFunctions(QQ).h()
+            sage: e = SymmetricFunctions(QQ).e()
             sage: L = LazySymmetricFunctions(h)
             sage: E = L(lambda n: h[n])
             sage: Ep = p[1]*E.derivative_with_respect_to_p1(); Ep
             h[1] + (h[1,1]) + (h[2,1]) + (h[3,1]) + (h[4,1]) + (h[5,1]) + O^7
-            sage: f = L(lambda n: randint(3, 6)*h[n])
+            sage: f = L(lambda n: h[n-n//2, n//2])
             sage: f - Ep.functorial_composition(f)
+            O^7
+
+        The functorial composition distributes over the sum::
+
+            sage: F1 = L(lambda n: h[n])
+            sage: F2 = L(lambda n: e[n])
+            sage: f1 = F1.functorial_composition(f)
+            sage: f2 = F2.functorial_composition(f)
+            sage: (F1 + F2).functorial_composition(f) - f1 - f2
             O^7
 
         TESTS:
@@ -4752,6 +4770,17 @@ class LazySymmetricFunction(LazyCompletionGradedAlgebraElement):
             sage: L(h[2,1]).functorial_composition(L([3*h[0]]))
             3*h[] + O^7
 
+        Check an instance of a non-group action::
+
+            sage: s = SymmetricFunctions(QQ).s()
+            sage: p = SymmetricFunctions(QQ).p()
+            sage: L = LazySymmetricFunctions(p)
+            sage: f = L(lambda n: s[n])
+            sage: g = L(2*s[2, 1, 1] + s[2, 2] + 3*s[4])
+            sage: r = f.functorial_composition(g); r[4]
+            Traceback (most recent call last):
+            ...
+            ValueError: the argument is not the Frobenius character of a permutation representation
         """
         if len(args) != self.parent()._arity:
             raise ValueError("arity must be equal to the number of arguments provided")
@@ -4770,16 +4799,16 @@ class LazySymmetricFunction(LazyCompletionGradedAlgebraElement):
             g = Stream_map_coefficients(g._coeff_stream, p)
             f = Stream_map_coefficients(self._coeff_stream, p)
 
-            def g_cycle_type(s):
+            def g_cycle_type(s, n):
                 # the cycle type of G[sigma] of any permutation sigma
-                # with cycle type s
-                if not s:
+                # with cycle type s, which is a partition of n
+                if not n:
                     if g[0]:
                         return Partition([1]*ZZ(g[0].coefficient([])))
                     return Partition([])
                 res = []
                 # in the species case, k is at most
-                # factorial(n) * g[n].coefficient([1]*n) with n = sum(s)
+                # factorial(n) * g[n].coefficient([1]*n)
                 for k in range(1, lcm(s) + 1):
                     e = 0
                     for d in divisors(k):
@@ -4787,22 +4816,32 @@ class LazySymmetricFunction(LazyCompletionGradedAlgebraElement):
                         if not m:
                             continue
                         u = s.power(k // d)
-                        g_u = g[sum(u)]
+                        # it could be, that we never need to compute
+                        # g[n], so we only do this here
+                        g_u = g[n]
                         if g_u:
                             e += m * u.aut() * g_u.coefficient(u)
-                    res.extend([k] * int(e // k))
+                    # e / k might not be an integer if g is not a
+                    # group action, so it is good to check
+                    res.extend([k] * ZZ(e / k))
                 res.reverse()
                 return Partition(res)
 
             def coefficient(n):
-                res = p.zero()
+                terms = {}
+                t_size = None
                 for s in Partitions(n):
-                    t = g_cycle_type(s)
-                    f_t = f[t.size()]
-                    if f_t:
-                        q = t.aut() * f_t.coefficient(t) / s.aut()
-                        res += q * p(s)
-                return res
+                    t = g_cycle_type(s, n)
+                    if t_size is None:
+                        t_size = sum(t)
+                        f_t = f[t_size]
+                        if not f_t:
+                            break
+                    elif t_size != sum(t):
+                        raise ValueError("the argument is not the Frobenius character of a permutation representation")
+
+                    terms[s] = t.aut() * f_t.coefficient(t) / s.aut()
+                return R(p.element_class(p, terms))
 
             coeff_stream = Stream_function(coefficient, P._sparse, 0)
             return P.element_class(P, coeff_stream)

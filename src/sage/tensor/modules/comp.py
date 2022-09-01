@@ -3032,17 +3032,20 @@ class CompWithSym(Components):
             sage: CompWithSym._canonicalize_sym_antisym(6, [(2, 1)])
             (((1, 2),), ())
         """
+        if not sym and not antisym:
+            # fast path
+            return (), ()
         result_sym = []
         if sym is None:
-            sym = []
+            sym = ()
         else:
             # Handle the case that sym is an iterator
-            sym = list(sym)
+            sym = tuple(sym)
         if sym:
             if isinstance(sym[0], (int, Integer)):
                 # a single symmetry is provided as a tuple or a range object;
                 # it is converted to a 1-item list:
-                sym = [tuple(sym)]
+                sym = (tuple(sym),)
             for isym in sym:
                 if len(isym) < 2:
                     if trivial_symmetries == 'error':
@@ -3083,9 +3086,9 @@ class CompWithSym(Components):
         # Final consistency check:
         index_list = []
         for isym in result_sym:
-            index_list += isym
+            index_list.extend(isym)
         for isym in result_antisym:
-            index_list += isym
+            index_list.extend(isym)
         if len(index_list) != len(set(index_list)):
             # There is a repeated index position:
             raise IndexError("incompatible lists of symmetries: the same " +

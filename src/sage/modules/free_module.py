@@ -6710,8 +6710,56 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
         """
         return self.__ambient_module
 
+    # Sets.Subquotients.ParentMethods
+    def ambient(self):
+        """
+        Return the ambient module or space for ``self``.
+
+        EXAMPLES::
+
+            sage: M = ZZ^3
+            sage: W = M.span_of_basis([[1,2,3],[4,5,6]]); W
+            Free module of degree 3 and rank 2 over Integer Ring
+            User basis matrix:
+            [1 2 3]
+            [4 5 6]
+            sage: W.ambient()
+            Ambient free module of rank 3 over the principal ideal domain Integer Ring
+
+        Now we create a submodule of the ambient vector space, rather than
+        ``M`` itself::
+
+            sage: W = M.span_of_basis([[1,2,3/2],[4,5,6]]); W
+            Free module of degree 3 and rank 2 over Integer Ring
+            User basis matrix:
+            [  1   2 3/2]
+            [  4   5   6]
+            sage: W.ambient()
+            Vector space of dimension 3 over Rational Field
+
+        A submodule of a submodule::
+
+            sage: M = ZZ^3
+            sage: W = M.span_of_basis([[1,2,3],[4,5,6]]); W
+            Free module of degree 3 and rank 2 over Integer Ring
+            User basis matrix:
+            [1 2 3]
+            [4 5 6]
+            sage: U = W.span_of_basis([[5,7,9]]); U
+            Free module of degree 3 and rank 1 over Integer Ring
+            User basis matrix:
+            [5 7 9]
+            sage: U.ambient()
+            Ambient free module of rank 3 over the principal ideal domain Integer Ring
+
+        """
+        if self.base_ring() == self.coordinate_ring():
+            return self.ambient_module()
+        else:
+            return self.ambient_vector_space()
+
     # Subobjects.ParentMethods
-    ambient = ambient_module
+    # lift, retract
 
     def relations(self):
         r"""

@@ -3037,10 +3037,6 @@ class CompWithSym(Components):
           antisymmetries among the arguments, with the same convention
           as for ``sym``
 
-        - ``trivial_symmetries`` -- (default: ``"drop"``) if ``"error"``, raise
-          an :class:`IndexError` if any trivial symmetries are provided;
-          otherwise, silently drop them
-
         EXAMPLES::
 
             sage: from sage.tensor.modules.comp import CompWithSym
@@ -3063,12 +3059,8 @@ class CompWithSym(Components):
                 sym = (tuple(sym),)
             for isym in sym:
                 if len(isym) < 2:
-                    if trivial_symmetries == 'error':
-                        raise IndexError("at least two index positions must be " +
-                                         "provided to define a symmetry")
-                    else:
-                        # Drop trivial symmetry
-                        continue
+                    # Drop trivial symmetry
+                    continue
                 isym = tuple(sorted(isym))
                 if isym[0] < 0 or isym[-1] > nb_indices - 1:
                     raise IndexError("invalid index position: " + str(i) +
@@ -3079,20 +3071,16 @@ class CompWithSym(Components):
             antisym = []
         else:
             # Handle the case that antisym is an iterator
-            antisym = tuple(antisym)
+            antisym = list(antisym)
         if antisym:
             if isinstance(antisym[0], (int, Integer)):
                 # a single antisymmetry is provided as a tuple or a range
                 # object; it is converted to a 1-item list:
-                antisym = (tuple(antisym),)
+                antisym = [tuple(antisym)]
             for isym in antisym:
                 if len(isym) < 2:
-                    if trivial_symmetries == 'error':
-                        raise IndexError("at least two index positions must be " +
-                                         "provided to define an antisymmetry")
-                    else:
-                        # Drop trivial antisymmetry
-                        continue
+                    # Drop trivial antisymmetry
+                    continue
                 isym = tuple(sorted(isym))
                 if isym[0] < 0 or isym[-1] > nb_indices - 1:
                     raise IndexError("invalid index position: " + str(i) +

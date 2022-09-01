@@ -3054,11 +3054,11 @@ class CompWithSym(Components):
                     else:
                         # Drop trivial symmetry
                         continue
-                for i in isym:
-                    if i < 0 or i > nb_indices - 1:
-                        raise IndexError("invalid index position: " + str(i) +
-                                         " not in [0," + str(nb_indices-1) + "]")
-                result_sym.append(tuple(isym))
+                isym = tuple(sorted(isym))
+                if isym[0] < 0 or isym[-1] > nb_indices - 1:
+                    raise IndexError("invalid index position: " + str(i) +
+                                     " not in [0," + str(nb_indices-1) + "]")
+                result_sym.append(isym)
         result_antisym = []
         if antisym is None:
             antisym = []
@@ -3078,11 +3078,11 @@ class CompWithSym(Components):
                     else:
                         # Drop trivial antisymmetry
                         continue
-                for i in isym:
-                    if i < 0 or i > nb_indices - 1:
-                        raise IndexError("invalid index position: " + str(i) +
-                                         " not in [0," + str(nb_indices - 1) + "]")
-                result_antisym.append(tuple(isym))
+                isym = tuple(sorted(isym))
+                if isym[0] < 0 or isym[-1] > nb_indices - 1:
+                    raise IndexError("invalid index position: " + str(i) +
+                                     " not in [0," + str(nb_indices - 1) + "]")
+                result_antisym.append(isym)
         # Final consistency check:
         index_list = []
         for isym in result_sym:
@@ -3094,8 +3094,6 @@ class CompWithSym(Components):
             raise IndexError("incompatible lists of symmetries: the same " +
                              "index position appears more than once")
         # Canonicalize sort order, make tuples
-        result_sym = [tuple(sorted(s)) for s in result_sym]
-        result_antisym = [tuple(sorted(s)) for s in result_antisym]
         result_sym = tuple(sorted(result_sym))
         result_antisym = tuple(sorted(result_antisym))
         return result_sym, result_antisym

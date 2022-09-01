@@ -1863,7 +1863,7 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
 
         kwds:
 
-        - ``bound`` - a real number
+        - ``bound`` - an integer
 
         - ``precision`` - (default: 53) a positive integer
 
@@ -1885,7 +1885,25 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
             sage: u = QQ['u'].0
             sage: P.<x,y,z> = ProjectiveSpace(NumberField(u^2 - 2, 'v'), 2)
             sage: len(list(P.points_of_bounded_height(bound=2)))
-            265
+            13
+
+        ::
+
+            sage: CF.<a> = CyclotomicField(5)
+            sage: R.<x> = CF[]
+            sage: L.<l> = CF.extension(x^5 + 5)
+            sage: Q.<x,y> = ProjectiveSpace(L, 1)
+            sage: list(Q.points_of_bounded_height(bound=2))
+
+        ::
+
+            sage: R.<x> = QQ[]
+            sage: F.<a> = NumberField(x^4 - 8*x^2 + 3)
+            sage: P.<x,y,z> = ProjectiveSpace(F, 2)
+            sage: all([exp(p.global_height()) <= 1 for p in P.points_of_bounded_height(bound=1)])
+            True
+            sage: all([exp(p.global_height()) <= 3 for p in P.points_of_bounded_height(bound=3)])
+            True
         """
         from sage.schemes.projective.proj_bdd_height import QQ_points_of_bounded_height, points_of_bounded_height
 
@@ -1901,16 +1919,14 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
             raise NotImplementedError("self must be projective space over a number field")
 
         bound = kwds.pop('bound')
-        B = bound**(self.base_ring().absolute_degree())  # convert to relative height
-
         prec = kwds.pop('precision', 53)
 
         dim = self.dimension_relative()
 
         if field_type:
-            return points_of_bounded_height(R, dim, B, prec)
+            return points_of_bounded_height(R, dim, bound, prec)
         else:
-            return QQ_points_of_bounded_height(dim, B)
+            return QQ_points_of_bounded_height(dim, bound)
 
     def subscheme_from_Chow_form(self, Ch, dim):
         r"""

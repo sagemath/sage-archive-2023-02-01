@@ -121,7 +121,11 @@ def points_of_bounded_height(K, dim, bound, prec=53):
 
     r1, r2 = K.signature()
     r = r1 + r2 - 1
-    K_degree = K.degree()
+
+    if K.is_relative:
+        K_degree = K.relative_degree()
+    else:
+        K_degree = K.degree()
     K_embeddings = K.places(prec=prec)
     roots_of_unity = K.roots_of_unity()
     unit_tuples = list(itertools.product(roots_of_unity, repeat=dim))

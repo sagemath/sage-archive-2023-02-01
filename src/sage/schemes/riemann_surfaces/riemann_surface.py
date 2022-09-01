@@ -2832,6 +2832,11 @@ class RiemannSurface(object):
         mp_list = [reparameterize_differential_minpoly(mp, z_start)
                    for mp in mp_list]
 
+        # Depending on whether we have reparameterized about infinity or not,
+        # we initialise some values we will need in the calculation, inclduing
+        # the function `initalize', which at a given value of zbar, calculates
+        # the starting value for the i-th differential so it can be iterated 
+        # from via homotopy continuation. 
         if z_start==self._CC(Infinity):
             CCzg = PolynomialRing(self._CC, ['zbar','gbar'])
             mp_list = [CCzg(mp) for mp in mp_list]
@@ -2865,6 +2870,9 @@ class RiemannSurface(object):
                     newg = rs[sb]
                 return newg
 
+        # As multiple calls of the minimal polynomial and it's derivative will 
+        # be required for the homotopy continuaiton, we create fast-callable 
+        # versions of these. 
         fc_mp_list = [fast_callable(mp, domain=self._CC) for mp in mp_list]
         fc_dmp_list = [fast_callable(mp.derivative(CCzg.gen(1)), domain=self._CC)
                        for mp in mp_list]
@@ -2876,6 +2884,15 @@ class RiemannSurface(object):
         one = self._RR(1)
         la = self._RR.pi()/2
 
+        # Cutoffs are used to allow us to not have to integrate as close into 
+        # a singularity as we might otherwise have to, by knowing that we can 
+        # truncate the integration interval and only introduce a finite error 
+        # that can be bounded by knowledge of the asymptotics of the integrands,
+        # which we have from their minimal polynomials. This is really a 
+        # precursor to what would be ideal to implement eventually, namely
+        # a method that uses Puiseux series to integrate into singularities. 
+        # We allow for cutoffs to be tailored to each integrand, or we take a 
+        # uniform value. 
         if cutoff_individually is None:
             cutoffs = [0]
             cutoff_individually = False
@@ -2896,6 +2913,14 @@ class RiemannSurface(object):
                 aes.append(a)
             cutoff_individually = bool(not all(ai<=0 for ai in aes) and cutoff_individually)
 
+        # The `raise_errors' variable toggles what we do in the event that 
+        # newton iteration hasn't converged to the desired precision in a 
+        # fixed number of steps, here set to 100. 
+        # If the default value of True is taken, then the failure to converge
+        # raises an error. If the value of False is taken, this failure to 
+        # converge happens silently, thus allowing the user to get *an* 
+        # answer out of the integration, but numerical imprecision is to be 
+        # expected. 
         if raise_errors:
             n_steps = self._prec-1
 
@@ -2912,6 +2937,11 @@ class RiemannSurface(object):
         Nh = (-lambert_w(-1,-tau/2)/la).log().ceil()
         h0 = Nh*h
 
+        # Depending on how the cutoffs were defined, we now create the function
+        # which calculates the integrand we want to integrate via double-
+        # exponential methods. This will get the value at the next node by 
+        # homotopy-continuing from the last node value. There is also a slight
+        # technical condition which implements the cutoffs. 
         if cutoff_individually:
             z_fc_list = list(zip(fc_mp_list, fc_dmp_list))
 
@@ -2999,6 +3029,12 @@ class RiemannSurface(object):
         D4 = D3_over_tau
         results = []
 
+        # we now calculate the integral via double-exponential methods
+        # repeatedly halving the step size and then using a heuristic 
+        # convergence check. We again use the error_handle function to deal
+        # with the case where we exceed the maximum number of steps allowed, 
+        # currently set by to make sure the step size does not fall below the
+        # resolution set by the binary precision used. 
         for k in range(n_steps):
             hj = h0
             val = v0

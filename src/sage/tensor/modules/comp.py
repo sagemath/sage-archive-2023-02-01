@@ -3000,9 +3000,27 @@ class CompWithSym(Components):
             nb_indices, sym, antisym)
 
     @staticmethod
-    def _canonicalize_sym_antisym(nb_indices, sym=None, antisym=None):
+    def _canonicalize_sym_antisym(nb_indices, sym=None, antisym=None, *,
+                                  trivial_symmetries='drop'):
         r"""
         Bring sym and antisym into their canonical form.
+
+        INPUT:
+
+        - ``nb_indices`` -- number of integer indices labeling the components
+
+        - ``sym`` -- (default: ``None``) a symmetry or an iterable of symmetries
+          among the tensor arguments: each symmetry is described by a tuple
+          containing the positions of the involved arguments, with the
+          convention ``position = 0`` for the first argument. For instance:
+
+          * ``sym = (0,1)`` for a symmetry between the 1st and 2nd arguments
+          * ``sym = [(0,2), (1,3,4)]`` for a symmetry between the 1st and 3rd
+            arguments and a symmetry between the 2nd, 4th and 5th arguments.
+
+        - ``antisym`` -- (default: ``None``) antisymmetry or iterable of
+          antisymmetries among the arguments, with the same convention
+          as for ``sym``
 
         EXAMPLES::
 

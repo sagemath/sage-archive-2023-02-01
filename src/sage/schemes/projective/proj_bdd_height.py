@@ -122,7 +122,7 @@ def points_of_bounded_height(K, dim, bound, prec=53):
     r1, r2 = K.signature()
     r = r1 + r2 - 1
 
-    if K.is_relative:
+    if K.is_relative():
         K_degree = K.relative_degree()
     else:
         K_degree = K.degree()
@@ -140,7 +140,10 @@ def points_of_bounded_height(K, dim, bound, prec=53):
 
     class_group_ideals = [c.ideal() for c in K.class_group()]
     class_number = len(class_group_ideals)
-    class_group_ideal_norms = [i.norm() for i in class_group_ideals]
+    if K.is_relative():
+        class_group_ideal_norms = [i.absolute_norm() for i in class_group_ideals]
+    else:
+        class_group_ideal_norms = [i.norm() for i in class_group_ideals]
     norm_bound = bound * max(class_group_ideal_norms)
     fundamental_units = UnitGroup(K).fundamental_units()
     fund_unit_logs = list(map(log_embed, fundamental_units))

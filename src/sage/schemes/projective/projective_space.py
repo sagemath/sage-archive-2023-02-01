@@ -1889,11 +1889,13 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
 
         ::
 
-            sage: CF.<a> = CyclotomicField(5)
+            sage: CF.<a> = CyclotomicField(3)
             sage: R.<x> = CF[]
-            sage: L.<l> = CF.extension(x^5 + 5)
+            sage: L.<l> = CF.extension(x^3 + 2)
             sage: Q.<x,y> = ProjectiveSpace(L, 1)
             sage: list(Q.points_of_bounded_height(bound=2))
+            [(0 : 1), (a : 1), (a + 1 : 1), (-a - 1 : 1),
+             (-a : 1), (-1 : 1), (1 : 1), (1 : 0)]
 
         ::
 

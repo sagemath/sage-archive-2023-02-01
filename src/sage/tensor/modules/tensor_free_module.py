@@ -391,6 +391,18 @@ class TensorFreeModule(FiniteRankFreeModule_abstract):
         super().__init__(fmodule._ring, rank, name=name, latex_name=latex_name)
         fmodule._all_modules.add(self)
 
+    def construction(self):
+        r"""
+        TESTS::
+
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: T = M.tensor_module(2, 3)
+            sage: T.construction() is None
+            True
+        """
+        # No construction until https://trac.sagemath.org/ticket/31276 provides tensor_product methods
+        return None
+
     #### Parent Methods
 
     def _element_constructor_(self, comp=[], basis=None, name=None,

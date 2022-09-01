@@ -756,7 +756,7 @@ class EllipticCurveHom_velusqrt(EllipticCurveHom):
     INPUT:
 
     - ``E`` -- an elliptic curve over a finite field
-    - ``P`` -- a point on `E` of odd order `\geq 5`
+    - ``P`` -- a point on `E` of odd order `\geq 9`
     - ``codomain`` -- codomain elliptic curve (optional)
     - ``model`` -- string (optional); input to
       :meth:`~sage.schemes.elliptic_curves.ell_field.compute_model`
@@ -884,8 +884,8 @@ class EllipticCurveHom_velusqrt(EllipticCurveHom):
         self._P = self._pre_iso(P)
 
         self._degree = self._P.order()
-        if self._degree % 2 != 1 or self._degree < 5:
-            raise NotImplementedError('only implemented for odd degrees >= 5')
+        if self._degree % 2 != 1 or self._degree < 9:
+            raise NotImplementedError('only implemented for odd degrees >= 9')
 
         if Q is not None:
             self._Q = E(Q)
@@ -1196,10 +1196,10 @@ def _random_example_for_testing():
         True
     """
     from sage.all import prime_range, choice, randrange, GF, gcd
-    p = choice(prime_range(3, 100))
-    e = randrange(1,5)
-    F,t = GF((p,e),'t').objgen()
     while True:
+        p = choice(prime_range(2, 100))
+        e = randrange(1,5)
+        F,t = GF((p,e),'t').objgen()
         try:
             E = EllipticCurve([F.random_element() for _ in range(5)])
         except ArithmeticError:
@@ -1208,11 +1208,11 @@ def _random_example_for_testing():
             E.short_weierstrass_model()
         except ValueError:
             continue
-        if E.cardinality() < 5:
+        if E.cardinality() < 9:
             continue
         A = E.abelian_group()
         ds = max(A.invariants()).prime_to_m_part(2).divisors()
-        ds = [d for d in ds if 5 <= d < 1000]
+        ds = [d for d in ds if 9 <= d < 1000]
         if ds:
             deg = choice(ds)
             break

@@ -4767,7 +4767,7 @@ class LazySymmetricFunction(LazyCompletionGradedAlgebraElement):
 
             sage: h = SymmetricFunctions(QQ).h()
             sage: L = LazySymmetricFunctions(h)
-            sage: L(h[2,1]).functorial_composition(L([3*h[0]]))
+            sage: L(h[2,1]).functorial_composition(3*h[0])
             3*h[] + O^7
 
         Check an instance of a non-group action::
@@ -4776,7 +4776,7 @@ class LazySymmetricFunction(LazyCompletionGradedAlgebraElement):
             sage: p = SymmetricFunctions(QQ).p()
             sage: L = LazySymmetricFunctions(p)
             sage: f = L(lambda n: s[n])
-            sage: g = L(2*s[2, 1, 1] + s[2, 2] + 3*s[4])
+            sage: g = 2*s[2, 1, 1] + s[2, 2] + 3*s[4]
             sage: r = f.functorial_composition(g); r[4]
             Traceback (most recent call last):
             ...
@@ -4793,7 +4793,14 @@ class LazySymmetricFunction(LazyCompletionGradedAlgebraElement):
         if len(args) == 1:
             g = args[0]
             P = g.parent()
-            R = P._laurent_poly_ring
+            if isinstance(g, LazySymmetricFunction):
+                R = P._laurent_poly_ring
+            else:
+                from sage.rings.lazy_series_ring import LazySymmetricFunctions
+                R = g.parent()
+                P = LazySymmetricFunctions(R)
+                g = P(g)
+
             p = R.realization_of().p()
             # TODO: does the following introduce a memory leak?
             g = Stream_map_coefficients(g._coeff_stream, p)

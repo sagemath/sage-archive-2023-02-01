@@ -114,7 +114,7 @@ We can change the base ring::
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-from sage.structure.element import Element, parent
+from sage.structure.element import Element, parent, ModuleElement, RingElement
 from sage.structure.richcmp import op_EQ, op_NE
 from sage.functions.other import factorial
 from sage.arith.power import generic_power
@@ -142,7 +142,8 @@ from sage.data_structures.stream import (
     Stream_plethysm
 )
 
-class LazyModuleElement(Element):
+
+class LazyModuleElement(ModuleElement):
     r"""
     A lazy sequence with a module structure given by term-wise
     addition and scalar multiplication.
@@ -2045,10 +2046,10 @@ class LazyModuleElement(Element):
             sage: f*f - Z
             O(1/(8^s))
         """
-        return self ** (1/ZZ(2))
+        return self ** (~ZZ(2))
 
 
-class LazyCauchyProductSeries(LazyModuleElement):
+class LazyCauchyProductSeries(RingElement, LazyModuleElement):
     r"""
     A class for series where multiplication is the Cauchy product.
 

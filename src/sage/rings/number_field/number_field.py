@@ -9339,12 +9339,12 @@ class NumberField_absolute(NumberField_generic):
 
         ::
 
-            sage: K.<a> = NumberField(x^4 - 8*x^2 + 3)
-            sage: f = logarithmic_embedding(K)
+            sage: F.<a> = NumberField(x^4 - 8*x^2 + 3)
+            sage: f = F.logarithmic_embedding()
             sage: f(0)
             (-1, -1, -1, -1)
             sage: f(7)
-            (3.89182029811063, 3.89182029811063, 3.89182029811063, 3.89182029811063)
+            (1.94591014905531, 1.94591014905531, 1.94591014905531, 1.94591014905531)
         """
         def closure_map(x, prec=53):
             """

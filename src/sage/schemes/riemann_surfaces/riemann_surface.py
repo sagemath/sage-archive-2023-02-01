@@ -60,7 +60,7 @@ In fact it is an order in a number field::
 
 We can look at an extended example of the Abel-Jacobi functionality. We will
 demonstrate a particular half-canonical divisor on Klein's Curve, known in
-the literature.::
+the literature::
 
     sage: f = x^3*y + y^3 + x
     sage: S = RiemannSurface(f, integration_method='rigorous')
@@ -81,7 +81,7 @@ divisor, and we can calculate the canonical divisor using curve functionality::
     sage: if K-3*Pinf-1*Pinf_prime: Pinf, Pinf_prime = (Pinf_prime, Pinf);
     sage: D = P0 + 2*Pinf - Pinf_prime
 
-Note we could check using exact techniques that `2D=K`::
+Note we could check using exact techniques that `2D = K`::
 
     sage: Z = K - 2*D
     sage: (Z.degree()==0, len(Z.basis_differential_space())==S.genus, len(Z.basis_function_space())==1)
@@ -371,7 +371,7 @@ def differential_basis_baker(f):
             if P.interior_contains(a)]
 
 
-def find_closest_element(item, List):
+def find_closest_element(item, lst):
     r"""
     Return the index of the closest element of a list.
 
@@ -381,9 +381,9 @@ def find_closest_element(item, List):
 
     INPUT:
 
-    - ``item`` -- value to minimise the distance to over the list.
+    - ``item`` -- value to minimize the distance to over the list
 
-    - ``List`` -- list. List to look for closest element in.
+    - ``lst`` -- list to look for closest element in
 
     EXAMPLES::
 
@@ -396,11 +396,11 @@ def find_closest_element(item, List):
     Note that this method does no checks on the input, but will fail for inputs
     where the absolute value or subtraction do not make sense.
     """
-    dists = [(item-l).abs() for l in List]
+    dists = [(item-l).abs() for l in lst]
     return dists.index(min(dists))
 
 
-def reparameterise_differential_minpoly(minpoly, z0):
+def reparameterize_differential_minpoly(minpoly, z0):
     r"""
     Rewrites a minimal polynomial to write is around `z_0`.
 
@@ -412,14 +412,13 @@ def reparameterise_differential_minpoly(minpoly, z0):
     INPUT:
 
     - ``minpoly`` -- a polynomial in two variables, where the first variables
-       corresponds to the base coordinate on the Riemann surface.
-
-    - ``z0`` -- complex number of infinity. The point about which to
-      reparameterise.
+       corresponds to the base coordinate on the Riemann surface
+    - ``z0`` -- complex number or infinity; the point about which to
+      reparameterize
 
     OUTPUT:
 
-    A polynomial in two variables giving the reparameterise minimal polynomial.
+    A polynomial in two variables giving the reparameterize minimal polynomial.
 
     EXAMPLES:
 
@@ -431,18 +430,18 @@ def reparameterise_differential_minpoly(minpoly, z0):
     Hence the transformed differential should have minimal polynomial
     `\bar{g}^2\bar{z}(1-\bar{z}^3)-1/4=0`, and we can check this::
 
-        sage: from sage.schemes.riemann_surfaces.riemann_surface import RiemannSurface, reparameterise_differential_minpoly
+        sage: from sage.schemes.riemann_surfaces.riemann_surface import RiemannSurface, reparameterize_differential_minpoly
         sage: R.<z,w> = QQ[]
         sage: S = RiemannSurface(w^2-z^3+1)
         sage: minpoly = S._cohomology_basis_bounding_data[1][0][2]
         sage: z0 = Infinity
-        sage: reparameterise_differential_minpoly(minpoly, z0)
+        sage: reparameterize_differential_minpoly(minpoly, z0)
         -zbar^4*gbar^2 + zbar*gbar^2 - 1/4
 
     We can further check that reparameterising about `0` is the identity
     operation::
 
-        sage: reparameterise_differential_minpoly(minpoly, 0)(*minpoly.parent().gens())==minpoly
+        sage: reparameterize_differential_minpoly(minpoly, 0)(*minpoly.parent().gens())==minpoly
         True
 
     .. NOTE::
@@ -450,7 +449,7 @@ def reparameterise_differential_minpoly(minpoly, z0):
         As part of the routine, when reparameterising about infinity, a
         rational function is reduced and then the numerator is taken. Over
         an inexact ring this is numerically unstable, and so it is advisable
-        to only reparameterise about infinity over an exact ring.
+        to only reparameterize about infinity over an exact ring.
         """
     P = minpoly.parent()
     F = PolynomialRing(P.base_ring(), [str(v)+"bar" for v in P.gens()])
@@ -699,7 +698,7 @@ class RiemannSurface(object):
         # We now want to also check whether Infinity is a branch point of any
         # of the differentials.
         # This will be useful when calculating the Abel-Jacobi map.
-        minpoly_list = [reparameterise_differential_minpoly(mp, Infinity)
+        minpoly_list = [reparameterize_differential_minpoly(mp, Infinity)
                         for mp in minpoly_list]
         discriminants = []
         for minpoly in minpoly_list:
@@ -875,7 +874,7 @@ class RiemannSurface(object):
             sage: G.is_connected()
             True
         """
-        G = Graph(self.upstairs_edges())
+        G = Graph(self.upstairs_edges(), immutable=True)
         G.set_pos({(i,j): [self._vertices[i].real(), self._vertices[i].imag(),
                            self.w_values(self._vertices[i])[j].imag()]
                    for i in range(len(self._vertices)) for j in range(self.degree)}, dim=3)
@@ -1241,8 +1240,9 @@ class RiemannSurface(object):
             i0, i1 = e
             d_edge = (self._vertices[i0], self._vertices[i1])
             # Epsilon for checking w-value later.
-            epsilon = min([abs(self._wvalues[i1][i] - self._wvalues[i1][n-j-1])
-                           for i in range(n) for j in range(n-i-1)])/3
+            val = self._wvalues[i1]
+            epsilon = min(abs(val[i] - val[n-j-1])
+                          for i in range(n) for j in range(n-i-1)) / 3
             # Homotopy continuation along e.
             self._L[e] = self.homotopy_continuation(d_edge)
             homotopycont = self._L[e][-1][1]
@@ -1609,12 +1609,11 @@ class RiemannSurface(object):
 
         INPUT:
 
-        - ``upstairs_edge`` -- tuple. ``((z_start, sb), (z_end,))`` giving the
+        - ``upstairs_edge`` -- tuple ``((z_start, sb), (z_end,))`` giving the
           start and end values of the base coordinate along the straight-line
-          path and the starting branch.
-
-        - ``initial_continuation`` -- list (default: None).  Output of
-          ``homotopy_continuation`` initialising the continuation data.
+          path and the starting branch
+        - ``initial_continuation`` -- list (optional);  output of
+          ``homotopy_continuation`` initialising the continuation data
 
         OUTPUT:
 
@@ -2757,7 +2756,7 @@ class RiemannSurface(object):
         The cohomology basis is integrated along a straight line using a version
         of the double exponential quadrature. This method of integrating the
         cohomology basis is especially useful when integrating out to infinity,
-        or near roots of `self._dfdw`. In order to aid with convergence of the
+        or near roots of ``self._dfdw``. In order to aid with convergence of the
         method, two main modification to a standard integrator are made, most
         importantly of which is the truncation of the integral near branch points,
         where the first term in the Puiseux series of the integrands are used to
@@ -2830,7 +2829,7 @@ class RiemannSurface(object):
         mp_list = [bd[2] for bd in bounding_data_list]
 
         # Parameterise so zbar=0 corresponds to z=z_start
-        mp_list = [reparameterise_differential_minpoly(mp, z_start)
+        mp_list = [reparameterize_differential_minpoly(mp, z_start)
                    for mp in mp_list]
 
         if z_start==self._CC(Infinity):
@@ -2874,8 +2873,8 @@ class RiemannSurface(object):
             prec = self._prec
         # tau here is playing the role of the desired error.
         tau = self._RR(2)**(-prec+3)
-        ONE = self._RR(1)
-        LAMBDA = self._RR.pi()/2
+        one = self._RR(1)
+        la = self._RR.pi()/2
 
         if cutoff_individually is None:
             cutoffs = [0]
@@ -2909,15 +2908,15 @@ class RiemannSurface(object):
                 return out
 
         V = VectorSpace(self._CC, self.genus)
-        h = ONE
-        Nh = (-lambert_w(-1,-tau/2)/LAMBDA).log().ceil()
+        h = one
+        Nh = (-lambert_w(-1,-tau/2)/la).log().ceil()
         h0 = Nh*h
 
         if cutoff_individually:
             z_fc_list = list(zip(fc_mp_list, fc_dmp_list))
 
             def fv(hj, previous_estimate_and_validity):
-                u2 = LAMBDA*hj.sinh()
+                u2 = la*hj.sinh()
                 t = 1/(2*u2.exp()*u2.cosh())
                 z0 = J*t
                 outg = []
@@ -2951,7 +2950,7 @@ class RiemannSurface(object):
                             if j==99:
                                 outg.append(error_handle(newg))
                 fj = V(outg)
-                u1 = LAMBDA*hj.cosh()
+                u1 = la*hj.cosh()
                 w = u1/(2*u2.cosh()**2)
                 return (fj, valid), w*fj
 
@@ -2963,7 +2962,7 @@ class RiemannSurface(object):
             J -= cutoff_z
 
             def fv(hj, previous_estimate):
-                u2 = LAMBDA*hj.sinh()
+                u2 = la*hj.sinh()
                 t = 1/(2*u2.exp()*u2.cosh())
                 z0 = cutoff_z+J*t
                 outg = []
@@ -2985,11 +2984,11 @@ class RiemannSurface(object):
                         if j==99:
                             outg.append(error_handle(newg))
                 fj = V(outg)
-                u1 = LAMBDA*hj.cosh()
+                u1 = la*hj.cosh()
                 w = u1/(2*u2.cosh()**2)
                 return fj, w*fj
 
-            u1, u2 = (LAMBDA*h0.cosh(),LAMBDA*h0.sinh())
+            u1, u2 = (la*h0.cosh(),la*h0.sinh())
             y, w = (1/(2*u2.exp()*u2.cosh()), u1/(2*u2.cosh()**2))
             z0 = cutoff_z+J*y
             f0 = [initialise(z0, i) for i in range(self.genus)]
@@ -3021,7 +3020,7 @@ class RiemannSurface(object):
                 else:
                     D1 = (results[-1]-results[-2]).norm(Infinity)
                     D2 = (results[-1]-results[-3]).norm(Infinity)
-                    D = min(ONE,max(D1**(D1.log()/D2.log()),D2**2,tau*D3_over_tau,D4,tau))
+                    D = min(one, max(D1**(D1.log()/D2.log()),D2**2,tau*D3_over_tau,D4,tau))
 
                 if D <= tau:
                     if cutoff_individually:
@@ -3432,7 +3431,7 @@ class RiemannSurface(object):
         """
         BP = []
         K = self._R.base_ring()
-        if not K==QQ:
+        if K is not QQ:
             raise NotImplementedError
         C = self.curve()
         KC = C.function_field()
@@ -3513,7 +3512,7 @@ class RiemannSurface(object):
                 i = S.index(p)
                 Q = S[i]
                 D = D_base+Q
-                if D==0:
+                if not D:
                     ios = self.genus
                 else:
                     ios = len(D.basis_differential_space())
@@ -3536,7 +3535,7 @@ class RiemannSurface(object):
                 new_divisor += v*b.divisor()
         return new_divisor, B
 
-    def divisor_to_divisor_list(self, divisor):
+    def divisor_to_divisor_list(self, divisor, eps=None):
         r"""
         Turn a divisor into a list for :meth:`abel_jacobi`.
 
@@ -3547,6 +3546,8 @@ class RiemannSurface(object):
         INPUT:
 
         - ``divisor`` -- an element of ``Curve(self.f).function_field().divisor_group()``
+        - ``eps`` -- real number (optional); tolerance used to determine whether a complex 
+          number is close enough to a root of a polynomial.
 
         OUTPUT:
 
@@ -3571,7 +3572,8 @@ class RiemannSurface(object):
         """
         # If this error bound is too restrictive, this method might fail and
         # not return. One might want to change the way this error is handled.
-        eps = self._RR(2)**(-self._prec+3)
+        if not eps:
+            eps = self._RR(2)**(-self._prec+3)
         dl = []
 
         PZ = PolynomialRing(self._R.base(), 'z').fraction_field()
@@ -3605,8 +3607,8 @@ class RiemannSurface(object):
                             nys = []
                         else:
                             nys = poly.roots()
-                        ys += [ny[0] for ny in nys]
-                        rys += [(v*m*n, (r, y)) for y, n in nys]
+                        ys.extend(ny[0] for ny in nys)
+                        rys.extend((v*m*n, (r, y)) for y, n in nys)
 
             if rys:
                 dl.extend(rys)
@@ -3615,8 +3617,7 @@ class RiemannSurface(object):
                     ys = self._CCw(self.f(r, self._CCw.gen(0))).roots()
                     dl.extend([(v*m*n, (r, y)) for y, n in ys])
         if not sum([v[0] for v in dl])==divisor.degree():
-            print(dl)
-            raise ValueError("Numerical instability, list of wrong degree")
+            raise ValueError("numerical instability, list of wrong degree, returning list {}".format(dl))
         return dl
 
 

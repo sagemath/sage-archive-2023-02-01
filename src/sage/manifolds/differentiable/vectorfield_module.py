@@ -775,8 +775,7 @@ class VectorFieldModule(UniqueRepresentation, Parent):
                                                           DegenerateMetric)
         from sage.tensor.modules.comp import CompWithSym
         sym, antisym = CompWithSym._canonicalize_sym_antisym(
-            tensor_type[0] + tensor_type[1], sym, antisym,
-            trivial_symmetries='error')
+            tensor_type[0] + tensor_type[1], sym, antisym)
         if tensor_type == (1,0):
             return self.element_class(self, name=name,
                                       latex_name=latex_name)
@@ -2077,8 +2076,7 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
                                                           DegenerateMetric)
         from sage.tensor.modules.comp import CompWithSym
         sym, antisym = CompWithSym._canonicalize_sym_antisym(
-            tensor_type[0] + tensor_type[1], sym, antisym,
-            trivial_symmetries='error')
+            tensor_type[0] + tensor_type[1], sym, antisym)
         if tensor_type == (1,0):
             return self.element_class(self, name=name,
                                       latex_name=latex_name)

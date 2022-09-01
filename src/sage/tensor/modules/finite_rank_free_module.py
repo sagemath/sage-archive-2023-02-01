@@ -1654,18 +1654,14 @@ class FiniteRankFreeModule(FiniteRankFreeModule_abstract):
 
         TESTS:
 
-        Errors are raised if trivial symmetries appear in the list of symmetries or
-        antisymmetries::
+        Trivial symmetries in the list of symmetries or antisymmetries are silently
+        ignored::
 
             sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
             sage: M.tensor((3,0), sym=[[1]])
-            Traceback (most recent call last):
-            ...
-            IndexError: at least two index positions must be provided to define a symmetry
+            Type-(3,0) tensor on the Rank-3 free module M over the Integer Ring
             sage: M.tensor((3,0), antisym=[[]])
-            Traceback (most recent call last):
-            ...
-            IndexError: at least two index positions must be provided to define an antisymmetry
+            Type-(3,0) tensor on the Rank-3 free module M over the Integer Ring
         """
         from .comp import CompWithSym
         sym, antisym = CompWithSym._canonicalize_sym_antisym(

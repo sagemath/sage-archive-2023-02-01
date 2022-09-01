@@ -1652,6 +1652,20 @@ class FiniteRankFreeModule(FiniteRankFreeModule_abstract):
         See :class:`~sage.tensor.modules.free_module_tensor.FreeModuleTensor`
         for more examples and documentation.
 
+        TESTS:
+
+        Errors are raised if trivial symmetries appear in the list of symmetries or
+        antisymmetries.
+
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: M.tensor((3,0), sym=[[1]])
+            Traceback (most recent call last):
+            ...
+            IndexError: at least two index positions must be provided to define a symmetry
+            sage: M.tensor((3,0), antisym=[[]])
+            Traceback (most recent call last):
+            ...
+            IndexError: at least two index positions must be provided to define an antisymmetry
         """
         from .comp import CompWithSym
         sym, antisym = CompWithSym._canonicalize_sym_antisym(

@@ -137,7 +137,7 @@ cdef class GroebnerStrategy:
         return self.int_to_bitset(max(self.bitset_to_int(k) for k in mc))
 
     cdef inline partial_S_poly_left(self, GBElement f, GBElement g):
-        """
+        r"""
         Compute one half of the `S`-polynomial for ``f`` and ``g``.
 
         This computes:
@@ -154,7 +154,7 @@ cdef class GroebnerStrategy:
         return ret
 
     cdef inline partial_S_poly_right(self, GBElement f, GBElement g):
-        """
+        r"""
         Compute one half of the `S`-polynomial for ``f`` and ``g``.
 
         This computes:

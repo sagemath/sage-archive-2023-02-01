@@ -185,10 +185,10 @@ class GradedAlgebrasWithBasis(GradedModulesCategory):
 
                     sage: A.<x,y> = ExteriorAlgebra(QQ)
                     sage: A.one_basis()
-                    ()
+                    0
                     sage: B = tensor((A, A, A))
                     sage: B.one_basis()
-                    ((), (), ())
+                    (0, 0, 0)
                     sage: B.one()
                     1 # 1 # 1
                 """

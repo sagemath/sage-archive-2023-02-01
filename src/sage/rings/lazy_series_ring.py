@@ -431,7 +431,7 @@ class LazySeriesRing(UniqueRepresentation, Parent):
             if degree is None:
                 if constant is not None:
                     raise ValueError("constant may only be specified if the degree is specified")
-                coeff_stream = Stream_function(x, self.base_ring(), self._sparse, valuation)
+                coeff_stream = Stream_function(lambda i: BR(x(i)), self._sparse, valuation)
                 return self.element_class(self, coeff_stream)
 
             # degree is not None
@@ -1454,16 +1454,15 @@ class LazyTaylorSeriesRing(LazySeriesRing):
                                             constant=constant,
                                             degree=degree)
                 return self.element_class(self, coeff_stream)
-            coeff_ring = self._internal_poly_ring.base_ring()
             if check and len(self.variable_names()) > 1:
                 def y(n):
                     e = R(x(n))
                     if not e or e.is_homogeneous() and e.degree() == n:
                         return e
                     raise ValueError("coefficient %s at degree %s is not a homogeneous polynomial" % (e, n))
-                coeff_stream = Stream_function(y, coeff_ring, self._sparse, valuation)
+                coeff_stream = Stream_function(y, self._sparse, valuation)
             else:
-                coeff_stream = Stream_function(x, coeff_ring, self._sparse, valuation)
+                coeff_stream = Stream_function(x, self._sparse, valuation)
             return self.element_class(self, coeff_stream)
         raise ValueError(f"unable to convert {x} into a lazy Taylor series")
 
@@ -1784,16 +1783,15 @@ class LazyCompletionGradedAlgebra(LazySeriesRing):
                                             constant=0,
                                             degree=degree)
                 return self.element_class(self, coeff_stream)
-            coeff_ring = self._internal_poly_ring.base_ring()
             if check:
                 def y(n):
                     e = R(x(n))
                     check_homogeneous_of_degree(e, n)
                     return e
 
-                coeff_stream = Stream_function(y, coeff_ring, self._sparse, valuation)
+                coeff_stream = Stream_function(y, self._sparse, valuation)
             else:
-                coeff_stream = Stream_function(x, coeff_ring, self._sparse, valuation)
+                coeff_stream = Stream_function(x, self._sparse, valuation)
             return self.element_class(self, coeff_stream)
         raise ValueError(f"unable to convert {x} into a lazy completion element")
 

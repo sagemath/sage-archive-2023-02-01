@@ -306,7 +306,7 @@ class LazyModuleElement(Element):
 
     coefficient = __getitem__
 
-    def map_coefficients(self, func, ring=None):
+    def map_coefficients(self, func):
         r"""
         Return the series with ``func`` applied to each nonzero
         coefficient of ``self``.
@@ -381,8 +381,7 @@ class LazyModuleElement(Element):
                                         degree=coeff_stream._degree,
                                         constant=BR(c))
             return P.element_class(P, coeff_stream)
-        R = P._internal_poly_ring.base_ring()
-        coeff_stream = Stream_map_coefficients(self._coeff_stream, func, R)
+        coeff_stream = Stream_map_coefficients(self._coeff_stream, func)
         return P.element_class(P, coeff_stream)
 
     def truncate(self, d):
@@ -3104,7 +3103,7 @@ class LazyLaurentSeries(LazyCauchyProductSeries):
             def coefficient(n):
                 return sum(self[i] * (g**i)[n] for i in range(n+1))
             R = P._internal_poly_ring.base_ring()
-            coeff_stream = Stream_function(coefficient, R, P._sparse, 1)
+            coeff_stream = Stream_function(coefficient, P._sparse, 1)
             return P.element_class(P, coeff_stream)
 
         coeff_stream = Stream_cauchy_compose(self._coeff_stream, g._coeff_stream)
@@ -3309,7 +3308,26 @@ class LazyLaurentSeries(LazyCauchyProductSeries):
             sage: (1/(1-z)).derivative(z)
             1 + 2*z + 3*z^2 + 4*z^3 + 5*z^4 + 6*z^5 + 7*z^6 + O(z^7)
 
-        TESTS::
+        TESTS:
+
+        Check the derivative of the logarithm:
+
+            sage: L.<z> = LazyLaurentSeriesRing(QQ)
+            sage: -log(1-z).derivative()
+            1 + z + z^2 + z^3 + z^4 + z^5 + z^6 + O(z^7)
+
+        Check that differentiation of 'exact' series with nonzero
+        constant works::
+
+            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
+            sage: f = L([1,2], valuation=-2, constant=1)
+            sage: f
+            z^-2 + 2*z^-1 + 1 + z + z^2 + O(z^3)
+            sage: f.derivative()
+            -2*z^-3 - 2*z^-2 + 1 + 2*z + 3*z^2 + 4*z^3 + O(z^4)
+
+        Check that differentiation with respect to a variable other
+        than the series variable works::
 
             sage: R.<q> = QQ[]
             sage: L.<z> = LazyLaurentSeriesRing(R)
@@ -3364,8 +3382,7 @@ class LazyLaurentSeries(LazyCauchyProductSeries):
         coeff_stream = Stream_derivative(self._coeff_stream, order)
         if vars:
             coeff_stream = Stream_map_coefficients(coeff_stream,
-                                                   lambda c: c.derivative(vars),
-                                                   R)
+                                                   lambda c: c.derivative(vars))
         return P.element_class(P, coeff_stream)
 
     def approximate_series(self, prec, name=None):
@@ -3816,7 +3833,7 @@ class LazyTaylorSeries(LazyCauchyProductSeries):
                 # we assume that the valuation of self[i](g) is at least i
                 def coefficient(n):
                     return sum(self[i] * (g0**i)[n] for i in range(n+1))
-                coeff_stream = Stream_function(coefficient, R, P._sparse, 1)
+                coeff_stream = Stream_function(coefficient, P._sparse, 1)
                 return P.element_class(P, coeff_stream)
 
             coeff_stream = Stream_cauchy_compose(self._coeff_stream, g0._coeff_stream)
@@ -3831,7 +3848,7 @@ class LazyTaylorSeries(LazyCauchyProductSeries):
                 # Make sure the element returned from the composition is in P
                 r += P(self[i](g))[n]
             return r
-        coeff_stream = Stream_function(coefficient, R, P._sparse, sorder * gv)
+        coeff_stream = Stream_function(coefficient, P._sparse, sorder * gv)
         return P.element_class(P, coeff_stream)
 
     compose = __call__
@@ -4034,10 +4051,11 @@ class LazyTaylorSeries(LazyCauchyProductSeries):
             return self
 
         if P._arity > 1:
-            coeff_stream = Stream_shift(Stream_map_coefficients(coeff_stream,
-                                                                lambda c: c.derivative(gen_vars + vars),
-                                                                P._laurent_poly_ring),
-                                        -len(gen_vars))
+            v = gen_vars + vars
+            d = -len(gen_vars)
+            coeff_stream = Stream_map_coefficients(coeff_stream,
+                                                   lambda c: R(c).derivative(v))
+            coeff_stream = Stream_shift(coeff_stream, d)
             return P.element_class(P, coeff_stream)
 
         if (isinstance(coeff_stream, Stream_exact)
@@ -4061,8 +4079,7 @@ class LazyTaylorSeries(LazyCauchyProductSeries):
         coeff_stream = Stream_derivative(self._coeff_stream, order)
         if vars:
             coeff_stream = Stream_map_coefficients(coeff_stream,
-                                                   lambda c: c.derivative(vars),
-                                                   R)
+                                                   lambda c: c.derivative(vars))
         return P.element_class(P, coeff_stream)
 
     def _format_series(self, formatter, format_strings=False):
@@ -4650,8 +4667,7 @@ class LazySymmetricFunction(LazyCompletionGradedAlgebraElement):
             raise ValueError("arity must be equal to 1")
 
         coeff_stream = Stream_map_coefficients(self._coeff_stream,
-                                               lambda c: c.derivative_with_respect_to_p1(n),
-                                               P._laurent_poly_ring)
+                                               lambda c: c.derivative_with_respect_to_p1(n))
         coeff_stream = Stream_shift(coeff_stream, -n)
         return P.element_class(P, coeff_stream)
 
@@ -4752,8 +4768,8 @@ class LazySymmetricFunction(LazyCompletionGradedAlgebraElement):
             R = P._laurent_poly_ring
             p = R.realization_of().p()
             # TODO: does the following introduce a memory leak?
-            g = Stream_map_coefficients(g._coeff_stream, lambda x: x, p)
-            f = Stream_map_coefficients(self._coeff_stream, lambda x: x, p)
+            g = Stream_map_coefficients(g._coeff_stream, p)
+            f = Stream_map_coefficients(self._coeff_stream, p)
 
             def g_cycle_type(s):
                 # the cycle type of G[sigma] of any permutation sigma
@@ -4789,87 +4805,10 @@ class LazySymmetricFunction(LazyCompletionGradedAlgebraElement):
                         res += q * p(s)
                 return res
 
-            coeff_stream = Stream_function(coefficient, R, P._sparse, 0)
-
+            coeff_stream = Stream_function(coefficient, P._sparse, 0)
+            return P.element_class(P, coeff_stream)
         else:
             raise NotImplementedError("only implemented for arity 1")
-
-        return P.element_class(P, coeff_stream)
-
-
-    def _format_series(self, formatter, format_strings=False):
-        r"""
-        Return nonzero ``self`` formatted by ``formatter``.
-
-        TESTS::
-
-            sage: h = SymmetricFunctions(ZZ).h()
-            sage: e = SymmetricFunctions(ZZ).e()
-            sage: L = LazySymmetricFunctions(tensor([h, e]))
-            sage: f = L(lambda n: sum(tensor([h[k], e[n-k]]) for k in range(n+1)))
-            sage: f._format_series(repr)
-            '(h[]#e[])
-             + (h[]#e[1]+h[1]#e[])
-             + (h[]#e[2]+h[1]#e[1]+h[2]#e[])
-             + (h[]#e[3]+h[1]#e[2]+h[2]#e[1]+h[3]#e[])
-             + (h[]#e[4]+h[1]#e[3]+h[2]#e[2]+h[3]#e[1]+h[4]#e[])
-             + (h[]#e[5]+h[1]#e[4]+h[2]#e[3]+h[3]#e[2]+h[4]#e[1]+h[5]#e[])
-             + (h[]#e[6]+h[1]#e[5]+h[2]#e[4]+h[3]#e[3]+h[4]#e[2]+h[5]#e[1]+h[6]#e[])
-             + O^7'
-        """
-        P = self.parent()
-        cs = self._coeff_stream
-        v = cs._approximate_order
-        if isinstance(cs, Stream_exact):
-            if not cs._constant:
-                m = cs._degree
-            else:
-                m = cs._degree + P.options.constant_length
-        else:
-            m = v + P.options.display_length
-
-        atomic_repr = P._internal_poly_ring.base_ring()._repr_option('element_is_atomic')
-        mons = [P._monomial(self[i], i) for i in range(v, m) if self[i]]
-        if not isinstance(cs, Stream_exact) or cs._constant:
-            if P._internal_poly_ring.base_ring() is P.base_ring():
-                bigO = ["O(%s)" % P._monomial(1, m)]
-            else:
-                bigO = ["O^%s" % m]
-        else:
-            bigO = []
-
-        from sage.misc.latex import latex
-        from sage.typeset.unicode_art import unicode_art
-        from sage.typeset.ascii_art import ascii_art
-        from sage.misc.repr import repr_lincomb
-        from sage.typeset.symbols import ascii_left_parenthesis, ascii_right_parenthesis
-        from sage.typeset.symbols import unicode_left_parenthesis, unicode_right_parenthesis
-        if formatter == repr:
-            poly = repr_lincomb([(1, m) for m in mons + bigO], strip_one=True)
-        elif formatter == latex:
-            poly = repr_lincomb([(1, m) for m in mons + bigO], is_latex=True, strip_one=True)
-        elif formatter == ascii_art:
-            if atomic_repr:
-                poly = ascii_art(*(mons + bigO), sep = " + ")
-            else:
-                def parenthesize(m):
-                    a = ascii_art(m)
-                    h = a.height()
-                    return ascii_art(ascii_left_parenthesis.character_art(h),
-                                     a, ascii_right_parenthesis.character_art(h))
-                poly = ascii_art(*([parenthesize(m) for m in mons] + bigO), sep = " + ")
-        elif formatter == unicode_art:
-            if atomic_repr:
-                poly = unicode_art(*(mons + bigO), sep = " + ")
-            else:
-                def parenthesize(m):
-                    a = unicode_art(m)
-                    h = a.height()
-                    return unicode_art(unicode_left_parenthesis.character_art(h),
-                                       a, unicode_right_parenthesis.character_art(h))
-                poly = unicode_art(*([parenthesize(m) for m in mons] + bigO), sep = " + ")
-
-        return poly
 
     def symmetric_function(self, degree=None):
         r"""
@@ -5182,7 +5121,7 @@ class LazyDirichletSeries(LazyModuleElement):
             except ValueError:
                 return ZZ.zero()
         R = P._internal_poly_ring.base_ring()
-        return P.element_class(P, Stream_function(coefficient, R, P._sparse, 1))
+        return P.element_class(P, Stream_function(coefficient, P._sparse, 1))
 
     def _format_series(self, formatter, format_strings=False):
         """

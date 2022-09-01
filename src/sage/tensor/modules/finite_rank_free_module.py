@@ -1609,7 +1609,7 @@ class FiniteRankFreeModule(FiniteRankFreeModule_abstract):
         - ``latex_name`` -- (default: ``None``) string;  LaTeX symbol to
           denote the tensor; if none is provided, the LaTeX symbol is set
           to ``name``
-        - ``sym`` -- (default: ``None``) a symmetry or a list of symmetries
+        - ``sym`` -- (default: ``None``) a symmetry or an iterable of symmetries
           among the tensor arguments: each symmetry is described by a tuple
           containing the positions of the involved arguments, with the
           convention ``position = 0`` for the first argument. For instance:
@@ -1618,7 +1618,7 @@ class FiniteRankFreeModule(FiniteRankFreeModule_abstract):
           * ``sym = [(0,2), (1,3,4)]`` for a symmetry between the 1st and 3rd
             arguments and a symmetry between the 2nd, 4th and 5th arguments.
 
-        - ``antisym`` -- (default: ``None``) antisymmetry or list of
+        - ``antisym`` -- (default: ``None``) antisymmetry or iterable of
           antisymmetries among the arguments, with the same convention
           as for ``sym``
 
@@ -1653,33 +1653,20 @@ class FiniteRankFreeModule(FiniteRankFreeModule_abstract):
         for more examples and documentation.
 
         """
+        from .comp import CompWithSym
+        sym, antisym = CompWithSym._canonicalize_sym_antisym(
+            tensor_type[0] + tensor_type[1], sym, antisym)
         # Special cases:
         if tensor_type == (1,0):
             return self.element_class(self, name=name, latex_name=latex_name)
         elif tensor_type == (0,1):
             return self.linear_form(name=name, latex_name=latex_name)
         elif tensor_type[0] == 0 and tensor_type[1] > 1 and antisym:
-            if isinstance(antisym[0], (int, Integer)):
-                # a single antisymmetry is provided as a tuple or a range
-                # object; it is converted to a 1-item list:
-                antisym = [tuple(antisym)]
-            if isinstance(antisym, (tuple, list)):
-                antisym0 = antisym[0]
-            else:
-                antisym0 = antisym
-            if len(antisym0) == tensor_type[1]:
+            if len(antisym[0]) == tensor_type[1]:
                 return self.alternating_form(tensor_type[1], name=name,
                                              latex_name=latex_name)
         elif tensor_type[0] > 1 and tensor_type[1] == 0 and antisym:
-            if isinstance(antisym[0], (int, Integer)):
-                # a single antisymmetry is provided as a tuple or a range
-                # object; it is converted to a 1-item list:
-                antisym = [tuple(antisym)]
-            if isinstance(antisym, (tuple, list)):
-                antisym0 = antisym[0]
-            else:
-                antisym0 = antisym
-            if len(antisym0) == tensor_type[0]:
+            if len(antisym[0]) == tensor_type[0]:
                 return self.alternating_contravariant_tensor(tensor_type[0],
                                            name=name, latex_name=latex_name)
         # Generic case:

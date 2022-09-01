@@ -322,11 +322,14 @@ def prod_with_derivative(pairs):
     class _aux:
         def __init__(self, f, df):
             self.f, self.df = f, df
+
         def __mul__(self, other):
             return _aux(self.f * other.f, self.df * other.f + self.f * other.df)
+
         def __iter__(self):
             yield self.f
             yield self.df
+
     return tuple(prod(_aux(*tup) for tup in pairs))
 
 

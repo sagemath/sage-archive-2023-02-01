@@ -4729,7 +4729,6 @@ class LazySymmetricFunction(LazyCompletionGradedAlgebraElement):
 
         labellings of their vertices with two 1's and two 2's.
 
-
         The derivative of the symmetric function `\sum_n h_n`, times
         `p_1` is the neutral element with respect to functorial
         composition::
@@ -4787,16 +4786,16 @@ class LazySymmetricFunction(LazyCompletionGradedAlgebraElement):
                         m = moebius(d)
                         if not m:
                             continue
-                        u = s.power(k/d)
-                        g_u = g[u.size()]
+                        u = s.power(k // d)
+                        g_u = g[sum(u)]
                         if g_u:
                             e += m * u.aut() * g_u.coefficient(u)
-                    res.extend([k] * ZZ(e/k))
+                    res.extend([k] * int(e // k))
                 res.reverse()
                 return Partition(res)
 
             def coefficient(n):
-                res = p(0)
+                res = p.zero()
                 for s in Partitions(n):
                     t = g_cycle_type(s)
                     f_t = f[t.size()]

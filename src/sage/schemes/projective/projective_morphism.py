@@ -2287,16 +2287,30 @@ class SchemeMorphism_polynomial_projective_subscheme_field(SchemeMorphism_polyno
         EXAMPLES::
 
             sage: R.<x,y,z> = QQ[]
-            sage: C = Curve(7*x^2 + 2*y*z + z^2)
+            sage: C = Curve(7*x^2 + 2*y*z + z^2)  # conic
             sage: f, g = C.parametrization()
             sage: f*g == C.identity_morphism()
             True
+
+            sage: C = Curve(x^2 + y^2 - z^2)
+            sage: A.<u,v> = AffineSpace(QQ,2)
+            sage: i = C.hom([(x + z)/y, 1], A)
+            sage: j = C.hom([y/(z - x), 1], A)
+            sage: i == j
+            True
         """
+        Y = self.codomain()
+
         if not isinstance(other, SchemeMorphism_polynomial):
             return False
-        if self.domain() != other.domain() or self.codomain() != other.codomain():
+        if self.domain() != other.domain() or Y != other.codomain():
             return False
-        R = self.codomain().coordinate_ring()
+
+        if not Y.is_projective():  # codomain is affine
+            e = Y.projective_embedding(0)
+            return (e * self) == (e * other)
+
+        R = self.domain().coordinate_ring()
         mat = matrix([self.defining_polynomials(), other.defining_polynomials()])
         return all(R(minor).is_zero() for minor in mat.minors(2))
 

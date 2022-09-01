@@ -193,6 +193,7 @@ import sage.rings.integer
 from sage.categories.principal_ideal_domains import PrincipalIdealDomains
 from sage.categories.integral_domains import IntegralDomains
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
+from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.randstate import current_randstate
 from sage.structure.factory import UniqueFactory
 from sage.structure.sequence import Sequence
@@ -6758,8 +6759,72 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
         else:
             return self.ambient_vector_space()
 
-    # Subobjects.ParentMethods
-    # lift, retract
+    # Sets.Subquotients.ParentMethods
+    @lazy_attribute
+    def lift(self):
+        r"""
+        The lift (embedding) map from ``self`` to the ambient module or space.
+
+        EXAMPLES::
+
+            sage: M = ZZ^3
+            sage: W = M.span_of_basis([[1,2,3],[4,5,6]]); W
+            Free module of degree 3 and rank 2 over Integer Ring
+            User basis matrix:
+            [1 2 3]
+            [4 5 6]
+            sage: W.lift
+            Generic morphism:
+            From: Free module of degree 3 and rank 2 over Integer Ring
+            User basis matrix:
+            [1 2 3]
+            [4 5 6]
+            To:   Ambient free module of rank 3 over the principal ideal domain Integer Ring
+            sage: w = W([5,7,9])
+            sage: m = W.lift(w); m
+            (5, 7, 9)
+            sage: m.parent()
+            Ambient free module of rank 3 over the principal ideal domain Integer Ring
+        """
+        ambient = self.ambient()
+        return self.module_morphism(function=ambient, codomain=ambient)
+
+    # Sets.Subquotients.ParentMethods
+    @lazy_attribute
+    def retract(self):
+        r"""
+        The retract map from the ambient space.
+
+        This is a partial map, which gives an error for elements not in the subspace.
+
+        Calling this map on elements of the ambient space is the same as calling the
+        element constructor of ``self``.
+
+        EXAMPLES::
+
+            sage: M = ZZ^3
+            sage: W = M.span_of_basis([[1,2,3],[4,5,6]]); W
+            Free module of degree 3 and rank 2 over Integer Ring
+            User basis matrix:
+            [1 2 3]
+            [4 5 6]
+            sage: W.retract
+            Generic morphism:
+            From: Ambient free module of rank 3 over the principal ideal domain Integer Ring
+            To:   Free module of degree 3 and rank 2 over Integer Ring
+            User basis matrix:
+            [1 2 3]
+            [4 5 6]
+            sage: m = M([5, 7, 9])
+            sage: w = W.retract(m); w
+            (5, 7, 9)
+            sage: w.parent()
+            Free module of degree 3 and rank 2 over Integer Ring
+            User basis matrix:
+            [1 2 3]
+            [4 5 6]
+        """
+        return self.ambient().module_morphism(function=self, codomain=self)
 
     def relations(self):
         r"""

@@ -1655,7 +1655,7 @@ class FiniteRankFreeModule(FiniteRankFreeModule_abstract):
         TESTS:
 
         Errors are raised if trivial symmetries appear in the list of symmetries or
-        antisymmetries.
+        antisymmetries::
 
             sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
             sage: M.tensor((3,0), sym=[[1]])

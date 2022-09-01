@@ -2983,9 +2983,24 @@ class CompWithSym(Components):
         sage: e + d == d + e
         True
 
+    TESTS:
+
+    Errors are raised if trivial symmetries appear in the list of symmetries or
+    antisymmetries::
+
+        sage: CompWithSym(QQ, V.basis(), 3, sym=[[1]])
+        Traceback (most recent call last):
+        ...
+        IndexError: at least two index positions must be provided to define a symmetry
+        sage: CompWithSym(QQ, V.basis(), 2, antisym=[[]])
+        Traceback (most recent call last):
+        ...
+        IndexError: at least two index positions must be provided to define an antisymmetry
+
     """
     def __init__(self, ring, frame, nb_indices, start_index=0,
-                 output_formatter=None, sym=None, antisym=None):
+                 output_formatter=None, sym=None, antisym=None,
+                 trivial_symmetries='error'):
         r"""
         TESTS::
 
@@ -2997,7 +3012,7 @@ class CompWithSym(Components):
         Components.__init__(self, ring, frame, nb_indices, start_index,
                             output_formatter)
         self._sym, self._antisym = self._canonicalize_sym_antisym(
-            nb_indices, sym, antisym)
+            nb_indices, sym, antisym, trivial_symmetries=trivial_symmetries)
 
     @staticmethod
     def _canonicalize_sym_antisym(nb_indices, sym=None, antisym=None, *,

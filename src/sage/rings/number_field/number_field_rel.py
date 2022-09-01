@@ -99,8 +99,12 @@ from sage.rings.number_field.order import (RelativeOrder, is_NumberFieldOrder,
 from sage.rings.number_field.morphism import RelativeNumberFieldHomomorphism_from_abs
 from sage.libs.pari.all import pari_gen
 
-from sage.rings.rational_field import QQ
-from sage.rings.integer_ring import ZZ
+from sage.categories.homset import Hom
+from sage.categories.sets_cat import Sets
+from sage.modules.free_module import VectorSpace
+from sage.modules.free_module_element import vector
+
+from sage.rings.all import RR, QQ, ZZ
 
 
 def is_RelativeNumberField(x):
@@ -2084,7 +2088,7 @@ class NumberField_relative(NumberField_generic):
             sage: K.<k> = CyclotomicField(3)
             sage: R.<x> = K[]
             sage: L.<l> = K.extension(x^5 + 5)
-            sage: f = logarithmic_embedding(L)
+            sage: f = L.logarithmic_embedding()
             sage: f(0)
             (-1, -1, -1, -1, -1)
             sage: f(5)
@@ -2096,7 +2100,7 @@ class NumberField_relative(NumberField_generic):
             sage: K.<i> = NumberField(x^2 + 1)
             sage: t = K['t'].gen()
             sage: L.<a> = K.extension(t^4 - i)
-            sage: f = logarithmic_embedding(L)
+            sage: f = L.logarithmic_embedding()
             sage: f(0)
             (-1, -1, -1, -1, -1, -1, -1, -1)
             sage: f(3)

@@ -2293,10 +2293,10 @@ class SchemeMorphism_polynomial_projective_subscheme_field(SchemeMorphism_polyno
             True
 
             sage: C = Curve(x^2 + y^2 - z^2)
-            sage: A.<u,v> = AffineSpace(QQ,2)
-            sage: i = C.hom([(x + z)/y, 1], A)
-            sage: j = C.hom([y/(z - x), 1], A)
-            sage: i == j
+            sage: A.<u> = AffineSpace(QQ, 1)
+            sage: f = C.hom([(x + z)/y], A)
+            sage: g = C.hom([y/(z - x)], A)
+            sage: f == g
             True
         """
         Y = self.codomain()

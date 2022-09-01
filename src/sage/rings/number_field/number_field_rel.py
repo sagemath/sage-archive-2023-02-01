@@ -2062,6 +2062,75 @@ class NumberField_relative(NumberField_generic):
                                         check=False, universe=self.Hom(self))
         return self.__automorphisms
 
+    def logarithmic_embedding(self, prec=53):
+        r"""
+        Return the morphism of ``self`` under the logarithmic embedding
+        in the category Set.
+
+        The logarithmic embedding is defined as a map from the relative number field ``self`` to `\RR^n`.
+
+        It is defined under Definition 4.9.6 in [Coh1993]_.
+
+        INPUT:
+
+        - ``prec`` -- desired floating point precision.
+
+        OUTPUT:
+
+        - the morphism of ``self`` under the logarithmic embedding in the category Set.
+
+        EXAMPLES::
+
+            sage: K.<k> = CyclotomicField(3)
+            sage: R.<x> = K[]
+            sage: L.<l> = K.extension(x^5 + 5)
+            sage: f = logarithmic_embedding(L)
+            sage: f(0)
+            (-1, -1, -1, -1, -1)
+            sage: f(5)
+            (3.21887582486820, 3.21887582486820, 3.21887582486820,
+            3.21887582486820, 3.21887582486820)
+
+        ::
+
+            sage: K.<i> = NumberField(x^2 + 1)
+            sage: t = K['t'].gen()
+            sage: L.<a> = K.extension(t^4 - i)
+            sage: f = logarithmic_embedding(L)
+            sage: f(0)
+            (-1, -1, -1, -1, -1, -1, -1, -1)
+            sage: f(3)
+            (2.19722457733622, 2.19722457733622, 2.19722457733622, 2.19722457733622,
+            2.19722457733622, 2.19722457733622, 2.19722457733622, 2.19722457733622)
+        """
+        def closure_map(x, prec=53):
+            """
+            The function closure of the logarithmic embedding.
+            """
+            K = self
+            K_embeddings = K.places(prec)
+            r1, r2 = K.signature()
+            r = r1 + r2 - 1
+
+            from sage.rings.all import RealField
+            Reals = RealField(prec)
+
+            if x == 0:
+                return vector([-1 for _ in range(r + 1)])
+
+            x_logs = []
+            for i in range(r1):
+                sigma = K_embeddings[i]
+                x_logs.append(Reals(abs(sigma(x))).log())
+            for i in range(r1, r + 1):
+                tau = K_embeddings[i]
+                x_logs.append(2 * Reals(abs(tau(x))).log())
+
+            return vector(x_logs)
+
+        hom = Hom(self, VectorSpace(RR, len(closure_map(self(0), prec))), Sets())
+        return hom(closure_map)
+
     def places(self, all_complex=False, prec=None):
         """
         Return the collection of all infinite places of self.

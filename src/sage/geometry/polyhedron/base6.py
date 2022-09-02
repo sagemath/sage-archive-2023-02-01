@@ -34,7 +34,6 @@ from sage.misc.cachefunc import cached_method
 from sage.modules.vector_space_morphism import linear_transformation
 from sage.matrix.constructor import matrix
 from sage.modules.free_module_element import vector
-from sage.rings.qqbar import AA
 from sage.geometry.convex_set import AffineHullProjectionData
 from .base5 import Polyhedron_base5
 
@@ -698,6 +697,7 @@ class Polyhedron_base6(Polyhedron_base5):
 
             try:
                 import sage.graphs.graph
+                assert sage.graphs.graph  # to muffle pyflakes
             except ImportError:
                 pass
             else:
@@ -965,6 +965,7 @@ class Polyhedron_base6(Polyhedron_base5):
             except TypeError:
                 if not extend:
                     raise ValueError('the base ring needs to be extended; try with "extend=True"')
+                from sage.rings.qqbar import AA
                 M = matrix(AA, M)
                 A = M.gram_schmidt(orthonormal=orthonormal)[0]
                 if minimal:
@@ -1174,9 +1175,9 @@ class Polyhedron_base6(Polyhedron_base5):
              A vertex at (2, 0, 0),
              A vertex at (1, 3/2, 0),
              A vertex at (1, 1/2, 4/3))
-            sage: A = S.affine_hull_projection(orthonormal=True, extend=True); A
+            sage: A = S.affine_hull_projection(orthonormal=True, extend=True); A                  # optional - sage.rings.number_field
             A 3-dimensional polyhedron in AA^3 defined as the convex hull of 4 vertices
-            sage: A.vertices()
+            sage: A.vertices()                                                                    # optional - sage.rings.number_field
             (A vertex at (0.7071067811865475?, 0.4082482904638630?, 1.154700538379252?),
              A vertex at (0.7071067811865475?, 1.224744871391589?, 0.?e-18),
              A vertex at (1.414213562373095?, 0.?e-18, 0.?e-18),
@@ -1185,11 +1186,11 @@ class Polyhedron_base6(Polyhedron_base5):
         With the parameter ``minimal`` one can get a minimal base ring::
 
             sage: s = polytopes.simplex(3)
-            sage: s_AA = s.affine_hull_projection(orthonormal=True, extend=True)
-            sage: s_AA.base_ring()
+            sage: s_AA = s.affine_hull_projection(orthonormal=True, extend=True)                  # optional - sage.rings.number_field
+            sage: s_AA.base_ring()                                                                # optional - sage.rings.number_field
             Algebraic Real Field
-            sage: s_full = s.affine_hull_projection(orthonormal=True, extend=True, minimal=True)
-            sage: s_full.base_ring()
+            sage: s_full = s.affine_hull_projection(orthonormal=True, extend=True, minimal=True)  # optional - sage.rings.number_field
+            sage: s_full.base_ring()                                                              # optional - sage.rings.number_field
             Number Field in a with defining polynomial y^4 - 4*y^2 + 1 with a = 0.5176380902050415?
 
         More examples with the ``orthonormal`` parameter::
@@ -1443,21 +1444,25 @@ class Polyhedron_base6(Polyhedron_base5):
             # Avoid very long doctests.
             return
 
-        data_sets = [None]*4
-        data_sets[0] = self.affine_hull_projection(return_all_data=True)
+        try:
+            from sage.rings.qqbar import AA
+        except ImportError:
+            AA = None
+
+        data_sets = []
+        data_sets.append(self.affine_hull_projection(return_all_data=True))
         if self.is_compact():
-            data_sets[1] = self.affine_hull_projection(return_all_data=True,
-                                                       orthogonal=True,
-                                                       extend=True)
-            data_sets[2] = self.affine_hull_projection(return_all_data=True,
-                                                       orthonormal=True,
-                                                       extend=True)
-            data_sets[3] = self.affine_hull_projection(return_all_data=True,
-                                                       orthonormal=True,
-                                                       extend=True,
-                                                       minimal=True)
-        else:
-            data_sets = data_sets[:1]
+            data_sets.append(self.affine_hull_projection(return_all_data=True,
+                                                         orthogonal=True,
+                                                         extend=True))
+            if AA is not None:
+                data_sets.append(self.affine_hull_projection(return_all_data=True,
+                                                             orthonormal=True,
+                                                             extend=True))
+                data_sets.append(self.affine_hull_projection(return_all_data=True,
+                                                             orthonormal=True,
+                                                             extend=True,
+                                                             minimal=True))
 
         for i, data in enumerate(data_sets):
             if verbose:

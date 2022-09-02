@@ -520,16 +520,19 @@ The components on the basis are returned by the square bracket operator for
     [2, 0, -5]
 
 """
-#******************************************************************************
-#       Copyright (C) 2015-2021 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
-#       Copyright (C) 2015 Michal Bejger <bejger@camk.edu.pl>
-#       Copyright (C) 2016 Travis Scrimshaw <tscrimsh@umn.edu>
+# ******************************************************************************
+#       Copyright (C) 2014-2021 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
+#                     2014-2016 Travis Scrimshaw <tscrimsh@umn.edu>
+#                     2015      Michal Bejger <bejger@camk.edu.pl>
+#                     2016      Frédéric Chapoton
+#                     2020      Michael Jung
+#                     2020-2022 Matthias Koeppe
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
 #                  https://www.gnu.org/licenses/
-#******************************************************************************
+# ******************************************************************************
 from __future__ import annotations
 
 from typing import Generator, Optional

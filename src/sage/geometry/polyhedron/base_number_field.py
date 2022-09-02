@@ -20,6 +20,9 @@ Support for internal use of number fields in backends for polyhedral computation
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
+from sage.rings.integer_ring import ZZ
+from sage.rings.rational_field import QQ
+
 from .base import Polyhedron_base
 
 
@@ -33,7 +36,7 @@ def _number_field_elements_from_algebraics_list_of_lists_of_lists(listss, **kwds
         1.414213562373095?
         sage: rt3 = AA(sqrt(3)); rt3      # optional - sage.rings.number_field
         1.732050807568878?
-        sage: from sage.geometry.polyhedron.backend_normaliz import _number_field_elements_from_algebraics_list_of_lists_of_lists
+        sage: from sage.geometry.polyhedron.base_number_field import _number_field_elements_from_algebraics_list_of_lists_of_lists
         sage: K, results, hom = _number_field_elements_from_algebraics_list_of_lists_of_lists([[[rt2], [1]], [[rt3]], [[1], []]]); results  # optional - sage.rings.number_field
         [[[-a^3 + 3*a], [1]], [[-a^2 + 2]], [[1], []]]
     """

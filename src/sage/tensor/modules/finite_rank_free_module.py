@@ -644,13 +644,70 @@ class FiniteRankFreeModule_abstract(UniqueRepresentation, Parent):
             sage: M.tensor_module(1,1).tensor_product(M.tensor_module(1,2))
             Free module of type-(2,3) tensors on the 2-dimensional vector space over the Rational Field
 
+            sage: Sym2M = M.tensor_module(2, 0, sym=range(2)); Sym2M
+            Free module of fully symmetric type-(2,0) tensors on the 2-dimensional vector space over the Rational Field
+            sage: Sym01x23M = Sym2M.tensor_product(Sym2M); Sym01x23M
+            Free module of type-(4,0) tensors on the 2-dimensional vector space over the Rational Field,
+             with symmetry on the index positions (0, 1), with symmetry on the index positions (2, 3)
+            sage: Sym01x23M._index_maps
+            ((0, 1), (2, 3))
+
+            sage: N = M.tensor_module(3, 3, sym=[1, 2], antisym=[3, 4]); N
+            Free module of type-(3,3) tensors on the 2-dimensional vector space over the Rational Field,
+             with symmetry on the index positions (1, 2),
+             with antisymmetry on the index positions (3, 4)
+            sage: NxN = N.tensor_product(N); NxN
+            Free module of type-(6,6) tensors on the 2-dimensional vector space over the Rational Field,
+             with symmetry on the index positions (1, 2), with symmetry on the index positions (4, 5),
+             with antisymmetry on the index positions (6, 7), with antisymmetry on the index positions (9, 10)
+            sage: NxN._index_maps
+            ((0, 1, 2, 6, 7, 8), (3, 4, 5, 9, 10, 11))
         """
         from sage.modules.free_module_element import vector
+        from .comp import CompFullySym, CompFullyAntiSym, CompWithSym
+
         base_module = self.base_module()
         if not all(module.base_module() == base_module for module in others):
             raise NotImplementedError('all factors must be tensor modules over the same base module')
-        tensor_type = sum(vector(module.tensor_type()) for module in [self] + list(others))
-        return base_module.tensor_module(*tensor_type)
+        factors = [self] + list(others)
+        result_tensor_type = sum(vector(factor.tensor_type()) for factor in factors)
+        index_maps = []
+        running_indices = vector([0, result_tensor_type[0]])
+        result_sym = []
+        result_antisym = []
+        for factor in factors:
+            tensor_type = factor.tensor_type()
+            index_map = tuple(i + running_indices[0] for i in range(tensor_type[0]))
+            index_map += tuple(i + running_indices[1] for i in range(tensor_type[1]))
+            index_maps.append(index_map)
+
+            if tensor_type[0] + tensor_type[1] > 1:
+                basis_sym = factor._basis_sym()
+                all_indices = tuple(range(tensor_type[0] + tensor_type[1]))
+                if isinstance(basis_sym, CompFullySym):
+                    sym = [all_indices]
+                    antisym = []
+                elif isinstance(basis_sym, CompFullyAntiSym):
+                    sym = []
+                    antisym = [all_indices]
+                elif isinstance(basis_sym, CompWithSym):
+                    sym = basis_sym._sym
+                    antisym = basis_sym._antisym
+                else:
+                    sym = antisym = []
+
+                def map_isym(isym):
+                    return tuple(index_map[i] for i in isym)
+
+                result_sym.extend(tuple(index_map[i] for i in isym) for isym in sym)
+                result_antisym.extend(tuple(index_map[i] for i in isym) for isym in antisym)
+
+            running_indices += vector(tensor_type)
+
+        result = base_module.tensor_module(*result_tensor_type,
+                                           sym=result_sym, antisym=result_antisym)
+        result._index_maps = tuple(index_maps)
+        return result
 
     def rank(self) -> int:
         r"""

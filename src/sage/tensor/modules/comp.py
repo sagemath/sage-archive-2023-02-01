@@ -3009,9 +3009,9 @@ class CompWithSym(Components):
 
         - ``sym_or_antisym`` -- (default: ``None``) a symmetry/antisymmetry
           or an iterable of symmetries or an iterable of antisymmetries
-          among the tensor arguments: each symmetry is described by a tuple
-          containing the positions of the involved arguments, with the
-          convention ``position = 0`` for the first argument. For instance:
+          among the tensor arguments: each symmetry/antisymmetry is described
+          by a tuple containing the positions of the involved arguments, with
+          the convention ``position = 0`` for the first argument.
 
         TESTS::
 

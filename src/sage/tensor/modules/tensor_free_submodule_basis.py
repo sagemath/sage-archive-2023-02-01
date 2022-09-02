@@ -1,15 +1,19 @@
 r"""
 Standard bases of free submodules of tensor modules defined by some monoterm symmetries
+
+AUTHORS:
+
+- Matthias Koeppe (2020-2022): initial version
 """
 
-#******************************************************************************
+# ******************************************************************************
 #       Copyright (C) 2020-2022 Matthias Koeppe
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#******************************************************************************
+# ******************************************************************************
 
 from sage.tensor.modules.free_module_basis import Basis_abstract
 

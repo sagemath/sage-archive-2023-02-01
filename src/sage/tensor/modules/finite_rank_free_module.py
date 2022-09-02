@@ -1195,9 +1195,14 @@ class FiniteRankFreeModule(FiniteRankFreeModule_abstract):
             sage: M.tensor_module(1,2) is T
             True
 
-        The base module is itself the module of all type-`(1,0)` tensors::
+        The module of type-`(1,0)` tensors is the base module itself::
 
             sage: M.tensor_module(1,0) is M
+            True
+
+        while the module of type-`(0,1)` tensors is the dual of the base module::
+
+            sage: M.tensor_module(0, 1) is M.dual()
             True
 
         See :class:`~sage.tensor.modules.tensor_free_module.TensorFreeModule`
@@ -1209,6 +1214,8 @@ class FiniteRankFreeModule(FiniteRankFreeModule_abstract):
         except KeyError:
             if (k, l) == (1, 0):
                 T = self
+            elif (k, l) == (0, 1):
+                T = self.dual()
             else:
                 from sage.tensor.modules.tensor_free_module import TensorFreeModule
                 T = TensorFreeModule(self, (k,l))

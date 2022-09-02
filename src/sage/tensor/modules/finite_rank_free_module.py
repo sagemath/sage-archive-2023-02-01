@@ -816,7 +816,7 @@ class FiniteRankFreeModule_abstract(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
-            sage: N = FiniteRankFreeModule(ZZ, 4, name='M')
+            sage: N = FiniteRankFreeModule(ZZ, 4, name='N')
             sage: M.is_submodule(M)
             True
             sage: M.is_submodule(N)

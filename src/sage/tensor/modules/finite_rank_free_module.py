@@ -675,10 +675,12 @@ class FiniteRankFreeModule_abstract(UniqueRepresentation, Parent):
             raise NotImplementedError('all factors must be tensor modules over the same base module')
         factors = [self] + list(others)
         result_tensor_type = sum(vector(factor.tensor_type()) for factor in factors)
-        index_maps = []
-        running_indices = vector([0, result_tensor_type[0]])
         result_sym = []
         result_antisym = []
+        # Keep track of reordering of the contravariant and covariant indices
+        # (compatible with FreeModuleTensor.__mul__)
+        index_maps = []
+        running_indices = vector([0, result_tensor_type[0]])
         for factor in factors:
             tensor_type = factor.tensor_type()
             index_map = tuple(i + running_indices[0] for i in range(tensor_type[0]))

@@ -21,10 +21,10 @@ There are basic unary and binary operators available for streams. For
 example, we can add two streams::
 
     sage: from sage.data_structures.stream import *
-    sage: f = Stream_function(lambda n: n, QQ, True, 0)
+    sage: f = Stream_function(lambda n: n, True, 0)
     sage: [f[i] for i in range(10)]
     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-    sage: g = Stream_function(lambda n: 1, QQ, True, 0)
+    sage: g = Stream_function(lambda n: 1, True, 0)
     sage: [g[i] for i in range(10)]
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
     sage: h = Stream_add(f, g)
@@ -52,7 +52,7 @@ We can compute the inverse corresponding to the Cauchy product::
 
 Two streams can be composed::
 
-    sage: g = Stream_function(lambda n: n, QQ, True, 1)
+    sage: g = Stream_function(lambda n: n, True, 1)
     sage: h = Stream_cauchy_compose(f, g)
     sage: [h[i] for i in range(10)]
     [0, 1, 4, 14, 46, 145, 444, 1331, 3926, 11434]
@@ -71,7 +71,7 @@ More generally, we can multiply by a scalar::
 
 Finally, we can apply an arbitrary functions to the elements of a stream::
 
-    sage: h = Stream_map_coefficients(f, lambda n: n^2, QQ)
+    sage: h = Stream_map_coefficients(f, lambda n: n^2)
     sage: [h[i] for i in range(10)]
     [0, 1, 4, 9, 16, 25, 36, 49, 64, 81]
 
@@ -190,7 +190,7 @@ class Stream_inexact(Stream):
 
             sage: from sage.data_structures.stream import Stream_inexact
             sage: from sage.data_structures.stream import Stream_function
-            sage: g = Stream_function(lambda n: n, QQ, False, 0)
+            sage: g = Stream_function(lambda n: n, False, 0)
             sage: isinstance(g, Stream_inexact)
             True
         """
@@ -210,7 +210,7 @@ class Stream_inexact(Stream):
         EXAMPLES::
 
             sage: from sage.data_structures.stream import Stream_function
-            sage: CS = Stream_function(lambda n: 1/n, ZZ, False, 1)
+            sage: CS = Stream_function(lambda n: 1/n, False, 1)
             sage: CS.is_nonzero()
             False
             sage: CS[1]
@@ -303,7 +303,7 @@ class Stream_inexact(Stream):
         EXAMPLES::
 
             sage: from sage.data_structures.stream import Stream_function
-            sage: f = Stream_function(lambda n: n^2, QQ, True, 0)
+            sage: f = Stream_function(lambda n: n^2, True, 0)
             sage: f[3]
             9
             sage: f._cache
@@ -313,7 +313,7 @@ class Stream_inexact(Stream):
             sage: f._cache
             {0: 0, 1: 1, 2: 4, 3: 9, 4: 16, 5: 25, 6: 36, 7: 49, 8: 64, 9: 81}
 
-            sage: f = Stream_function(lambda n: n^2, QQ, False, 0)
+            sage: f = Stream_function(lambda n: n^2, False, 0)
             sage: f[3]
             9
             sage: f._cache
@@ -351,14 +351,14 @@ class Stream_inexact(Stream):
         EXAMPLES::
 
             sage: from sage.data_structures.stream import Stream_function, Stream_cauchy_compose
-            sage: f = Stream_function(lambda n: 1, ZZ, False, 1)
-            sage: g = Stream_function(lambda n: n^3, ZZ, False, 1)
+            sage: f = Stream_function(lambda n: 1, False, 1)
+            sage: g = Stream_function(lambda n: n^3, False, 1)
             sage: h = Stream_cauchy_compose(f, g)
             sage: n = h.iterate_coefficients()
             sage: [next(n) for i in range(10)]
             [1, 9, 44, 207, 991, 4752, 22769, 109089, 522676, 2504295]
         """
-        n = self._approximate_order
+        n = self._approximate_order  # TODO: shouldn't this be self._offset?
         while True:
             yield self.get_coefficient(n)
             n += 1
@@ -371,7 +371,7 @@ class Stream_inexact(Stream):
         EXAMPLES::
 
             sage: from sage.data_structures.stream import Stream_function
-            sage: f = Stream_function(lambda n: n, QQ, True, 0)
+            sage: f = Stream_function(lambda n: n, True, 0)
             sage: f.order()
             1
         """
@@ -414,8 +414,8 @@ class Stream_inexact(Stream):
         EXAMPLES::
 
             sage: from sage.data_structures.stream import Stream_function
-            sage: f = Stream_function(lambda n: n, QQ, True, 0)
-            sage: g = Stream_function(lambda n: n^2, QQ, True, 0)
+            sage: f = Stream_function(lambda n: n, True, 0)
+            sage: g = Stream_function(lambda n: n^2, True, 0)
             sage: f != g
             False
             sage: f[1], g[1]
@@ -433,8 +433,8 @@ class Stream_inexact(Stream):
 
         Checking the dense implementation::
 
-            sage: f = Stream_function(lambda n: n if n > 0 else 0, QQ, False, -3)
-            sage: g = Stream_function(lambda n: n^2, QQ, False, 0)
+            sage: f = Stream_function(lambda n: n if n > 0 else 0, False, -3)
+            sage: g = Stream_function(lambda n: n^2, False, 0)
             sage: f != g
             False
             sage: g != f
@@ -450,8 +450,8 @@ class Stream_inexact(Stream):
             sage: g != f
             True
 
-            sage: f = Stream_function(lambda n: n if n > 0 else 0, QQ, False, -3)
-            sage: g = Stream_function(lambda n: n^2, QQ, False, 0)
+            sage: f = Stream_function(lambda n: n if n > 0 else 0, False, -3)
+            sage: g = Stream_function(lambda n: n^2, False, 0)
             sage: _ = f[5], g[1]
             sage: f != g
             False
@@ -463,8 +463,8 @@ class Stream_inexact(Stream):
             sage: g != f
             True
 
-            sage: f = Stream_function(lambda n: n if n > 0 else 0, QQ, False, -3)
-            sage: g = Stream_function(lambda n: n^2, QQ, False, 0)
+            sage: f = Stream_function(lambda n: n if n > 0 else 0, False, -3)
+            sage: g = Stream_function(lambda n: n^2, False, 0)
             sage: _ = g[5], f[1]
             sage: f != g
             False
@@ -700,7 +700,7 @@ class Stream_exact(Stream):
         return ``False``::
 
             sage: from sage.data_structures.stream import Stream_function
-            sage: f = Stream_function(lambda n: 2 if n == 0 else 1, ZZ, False, 0)
+            sage: f = Stream_function(lambda n: 2 if n == 0 else 1, False, 0)
             sage: s == f
             False
             sage: s != f
@@ -757,7 +757,6 @@ class Stream_function(Stream_inexact):
 
     - ``function`` -- a function that generates the
       coefficients of the stream
-    - ``ring`` -- the base ring
     - ``is_sparse`` -- boolean; specifies whether the stream is sparse
     - ``approximate_order`` -- integer; a lower bound for the order
       of the stream
@@ -765,61 +764,33 @@ class Stream_function(Stream_inexact):
     EXAMPLES::
 
         sage: from sage.data_structures.stream import Stream_function
-        sage: f = Stream_function(lambda n: n^2, ZZ, False, 1)
+        sage: f = Stream_function(lambda n: n^2, False, 1)
         sage: f[3]
         9
         sage: [f[i] for i in range(10)]
         [0, 1, 4, 9, 16, 25, 36, 49, 64, 81]
-    """
 
-    def __init__(self, function, ring, is_sparse, approximate_order):
+        sage: f = Stream_function(lambda n: 1, False, 0)
+        sage: n = f.iterate_coefficients()
+        sage: [next(n) for _ in range(10)]
+        [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+
+        sage: f = Stream_function(lambda n: n, True, 0)
+        sage: f.get_coefficient(4)
+        4
+    """
+    def __init__(self, function, is_sparse, approximate_order):
         """
         Initialize.
 
         TESTS::
 
             sage: from sage.data_structures.stream import Stream_function
-            sage: f = Stream_function(lambda n: 1, ZZ, False, 1)
+            sage: f = Stream_function(lambda n: 1, False, 1)
             sage: TestSuite(f).run(skip="_test_pickling")
         """
-        self._function = function
-        self._ring = ring
+        self.get_coefficient = function
         super().__init__(is_sparse, approximate_order)
-
-    def get_coefficient(self, n):
-        """
-        Return the ``n``-th coefficient of ``self``.
-
-        INPUT:
-
-        - ``n`` -- integer; the degree for the coefficient
-
-        EXAMPLES::
-
-            sage: from sage.data_structures.stream import Stream_function
-            sage: f = Stream_function(lambda n: n, QQ, True, 0)
-            sage: f.get_coefficient(4)
-            4
-        """
-        return self._ring(self._function(n))
-
-    def iterate_coefficients(self):
-        """
-        A generator for the coefficients of ``self``.
-
-        EXAMPLES::
-
-            sage: from sage.data_structures.stream import Stream_function
-            sage: f = Stream_function(lambda n: 1, QQ, False, 0)
-            sage: n = f.iterate_coefficients()
-            sage: [next(n) for _ in range(10)]
-            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
-        """
-        n = self._offset
-        ring = self._ring
-        while True:
-            yield ring(self._function(n))
-            n += 1
 
 
 class Stream_uninitialized(Stream_inexact):
@@ -911,7 +882,7 @@ class Stream_unary(Stream_inexact):
     EXAMPLES::
 
         sage: from sage.data_structures.stream import (Stream_function, Stream_cauchy_invert, Stream_lmul)
-        sage: f = Stream_function(lambda n: 2*n, ZZ, False, 1)
+        sage: f = Stream_function(lambda n: 2*n, False, 1)
         sage: g = Stream_cauchy_invert(f)
         sage: [g[i] for i in range(10)]
         [-1, 1/2, 0, 0, 0, 0, 0, 0, 0, 0]
@@ -945,7 +916,7 @@ class Stream_unary(Stream_inexact):
 
             sage: from sage.data_structures.stream import Stream_unary
             sage: from sage.data_structures.stream import Stream_function
-            sage: M = Stream_unary(Stream_function(lambda n: 1, ZZ, False, 1), True, 0)
+            sage: M = Stream_unary(Stream_function(lambda n: 1, False, 1), True, 0)
             sage: hash(M) == hash(M)
             True
         """
@@ -962,8 +933,8 @@ class Stream_unary(Stream_inexact):
         EXAMPLES::
 
             sage: from sage.data_structures.stream import (Stream_function, Stream_rmul)
-            sage: f = Stream_function(lambda n: 2*n, ZZ, False, 1)
-            sage: g = Stream_function(lambda n: n, ZZ, False, 1)
+            sage: f = Stream_function(lambda n: 2*n, False, 1)
+            sage: g = Stream_function(lambda n: n, False, 1)
             sage: h = Stream_rmul(f, 2)
             sage: n = Stream_rmul(g, 2)
             sage: h == n
@@ -988,8 +959,8 @@ class Stream_binary(Stream_inexact):
     EXAMPLES::
 
         sage: from sage.data_structures.stream import (Stream_function, Stream_add, Stream_sub)
-        sage: f = Stream_function(lambda n: 2*n, ZZ, True, 0)
-        sage: g = Stream_function(lambda n: n, ZZ, True, 1)
+        sage: f = Stream_function(lambda n: 2*n, True, 0)
+        sage: g = Stream_function(lambda n: n, True, 1)
         sage: h = Stream_add(f, g)
         sage: [h[i] for i in range(10)]
         [0, 3, 6, 9, 12, 15, 18, 21, 24, 27]
@@ -1027,8 +998,8 @@ class Stream_binary(Stream_inexact):
 
             sage: from sage.data_structures.stream import Stream_binary
             sage: from sage.data_structures.stream import Stream_function
-            sage: M = Stream_function(lambda n: n, ZZ, True, 0)
-            sage: N = Stream_function(lambda n: -2*n, ZZ, True, 0)
+            sage: M = Stream_function(lambda n: n, True, 0)
+            sage: N = Stream_function(lambda n: -2*n, True, 0)
             sage: O = Stream_binary(M, N, True, 0)
             sage: hash(O) == hash(O)
             True
@@ -1046,9 +1017,9 @@ class Stream_binary(Stream_inexact):
         EXAMPLES::
 
             sage: from sage.data_structures.stream import (Stream_function, Stream_cauchy_mul)
-            sage: f = Stream_function(lambda n: 2*n, ZZ, False, 1)
-            sage: g = Stream_function(lambda n: n, ZZ, False, 1)
-            sage: h = Stream_function(lambda n: 1, ZZ, False, 1)
+            sage: f = Stream_function(lambda n: 2*n, False, 1)
+            sage: g = Stream_function(lambda n: n, False, 1)
+            sage: h = Stream_function(lambda n: 1, False, 1)
             sage: t = Stream_cauchy_mul(f, g)
             sage: u = Stream_cauchy_mul(g, h)
             sage: v = Stream_cauchy_mul(h, f)
@@ -1071,8 +1042,8 @@ class Stream_binaryCommutative(Stream_binary):
     EXAMPLES::
 
         sage: from sage.data_structures.stream import (Stream_function, Stream_add)
-        sage: f = Stream_function(lambda n: 2*n, ZZ, True, 0)
-        sage: g = Stream_function(lambda n: n, ZZ, True, 1)
+        sage: f = Stream_function(lambda n: 2*n, True, 0)
+        sage: g = Stream_function(lambda n: n, True, 1)
         sage: h = Stream_add(f, g)
         sage: [h[i] for i in range(10)]
         [0, 3, 6, 9, 12, 15, 18, 21, 24, 27]
@@ -1089,8 +1060,8 @@ class Stream_binaryCommutative(Stream_binary):
         EXAMPLES::
 
             sage: from sage.data_structures.stream import (Stream_function, Stream_add)
-            sage: f = Stream_function(lambda n: 2*n, ZZ, True, 0)
-            sage: g = Stream_function(lambda n: n, ZZ, True, 1)
+            sage: f = Stream_function(lambda n: 2*n, True, 0)
+            sage: g = Stream_function(lambda n: n, True, 1)
             sage: h = Stream_add(f, g)
             sage: u = Stream_add(g, f)
             sage: hash(h) == hash(u)
@@ -1109,8 +1080,8 @@ class Stream_binaryCommutative(Stream_binary):
         EXAMPLES::
 
             sage: from sage.data_structures.stream import (Stream_function, Stream_add)
-            sage: f = Stream_function(lambda n: 2*n, ZZ, True, 0)
-            sage: g = Stream_function(lambda n: n, ZZ, True, 1)
+            sage: f = Stream_function(lambda n: 2*n, True, 0)
+            sage: g = Stream_function(lambda n: n, True, 1)
             sage: h = Stream_add(f, g)
             sage: [h[i] for i in range(10)]
             [0, 3, 6, 9, 12, 15, 18, 21, 24, 27]
@@ -1235,8 +1206,8 @@ class Stream_add(Stream_binaryCommutative):
     EXAMPLES::
 
         sage: from sage.data_structures.stream import (Stream_add, Stream_function)
-        sage: f = Stream_function(lambda n: n, ZZ, True, 0)
-        sage: g = Stream_function(lambda n: 1, ZZ, True, 0)
+        sage: f = Stream_function(lambda n: n, True, 0)
+        sage: g = Stream_function(lambda n: 1, True, 0)
         sage: h = Stream_add(f, g)
         sage: [h[i] for i in range(10)]
         [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
@@ -1251,8 +1222,8 @@ class Stream_add(Stream_binaryCommutative):
         TESTS::
 
             sage: from sage.data_structures.stream import (Stream_function, Stream_add)
-            sage: f = Stream_function(lambda n: 1, ZZ, True, 0)
-            sage: g = Stream_function(lambda n: n^2, ZZ, True, 0)
+            sage: f = Stream_function(lambda n: 1, True, 0)
+            sage: g = Stream_function(lambda n: n^2, True, 0)
             sage: h = Stream_add(f, g)
         """
         if left._is_sparse != right._is_sparse:
@@ -1272,8 +1243,8 @@ class Stream_add(Stream_binaryCommutative):
         EXAMPLES::
 
             sage: from sage.data_structures.stream import (Stream_function, Stream_add)
-            sage: f = Stream_function(lambda n: n, ZZ, True, 0)
-            sage: g = Stream_function(lambda n: n^2, ZZ, True, 0)
+            sage: f = Stream_function(lambda n: n, True, 0)
+            sage: g = Stream_function(lambda n: n^2, True, 0)
             sage: h = Stream_add(f, g)
             sage: h.get_coefficient(5)
             30
@@ -1295,8 +1266,8 @@ class Stream_sub(Stream_binary):
     EXAMPLES::
 
         sage: from sage.data_structures.stream import (Stream_sub, Stream_function)
-        sage: f = Stream_function(lambda n: n, ZZ, True, 0)
-        sage: g = Stream_function(lambda n: 1, ZZ, True, 0)
+        sage: f = Stream_function(lambda n: n, True, 0)
+        sage: g = Stream_function(lambda n: 1, True, 0)
         sage: h = Stream_sub(f, g)
         sage: [h[i] for i in range(10)]
         [-1, 0, 1, 2, 3, 4, 5, 6, 7, 8]
@@ -1312,8 +1283,8 @@ class Stream_sub(Stream_binary):
         TESTS::
 
             sage: from sage.data_structures.stream import (Stream_function, Stream_sub)
-            sage: f = Stream_function(lambda n: 1, ZZ, True, 0)
-            sage: g = Stream_function(lambda n: n^2, ZZ, True, 0)
+            sage: f = Stream_function(lambda n: 1, True, 0)
+            sage: g = Stream_function(lambda n: n^2, True, 0)
             sage: h = Stream_sub(f, g)
         """
         if left._is_sparse != right._is_sparse:
@@ -1333,8 +1304,8 @@ class Stream_sub(Stream_binary):
         EXAMPLES::
 
             sage: from sage.data_structures.stream import (Stream_function, Stream_sub)
-            sage: f = Stream_function(lambda n: n, ZZ, True, 0)
-            sage: g = Stream_function(lambda n: n^2, ZZ, True, 0)
+            sage: f = Stream_function(lambda n: n, True, 0)
+            sage: g = Stream_function(lambda n: n^2, True, 0)
             sage: h = Stream_sub(f, g)
             sage: h.get_coefficient(5)
             -20
@@ -1360,8 +1331,8 @@ class Stream_cauchy_mul(Stream_binary):
     EXAMPLES::
 
         sage: from sage.data_structures.stream import (Stream_cauchy_mul, Stream_function)
-        sage: f = Stream_function(lambda n: n, ZZ, True, 0)
-        sage: g = Stream_function(lambda n: 1, ZZ, True, 0)
+        sage: f = Stream_function(lambda n: n, True, 0)
+        sage: g = Stream_function(lambda n: 1, True, 0)
         sage: h = Stream_cauchy_mul(f, g)
         sage: [h[i] for i in range(10)]
         [0, 1, 3, 6, 10, 15, 21, 28, 36, 45]
@@ -1376,8 +1347,8 @@ class Stream_cauchy_mul(Stream_binary):
         TESTS::
 
             sage: from sage.data_structures.stream import (Stream_function, Stream_cauchy_mul)
-            sage: f = Stream_function(lambda n: 1, ZZ, True, 0)
-            sage: g = Stream_function(lambda n: n^2, ZZ, True, 0)
+            sage: f = Stream_function(lambda n: 1, True, 0)
+            sage: g = Stream_function(lambda n: n^2, True, 0)
             sage: h = Stream_cauchy_mul(f, g)
         """
         if left._is_sparse != right._is_sparse:
@@ -1397,8 +1368,8 @@ class Stream_cauchy_mul(Stream_binary):
         EXAMPLES::
 
             sage: from sage.data_structures.stream import (Stream_function, Stream_cauchy_mul)
-            sage: f = Stream_function(lambda n: n, ZZ, True, 0)
-            sage: g = Stream_function(lambda n: n^2, ZZ, True, 0)
+            sage: f = Stream_function(lambda n: n, True, 0)
+            sage: g = Stream_function(lambda n: n^2, True, 0)
             sage: h = Stream_cauchy_mul(f, g)
             sage: h.get_coefficient(5)
             50
@@ -1422,7 +1393,7 @@ class Stream_cauchy_mul(Stream_binary):
 
             sage: from sage.data_structures.stream import (Stream_function,
             ....:     Stream_cauchy_mul, Stream_cauchy_invert)
-            sage: f = Stream_function(lambda n: n, ZZ, True, 1)
+            sage: f = Stream_function(lambda n: n, True, 1)
             sage: g = Stream_cauchy_mul(f, f)
             sage: g.is_nonzero()
             False
@@ -1449,7 +1420,7 @@ class Stream_dirichlet_convolve(Stream_binary):
     EXAMPLES::
 
         sage: from sage.data_structures.stream import (Stream_dirichlet_convolve, Stream_function, Stream_exact)
-        sage: f = Stream_function(lambda n: n, ZZ, True, 1)
+        sage: f = Stream_function(lambda n: n, True, 1)
         sage: g = Stream_exact([0], True, constant=1)
         sage: h = Stream_dirichlet_convolve(f, g)
         sage: [h[i] for i in range(1, 10)]
@@ -1466,7 +1437,7 @@ class Stream_dirichlet_convolve(Stream_binary):
         Initialize ``self``.
 
             sage: from sage.data_structures.stream import (Stream_dirichlet_convolve, Stream_function, Stream_exact)
-            sage: f = Stream_function(lambda n: n, ZZ, True, 1)
+            sage: f = Stream_function(lambda n: n, True, 1)
             sage: g = Stream_exact([1], True, constant=0)
             sage: Stream_dirichlet_convolve(f, g)
             Traceback (most recent call last):
@@ -1498,7 +1469,7 @@ class Stream_dirichlet_convolve(Stream_binary):
         EXAMPLES::
 
             sage: from sage.data_structures.stream import (Stream_dirichlet_convolve, Stream_function, Stream_exact)
-            sage: f = Stream_function(lambda n: n, ZZ, True, 1)
+            sage: f = Stream_function(lambda n: n, True, 1)
             sage: g = Stream_exact([0], True, constant=1)
             sage: h = Stream_dirichlet_convolve(f, g)
             sage: h.get_coefficient(7)
@@ -1527,7 +1498,7 @@ class Stream_dirichlet_invert(Stream_unary):
     EXAMPLES::
 
         sage: from sage.data_structures.stream import (Stream_dirichlet_invert, Stream_function)
-        sage: f = Stream_function(lambda n: 1, ZZ, True, 1)
+        sage: f = Stream_function(lambda n: 1, True, 1)
         sage: g = Stream_dirichlet_invert(f)
         sage: [g[i] for i in range(10)]
         [0, 1, -1, -1, 0, -1, 1, -1, 0, 0]
@@ -1596,8 +1567,8 @@ class Stream_cauchy_compose(Stream_binary):
     EXAMPLES::
 
         sage: from sage.data_structures.stream import Stream_cauchy_compose, Stream_function
-        sage: f = Stream_function(lambda n: n, ZZ, True, 1)
-        sage: g = Stream_function(lambda n: 1, ZZ, True, 1)
+        sage: f = Stream_function(lambda n: n, True, 1)
+        sage: g = Stream_function(lambda n: 1, True, 1)
         sage: h = Stream_cauchy_compose(f, g)
         sage: [h[i] for i in range(10)]
         [0, 1, 3, 8, 20, 48, 112, 256, 576, 1280]
@@ -1612,8 +1583,8 @@ class Stream_cauchy_compose(Stream_binary):
         TESTS::
 
             sage: from sage.data_structures.stream import Stream_function, Stream_cauchy_compose
-            sage: f = Stream_function(lambda n: 1, ZZ, True, 1)
-            sage: g = Stream_function(lambda n: n^2, ZZ, True, 1)
+            sage: f = Stream_function(lambda n: 1, True, 1)
+            sage: g = Stream_function(lambda n: n^2, True, 1)
             sage: h = Stream_cauchy_compose(f, g)
         """
         #assert g._approximate_order > 0
@@ -1640,8 +1611,8 @@ class Stream_cauchy_compose(Stream_binary):
         EXAMPLES::
 
             sage: from sage.data_structures.stream import Stream_function, Stream_cauchy_compose
-            sage: f = Stream_function(lambda n: n, ZZ, True, 1)
-            sage: g = Stream_function(lambda n: n^2, ZZ, True, 1)
+            sage: f = Stream_function(lambda n: n, True, 1)
+            sage: g = Stream_function(lambda n: n^2, True, 1)
             sage: h = Stream_cauchy_compose(f, g)
             sage: h.get_coefficient(5)
             527
@@ -1667,14 +1638,14 @@ class Stream_plethysm(Stream_binary):
     Return the plethysm of ``f`` composed by ``g``.
 
     This is the plethysm `f \circ g = f(g)` when `g` is an element of
-    the ring of symmetric functions.
+    a ring of symmetric functions.
 
     INPUT:
 
     - ``f`` -- a :class:`Stream`
     - ``g`` -- a :class:`Stream` with positive order, unless ``f`` is
       of :class:`Stream_exact`.
-    - ``p`` -- the powersum symmetric functions
+    - ``p`` -- the ring of powersum symmetric functions containing ``g``
     - ``ring`` (optional, default ``None``) -- the ring the result
       should be in, by default ``p``
     - ``include`` -- a list of variables to be treated as degree one
@@ -1687,8 +1658,8 @@ class Stream_plethysm(Stream_binary):
         sage: from sage.data_structures.stream import Stream_function, Stream_plethysm
         sage: s = SymmetricFunctions(QQ).s()
         sage: p = SymmetricFunctions(QQ).p()
-        sage: f = Stream_function(lambda n: s[n], s, True, 1)
-        sage: g = Stream_function(lambda n: s[[1]*n], s, True, 1)
+        sage: f = Stream_function(lambda n: s[n], True, 1)
+        sage: g = Stream_function(lambda n: s[[1]*n], True, 1)
         sage: h = Stream_plethysm(f, g, p, s)
         sage: [h[i] for i in range(5)]
         [0,
@@ -1709,7 +1680,7 @@ class Stream_plethysm(Stream_binary):
 
         sage: from sage.data_structures.stream import Stream_exact
         sage: f = Stream_exact([s[1]], True, order=1)
-        sage: g = Stream_function(lambda n: s[n], s, True, 0)
+        sage: g = Stream_function(lambda n: s[n], True, 0)
         sage: r = Stream_plethysm(f, g, p, s)
         sage: [r[n] for n in range(3)]
         [s[], s[1], s[2]]
@@ -1758,8 +1729,8 @@ class Stream_plethysm(Stream_binary):
             sage: from sage.data_structures.stream import Stream_function, Stream_plethysm
             sage: s = SymmetricFunctions(QQ).s()
             sage: p = SymmetricFunctions(QQ).p()
-            sage: f = Stream_function(lambda n: s[n], s, True, 1)
-            sage: g = Stream_function(lambda n: s[n-1,1], s, True, 2)
+            sage: f = Stream_function(lambda n: s[n], True, 1)
+            sage: g = Stream_function(lambda n: s[n-1,1], True, 2)
             sage: h = Stream_plethysm(f, g, p)
         """
         # assert g._approximate_order > 0
@@ -1769,21 +1740,22 @@ class Stream_plethysm(Stream_binary):
         else:
             self._basis = ring
         self._p = p
-        p_g = Stream_map_coefficients(g, lambda x: x, p)
-        self._powers = [p_g]  # a cache for the powers of p_g
+        g = Stream_map_coefficients(g, lambda x: p(x))
+        self._powers = [g]  # a cache for the powers of g
         R = self._basis.base_ring()
-        if HopfAlgebrasWithBasis(R).TensorProducts() in p.categories():
-            self._tensor_power = len(p._sets)
-            p_f = Stream_map_coefficients(f, lambda x: x, p._sets[0])
-        else:
-            self._tensor_power = None
-            p_f = Stream_map_coefficients(f, lambda x: x, p)
+        self._degree_one = _variables_recursive(R, include=include, exclude=exclude)
         if isinstance(f, Stream_exact) and not f._constant:
             self._degree_f = f._degree
         else:
             self._degree_f = None
-        self._degree_one = _variables_recursive(R, include=include, exclude=exclude)
-        super().__init__(p_f, p_g, f._is_sparse, val)
+        if HopfAlgebrasWithBasis(R).TensorProducts() in p.categories():
+            self._tensor_power = len(p._sets)
+            p_f = p._sets[0]
+            f = Stream_map_coefficients(f, lambda x: p_f(x))
+        else:
+            self._tensor_power = None
+            f = Stream_map_coefficients(f, lambda x: p(x))
+        super().__init__(f, g, f._is_sparse, val)
 
     def get_coefficient(self, n):
         r"""
@@ -1798,8 +1770,8 @@ class Stream_plethysm(Stream_binary):
             sage: from sage.data_structures.stream import Stream_function, Stream_plethysm
             sage: s = SymmetricFunctions(QQ).s()
             sage: p = SymmetricFunctions(QQ).p()
-            sage: f = Stream_function(lambda n: s[n], s, True, 1)
-            sage: g = Stream_function(lambda n: s[[1]*n], s, True, 1)
+            sage: f = Stream_function(lambda n: s[n], True, 1)
+            sage: g = Stream_function(lambda n: s[[1]*n], True, 1)
             sage: h = Stream_plethysm(f, g, p)
             sage: s(h.get_coefficient(5))
             4*s[1, 1, 1, 1, 1] + 4*s[2, 1, 1, 1] + 2*s[2, 2, 1] + 2*s[3, 1, 1] + s[3, 2] + s[4, 1] + s[5]
@@ -1817,13 +1789,16 @@ class Stream_plethysm(Stream_binary):
 
                 return sum((c * self.compute_product(n, la)
                             for k in range(self._left._approximate_order, self._degree_f)
+                            if self._left[k]
                             for la, c in self._left[k]),
                            self._basis.zero())
 
-        return sum((c * self.compute_product(n, la)
-                    for k in range(self._left._approximate_order, n+1)
-                    for la, c in self._left[k]),
-                   self._basis.zero())
+        res = sum((c * self.compute_product(n, la)
+                   for k in range(self._left._approximate_order, n+1)
+                   if self._left[k]
+                   for la, c in self._left[k]),
+                  self._basis.zero())
+        return res
 
     def compute_product(self, n, la):
         r"""
@@ -1845,7 +1820,7 @@ class Stream_plethysm(Stream_binary):
 
             sage: p2 = tensor([p, p])
             sage: f = Stream_zero(True) # irrelevant for this test
-            sage: g = Stream_function(lambda n: sum(tensor([p[k], p[n-k]]) for k in range(n+1)), p2, True, 1)
+            sage: g = Stream_function(lambda n: sum(tensor([p[k], p[n-k]]) for k in range(n+1)), True, 1)
             sage: h = Stream_plethysm(f, g, p2)
             sage: A = h.compute_product(7, Partition([2, 1]))
             sage: B = p[2, 1](sum(g[n] for n in range(7)))
@@ -1854,7 +1829,7 @@ class Stream_plethysm(Stream_binary):
             True
 
             sage: f = Stream_zero(True) # irrelevant for this test
-            sage: g = Stream_function(lambda n: s[n], p, True, 0)
+            sage: g = Stream_function(lambda n: s[n], True, 0)
             sage: h = Stream_plethysm(f, g, p)
             sage: B = p[2, 2, 1](sum(s[i] for i in range(7)))
             sage: all(h.compute_product(k, Partition([2, 2, 1])) == B.restrict_degree(k) for k in range(7))
@@ -1903,7 +1878,7 @@ class Stream_plethysm(Stream_binary):
 
             sage: p2 = tensor([p, p])
             sage: f = Stream_zero(True) # irrelevant for this test
-            sage: g = Stream_function(lambda n: sum(tensor([p[k], p[n-k]]) for k in range(n+1)), p2, True, 1)
+            sage: g = Stream_function(lambda n: sum(tensor([p[k], p[n-k]]) for k in range(n+1)), True, 1)
             sage: h = Stream_plethysm(f, g, p2)
             sage: A = h.stretched_power_restrict_degree(2, 3, 6)
             sage: B = p[2,2,2](sum(g[n] for n in range(7)))
@@ -1934,8 +1909,7 @@ class Stream_plethysm(Stream_binary):
 
 class Stream_scalar(Stream_inexact):
     """
-    Base class for operators multiplying a coeffeicient stream
-    by a scalar.
+    Base class for operators multiplying a coefficient stream by a scalar.
     """
     def __init__(self, series, scalar):
         """
@@ -1944,7 +1918,7 @@ class Stream_scalar(Stream_inexact):
         TESTS::
 
             sage: from sage.data_structures.stream import (Stream_rmul, Stream_function)
-            sage: f = Stream_function(lambda n: -1, ZZ, True, 0)
+            sage: f = Stream_function(lambda n: -1, True, 0)
             sage: g = Stream_rmul(f, 3)
         """
         self._series = series
@@ -1960,7 +1934,7 @@ class Stream_scalar(Stream_inexact):
 
             sage: from sage.data_structures.stream import Stream_function
             sage: from sage.data_structures.stream import Stream_rmul
-            sage: a = Stream_function(lambda n: 2*n, ZZ, False, 1)
+            sage: a = Stream_function(lambda n: 2*n, False, 1)
             sage: f = Stream_rmul(a, 2)
             sage: hash(f) == hash(f)
             True
@@ -1979,8 +1953,8 @@ class Stream_scalar(Stream_inexact):
 
             sage: from sage.data_structures.stream import Stream_function
             sage: from sage.data_structures.stream import Stream_rmul, Stream_lmul
-            sage: a = Stream_function(lambda n: 2*n, ZZ, False, 1)
-            sage: b = Stream_function(lambda n: n, ZZ, False, 1)
+            sage: a = Stream_function(lambda n: 2*n, False, 1)
+            sage: b = Stream_function(lambda n: n, False, 1)
             sage: f = Stream_rmul(a, 2)
             sage: f == Stream_rmul(b, 2)
             False
@@ -2002,7 +1976,7 @@ class Stream_scalar(Stream_inexact):
         EXAMPLES::
 
             sage: from sage.data_structures.stream import (Stream_rmul, Stream_function)
-            sage: f = Stream_function(lambda n: n, ZZ, True, 1)
+            sage: f = Stream_function(lambda n: n, True, 1)
             sage: g = Stream_rmul(f, 2)
             sage: g.is_nonzero()
             False
@@ -2031,7 +2005,7 @@ class Stream_rmul(Stream_scalar):
         sage: from sage.data_structures.stream import (Stream_rmul, Stream_function)
         sage: W = algebras.DifferentialWeyl(QQ, names=('x',))
         sage: x, dx = W.gens()
-        sage: f = Stream_function(lambda n: x^n, W, True, 1)
+        sage: f = Stream_function(lambda n: x^n, True, 1)
         sage: g = Stream_rmul(f, dx)
         sage: [g[i] for i in range(5)]
         [0, x*dx + 1, x^2*dx + 2*x, x^3*dx + 3*x^2, x^4*dx + 4*x^3]
@@ -2047,7 +2021,7 @@ class Stream_rmul(Stream_scalar):
         EXAMPLES::
 
             sage: from sage.data_structures.stream import (Stream_rmul, Stream_function)
-            sage: f = Stream_function(lambda n: n, ZZ, True, 1)
+            sage: f = Stream_function(lambda n: n, True, 1)
             sage: g = Stream_rmul(f, 3)
             sage: g.get_coefficient(5)
             15
@@ -2072,7 +2046,7 @@ class Stream_lmul(Stream_scalar):
         sage: from sage.data_structures.stream import (Stream_lmul, Stream_function)
         sage: W = algebras.DifferentialWeyl(QQ, names=('x',))
         sage: x, dx = W.gens()
-        sage: f = Stream_function(lambda n: x^n, W, True, 1)
+        sage: f = Stream_function(lambda n: x^n, True, 1)
         sage: g = Stream_lmul(f, dx)
         sage: [g[i] for i in range(5)]
         [0, x*dx, x^2*dx, x^3*dx, x^4*dx]
@@ -2088,7 +2062,7 @@ class Stream_lmul(Stream_scalar):
         EXAMPLES::
 
             sage: from sage.data_structures.stream import (Stream_lmul, Stream_function)
-            sage: f = Stream_function(lambda n: n, ZZ, True, 1)
+            sage: f = Stream_function(lambda n: n, True, 1)
             sage: g = Stream_lmul(f, 3)
             sage: g.get_coefficient(5)
             15
@@ -2109,7 +2083,7 @@ class Stream_neg(Stream_unary):
     EXAMPLES::
 
         sage: from sage.data_structures.stream import (Stream_neg, Stream_function)
-        sage: f = Stream_function(lambda n: 1, ZZ, True, 1)
+        sage: f = Stream_function(lambda n: 1, True, 1)
         sage: g = Stream_neg(f)
         sage: [g[i] for i in range(10)]
         [0, -1, -1, -1, -1, -1, -1, -1, -1, -1]
@@ -2121,7 +2095,7 @@ class Stream_neg(Stream_unary):
         TESTS::
 
             sage: from sage.data_structures.stream import (Stream_neg, Stream_function)
-            sage: f = Stream_function(lambda n: -1, ZZ, True, 0)
+            sage: f = Stream_function(lambda n: -1, True, 0)
             sage: g = Stream_neg(f)
         """
         super().__init__(series, series._is_sparse, series._approximate_order)
@@ -2137,7 +2111,7 @@ class Stream_neg(Stream_unary):
         EXAMPLES::
 
             sage: from sage.data_structures.stream import (Stream_neg, Stream_function)
-            sage: f = Stream_function(lambda n: n, ZZ, True, 1)
+            sage: f = Stream_function(lambda n: n, True, 1)
             sage: g = Stream_neg(f)
             sage: g.get_coefficient(5)
             -5
@@ -2154,7 +2128,7 @@ class Stream_neg(Stream_unary):
         EXAMPLES::
 
             sage: from sage.data_structures.stream import (Stream_neg, Stream_function)
-            sage: f = Stream_function(lambda n: n, ZZ, True, 1)
+            sage: f = Stream_function(lambda n: n, True, 1)
             sage: g = Stream_neg(f)
             sage: g.is_nonzero()
             False
@@ -2179,7 +2153,7 @@ class Stream_cauchy_invert(Stream_unary):
     EXAMPLES::
 
         sage: from sage.data_structures.stream import (Stream_cauchy_invert, Stream_function)
-        sage: f = Stream_function(lambda n: 1, ZZ, True, 1)
+        sage: f = Stream_function(lambda n: 1, True, 1)
         sage: g = Stream_cauchy_invert(f)
         sage: [g[i] for i in range(10)]
         [-1, 0, 0, 0, 0, 0, 0, 0, 0, 0]
@@ -2211,7 +2185,7 @@ class Stream_cauchy_invert(Stream_unary):
         EXAMPLES::
 
             sage: from sage.data_structures.stream import (Stream_cauchy_invert, Stream_function)
-            sage: f = Stream_function(lambda n: n, ZZ, True, 1)
+            sage: f = Stream_function(lambda n: n, True, 1)
             sage: g = Stream_cauchy_invert(f)
             sage: g.get_coefficient(5)
             0
@@ -2235,7 +2209,7 @@ class Stream_cauchy_invert(Stream_unary):
         EXAMPLES::
 
             sage: from sage.data_structures.stream import (Stream_cauchy_invert, Stream_function)
-            sage: f = Stream_function(lambda n: n^2, ZZ, False, 1)
+            sage: f = Stream_function(lambda n: n^2, False, 1)
             sage: g = Stream_cauchy_invert(f)
             sage: n = g.iterate_coefficients()
             sage: [next(n) for i in range(10)]
@@ -2270,7 +2244,7 @@ class Stream_cauchy_invert(Stream_unary):
         EXAMPLES::
 
             sage: from sage.data_structures.stream import (Stream_cauchy_invert, Stream_function)
-            sage: f = Stream_function(lambda n: n^2, ZZ, False, 1)
+            sage: f = Stream_function(lambda n: n^2, False, 1)
             sage: g = Stream_cauchy_invert(f)
             sage: g.is_nonzero()
             True
@@ -2280,36 +2254,35 @@ class Stream_cauchy_invert(Stream_unary):
 
 class Stream_map_coefficients(Stream_inexact):
     r"""
-    The stream with ``function`` applied to each nonzero
-    coefficient of ``series``.
+    The stream with ``function`` applied to each nonzero coefficient
+    of ``series``.
 
     INPUT:
 
     - ``series`` -- a :class:`Stream`
     - ``function`` -- a function that modifies the elements of the stream
-    - ``ring`` -- the base ring of the stream
 
     EXAMPLES::
 
         sage: from sage.data_structures.stream import (Stream_map_coefficients, Stream_function)
-        sage: f = Stream_function(lambda n: 1, ZZ, True, 1)
-        sage: g = Stream_map_coefficients(f, lambda n: -n, ZZ)
+        sage: f = Stream_function(lambda n: 1, True, 1)
+        sage: g = Stream_map_coefficients(f, lambda n: -n)
         sage: [g[i] for i in range(10)]
         [0, -1, -1, -1, -1, -1, -1, -1, -1, -1]
+
     """
-    def __init__(self, series, function, ring):
+    def __init__(self, series, function):
         """
         Initialize ``self``.
 
         TESTS::
 
             sage: from sage.data_structures.stream import (Stream_map_coefficients, Stream_function)
-            sage: f = Stream_function(lambda n: -1, ZZ, True, 0)
-            sage: g = Stream_map_coefficients(f, lambda n: n + 1, ZZ)
+            sage: f = Stream_function(lambda n: -1, True, 0)
+            sage: g = Stream_map_coefficients(f, lambda n: n + 1)
             sage: TestSuite(g).run(skip="_test_pickling")
         """
         self._function = function
-        self._ring = ring
         self._series = series
         super().__init__(series._is_sparse, series._approximate_order)
 
@@ -2324,25 +2297,20 @@ class Stream_map_coefficients(Stream_inexact):
         EXAMPLES::
 
             sage: from sage.data_structures.stream import (Stream_map_coefficients, Stream_function)
-            sage: f = Stream_function(lambda n: n, ZZ, True, -1)
-            sage: g = Stream_map_coefficients(f, lambda n: n^2 + 1, ZZ)
+            sage: f = Stream_function(lambda n: n, True, -1)
+            sage: g = Stream_map_coefficients(f, lambda n: n^2 + 1)
             sage: g.get_coefficient(5)
             26
             sage: [g.get_coefficient(i) for i in range(-1, 10)]
             [2, 0, 2, 5, 10, 17, 26, 37, 50, 65, 82]
 
             sage: R.<x,y> = ZZ[]
-            sage: f = Stream_function(lambda n: n, ZZ, True, -1)
-            sage: g = Stream_map_coefficients(f, lambda n: n.degree() + 1, R)
+            sage: f = Stream_function(lambda n: n, True, -1)
+            sage: g = Stream_map_coefficients(f, lambda n: R(n).degree() + 1)
             sage: [g.get_coefficient(i) for i in range(-1, 3)]
             [1, 0, 1, 1]
-
-            sage: f = Stream_function(lambda n: n, ZZ, True, 0)
-            sage: g = Stream_map_coefficients(f, lambda n: 5, GF(3))
-            sage: [g.get_coefficient(i) for i in range(10)]
-            [0, 5, 5, 0, 5, 5, 0, 5, 5, 0]
         """
-        c = self._ring(self._series[n])
+        c = self._series[n]
         if c:
             return self._function(c)
         return c
@@ -2354,13 +2322,13 @@ class Stream_map_coefficients(Stream_inexact):
         EXAMPLES::
 
             sage: from sage.data_structures.stream import (Stream_map_coefficients, Stream_function)
-            sage: f = Stream_function(lambda n: -1, ZZ, True, 0)
-            sage: g = Stream_map_coefficients(f, lambda n: n + 1, ZZ)
+            sage: f = Stream_function(lambda n: -1, True, 0)
+            sage: g = Stream_map_coefficients(f, lambda n: n + 1)
             sage: hash(g) == hash(g)
             True
         """
         # We don't hash the function as it might not be hashable.
-        return hash((type(self), self._series, self._ring))
+        return hash((type(self), self._series))
 
     def __eq__(self, other):
         """
@@ -2373,18 +2341,16 @@ class Stream_map_coefficients(Stream_inexact):
         EXAMPLES::
 
             sage: from sage.data_structures.stream import (Stream_map_coefficients, Stream_function)
-            sage: f = Stream_function(lambda n: -1, ZZ, True, 0)
+            sage: f = Stream_function(lambda n: -1, True, 0)
             sage: def plus_one(n): return n + 1
-            sage: g = Stream_map_coefficients(f, plus_one, ZZ)
+            sage: g = Stream_map_coefficients(f, plus_one)
             sage: g == f
             False
-            sage: g == Stream_map_coefficients(f, plus_one, QQ)
+            sage: g == Stream_map_coefficients(f, lambda n: n + 1)
             False
-            sage: g == Stream_map_coefficients(f, plus_one, ZZ)
-            True
         """
         return (isinstance(other, type(self)) and self._series == other._series
-                and self._ring == other._ring and self._function == other._function)
+                and self._function == other._function)
 
 
 class Stream_shift(Stream_inexact):
@@ -2420,7 +2386,7 @@ class Stream_shift(Stream_inexact):
 
             sage: from sage.data_structures.stream import Stream_shift
             sage: from sage.data_structures.stream import Stream_function
-            sage: F = Stream_function(lambda n: n, ZZ, False, 1)
+            sage: F = Stream_function(lambda n: n, False, 1)
             sage: M = Stream_shift(F, 2)
             sage: [F[i] for i in range(6)]
             [0, 1, 2, 3, 4, 5]
@@ -2437,7 +2403,7 @@ class Stream_shift(Stream_inexact):
 
             sage: from sage.data_structures.stream import Stream_shift
             sage: from sage.data_structures.stream import Stream_function
-            sage: F = Stream_function(lambda n: n, ZZ, False, 1)
+            sage: F = Stream_function(lambda n: n, False, 1)
             sage: M = Stream_shift(F, 2)
             sage: hash(M) == hash(M)
             True
@@ -2456,7 +2422,7 @@ class Stream_shift(Stream_inexact):
 
             sage: from sage.data_structures.stream import Stream_shift
             sage: from sage.data_structures.stream import Stream_function
-            sage: F = Stream_function(lambda n: 1, ZZ, False, 1)
+            sage: F = Stream_function(lambda n: 1, False, 1)
             sage: M2 = Stream_shift(F, 2)
             sage: M3 = Stream_shift(F, 3)
             sage: M2 == M3
@@ -2477,7 +2443,7 @@ class Stream_shift(Stream_inexact):
         EXAMPLES::
 
             sage: from sage.data_structures.stream import (Stream_cauchy_invert, Stream_function)
-            sage: f = Stream_function(lambda n: n^2, ZZ, False, 1)
+            sage: f = Stream_function(lambda n: n^2, False, 1)
             sage: g = Stream_cauchy_invert(f)
             sage: g.is_nonzero()
             True
@@ -2519,14 +2485,14 @@ class Stream_derivative(Stream_inexact):
         EXAMPLES::
 
             sage: from sage.data_structures.stream import Stream_function, Stream_derivative
-            sage: f = Stream_function(lambda n: 1/n if n else 0, QQ, True, -2)
+            sage: f = Stream_function(lambda n: 1/n if n else 0, True, -2)
             sage: [f[i] for i in range(-5, 3)]
             [0, 0, 0, -1/2, -1, 0, 1, 1/2]
             sage: f2 = Stream_derivative(f, 2)
             sage: [f2[i] for i in range(-5, 3)]
             [0, -3, -2, 0, 0, 1, 2, 3]
 
-            sage: f = Stream_function(lambda n: 1/n, QQ, True, 2)
+            sage: f = Stream_function(lambda n: 1/n, True, 2)
             sage: [f[i] for i in range(-1, 4)]
             [0, 0, 0, 1/2, 1/3]
             sage: f2 = Stream_derivative(f, 3)
@@ -2544,7 +2510,7 @@ class Stream_derivative(Stream_inexact):
 
             sage: from sage.data_structures.stream import Stream_function
             sage: from sage.data_structures.stream import Stream_derivative
-            sage: a = Stream_function(lambda n: 2*n, ZZ, False, 1)
+            sage: a = Stream_function(lambda n: 2*n, False, 1)
             sage: f = Stream_derivative(a, 1)
             sage: g = Stream_derivative(a, 2)
             sage: hash(f) == hash(f)
@@ -2567,7 +2533,7 @@ class Stream_derivative(Stream_inexact):
 
             sage: from sage.data_structures.stream import Stream_function
             sage: from sage.data_structures.stream import Stream_derivative
-            sage: a = Stream_function(lambda n: 2*n, ZZ, False, 1)
+            sage: a = Stream_function(lambda n: 2*n, False, 1)
             sage: f = Stream_derivative(a, 1)
             sage: g = Stream_derivative(a, 2)
             sage: f == g

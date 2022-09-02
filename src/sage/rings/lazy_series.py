@@ -4941,8 +4941,8 @@ class LazySymmetricFunction(LazyCompletionGradedAlgebraElement):
             R = P._laurent_poly_ring
             p = R.realization_of().p()
             # TODO: does the following introduce a memory leak?
-            g = Stream_map_coefficients(g._coeff_stream, lambda x: x, p)
-            f = Stream_map_coefficients(self._coeff_stream, lambda x: x, p)
+            g = Stream_map_coefficients(g._coeff_stream, p)
+            f = Stream_map_coefficients(self._coeff_stream, p)
 
             if check:
                 assert not f[0]
@@ -4973,20 +4973,14 @@ class LazySymmetricFunction(LazyCompletionGradedAlgebraElement):
             def arith_prod_sf(x, y):
                 return p._apply_multi_module_morphism(x, y, arith_prod_of_partitions)
 
-            # Sage stores cycle index series by degree.  Thus, to
-            # compute the arithmetic product `Z_M \boxdot Z_N` it is
-            # useful to compute all terms of a given degree `n` at
-            # once.
             def coefficient(n):
-                if n == 0:
-                    res = p.zero()
-                else:
-                    index_set = ((d, n // d) for d in divisors(n))
-                    res = sum(arith_prod_sf(f[i], g[j]) for i, j in index_set)
+                if not n:
+                    return R.zero()
 
-                return res
+                index_set = ((d, n // d) for d in divisors(n))
+                return R(sum(arith_prod_sf(f[i], g[j]) for i, j in index_set))
 
-            coeff_stream = Stream_function(coefficient, R, P._sparse, 0)
+            coeff_stream = Stream_function(coefficient, P._sparse, 0)
             return P.element_class(P, coeff_stream)
         else:
             raise NotImplementedError("only implemented for arity 1")

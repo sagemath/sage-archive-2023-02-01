@@ -38,10 +38,11 @@ module element has then various representations over the various bases.
 AUTHORS:
 
 - Eric Gourgoulhon, Michal Bejger (2014-2015): initial version
-- Travis Scrimshaw (2016): category set to Modules(ring).FiniteDimensional()
+- Travis Scrimshaw (2016): category set to ``Modules(ring).FiniteDimensional()``
   (:trac:`20770`)
 - Michael Jung (2019): improve treatment of the zero element
 - Eric Gourgoulhon (2021): unicode symbols for tensor and exterior products
+- Matthias Koeppe (2022): ``FiniteRankFreeModule_abstract``, symmetric powers
 
 REFERENCES:
 
@@ -519,16 +520,19 @@ The components on the basis are returned by the square bracket operator for
     [2, 0, -5]
 
 """
-#******************************************************************************
-#       Copyright (C) 2015-2021 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
-#       Copyright (C) 2015 Michal Bejger <bejger@camk.edu.pl>
-#       Copyright (C) 2016 Travis Scrimshaw <tscrimsh@umn.edu>
+# ******************************************************************************
+#       Copyright (C) 2014-2021 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
+#                     2014-2016 Travis Scrimshaw <tscrimsh@umn.edu>
+#                     2015      Michal Bejger <bejger@camk.edu.pl>
+#                     2016      Frédéric Chapoton
+#                     2020      Michael Jung
+#                     2020-2022 Matthias Koeppe
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
 #                  https://www.gnu.org/licenses/
-#******************************************************************************
+# ******************************************************************************
 from __future__ import annotations
 
 from typing import Generator, Optional
@@ -644,13 +648,72 @@ class FiniteRankFreeModule_abstract(UniqueRepresentation, Parent):
             sage: M.tensor_module(1,1).tensor_product(M.tensor_module(1,2))
             Free module of type-(2,3) tensors on the 2-dimensional vector space over the Rational Field
 
+            sage: Sym2M = M.tensor_module(2, 0, sym=range(2)); Sym2M
+            Free module of fully symmetric type-(2,0) tensors on the 2-dimensional vector space over the Rational Field
+            sage: Sym01x23M = Sym2M.tensor_product(Sym2M); Sym01x23M
+            Free module of type-(4,0) tensors on the 2-dimensional vector space over the Rational Field,
+             with symmetry on the index positions (0, 1), with symmetry on the index positions (2, 3)
+            sage: Sym01x23M._index_maps
+            ((0, 1), (2, 3))
+
+            sage: N = M.tensor_module(3, 3, sym=[1, 2], antisym=[3, 4]); N
+            Free module of type-(3,3) tensors on the 2-dimensional vector space over the Rational Field,
+             with symmetry on the index positions (1, 2),
+             with antisymmetry on the index positions (3, 4)
+            sage: NxN = N.tensor_product(N); NxN
+            Free module of type-(6,6) tensors on the 2-dimensional vector space over the Rational Field,
+             with symmetry on the index positions (1, 2), with symmetry on the index positions (4, 5),
+             with antisymmetry on the index positions (6, 7), with antisymmetry on the index positions (9, 10)
+            sage: NxN._index_maps
+            ((0, 1, 2, 6, 7, 8), (3, 4, 5, 9, 10, 11))
         """
         from sage.modules.free_module_element import vector
+        from .comp import CompFullySym, CompFullyAntiSym, CompWithSym
+
         base_module = self.base_module()
         if not all(module.base_module() == base_module for module in others):
             raise NotImplementedError('all factors must be tensor modules over the same base module')
-        tensor_type = sum(vector(module.tensor_type()) for module in [self] + list(others))
-        return base_module.tensor_module(*tensor_type)
+        factors = [self] + list(others)
+        result_tensor_type = sum(vector(factor.tensor_type()) for factor in factors)
+        result_sym = []
+        result_antisym = []
+        # Keep track of reordering of the contravariant and covariant indices
+        # (compatible with FreeModuleTensor.__mul__)
+        index_maps = []
+        running_indices = vector([0, result_tensor_type[0]])
+        for factor in factors:
+            tensor_type = factor.tensor_type()
+            index_map = tuple(i + running_indices[0] for i in range(tensor_type[0]))
+            index_map += tuple(i + running_indices[1] for i in range(tensor_type[1]))
+            index_maps.append(index_map)
+
+            if tensor_type[0] + tensor_type[1] > 1:
+                basis_sym = factor._basis_sym()
+                all_indices = tuple(range(tensor_type[0] + tensor_type[1]))
+                if isinstance(basis_sym, CompFullySym):
+                    sym = [all_indices]
+                    antisym = []
+                elif isinstance(basis_sym, CompFullyAntiSym):
+                    sym = []
+                    antisym = [all_indices]
+                elif isinstance(basis_sym, CompWithSym):
+                    sym = basis_sym._sym
+                    antisym = basis_sym._antisym
+                else:
+                    sym = antisym = []
+
+                def map_isym(isym):
+                    return tuple(index_map[i] for i in isym)
+
+                result_sym.extend(tuple(index_map[i] for i in isym) for isym in sym)
+                result_antisym.extend(tuple(index_map[i] for i in isym) for isym in antisym)
+
+            running_indices += vector(tensor_type)
+
+        result = base_module.tensor_module(*result_tensor_type,
+                                           sym=result_sym, antisym=result_antisym)
+        result._index_maps = tuple(index_maps)
+        return result
 
     def rank(self) -> int:
         r"""
@@ -742,9 +805,8 @@ class FiniteRankFreeModule_abstract(UniqueRepresentation, Parent):
             sage: M.ambient_module() is M
             True
 
-            sage: from sage.tensor.modules.tensor_free_submodule import TensorFreeSubmodule_comp
             sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
-            sage: Sym0123x45M = TensorFreeSubmodule_comp(M, (6, 0), sym=((0, 1, 2, 3), (4, 5)))
+            sage: Sym0123x45M = M.tensor_module(6, 0, sym=((0, 1, 2, 3), (4, 5)))
             sage: T60M = M.tensor_module(6, 0)
             sage: Sym0123x45M.ambient_module() is T60M
             True
@@ -760,7 +822,7 @@ class FiniteRankFreeModule_abstract(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
-            sage: N = FiniteRankFreeModule(ZZ, 4, name='M')
+            sage: N = FiniteRankFreeModule(ZZ, 4, name='N')
             sage: M.is_submodule(M)
             True
             sage: M.is_submodule(N)
@@ -1267,12 +1329,19 @@ class FiniteRankFreeModule(FiniteRankFreeModule_abstract):
             T^{\{2,3\}}(M) \otimes T^{\{6,7\}}(M^*) \otimes \mathrm{Sym}^{\{0,1\}}(M) \otimes \mathrm{ASym}^{\{4,5\}}(M^*)
 
         See :class:`~sage.tensor.modules.tensor_free_module.TensorFreeModule`
-        and :class:`~sage.tensor.modules.tensor_free_module.TensorFreeSubmodule_comp`
+        and :class:`~sage.tensor.modules.tensor_free_module.TensorFreeSubmodule_sym`
         for more documentation.
 
+        TESTS::
+
+            sage: M = FiniteRankFreeModule(ZZ, 2)
+            sage: M.tensor_module(2, 0, sym=(0,1)) is M.symmetric_power(2)
+            True
         """
+        from .comp import CompWithSym
+
+        sym, antisym = CompWithSym._canonicalize_sym_antisym(k + l, sym, antisym)
         if sym or antisym:
-            # TODO: Canonicalize sym, antisym, make hashable
             key = (k, l, sym, antisym)
         else:
             key = (k, l)
@@ -1282,8 +1351,8 @@ class FiniteRankFreeModule(FiniteRankFreeModule_abstract):
             if key == (1, 0):
                 T = self
             elif sym or antisym:
-                from sage.tensor.modules.tensor_free_submodule import TensorFreeSubmodule_comp
-                T = TensorFreeSubmodule_comp(self, (k, l), sym=sym, antisym=antisym)
+                from sage.tensor.modules.tensor_free_submodule import TensorFreeSubmodule_sym
+                T = TensorFreeSubmodule_sym(self, (k, l), sym=sym, antisym=antisym)
             else:
                 from sage.tensor.modules.tensor_free_module import TensorFreeModule
                 T = TensorFreeModule(self, (k, l))
@@ -1815,7 +1884,7 @@ class FiniteRankFreeModule(FiniteRankFreeModule_abstract):
         - ``latex_name`` -- (default: ``None``) string;  LaTeX symbol to
           denote the tensor; if none is provided, the LaTeX symbol is set
           to ``name``
-        - ``sym`` -- (default: ``None``) a symmetry or a list of symmetries
+        - ``sym`` -- (default: ``None``) a symmetry or an iterable of symmetries
           among the tensor arguments: each symmetry is described by a tuple
           containing the positions of the involved arguments, with the
           convention ``position = 0`` for the first argument. For instance:
@@ -1824,7 +1893,7 @@ class FiniteRankFreeModule(FiniteRankFreeModule_abstract):
           * ``sym = [(0,2), (1,3,4)]`` for a symmetry between the 1st and 3rd
             arguments and a symmetry between the 2nd, 4th and 5th arguments.
 
-        - ``antisym`` -- (default: ``None``) antisymmetry or list of
+        - ``antisym`` -- (default: ``None``) antisymmetry or iterable of
           antisymmetries among the arguments, with the same convention
           as for ``sym``
 
@@ -1858,34 +1927,31 @@ class FiniteRankFreeModule(FiniteRankFreeModule_abstract):
         See :class:`~sage.tensor.modules.free_module_tensor.FreeModuleTensor`
         for more examples and documentation.
 
+        TESTS:
+
+        Trivial symmetries in the list of symmetries or antisymmetries are silently
+        ignored::
+
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: M.tensor((3,0), sym=[[1]])
+            Type-(3,0) tensor on the Rank-3 free module M over the Integer Ring
+            sage: M.tensor((3,0), antisym=[[]])
+            Type-(3,0) tensor on the Rank-3 free module M over the Integer Ring
         """
+        from .comp import CompWithSym
+        sym, antisym = CompWithSym._canonicalize_sym_antisym(
+            tensor_type[0] + tensor_type[1], sym, antisym)
         # Special cases:
         if tensor_type == (1,0):
             return self.element_class(self, name=name, latex_name=latex_name)
         elif tensor_type == (0,1):
             return self.linear_form(name=name, latex_name=latex_name)
         elif tensor_type[0] == 0 and tensor_type[1] > 1 and antisym:
-            if isinstance(antisym[0], (int, Integer)):
-                # a single antisymmetry is provided as a tuple or a range
-                # object; it is converted to a 1-item list:
-                antisym = [tuple(antisym)]
-            if isinstance(antisym, list):
-                antisym0 = antisym[0]
-            else:
-                antisym0 = antisym
-            if len(antisym0) == tensor_type[1]:
+            if len(antisym[0]) == tensor_type[1]:
                 return self.alternating_form(tensor_type[1], name=name,
                                              latex_name=latex_name)
         elif tensor_type[0] > 1 and tensor_type[1] == 0 and antisym:
-            if isinstance(antisym[0], (int, Integer)):
-                # a single antisymmetry is provided as a tuple or a range
-                # object; it is converted to a 1-item list:
-                antisym = [tuple(antisym)]
-            if isinstance(antisym, list):
-                antisym0 = antisym[0]
-            else:
-                antisym0 = antisym
-            if len(antisym0) == tensor_type[0]:
+            if len(antisym[0]) == tensor_type[0]:
                 return self.alternating_contravariant_tensor(tensor_type[0],
                                            name=name, latex_name=latex_name)
         # Generic case:

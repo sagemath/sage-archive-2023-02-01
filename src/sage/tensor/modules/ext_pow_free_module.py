@@ -236,7 +236,7 @@ class ExtPowerFreeModule(FiniteRankFreeModule_abstract):
             sage: TestSuite(A).run()
 
         """
-        from sage.arith.all import binomial
+        from sage.arith.misc import binomial
         from sage.typeset.unicode_characters import unicode_bigwedge
         self._fmodule = fmodule
         self._degree = ZZ(degree)
@@ -643,7 +643,7 @@ class ExtPowerDualFreeModule(FiniteRankFreeModule_abstract):
             sage: TestSuite(A).run()
 
         """
-        from sage.arith.all import binomial
+        from sage.arith.misc import binomial
         from sage.typeset.unicode_characters import unicode_bigwedge
         self._fmodule = fmodule
         self._degree = ZZ(degree)

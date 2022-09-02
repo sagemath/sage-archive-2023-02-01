@@ -501,7 +501,7 @@ class VectorFieldModule(UniqueRepresentation, Parent):
         """
         return self._dest_map
 
-    def tensor_module(self, k, l):
+    def tensor_module(self, k, l, *, sym=None, antisym=None):
         r"""
         Return the module of type-`(k,l)` tensors on ``self``.
 
@@ -549,6 +549,8 @@ class VectorFieldModule(UniqueRepresentation, Parent):
         """
         from sage.manifolds.differentiable.tensorfield_module import \
                                                               TensorFieldModule
+        if sym or antisym:
+            raise NotImplementedError
         if (k,l) not in self._tensor_modules:
             self._tensor_modules[(k,l)] = TensorFieldModule(self, (k,l))
         return self._tensor_modules[(k,l)]
@@ -1717,7 +1719,7 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
         """
         return self._dest_map
 
-    def tensor_module(self, k, l):
+    def tensor_module(self, k, l, *, sym=None, antisym=None):
         r"""
         Return the free module of all tensors of type `(k, l)` defined
         on ``self``.
@@ -1766,6 +1768,8 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
             for more examples and documentation.
 
         """
+        if sym or antisym:
+            raise NotImplementedError
         try:
             return self._tensor_modules[(k,l)]
         except KeyError:

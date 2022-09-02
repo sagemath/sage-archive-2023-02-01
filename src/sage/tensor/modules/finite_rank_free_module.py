@@ -38,10 +38,11 @@ module element has then various representations over the various bases.
 AUTHORS:
 
 - Eric Gourgoulhon, Michal Bejger (2014-2015): initial version
-- Travis Scrimshaw (2016): category set to Modules(ring).FiniteDimensional()
+- Travis Scrimshaw (2016): category set to ``Modules(ring).FiniteDimensional()``
   (:trac:`20770`)
 - Michael Jung (2019): improve treatment of the zero element
 - Eric Gourgoulhon (2021): unicode symbols for tensor and exterior products
+- Matthias Koeppe (2022): ``FiniteRankFreeModule_abstract``, symmetric powers
 
 REFERENCES:
 

@@ -633,6 +633,10 @@ class FiniteRankFreeModule_abstract(UniqueRepresentation, Parent):
             sage: M = FiniteRankFreeModule(QQ, 2)
             sage: M.tensor_product(M)
             Free module of type-(2,0) tensors on the 2-dimensional vector space over the Rational Field
+            sage: M.tensor_product(M.dual())
+            Free module of type-(1,1) tensors on the 2-dimensional vector space over the Rational Field
+            sage: M.dual().tensor_product(M, M.dual())
+            Free module of type-(1,2) tensors on the 2-dimensional vector space over the Rational Field
             sage: M.tensor_product(M.tensor_module(1,2))
             Free module of type-(2,2) tensors on the 2-dimensional vector space over the Rational Field
             sage: M.tensor_module(1,2).tensor_product(M)
@@ -3243,3 +3247,16 @@ class FiniteRankDualFreeModule(FiniteRankFreeModule_abstract):
 
         """
         return self._fmodule
+
+    def tensor_type(self):
+        r"""
+        Return the tensor type of ``self``.
+
+        EXAMPLES::
+
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: M.dual().tensor_type()
+            (0, 1)
+
+        """
+        return (0, 1)

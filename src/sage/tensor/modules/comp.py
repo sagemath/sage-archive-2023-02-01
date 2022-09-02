@@ -3015,7 +3015,6 @@ class CompWithSym(Components):
         )
         sage: e + d == d + e
         True
-
     """
     def __init__(self, ring, frame, nb_indices, start_index=0,
                  output_formatter=None, sym=None, antisym=None):
@@ -3033,9 +3032,77 @@ class CompWithSym(Components):
             nb_indices, sym, antisym)
 
     @staticmethod
+    def _canonicalize_sym_or_antisym(nb_indices, sym_or_antisym):
+        r"""
+        Bring ``sym`` or ``antisym`` to its canonical form.
+
+        INPUT:
+
+        - ``nb_indices`` -- number of integer indices labeling the components
+
+        - ``sym_or_antisym`` -- (default: ``None``) a symmetry/antisymmetry
+          or an iterable of symmetries or an iterable of antisymmetries
+          among the tensor arguments: each symmetry/antisymmetry is described
+          by a tuple containing the positions of the involved arguments, with
+          the convention ``position = 0`` for the first argument.
+
+        TESTS::
+
+            sage: from sage.tensor.modules.comp import CompWithSym
+            sage: CompWithSym._canonicalize_sym_or_antisym(3, [0, -1])
+            Traceback (most recent call last):
+            ...
+            IndexError: invalid index position: -1 not in [0,2]
+            sage: CompWithSym._canonicalize_sym_or_antisym(3, [3, 1])
+            Traceback (most recent call last):
+            ...
+            IndexError: invalid index position: 3 not in [0,2]
+        """
+        if not sym_or_antisym:
+            return ()
+        # Handle the case that sym_or_antisym is an iterator
+        sym_or_antisym = tuple(sym_or_antisym)
+        result_sym_or_antisym = []
+        if isinstance(sym_or_antisym[0], (int, Integer)):
+            # a single symmetry is provided as a tuple or a range object;
+            # it is converted to a 1-item list:
+            sym_or_antisym = (tuple(sym_or_antisym),)
+        for isym in sym_or_antisym:
+            if len(isym) < 2:
+                # Drop trivial symmetry
+                continue
+            isym = tuple(sorted(isym))
+            if isym[0] < 0:
+                raise IndexError("invalid index position: " + str(isym[0]) +
+                                 " not in [0," + str(nb_indices-1) + "]")
+            if isym[-1] > nb_indices - 1:
+                raise IndexError("invalid index position: " + str(isym[-1]) +
+                                 " not in [0," + str(nb_indices-1) + "]")
+            result_sym_or_antisym.append(isym)
+        # Canonicalize sort order, make tuples
+        return tuple(sorted(result_sym_or_antisym))
+
+    @staticmethod
     def _canonicalize_sym_antisym(nb_indices, sym=None, antisym=None):
         r"""
-        Bring sym and antisym into their canonical form.
+        Bring ``sym`` and ``antisym`` into their canonical form.
+
+        INPUT:
+
+        - ``nb_indices`` -- number of integer indices labeling the components
+
+        - ``sym`` -- (default: ``None``) a symmetry or an iterable of symmetries
+          among the tensor arguments: each symmetry is described by a tuple
+          containing the positions of the involved arguments, with the
+          convention ``position = 0`` for the first argument. For instance:
+
+          * ``sym = (0,1)`` for a symmetry between the 1st and 2nd arguments
+          * ``sym = [(0,2), (1,3,4)]`` for a symmetry between the 1st and 3rd
+            arguments and a symmetry between the 2nd, 4th and 5th arguments.
+
+        - ``antisym`` -- (default: ``None``) antisymmetry or iterable of
+          antisymmetries among the arguments, with the same convention
+          as for ``sym``
 
         EXAMPLES::
 
@@ -3043,61 +3110,21 @@ class CompWithSym(Components):
             sage: CompWithSym._canonicalize_sym_antisym(6, [(2, 1)])
             (((1, 2),), ())
         """
-        result_sym = []
-        if sym is None:
-            sym = []
-        else:
-            # Handle the case that sym is an iterator
-            sym = list(sym)
-        if sym:
-            if isinstance(sym[0], (int, Integer)):
-                # a single symmetry is provided as a tuple or a range object;
-                # it is converted to a 1-item list:
-                sym = [tuple(sym)]
-            for isym in sym:
-                if len(isym) < 2:
-                    # Drop trivial symmetry
-                    continue
-                for i in isym:
-                    if i < 0 or i > nb_indices - 1:
-                        raise IndexError("invalid index position: " + str(i) +
-                                         " not in [0," + str(nb_indices-1) + "]")
-                result_sym.append(tuple(isym))
-        result_antisym = []
-        if antisym is None:
-            antisym = []
-        else:
-            # Handle the case that antisym is an iterator
-            antisym = list(antisym)
-        if antisym:
-            if isinstance(antisym[0], (int, Integer)):
-                # a single antisymmetry is provided as a tuple or a range
-                # object; it is converted to a 1-item list:
-                antisym = [tuple(antisym)]
-            for isym in antisym:
-                if len(isym) < 2:
-                    # Drop trivial antisymmetry
-                    continue
-                for i in isym:
-                    if i < 0 or i > nb_indices - 1:
-                        raise IndexError("invalid index position: " + str(i) +
-                                         " not in [0," + str(nb_indices - 1) + "]")
-                result_antisym.append(tuple(isym))
+        if not sym and not antisym:
+            # fast path
+            return (), ()
+        result_sym = CompWithSym._canonicalize_sym_or_antisym(nb_indices, sym)
+        result_antisym = CompWithSym._canonicalize_sym_or_antisym(nb_indices, antisym)
         # Final consistency check:
         index_list = []
         for isym in result_sym:
-            index_list += isym
+            index_list.extend(isym)
         for isym in result_antisym:
-            index_list += isym
+            index_list.extend(isym)
         if len(index_list) != len(set(index_list)):
             # There is a repeated index position:
             raise IndexError("incompatible lists of symmetries: the same " +
                              "index position appears more than once")
-        # Canonicalize sort order, make tuples
-        result_sym = [tuple(sorted(s)) for s in result_sym]
-        result_antisym = [tuple(sorted(s)) for s in result_antisym]
-        result_sym = tuple(sorted(result_sym))
-        result_antisym = tuple(sorted(result_antisym))
         return result_sym, result_antisym
 
     def _repr_symmetry(self):
@@ -5505,7 +5532,7 @@ class CompFullyAntiSym(CompWithSym):
             True
 
         """
-        from sage.arith.all import factorial
+        from sage.arith.misc import factorial
         # Sanity checks:
         if not isinstance(other, CompFullyAntiSym):
             raise TypeError("{} is not a fully antisymmetric ".format(other) +

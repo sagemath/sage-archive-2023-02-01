@@ -20,6 +20,8 @@ Support for internal use of number fields in backends for polyhedral computation
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
+from .base import Polyhedron_base
+
 
 def _number_field_elements_from_algebraics_list_of_lists_of_lists(listss, **kwds):
     r"""

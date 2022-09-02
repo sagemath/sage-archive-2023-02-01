@@ -65,7 +65,7 @@ def _format_function_call(fn_name, *v, **k):
 
 
 #########################################################################
-class Polyhedron_normaliz(Polyhedron_base):
+class Polyhedron_normaliz(Polyhedron_base_number_field):
     """
     Polyhedra with normaliz
 
@@ -222,7 +222,7 @@ class Polyhedron_normaliz(Polyhedron_base):
         else:
             if normaliz_field:
                 raise ValueError("if Vrep or Hrep are given, cannot provide normaliz_field")
-            Polyhedron_base.__init__(self, parent, Vrep, Hrep, **kwds)
+            Polyhedron_base_number_field.__init__(self, parent, Vrep, Hrep, **kwds)
 
     def _nmz_result(self, normaliz_cone, property):
         """

@@ -5,10 +5,11 @@ An element in an indexed free module
 AUTHORS:
 
 - Travis Scrimshaw (03-2017): Moved code from :mod:`sage.combinat.free_module`.
+- Travis Scrimshaw (29-08-2022): Implemented ``copy`` as the identity map.
 """
 
 #*****************************************************************************
-#       Copyright (C) 2017 Travis Scrimshaw <tcscrims at gmail.com>
+#       Copyright (C) 2017, 2022 Travis Scrimshaw <tcscrims at gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -180,6 +181,32 @@ cdef class IndexedFreeModuleElement(ModuleElement):
         for k, v in state[1].iteritems():
             setattr(self, k, v)
 
+    def __copy__(self):
+        r"""
+        Return ``self`` since ``self`` is immutable.
+
+        EXAMPLES::
+
+            sage: F = CombinatorialFreeModule(QQ, ['a','b','c'])
+            sage: x = F.an_element()
+            sage: copy(x) is x
+            True
+        """
+        return self
+
+    def __deepcopy__(self, memo=None):
+        r"""
+        Return ``self`` since ``self`` is immutable.
+
+        EXAMPLES::
+
+            sage: F = CombinatorialFreeModule(QQ, ['a','b','c'])
+            sage: x = F.an_element()
+            sage: deepcopy(x) is x
+            True
+        """
+        return self
+
     cpdef dict monomial_coefficients(self, bint copy=True):
         """
         Return the internal dictionary which has the combinatorial objects
@@ -306,6 +333,13 @@ cdef class IndexedFreeModuleElement(ModuleElement):
                *                      *
             sage: ascii_art(M.zero())
             0
+            sage: DA = DescentAlgebra(QQ, 4)
+            sage: ascii_art(DA.an_element())
+            2*B  + 2*B   + 3*B
+               *      **       *
+               *      *       **
+               *      *       *
+               *
         """
         from sage.misc.repr import coeff_repr
         terms = self._sorted_items_for_printing()
@@ -322,6 +356,11 @@ cdef class IndexedFreeModuleElement(ModuleElement):
         if scalar_mult is None:
             scalar_mult = "*"
 
+        try:
+            one_basis = self.parent().one_basis()
+        except AttributeError:
+            one_basis = None
+
         for (monomial,c) in terms:
             b = repr_monomial(monomial) # PCR
             if c != 0:
@@ -333,7 +372,7 @@ cdef class IndexedFreeModuleElement(ModuleElement):
                     elif coeff == "-1":
                         coeff = "-"
                     elif b._l > 0:
-                        if len(coeff) > 0 and monomial == 1 and strip_one:
+                        if len(coeff) > 0 and monomial == one_basis and strip_one:
                             b = empty_ascii_art # ""
                         else:
                             b = AsciiArt([scalar_mult]) + b
@@ -391,6 +430,11 @@ cdef class IndexedFreeModuleElement(ModuleElement):
         if scalar_mult is None:
             scalar_mult = "*"
 
+        try:
+            one_basis = self.parent().one_basis()
+        except AttributeError:
+            one_basis = None
+
         for (monomial, c) in terms:
             b = repr_monomial(monomial)  # PCR
             if c != 0:
@@ -402,7 +446,7 @@ cdef class IndexedFreeModuleElement(ModuleElement):
                     elif coeff == "-1":
                         coeff = "-"
                     elif b._l > 0:
-                        if len(coeff) > 0 and monomial == 1 and strip_one:
+                        if len(coeff) > 0 and monomial == one_basis and strip_one:
                             b = empty_unicode_art  # ""
                         else:
                             b = UnicodeArt([scalar_mult]) + b

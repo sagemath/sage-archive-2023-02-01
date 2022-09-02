@@ -776,10 +776,10 @@ class GenericCombinatorialSpecies(SageObject):
         ::
 
             sage: sorted(B.digraph().vertex_iterator(), key=str)
-            [Combinatorial species,
-             Product of (Combinatorial species) and (Combinatorial species),
+            [Combinatorial species with min=1,
+             Product of (Combinatorial species with min=1) and (Combinatorial species with min=1),
              Singleton species,
-             Sum of (Singleton species) and (Product of (Combinatorial species) and (Combinatorial species))]
+             Sum of (Singleton species) and (Product of (Combinatorial species with min=1) and (Combinatorial species with min=1))]
 
         ::
 

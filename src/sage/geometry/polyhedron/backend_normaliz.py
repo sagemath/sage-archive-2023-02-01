@@ -13,7 +13,15 @@ AUTHORS:
 - Jean-Philippe Labbé (2019-04): Expose normaliz features and added functionalities
 """
 # ****************************************************************************
-#  Copyright (C) 2016 Matthias Köppe <mkoeppe at math.ucdavis.edu>
+#  Copyright (C) 2016-2022 Matthias Köppe <mkoeppe at math.ucdavis.edu>
+#                2016-2018 Travis Scrimshaw
+#                2017      Jeroen Demeyer
+#                2018-2020 Jean-Philippe Labbé
+#                2019      Vincent Delecroix
+#                2019-2021 Jonathan Kliem
+#                2019-2021 Sophia Elia
+#                2020      Frédéric Chapoton
+#                2022      Yuan Zhou
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by

@@ -540,8 +540,9 @@ from sage.misc.cachefunc import cached_method
 from sage.rings.integer import Integer
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
+from sage.tensor.modules.free_module_alt_form import FreeModuleAltForm
 from sage.tensor.modules.free_module_element import FiniteRankFreeModuleElement
-
+from sage.tensor.modules.free_module_tensor import FreeModuleTensor
 
 class FiniteRankFreeModule_abstract(UniqueRepresentation, Parent):
     r"""
@@ -1321,6 +1322,9 @@ class FiniteRankFreeModule(FiniteRankFreeModule_abstract):
         OUTPUT:
 
         - for `p=0`, the base ring `R`
+        - for `p=1`, instance of
+          :class:`~sage.tensor.modules.finite_rank_free_module.FiniteRankDualFreeModule`
+          representing the dual `M^*`
         - for `p\geq 1`, instance of
           :class:`~sage.tensor.modules.ext_pow_free_module.ExtPowerDualFreeModule`
           representing the free module `\Lambda^p(M^*)`
@@ -1359,6 +1363,8 @@ class FiniteRankFreeModule(FiniteRankFreeModule_abstract):
         except KeyError:
             if p == 0:
                 L = self._ring
+            elif p == 1:
+                L = FiniteRankDualFreeModule(self)
             else:
                 from sage.tensor.modules.ext_pow_free_module import ExtPowerDualFreeModule
                 L = ExtPowerDualFreeModule(self, p)
@@ -2960,3 +2966,280 @@ class FiniteRankFreeModule(FiniteRankFreeModule_abstract):
 
         """
         return (1, 0)
+
+
+class FiniteRankDualFreeModule(FiniteRankFreeModule_abstract):
+    r"""
+    Dual of a free module of finite rank over a commutative ring.
+
+    Given a free module `M` of finite rank over a commutative ring `R`,
+    the *dual of* `M` is the set `M^*` of all linear forms `p` on `M`,
+    i.e., linear maps
+
+    .. MATH::
+
+        M \longrightarrow R
+
+    This is a Sage *parent* class, whose *element* class is
+    :class:`~sage.tensor.modules.free_module_alt_form.FreeModuleAltForm`.
+
+    INPUT:
+
+    - ``fmodule`` -- free module `M` of finite rank, as an instance of
+      :class:`~sage.tensor.modules.finite_rank_free_module.FiniteRankFreeModule`
+    - ``name`` -- (default: ``None``) string; name given to `\Lambda^p(M^*)`
+    - ``latex_name`` -- (default: ``None``) string; LaTeX symbol to denote `M^*`
+
+    EXAMPLES:
+
+        sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+        sage: e = M.basis('e')
+        sage: A = M.dual(); A
+        Dual of the Rank-3 free module M over the Integer Ring
+
+    ``A`` is a module (actually a free module) over `\ZZ`::
+
+        sage: A.category()
+        Category of finite dimensional modules over Integer Ring
+        sage: A in Modules(ZZ)
+        True
+        sage: A.rank()
+        3
+        sage: A.base_ring()
+        Integer Ring
+        sage: A.base_module()
+        Rank-3 free module M over the Integer Ring
+
+    ``A`` is a *parent* object, whose elements are linear forms,
+    represented by instances of the class
+    :class:`~sage.tensor.modules.free_module_alt_form.FreeModuleAltForm`::
+
+        sage: a = A.an_element() ; a
+        Linear form on the Rank-3 free module M over the Integer Ring
+        sage: a.display() # expansion with respect to M's default basis (e)
+        e^0
+        sage: from sage.tensor.modules.free_module_alt_form import FreeModuleAltForm
+        sage: isinstance(a, FreeModuleAltForm)
+        True
+        sage: a in A
+        True
+        sage: A.is_parent_of(a)
+        True
+
+    Elements can be constructed from ``A``. In particular, 0 yields
+    the zero element of ``A``::
+
+        sage: A(0)
+        Linear form zero on the Rank-3 free module M over the Integer Ring
+        sage: A(0) is A.zero()
+        True
+
+    while non-zero elements are constructed by providing their components in a
+    given basis::
+
+        sage: e
+        Basis (e_0,e_1,e_2) on the Rank-3 free module M over the Integer Ring
+        sage: comp = [0,3,-1]
+        sage: a = A(comp, basis=e, name='a') ; a
+        Linear form a on the Rank-3 free module M over the Integer Ring
+        sage: a.display(e)
+        a = 3 e^1 - e^2
+
+    An alternative is to construct the alternating form from an empty list of
+    components and to set the nonzero components afterwards::
+
+        sage: a = A([], name='a')
+        sage: a.set_comp(e)[0] = 3
+        sage: a.set_comp(e)[1] = -1
+        sage: a.set_comp(e)[2] = 4
+        sage: a.display(e)
+        a = 3 e^0 - e^1 + 4 e^2
+
+    The dual is unique::
+
+        sage: A is M.dual()
+        True
+
+    The exterior power `\Lambda^1(M^*)` is nothing but `M^*`::
+
+        sage: M.dual_exterior_power(1) is M.dual()
+        True
+
+    It also coincides with the module of type-`(0,1)` tensors::
+
+        sage: M.dual_exterior_power(1) is M.tensor_module(0,1)
+        True
+    """
+
+    Element = FreeModuleAltForm
+
+    def __init__(self, fmodule, name=None, latex_name=None):
+        r"""
+        TESTS::
+
+            sage: from sage.tensor.modules.finite_rank_free_module import FiniteRankDualFreeModule
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: e = M.basis('e')
+            sage: A = FiniteRankDualFreeModule(M) ; A
+            Dual of the Rank-3 free module M over the Integer Ring
+            sage: TestSuite(A).run()
+
+        """
+        self._fmodule = fmodule
+        rank = fmodule._rank
+        if name is None and fmodule._name is not None:
+            name = fmodule._name + '*'
+        if latex_name is None and fmodule._latex_name is not None:
+            latex_name = fmodule._latex_name + r'^*'
+        super().__init__(fmodule._ring, rank, name=name,
+                         latex_name=latex_name)
+        fmodule._all_modules.add(self)
+
+    def construction(self):
+        r"""
+        TESTS::
+
+            sage: from sage.tensor.modules.ext_pow_free_module import ExtPowerDualFreeModule
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: e = M.basis('e')
+            sage: A = M.dual()
+            sage: A.construction() is None
+            True
+        """
+        # No construction until we extend VectorFunctor with a parameter 'dual'
+        return None
+
+    #### Parent methods
+
+    def _element_constructor_(self, comp=[], basis=None, name=None,
+                              latex_name=None):
+        r"""
+        Construct a linear form.
+
+        EXAMPLES::
+
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: e = M.basis('e')
+            sage: A = M.dual()
+            sage: a = A._element_constructor_(0) ; a
+            Linear form zero on the Rank-3 free module M over the Integer Ring
+            sage: a = A._element_constructor_([2,0,-1], name='a') ; a
+            Linear form a on the Rank-3 free module M over the Integer Ring
+            sage: a.display()
+            a = 2 e^0 - e^2
+        """
+        if isinstance(comp, (int, Integer)) and comp == 0:
+            return self.zero()
+        if isinstance(comp, FreeModuleTensor):
+            # coercion of a tensor of type (0,1) to a linear form
+            tensor = comp # for readability
+            if tensor.tensor_type() == (0,1) and self._degree == 1 and \
+                                         tensor.base_module() is self._fmodule:
+                resu = self.element_class(self._fmodule, 1, name=tensor._name,
+                                          latex_name=tensor._latex_name)
+                for basis, comp in tensor._components.items():
+                    resu._components[basis] = comp.copy()
+                return resu
+            else:
+                raise TypeError("cannot coerce the {} ".format(tensor) +
+                                "to an element of {}".format(self))
+        # standard construction
+        resu = self.element_class(self._fmodule, 1, name=name, latex_name=latex_name)
+        if comp:
+            resu.set_comp(basis)[:] = comp
+        return resu
+
+    def _an_element_(self):
+        r"""
+        Construct some (unnamed) alternating form.
+
+        EXAMPLES::
+
+            sage: M = FiniteRankFreeModule(QQ, 4, name='M')
+            sage: e = M.basis('e')
+            sage: a = M.dual()._an_element_() ; a
+            Linear form on the 4-dimensional vector space M over the Rational
+             Field
+            sage: a.display()
+            1/2 e^0
+
+        TESTS:
+
+        When the base module has no default basis, a default
+        basis will be set for it::
+
+            sage: M2 = FiniteRankFreeModule(QQ, 4, name='M2')
+            sage: a = M2.dual()._an_element_(); a
+            Linear form on the 4-dimensional vector space M2 over the Rational Field
+            sage: a + a
+            Linear form on the 4-dimensional vector space M2 over the Rational Field
+            sage: M2.default_basis()
+            Basis (e_0,e_1,e_2,e_3) on the 4-dimensional vector space M2 over the Rational Field
+
+        """
+        resu = self.element_class(self._fmodule, 1)
+        # Make sure that the base module has a default basis
+        self._fmodule.an_element()
+        sindex = self._fmodule._sindex
+        ind = [sindex + i for i in range(resu._tensor_rank)]
+        resu.set_comp()[ind] = self._fmodule._ring.an_element()
+        return resu
+
+    #### End of parent methods
+
+    @cached_method
+    def zero(self):
+        r"""
+        Return the zero of ``self``.
+
+        EXAMPLES::
+
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: e = M.basis('e')
+            sage: A = M.dual()
+            sage: A.zero()
+            Linear form zero on the Rank-3 free module M over the Integer Ring
+            sage: A(0) is A.zero()
+            True
+
+        """
+        resu = self._element_constructor_(name='zero', latex_name='0')
+        for basis in self._fmodule._known_bases:
+            resu._components[basis] = resu._new_comp(basis)
+            # (since new components are initialized to zero)
+        resu._is_zero = True # This element is certainly zero
+        resu.set_immutable()
+        return resu
+
+    def _repr_(self):
+        r"""
+        Return a string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: M = FiniteRankFreeModule(ZZ, 5, name='M')
+            sage: M.dual_exterior_power(1)._repr_()
+            'Dual of the Rank-5 free module M over the Integer Ring'
+        """
+        return "Dual of the {}".format(self._fmodule)
+
+    def base_module(self):
+        r"""
+        Return the free module on which ``self`` is constructed.
+
+        OUTPUT:
+
+        - instance of :class:`FiniteRankFreeModule` representing the free
+          module on which the dual is defined.
+
+        EXAMPLES::
+
+            sage: M = FiniteRankFreeModule(ZZ, 5, name='M')
+            sage: A = M.dual()
+            sage: A.base_module()
+            Rank-5 free module M over the Integer Ring
+            sage: A.base_module() is M
+            True
+
+        """
+        return self._fmodule

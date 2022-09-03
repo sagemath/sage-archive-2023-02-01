@@ -92,9 +92,18 @@ def IQ_points_of_bounded_height(K, dim, bound):
     OUTPUT:
 
     - an iterator of points of bounded height
+
+    EXAMPLES:
+
+        sage: from sage.schemes.projective.proj_bdd_height import IQ_points_of_bounded_height
+        sage: CF.<a> = CyclotomicField(3)
+        sage: len(list(IQ_points_of_bounded_height(CF, 2, -1)))
+        0
+        sage: len(list(IQ_points_of_bounded_height(CF, 2, 1)))
+        57
     """
     if bound < 1:
-        return iter(set([]))
+        return iter([])
 
     PN = ProjectiveSpace(K, dim)
     unit_tuples = list(itertools.product(K.roots_of_unity(), repeat=dim))
@@ -162,13 +171,25 @@ def points_of_bounded_height(K, dim, bound, prec=53):
     OUTPUT:
 
     - an iterator of points of bounded height
+
+    EXAMPLES:
+
+        sage: from sage.schemes.projective.proj_bdd_height import points_of_bounded_height
+        sage: K.<a> = NumberField(x^3 - 7)
+        sage: len(list(points_of_bounded_height(K, 2, 1)))
+        13
     """
     if bound < 1:
-        return []
+        return iter([])
 
     r1, r2 = K.signature()
     r = r1 + r2 - 1
-    K_degree = K.degree()
+
+    if K.is_relative():
+        K_degree = K.relative_degree()
+    else:
+        K_degree = K.degree()
+
     K_embeddings = K.places(prec=prec)
     roots_of_unity = K.roots_of_unity()
     unit_tuples = list(itertools.product(roots_of_unity, repeat=dim))
@@ -183,7 +204,12 @@ def points_of_bounded_height(K, dim, bound, prec=53):
 
     class_group_ideals = [c.ideal() for c in K.class_group()]
     class_number = len(class_group_ideals)
-    class_group_ideal_norms = [i.norm() for i in class_group_ideals]
+
+    if K.is_relative():
+        class_group_ideal_norms = [i.absolute_norm() for i in class_group_ideals]
+    else:
+        class_group_ideal_norms = [i.norm() for i in class_group_ideals]
+
     norm_bound = bound * max(class_group_ideal_norms)
     fundamental_units = UnitGroup(K).fundamental_units()
     fund_unit_logs = list(map(log_embed, fundamental_units))
@@ -316,4 +342,6 @@ def points_of_bounded_height(K, dim, bound, prec=53):
                         new_point = [i*j for i, j in zip(u, p)] + [p[dim]]
                         points_in_class_a.add(PN(new_point))
         points_of_bdd_height += list(points_in_class_a)
-    return points_of_bdd_height
+
+    return iter(points_of_bdd_height)
+

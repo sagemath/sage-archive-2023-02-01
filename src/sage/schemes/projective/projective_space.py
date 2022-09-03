@@ -1906,8 +1906,15 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
             True
             sage: all([exp(p.global_height()) <= 3 for p in P.points_of_bounded_height(bound=3)])
             True
+
+        ::
+
+            sage: K.<a> = CyclotomicField(3)
+            sage: P.<x,y,z> = ProjectiveSpace(K, 2)
+            sage: len(list(P.points_of_bounded_height(bound=1)))
+            57
         """
-        from sage.schemes.projective.proj_bdd_height import QQ_points_of_bounded_height, points_of_bounded_height
+        from sage.schemes.projective.proj_bdd_height import QQ_points_of_bounded_height, IQ_points_of_bounded_height, points_of_bounded_height
 
         R = self.base_ring()
 
@@ -1926,6 +1933,18 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
         dim = self.dimension_relative()
 
         if field_type:
+            # for imaginary quadratic field
+            r1, r2 = R.signature()
+            r = r1 + r2 - 1
+
+            if R.is_relative():
+                deg = R.relative_degree()
+            else:
+                deg = R.degree()
+
+            if deg == 2 and r == 0:
+                return IQ_points_of_bounded_height(R, dim, bound)
+
             return points_of_bounded_height(R, dim, bound, prec)
         else:
             return QQ_points_of_bounded_height(dim, bound)

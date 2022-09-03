@@ -4893,10 +4893,10 @@ class LazySymmetricFunction(LazyCompletionGradedAlgebraElement):
 
         INPUT:
 
-        - ``g`` -- a cycle index series having the same parent as ``self``.
+        - ``g`` -- a cycle index series having the same parent as ``self``
 
         - ``check`` -- (default: ``True``) a Boolean which, when set
-          to ``False``, will cause input checks to be skipped.
+          to ``False``, will cause input checks to be skipped
 
         OUTPUT:
 
@@ -4924,7 +4924,12 @@ class LazySymmetricFunction(LazyCompletionGradedAlgebraElement):
             sage: c = L(lambda n: C[n])
             sage: Lplus = L(lambda n: p([1]*n), valuation=1)
             sage: r = c.arithmetic_product(Lplus); r
-            m[1] + (3*m[1,1]+2*m[2]) + (8*m[1,1,1]+4*m[2,1]+2*m[3]) + (42*m[1,1,1,1]+21*m[2,1,1]+12*m[2,2]+7*m[3,1]+3*m[4]) + (144*m[1,1,1,1,1]+72*m[2,1,1,1]+36*m[2,2,1]+24*m[3,1,1]+12*m[3,2]+6*m[4,1]+2*m[5]) + (1440*m[1,1,1,1,1,1]+720*m[2,1,1,1,1]+360*m[2,2,1,1]+184*m[2,2,2]+240*m[3,1,1,1]+120*m[3,2,1]+42*m[3,3]+60*m[4,1,1]+32*m[4,2]+12*m[5,1]+4*m[6]) + O^7
+            m[1] + (3*m[1,1]+2*m[2])
+             + (8*m[1,1,1]+4*m[2,1]+2*m[3])
+             + (42*m[1,1,1,1]+21*m[2,1,1]+12*m[2,2]+7*m[3,1]+3*m[4])
+             + (144*m[1,1,1,1,1]+72*m[2,1,1,1]+36*m[2,2,1]+24*m[3,1,1]+12*m[3,2]+6*m[4,1]+2*m[5])
+             + ...
+             + O^7
 
         In particular, the number of regular octopuses is::
 

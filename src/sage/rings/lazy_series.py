@@ -163,11 +163,10 @@ from sage.structure.richcmp import op_EQ, op_NE
 from sage.functions.other import factorial
 from sage.arith.power import generic_power
 from sage.arith.functions import lcm
-from sage.arith.misc import divisors, moebius, gcd
+from sage.arith.misc import divisors, moebius
 from sage.combinat.partition import Partition, Partitions
 from sage.misc.misc_c import prod
 from sage.misc.derivative import derivative_parse
-from sage.combinat.partition import Partition
 from sage.rings.infinity import infinity
 from sage.rings.integer_ring import ZZ
 from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
@@ -4893,10 +4892,10 @@ class LazySymmetricFunction(LazyCompletionGradedAlgebraElement):
 
         INPUT:
 
-        - ``g`` -- a cycle index series having the same parent as ``self``.
+        - ``g`` -- a cycle index series having the same parent as ``self``
 
         - ``check`` -- (default: ``True``) a Boolean which, when set
-          to ``False``, will cause input checks to be skipped.
+          to ``False``, will cause input checks to be skipped
 
         OUTPUT:
 
@@ -4924,7 +4923,12 @@ class LazySymmetricFunction(LazyCompletionGradedAlgebraElement):
             sage: c = L(lambda n: C[n])
             sage: Lplus = L(lambda n: p([1]*n), valuation=1)
             sage: r = c.arithmetic_product(Lplus); r
-            m[1] + (3*m[1,1]+2*m[2]) + (8*m[1,1,1]+4*m[2,1]+2*m[3]) + (42*m[1,1,1,1]+21*m[2,1,1]+12*m[2,2]+7*m[3,1]+3*m[4]) + (144*m[1,1,1,1,1]+72*m[2,1,1,1]+36*m[2,2,1]+24*m[3,1,1]+12*m[3,2]+6*m[4,1]+2*m[5]) + (1440*m[1,1,1,1,1,1]+720*m[2,1,1,1,1]+360*m[2,2,1,1]+184*m[2,2,2]+240*m[3,1,1,1]+120*m[3,2,1]+42*m[3,3]+60*m[4,1,1]+32*m[4,2]+12*m[5,1]+4*m[6]) + O^7
+            m[1] + (3*m[1,1]+2*m[2])
+             + (8*m[1,1,1]+4*m[2,1]+2*m[3])
+             + (42*m[1,1,1,1]+21*m[2,1,1]+12*m[2,2]+7*m[3,1]+3*m[4])
+             + (144*m[1,1,1,1,1]+72*m[2,1,1,1]+36*m[2,2,1]+24*m[3,1,1]+12*m[3,2]+6*m[4,1]+2*m[5])
+             + ...
+             + O^7
 
         In particular, the number of regular octopuses is::
 
@@ -4949,13 +4953,24 @@ class LazySymmetricFunction(LazyCompletionGradedAlgebraElement):
 
         TESTS:
 
-        Check that the arithmetic product of symmetric functions of
-        finite support works::
+        Check that the product with zero works::
 
             sage: s = SymmetricFunctions(QQ).s()
             sage: L = LazySymmetricFunctions(s)
+            sage: L(0).arithmetic_product(s[2])
+            0
+            sage: L(s[2]).arithmetic_product(0)
+            0
+
+        Check that the arithmetic product of symmetric functions of
+        finite support works::
+
             sage: L(s([2])).arithmetic_product(s([1,1,1]))
             s[2, 2, 1, 1] + s[3, 1, 1, 1] + s[3, 2, 1] + s[3, 3] + 2*s[4, 1, 1]
+
+            sage: f = 1/(1-L(s[1]))
+            sage: f.arithmetic_product(s[1]) - f
+            O^7
 
         Check the arithmetic product of symmetric functions over a
         finite field works::
@@ -4974,17 +4989,16 @@ class LazySymmetricFunction(LazyCompletionGradedAlgebraElement):
                    or not g for g in args):
             raise ValueError("all arguments must be (possibly lazy) symmetric functions")
 
-        # f = 0 or g = (0, ..., 0)
-        if (isinstance(self._coeff_stream, Stream_zero)
-            or all((not isinstance(h, LazyModuleElement) and not h)
-                   or (isinstance(h, LazyModuleElement)
-                       and isinstance(h._coeff_stream, Stream_zero))
-                   for h in args)):
-            return P.zero()
-
         if len(args) == 1:
             g = args[0]
             P = g.parent()
+
+            # f = 0 or g = (0, ..., 0)
+            if (isinstance(self._coeff_stream, Stream_zero)
+                or (not isinstance(g, LazyModuleElement) and not g)
+                or (isinstance(g, LazyModuleElement)
+                    and isinstance(g._coeff_stream, Stream_zero))):
+                return P.zero()
 
             if (isinstance(self._coeff_stream, Stream_exact)
                 and not self._coeff_stream._constant):
@@ -5007,18 +5021,33 @@ class LazySymmetricFunction(LazyCompletionGradedAlgebraElement):
                 P = LazySymmetricFunctions(R)
                 g = P(g)
 
+            # compute the constant term in the case where not both f
+            # and g have finite support
+            # TODO: this should be done lazily if possible
+            c = R.zero()
+            if self[0]:
+                if (isinstance(g._coeff_stream, Stream_exact)
+                    and not g._coeff_stream._constant):
+                    gs = g.symmetric_function()
+                    c += self[0].arithmetic_product(gs)
+                elif check:
+                    raise ValueError("can only take the arithmetic product with a positive valuation series")
+            if g[0]:
+                if (isinstance(self._coeff_stream, Stream_exact)
+                    and not self._coeff_stream._constant):
+                    fs = self.symmetric_function()
+                    c += fs.arithmetic_product(g[0])
+                elif check:
+                    raise ValueError("can only take the arithmetic product with a positive valuation series")
+
             p = R.realization_of().p()
             # TODO: does the following introduce a memory leak?
             g = Stream_map_coefficients(g._coeff_stream, p)
             f = Stream_map_coefficients(self._coeff_stream, p)
 
-            if check:
-                assert not f[0]
-                assert not g[0]
-
             def coefficient(n):
                 if not n:
-                    return R.zero()
+                    return c
                 index_set = ((d, n // d) for d in divisors(n))
                 return sum(f[i].arithmetic_product(g[j])
                            for i, j in index_set if f[i] and g[j])

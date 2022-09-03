@@ -547,11 +547,14 @@ class VectorFieldModule(UniqueRepresentation, Parent):
         for more examples and documentation.
 
         """
-        from sage.manifolds.differentiable.tensorfield_module import \
+        try:
+            return self._tensor_modules[(k,l)]
+        except KeyError:
+            from sage.manifolds.differentiable.tensorfield_module import \
                                                               TensorFieldModule
-        if (k,l) not in self._tensor_modules:
-            self._tensor_modules[(k,l)] = TensorFieldModule(self, (k,l))
-        return self._tensor_modules[(k,l)]
+            T = TensorFieldModule(self, (k,l))
+            self._tensor_modules[(k,l)] = T
+            return T
 
     def exterior_power(self, p):
         r"""
@@ -600,13 +603,17 @@ class VectorFieldModule(UniqueRepresentation, Parent):
             for more examples and documentation.
 
         """
-        from sage.manifolds.differentiable.multivector_module import \
+        try:
+            return self._exterior_powers[p]
+        except KeyError:
+            if p == 0:
+                L = self._ring
+            else:
+                from sage.manifolds.differentiable.multivector_module import \
                                                               MultivectorModule
-        if p == 0:
-            return self._ring
-        if p not in self._exterior_powers:
-            self._exterior_powers[p] = MultivectorModule(self, p)
-        return self._exterior_powers[p]
+                L = MultivectorModule(self, p)
+            self._exterior_powers[p] = L
+            return L
 
     def dual_exterior_power(self, p):
         r"""
@@ -654,13 +661,17 @@ class VectorFieldModule(UniqueRepresentation, Parent):
             for more examples and documentation.
 
         """
-        from sage.manifolds.differentiable.diff_form_module import \
+        try:
+            return self._dual_exterior_powers[p]
+        except KeyError:
+            if p == 0:
+                L = self._ring
+            else:
+                from sage.manifolds.differentiable.diff_form_module import \
                                                                  DiffFormModule
-        if p == 0:
-            return self._ring
-        if p not in self._dual_exterior_powers:
-            self._dual_exterior_powers[p] = DiffFormModule(self, p)
-        return self._dual_exterior_powers[p]
+                L = DiffFormModule(self, p)
+            self._dual_exterior_powers[p] = L
+        return L
 
     def dual(self):
         r"""

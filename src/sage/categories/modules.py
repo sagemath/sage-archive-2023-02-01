@@ -943,4 +943,5 @@ class Modules(Category_module):
                     doctest:warning...
                     DeprecationWarning: implementations of Modules().TensorProducts() now must define the method tensor_factors
                     See https://trac.sagemath.org/34393 for details.
+                    (VectorFunctor, Integer Ring)
                 """

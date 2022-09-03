@@ -1874,18 +1874,16 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
         EXAMPLES::
 
             sage: P.<x,y> = ProjectiveSpace(QQ, 1)
-            sage: sorted(list(P.points_of_bounded_height(bound=3)))
-            [(-3 : 1), (-2 : 1), (-3/2 : 1), (-1 : 1),
-             (-2/3 : 1), (-1/2 : 1), (-1/3 : 1), (0 : 1),
-             (1/3 : 1), (1/2 : 1), (2/3 : 1), (1 : 0),
-             (1 : 1), (3/2 : 1), (2 : 1), (3 : 1)]
+            sage: sorted(list(P.points_of_bounded_height(bound=2)))
+            [(-2 : 1), (-1 : 1), (-1/2 : 1), (0 : 1),
+             (1/2 : 1), (1 : 0), (1 : 1), (2 : 1)]
 
         ::
 
             sage: u = QQ['u'].0
             sage: P.<x,y,z> = ProjectiveSpace(NumberField(u^2 - 2, 'v'), 2)
             sage: len(list(P.points_of_bounded_height(bound=2)))
-            13
+            265
 
         ::
 
@@ -1893,9 +1891,9 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
             sage: R.<x> = CF[]
             sage: L.<l> = CF.extension(x^3 + 2)
             sage: Q.<x,y> = ProjectiveSpace(L, 1)
-            sage: list(Q.points_of_bounded_height(bound=2))
+            sage: sorted(list(Q.points_of_bounded_height(bound=1)))
             [(0 : 1), (a : 1), (a + 1 : 1), (-a - 1 : 1),
-             (-a : 1), (-1 : 1), (1 : 1), (1 : 0)]
+            (-a : 1), (-1 : 1), (1 : 1), (1 : 0)]
 
         ::
 
@@ -1913,6 +1911,22 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
             sage: P.<x,y,z> = ProjectiveSpace(K, 2)
             sage: len(list(P.points_of_bounded_height(bound=1)))
             57
+
+        ::
+
+            sage: u = QQ['u'].0
+            sage: K.<k> = NumberField(u^2 - 2)
+            sage: P.<x,y> = ProjectiveSpace(K, 1)
+            sage: len(list(P.points_of_bounded_height(bound=2)))
+            24
+
+        ::
+
+            sage: R.<x> = QQ[]
+            sage: K.<k> = NumberField(x^4 - 8*x^2 + 3)
+            sage: P.<x,y> = ProjectiveSpace(K, 1)
+            sage: len(list(P.points_of_bounded_height(bound=2)))
+            108
         """
         from sage.schemes.projective.proj_bdd_height import QQ_points_of_bounded_height, IQ_points_of_bounded_height, points_of_bounded_height
 
@@ -1929,6 +1943,8 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
 
         bound = kwds.pop('bound')
         prec = kwds.pop('precision', 53)
+
+        bound = bound**R.absolute_degree()
 
         dim = self.dimension_relative()
 

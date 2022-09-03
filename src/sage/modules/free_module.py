@@ -1782,8 +1782,6 @@ class Module_free_ambient(Module):
         from .quotient_module import QuotientModule_free_ambient
         return QuotientModule_free_ambient(self, sub)
 
-    quotient = quotient_module
-
     def __truediv__(self, sub):
         """
         Return the quotient of ``self`` by the given submodule sub.
@@ -4180,7 +4178,7 @@ class FreeModule_generic_pid(FreeModule_generic_domain):
         """
         return FreeModule_submodule_with_basis_field(self.ambient_vector_space(), basis, check=check)
 
-    def quotient(self, sub, check=True, **kwds):
+    def quotient_module(self, sub, check=True, **kwds):
         """
         Return the quotient of ``self`` by the given submodule sub.
 
@@ -4994,7 +4992,7 @@ class FreeModule_generic_field(FreeModule_generic_pid):
         """
         return self.quotient(sub, check=True)
 
-    def quotient(self, sub, check=True):
+    def quotient_module(self, sub, check=True):
         """
         Return the quotient of ``self`` by the given subspace sub.
 

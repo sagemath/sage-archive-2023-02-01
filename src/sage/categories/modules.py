@@ -675,6 +675,23 @@ class Modules(Category_module):
                 category = Modules(self.base_ring())
             return SetMorphism(Hom(self, codomain, category), function)
 
+        def quotient(self, submodule, check=True, **kwds):
+            r"""
+            Construct the quotient module ``self`` / ``submodule``.
+
+            This method just delegates to :meth:`quotient_module`.
+
+            INPUT:
+
+            - ``submodule`` -- a submodule with basis of ``self``, or
+              something that can be turned into one via
+              ``self.submodule(submodule)``
+
+            - ``check``, other keyword arguments: passed on to
+              :meth:`quotient_module`.
+            """
+            return self.quotient_module(submodule, check=check, **kwds)
+
     class ElementMethods:
         pass
 

@@ -312,7 +312,7 @@ cdef class Ring(ParentWithGens):
 
             sage: F.<x,y,z> = FreeAlgebra(ZZ, 3)
             sage: I = F*[x*y+y*z,x^2+x*y-y*x-y^2]*F
-            sage: Q = sage.rings.ring.Ring.quotient(F,I)
+            sage: Q = F.quotient(I)
             sage: Q.ideal_monoid()
             Monoid of ideals of Quotient of Free Algebra on 3 generators (x, y, z) over Integer Ring by the ideal (x*y + y*z, x^2 + x*y - y*x - y^2)
             sage: F.<x,y,z> = FreeAlgebra(ZZ, implementation='letterplace')
@@ -614,41 +614,6 @@ cdef class Ring(ParentWithGens):
             self._zero_ideal = I
             return I
         return self._zero_ideal
-
-    def quotient(self, I, names=None, **kwds):
-        """
-        Create the quotient of this ring by a twosided ideal ``I``.
-
-        INPUT:
-
-        - ``I`` -- a twosided ideal of this ring, `R`.
-
-        - ``names`` -- (optional) names of the generators of the quotient (if
-          there are multiple generators, you can specify a single character
-          string and the generators are named in sequence starting with 0).
-
-        - further named arguments that may be passed to the quotient ring
-          constructor.
-
-        EXAMPLES::
-
-            sage: R.<x> = PolynomialRing(ZZ)
-            sage: I = R.ideal([4 + 3*x + x^2, 1 + x^2])
-            sage: S = R.quotient(I, 'a')
-            sage: S.gens()
-            (a,)
-
-            sage: R.<x,y> = PolynomialRing(QQ,2)
-            sage: S.<a,b> = R.quotient((x^2, y))
-            sage: S
-            Quotient of Multivariate Polynomial Ring in x, y over Rational Field by the ideal (x^2, y)
-            sage: S.gens()
-            (a, 0)
-            sage: a == b
-            False
-        """
-        import sage.rings.quotient_ring
-        return sage.rings.quotient_ring.QuotientRing(self, I, names=names, **kwds)
 
     def zero(self):
         """

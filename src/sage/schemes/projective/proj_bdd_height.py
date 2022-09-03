@@ -18,6 +18,7 @@ REFERENCES:
 """
 
 import itertools
+
 from sage.schemes.projective.projective_space import ProjectiveSpace
 from sage.rings.rational_field import QQ
 from sage.rings.all import RealField
@@ -61,6 +62,7 @@ def QQ_points_of_bounded_height(dim, bound):
     """
     if bound < 1:
         return iter(set([]))
+
     PN = ProjectiveSpace(QQ, dim)
     unit_tuples = list(itertools.product([-1, 1], repeat=dim))
     points_of_bounded_height = set([])
@@ -71,6 +73,71 @@ def QQ_points_of_bounded_height(dim, bound):
                 for u in unit_tuples:
                     new_point = [a*b for a, b in zip(u, p)] + [p[dim]]
                     points_of_bounded_height.add(PN(new_point))
+
+    return iter(points_of_bounded_height)
+
+def IQ_points_of_bounded_height(K, dim, bound):
+    r"""
+    Return an iterator of the points in ``self`` of absolute height of
+    at most ``bound`` in the imaginary quadratic field ``K``.
+
+    INPUT:
+
+    - ``K`` -- a number field
+
+    - ``dim`` -- a positive interger
+
+    - ``bound`` -- a real number
+
+    OUTPUT:
+
+    - an iterator of points of bounded height
+    """
+    if bound < 1:
+        return iter(set([]))
+
+    PN = ProjectiveSpace(K, dim)
+    unit_tuples = list(itertools.product(K.roots_of_unity(), repeat=dim))
+    points_of_bounded_height = []
+    
+    class_group_ideals = [c.ideal() for c in K.class_group()]
+    class_group_ideal_norms = [i.norm() for i in class_group_ideals]
+    class_number = len(class_group_ideals)
+
+    possible_norm_set = set([])
+    for i in range(class_number):
+        for k in range(1, bound + 1):
+            possible_norm_set.add(k*class_group_ideal_norms[i])
+    
+    coordinate_space = dict()
+    coordinate_space[0] = [K(0)]
+    for m in possible_norm_set:
+        coordinate_space[m] = K.elements_of_norm(m)
+
+    for i in range(class_number):
+        a = class_group_ideals[i]
+        a_norm = class_group_ideal_norms[i]
+        a_norm_bound = bound * a_norm
+        a_coordinates = []
+
+        for m in coordinate_space:
+            if m <= a_norm_bound:
+                for x in coordinate_space[m]:
+                    if x in a:
+                        a_coordinates.append(x)
+
+        points_in_class_a = set([])
+        t = len(a_coordinates) - 1
+        increasing_tuples = itertools.combinations_with_replacement(range(t + 1), dim + 1)
+        for index_tuple in increasing_tuples:
+            point_coordinates = [a_coordinates[i] for i in index_tuple]
+            if a == K.ideal(point_coordinates):
+                for p in itertools.permutations(point_coordinates):
+                    for u in unit_tuples:
+                        new_point = [i*j for i, j in zip(u, p)] + [p[dim]]
+                        points_in_class_a.add(PN(new_point))
+        points_of_bounded_height += list(points_in_class_a)
+
     return iter(points_of_bounded_height)
 
 def points_of_bounded_height(K, dim, bound, prec=53):
@@ -95,37 +162,13 @@ def points_of_bounded_height(K, dim, bound, prec=53):
     OUTPUT:
 
     - an iterator of points of bounded height
-
-    EXAMPLES:
-
-        sage: from sage.schemes.projective.proj_bdd_height import points_of_bounded_height
-        sage: R.<x> = PolynomialRing(QQ)
-        sage: K.<a> = NumberField(x^3 + 5)
-        sage: list(points_of_bounded_height(K, 2, -3))
-        []
-        sage: list(points_of_bounded_height(K, 2, 2))
-        [(1 : 0 : 1), (-1 : 0 : 1), (0 : -1 : 1), (0 : 1 : 0),
-         (1 : 1 : 0), (-1 : 1 : 1), (1 : -1 : 1), (-1 : -1 : 1),
-         (1 : 0 : 0), (-1 : 1 : 0), (0 : 0 : 1), (1 : 1 : 1),
-         (0 : 1 : 1)]
-
-    ::
-
-        sage: from sage.schemes.projective.proj_bdd_height import points_of_bounded_height
-        sage: K.<a> = QuadraticField(3)
-        sage: list(points_of_bounded_height(K, 1, 1))
-        [(0 : 1), (1 : 0), (1 : 1), (-1 : 1)]
     """
     if bound < 1:
-        return iter([])
+        return []
 
     r1, r2 = K.signature()
     r = r1 + r2 - 1
-
-    if K.is_relative():
-        K_degree = K.relative_degree()
-    else:
-        K_degree = K.degree()
+    K_degree = K.degree()
     K_embeddings = K.places(prec=prec)
     roots_of_unity = K.roots_of_unity()
     unit_tuples = list(itertools.product(roots_of_unity, repeat=dim))
@@ -140,10 +183,7 @@ def points_of_bounded_height(K, dim, bound, prec=53):
 
     class_group_ideals = [c.ideal() for c in K.class_group()]
     class_number = len(class_group_ideals)
-    if K.is_relative():
-        class_group_ideal_norms = [i.absolute_norm() for i in class_group_ideals]
-    else:
-        class_group_ideal_norms = [i.norm() for i in class_group_ideals]
+    class_group_ideal_norms = [i.norm() for i in class_group_ideals]
     norm_bound = bound * max(class_group_ideal_norms)
     fundamental_units = UnitGroup(K).fundamental_units()
     fund_unit_logs = list(map(log_embed, fundamental_units))
@@ -276,6 +316,4 @@ def points_of_bounded_height(K, dim, bound, prec=53):
                         new_point = [i*j for i, j in zip(u, p)] + [p[dim]]
                         points_in_class_a.add(PN(new_point))
         points_of_bdd_height += list(points_in_class_a)
-
-    return iter(points_of_bdd_height)
-
+    return points_of_bdd_height

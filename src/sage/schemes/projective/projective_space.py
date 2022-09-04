@@ -1547,8 +1547,8 @@ class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
             sage: plane1 = P.subscheme(x)
             sage: plane2 = P.subscheme(y)
             sage: m = P.hyperplane_transformation_matrix(plane1, plane2); m
-            [-1 -1]
-            [ 1  0]
+            [0 1]
+            [1 0]
             sage: plane2(m*P((0,1)))
             (1 : 0)
 
@@ -1558,10 +1558,10 @@ class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
             sage: plane1 = P.subscheme(x + 2*y + z)
             sage: plane2 = P.subscheme(2*x + y + z)
             sage: P.hyperplane_transformation_matrix(plane1, plane2)
-            [  -3    0    0    0]
-            [   9    6    0    0]
-            [-3/2   -3  3/2    0]
-            [-1/2   -1 -1/2    1]
+            [ 1/2    0    0    0]
+            [-1/2    1    0    0]
+            [   0    0  1/2    0]
+            [   0    0    0    1]
 
         ::
 
@@ -1569,8 +1569,8 @@ class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
             sage: plane1 = P.subscheme(x + y)
             sage: plane2 = P.subscheme(y)
             sage: P.hyperplane_transformation_matrix(plane1, plane2)
-            [ 1  0]
-            [-1 -1]
+            [1 0]
+            [1 1]
 
         ::
 
@@ -1580,9 +1580,9 @@ class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
             sage: plane2 = P.subscheme(x + v*y + v*z)
             sage: m = P.hyperplane_transformation_matrix(plane1, plane2)
             sage: m
-            [ -6/7*v - 2/7             0             0]
-            [ 2/7*v + 10/7  -4/7*v + 8/7             0]
-            [ -4/7*v + 1/7 -10/7*v - 8/7             1]
+            [-4/21*v + 23/21 10/21*v + 16/21    8/21*v + 1/7]
+            [   8/21*v + 8/7   -8/21*v - 8/7   -8/21*v - 8/7]
+            [  4/21*v + 5/21  -2/21*v + 8/21               1]
 
         ::
 
@@ -1592,10 +1592,10 @@ class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
             sage: plane1 = P.subscheme(k*x + 2*k*y + z)
             sage: plane2 = P.subscheme(7*k*x + y + 9*z)
             sage: m = P.hyperplane_transformation_matrix(plane1, plane2); m
-            [   297/410*k + 279/410                      0                      0                      0]
-            [-3609/410*k + 4437/410 -1656/205*k + 2358/205                      0                      0]
-            [    511/410*k - 24/205     511/205*k - 48/205   -107/205*k + 327/410                      0]
-            [    83/410*k - 107/205     83/205*k - 214/205     107/205*k + 83/410                      1]
+            [     -4/65*k - 1/130                    0                    0                    0]
+            [    -25/52*k - 21/52   -139/130*k + 7/130  137/260*k - 121/260                    0]
+            [                   0                    0      -4/65*k - 1/130                    0]
+            [ 139/260*k + 123/260  139/130*k + 123/130 -123/260*k + 139/260                    1]
 
         ::
 
@@ -1627,9 +1627,9 @@ class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
             sage: plane1 = P.subscheme(x + 9*t*y + z)
             sage: plane2 = P.subscheme(x + z)
             sage: P.hyperplane_transformation_matrix(plane1, plane2)
-            [       -1/9*t          -t^2             0]
-            [ -t^2 + 1/9*t             0             0]
-            [         1/81         1/9*t -1/9*t + 1/81]
+            [        -1/81        -1/9*t        -1/9*t]
+            [-1/9*t - 1/81   t^2 + 1/9*t  1/9*t + 1/81]
+            [       -1/9*t          -t^2         -1/81]
 
         TESTS::
 

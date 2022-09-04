@@ -454,8 +454,8 @@ cdef class GabowEdgeConnectivity:
         self.tree_flag[tree] = False
     
     cdef void compute_dfs_tree(self):
-        """
-        Find a DFS spanning forest of G \ T
+        r"""
+        Find a DFS spanning forest of `G \backslash T`.
 
         EXAMPLES::
 
@@ -482,18 +482,18 @@ cdef class GabowEdgeConnectivity:
                 # Each call of find_dfs_tree creates an f-tree
                 self.num_start_f_trees += 1
     
-    cdef void find_dfs_tree(self, r):
-        """
-        Find more vertices of the f-tree rooted at r
+    cdef void find_dfs_tree(self, int r):
+        r"""
+        Find more vertices of the f-tree rooted at `r`.
 
         EXAMPLES::
 
             sage: from sage.graphs.edge_connectivity import GabowEdgeConnectivity
             sage: D = digraphs.Complete(5)
-            sage: GabowEdgeConnectivity(D).edge_connectivity()
+            sage: GabowEdgeConnectivity(D, dfs=True, use_rec=False).edge_connectivity()
             4
         """
-        cdef int u, v, e_id, e
+        cdef int u, v, e_id
         cdef int * stack = self.stack
         cdef int * edge_index = self.incident_edge_index
         # We initialize the stack and mark the root as visited
@@ -526,15 +526,15 @@ cdef class GabowEdgeConnectivity:
                 # We are done with u. We pop.
                 t -= 1
 
-    cdef void find_dfs_tree_rec(self, u, r):
-        """
-        Find more vertices of the f-tree rooted at r
+    cdef void find_dfs_tree_rec(self, int u, int r):
+        r"""
+        Find more vertices of the f-tree rooted at `r`.
 
         EXAMPLES::
 
             sage: from sage.graphs.edge_connectivity import GabowEdgeConnectivity
             sage: D = digraphs.Complete(5)
-            sage: GabowEdgeConnectivity(D).edge_connectivity()
+            sage: GabowEdgeConnectivity(D, dfs=True, use_rec=True).edge_connectivity()
             4
         """
         # Mark vertex u as visited to avoid visiting it multiple times

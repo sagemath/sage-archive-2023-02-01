@@ -572,21 +572,12 @@ class ExtPowerDualFreeModule(FiniteRankFreeModule_abstract):
         sage: latex(M.dual())
         M^*
 
-    Since any tensor of type (0,1) is a linear form, there is a coercion map
-    from the set `T^{(0,1)}(M)` of such tensors to `M^*`::
+    It also coincides with the module of type-`(0,1)` tensors::
 
-        sage: T01 = M.tensor_module(0,1) ; T01
-        Free module of type-(0,1) tensors on the Rank-3 free module M over the
-         Integer Ring
-        sage: M.dual().has_coerce_map_from(T01)
+        sage: M.dual_exterior_power(1) is M.tensor_module(0,1)
         True
 
-    There is also a coercion map in the reverse direction::
-
-        sage: T01.has_coerce_map_from(M.dual())
-        True
-
-    For a degree `p\geq 2`, the coercion holds only in the direction
+    For a degree `p\geq 2`, there is a coercion map
     `\Lambda^p(M^*)\rightarrow T^{(0,p)}(M)`::
 
         sage: T02 = M.tensor_module(0,2) ; T02
@@ -596,24 +587,6 @@ class ExtPowerDualFreeModule(FiniteRankFreeModule_abstract):
         True
         sage: A.has_coerce_map_from(T02)
         False
-
-    The coercion map `T^{(0,1)}(M) \rightarrow M^*` in action::
-
-        sage: b = T01([-2,1,4], basis=e, name='b') ; b
-        Type-(0,1) tensor b on the Rank-3 free module M over the Integer Ring
-        sage: b.display(e)
-        b = -2 e^0 + e^1 + 4 e^2
-        sage: lb = M.dual()(b) ; lb
-        Linear form b on the Rank-3 free module M over the Integer Ring
-        sage: lb.display(e)
-        b = -2 e^0 + e^1 + 4 e^2
-
-    The coercion map `M^* \rightarrow T^{(0,1)}(M)` in action::
-
-        sage: tlb = T01(lb) ; tlb
-        Type-(0,1) tensor b on the Rank-3 free module M over the Integer Ring
-        sage: tlb == b
-        True
 
     The coercion map `\Lambda^2(M^*)\rightarrow T^{(0,2)}(M)` in action::
 
@@ -781,47 +754,6 @@ class ExtPowerDualFreeModule(FiniteRankFreeModule_abstract):
         ind = [sindex + i for i in range(resu._tensor_rank)]
         resu.set_comp()[ind] = self._fmodule._ring.an_element()
         return resu
-
-    def _coerce_map_from_(self, other):
-        r"""
-        Determine whether coercion to ``self`` exists from other parent.
-
-        EXAMPLES:
-
-        Sets of type-`(0,1)` tensors coerce to ``self`` if the degree is 1::
-
-            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
-            sage: L1 = M.dual_exterior_power(1) ; L1
-            Dual of the Rank-3 free module M over the Integer Ring
-            sage: T01 = M.tensor_module(0,1) ; T01
-            Free module of type-(0,1) tensors on the Rank-3 free module M over
-             the Integer Ring
-            sage: L1._coerce_map_from_(T01)
-            True
-
-        Of course, coercions from other tensor types are meaningless::
-
-            sage: L1._coerce_map_from_(M.tensor_module(1,0))
-            False
-            sage: L1._coerce_map_from_(M.tensor_module(0,2))
-            False
-
-        If the degree is larger than 1, there is no coercion::
-
-            sage: L2 = M.dual_exterior_power(2) ; L2
-            2nd exterior power of the dual of the Rank-3 free module M over
-             the Integer Ring
-            sage: L2._coerce_map_from_(M.tensor_module(0,2))
-            False
-
-        """
-        from sage.tensor.modules.tensor_free_module import TensorFreeModule
-        if isinstance(other, TensorFreeModule):
-            # coercion of a type-(0,1) tensor to a linear form
-            if self._fmodule is other._fmodule and self._degree == 1 and \
-               other.tensor_type() == (0,1):
-                return True
-        return False
 
     #### End of parent methods
 

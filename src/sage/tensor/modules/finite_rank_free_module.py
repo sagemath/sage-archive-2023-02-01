@@ -2977,7 +2977,7 @@ class FiniteRankDualFreeModule(FiniteRankFreeModule_abstract):
     Dual of a free module of finite rank over a commutative ring.
 
     Given a free module `M` of finite rank over a commutative ring `R`,
-    the *dual of* `M` is the set `M^*` of all linear forms `p` on `M`,
+    the *dual of* `M` is the set `M^*` of all linear forms on `M`,
     i.e., linear maps
 
     .. MATH::
@@ -2991,10 +2991,10 @@ class FiniteRankDualFreeModule(FiniteRankFreeModule_abstract):
 
     - ``fmodule`` -- free module `M` of finite rank, as an instance of
       :class:`~sage.tensor.modules.finite_rank_free_module.FiniteRankFreeModule`
-    - ``name`` -- (default: ``None``) string; name given to `\Lambda^p(M^*)`
+    - ``name`` -- (default: ``None``) string; name given to `M^*`
     - ``latex_name`` -- (default: ``None``) string; LaTeX symbol to denote `M^*`
 
-    EXAMPLES:
+    EXAMPLES::
 
         sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
         sage: e = M.basis('e')

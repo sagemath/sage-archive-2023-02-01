@@ -6412,7 +6412,7 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
             from sage.categories.modules_with_basis import ModulesWithBasis
             category = ModulesWithBasis(R.category()).FiniteDimensional()
             try:
-                if base_ring.is_finite() or len(basis) == 0:
+                if R.is_finite() or len(basis) == 0:
                     category = category.Enumerated().Finite()
             except Exception:
                 pass

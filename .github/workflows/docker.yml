@@ -171,7 +171,7 @@ jobs:
               TOKEN="${{ secrets.GITHUB_TOKEN }}"
             fi
             if echo "$TOKEN" | docker login ghcr.io -u ${{ github.actor }} --password-stdin; then
-              echo "DOCKER_PUSH_REPOSITORY=${{ inputs.docker_push_repository }}" >> $GITHUB_ENV
+              echo "DOCKER_PUSH_REPOSITORY=$(echo ${{ inputs.docker_push_repository }} | tr "[:upper:]" "[:lower:]")" >> $GITHUB_ENV
               echo "DOCKER_CONFIG_FILE=$HOME/.docker/config.json" >> $GITHUB_ENV
             fi
             # From the docker documentation via .ci/update-env.sh:

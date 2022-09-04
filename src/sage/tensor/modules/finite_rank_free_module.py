@@ -1311,9 +1311,14 @@ class FiniteRankFreeModule(FiniteRankFreeModule_abstract):
             sage: M.tensor_module(1,2) is T
             True
 
-        The base module is itself the module of all type-`(1,0)` tensors::
+        The module of type-`(1,0)` tensors is the base module itself::
 
             sage: M.tensor_module(1,0) is M
+            True
+
+        while the module of type-`(0,1)` tensors is the dual of the base module::
+
+            sage: M.tensor_module(0, 1) is M.dual()
             True
 
         By using the arguments ``sym`` and ``antisym``, submodules of a full tensor
@@ -1350,6 +1355,8 @@ class FiniteRankFreeModule(FiniteRankFreeModule_abstract):
         except KeyError:
             if key == (1, 0):
                 T = self
+            elif key == (0, 1):
+                T = self.dual()
             elif sym or antisym:
                 from sage.tensor.modules.tensor_free_submodule import TensorFreeSubmodule_sym
                 T = TensorFreeSubmodule_sym(self, (k, l), sym=sym, antisym=antisym)
@@ -1406,8 +1413,8 @@ class FiniteRankFreeModule(FiniteRankFreeModule_abstract):
             sage: e = M.basis('e')
             sage: M.dual_symmetric_power(0)
             Free module of type-(0,0) tensors on the Rank-3 free module M over the Integer Ring
-            sage: M.dual_symmetric_power(1)  # return the module itself
-            Free module of type-(0,1) tensors on the Rank-3 free module M over the Integer Ring
+            sage: M.dual_symmetric_power(1)  # return the dual module
+            Dual of the Rank-3 free module M over the Integer Ring
             sage: M.dual_symmetric_power(2)
             Free module of fully symmetric type-(0,2) tensors
              on the Rank-3 free module M over the Integer Ring

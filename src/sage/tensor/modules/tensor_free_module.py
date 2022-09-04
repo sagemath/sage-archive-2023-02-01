@@ -239,39 +239,11 @@ class TensorFreeModule(FiniteRankFreeModule_abstract):
         sage: ta.symmetries() # the antisymmetry is of course preserved
         no symmetry;  antisymmetry: (0, 1)
 
-    For the degree `p=1`, there is a coercion in both directions::
+    For the degree `p=1`, we have the identity `\Lambda^1(M^*) = T^{(0,1)}(M) = M^*`::
 
-        sage: L1 = M.dual_exterior_power(1) ; L1
-        Dual of the Rank-3 free module M over the Integer Ring
-        sage: T01 = M.tensor_module(0,1) ; T01
-        Free module of type-(0,1) tensors on the Rank-3 free module M over the
-         Integer Ring
-        sage: T01.has_coerce_map_from(L1)
+        sage: M.dual_exterior_power(1) is M.tensor_module(0,1)
         True
-        sage: L1.has_coerce_map_from(T01)
-        True
-
-    The coercion map `\Lambda^1(M^*)\rightarrow T^{(0,1)}(M)` in action::
-
-        sage: a = M.linear_form('a')
-        sage: a[:] = -2, 4, 1 ; a.display(e)
-        a = -2 e^0 + 4 e^1 + e^2
-        sage: a.parent() is L1
-        True
-        sage: ta = T01(a) ; ta
-        Type-(0,1) tensor a on the Rank-3 free module M over the Integer Ring
-        sage: ta.display(e)
-        a = -2 e^0 + 4 e^1 + e^2
-
-    The coercion map `T^{(0,1)}(M) \rightarrow \Lambda^1(M^*)` in action::
-
-        sage: ta.parent() is T01
-        True
-        sage: lta = L1(ta) ; lta
-        Linear form a on the Rank-3 free module M over the Integer Ring
-        sage: lta.display(e)
-        a = -2 e^0 + 4 e^1 + e^2
-        sage: lta == a
+        sage: M.tensor_module(0,1) is M.dual()
         True
 
     There is a canonical identification between tensors of type `(1,1)` and
@@ -615,7 +587,7 @@ class TensorFreeModule(FiniteRankFreeModule_abstract):
 
         but not to tensor modules of other types::
 
-            sage: M.tensor_module(0,1)._coerce_map_from_(End(M))
+            sage: M.tensor_module(0,2)._coerce_map_from_(End(M))
             False
 
         and not to type-`(1,1)` tensor modules defined on another free module::
@@ -641,8 +613,6 @@ class TensorFreeModule(FiniteRankFreeModule_abstract):
 
         Coercion from alternating forms::
 
-            sage: M.tensor_module(0,1)._coerce_map_from_(M.dual_exterior_power(1))
-            True
             sage: M.tensor_module(0,2)._coerce_map_from_(M.dual_exterior_power(2))
             True
             sage: M.tensor_module(0,2)._coerce_map_from_(M.dual_exterior_power(3))
@@ -699,9 +669,6 @@ class TensorFreeModule(FiniteRankFreeModule_abstract):
             sage: M = FiniteRankFreeModule(QQ, 2, name='M')
             sage: M.tensor_module(1,1)
             Free module of type-(1,1) tensors on the 2-dimensional vector space
-             M over the Rational Field
-            sage: M.tensor_module(0,1)
-            Free module of type-(0,1) tensors on the 2-dimensional vector space
              M over the Rational Field
 
         """

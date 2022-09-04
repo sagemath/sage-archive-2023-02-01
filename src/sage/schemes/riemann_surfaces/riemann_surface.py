@@ -3142,8 +3142,8 @@ class RiemannSurface(object):
                             delta = new_delta
                             Ndelta = Nnew_delta
                             newg -= delta
-                            if j == 99:
-                                outg.append(error_handle(newg))
+                        else:
+                            outg.append(error_handle(newg))
                 fj = V(outg)
                 u1 = la * hj.cosh()
                 w = u1 / (2 * u2.cosh() ** 2)
@@ -3178,8 +3178,8 @@ class RiemannSurface(object):
                         delta = new_delta
                         Ndelta = Nnew_delta
                         newg -= delta
-                        if j == 99:
-                            outg.append(error_handle(newg))
+                    else:
+                        outg.append(error_handle(newg))
                 fj = V(outg)
                 u1 = la * hj.cosh()
                 w = u1 / (2 * u2.cosh() ** 2)

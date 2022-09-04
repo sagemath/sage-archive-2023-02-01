@@ -3240,6 +3240,12 @@ class RiemannSurface(object):
                     return J * results[-1], endscale * fj
             h /= 2
             Nh *= 2
+        # Note that throughout this loop there is a return statement, intended
+        # to be activated when the sequence of integral approximations is
+        # deemed to have converged by the heuristic error. If this has no 
+        # happened by the time we have gone through the process n_steps times,
+        # we have one final error handle. Again, this will throw an error if 
+        # the raise_errors flag is true, but will just return the answer otherwise. 
         return error_handle((J * results[-1], endscale * fj))
 
     def _aj_based(self, P):

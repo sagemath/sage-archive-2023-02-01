@@ -1,7 +1,7 @@
 r"""
 Points of bounded height in projective spaces
 
-This module defines sunctions to compute points of bounded height of a given
+This module defines functions to compute points of bounded height of a given
 number field with height less than a specified bound in projective spaces.
 
 Sage functions to list all elements of a given number field with height less
@@ -108,7 +108,7 @@ def IQ_points_of_bounded_height(K, dim, bound):
     PN = ProjectiveSpace(K, dim)
     unit_tuples = list(itertools.product(K.roots_of_unity(), repeat=dim))
     points_of_bounded_height = []
-    
+
     class_group_ideals = [c.ideal() for c in K.class_group()]
     class_group_ideal_norms = [i.norm() for i in class_group_ideals]
     class_number = len(class_group_ideals)
@@ -117,7 +117,7 @@ def IQ_points_of_bounded_height(K, dim, bound):
     for i in range(class_number):
         for k in range(1, bound + 1):
             possible_norm_set.add(k*class_group_ideal_norms[i])
-    
+
     coordinate_space = dict()
     coordinate_space[0] = [K(0)]
     for m in possible_norm_set:

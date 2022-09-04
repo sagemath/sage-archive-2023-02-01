@@ -1902,8 +1902,6 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
             sage: P.<x,y,z> = ProjectiveSpace(F, 2)
             sage: all([exp(p.global_height()) <= 1 for p in P.points_of_bounded_height(bound=1)])
             True
-            sage: all([exp(p.global_height()) <= 3 for p in P.points_of_bounded_height(bound=3)])
-            True
 
         ::
 
@@ -1944,6 +1942,7 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
         bound = kwds.pop('bound')
         prec = kwds.pop('precision', 53)
 
+        # Convert between absolute and relative height for calling Krumm's algorithm
         bound = bound**R.absolute_degree()
 
         dim = self.dimension_relative()

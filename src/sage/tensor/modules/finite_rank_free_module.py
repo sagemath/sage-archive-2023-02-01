@@ -1413,8 +1413,8 @@ class FiniteRankFreeModule(FiniteRankFreeModule_abstract):
             sage: e = M.basis('e')
             sage: M.dual_symmetric_power(0)
             Free module of type-(0,0) tensors on the Rank-3 free module M over the Integer Ring
-            sage: M.dual_symmetric_power(1)  # return the module itself
-            Free module of type-(0,1) tensors on the Rank-3 free module M over the Integer Ring
+            sage: M.dual_symmetric_power(1)  # return the dual module
+            Dual of the Rank-3 free module M over the Integer Ring
             sage: M.dual_symmetric_power(2)
             Free module of fully symmetric type-(0,2) tensors
              on the Rank-3 free module M over the Integer Ring

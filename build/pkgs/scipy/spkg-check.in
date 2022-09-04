@@ -1,3 +1,1 @@
-python3 -c 'import scipy'
-cd src
-python3 runtests.py --no-build
+python3 -c 'import scipy; scipy.test()'

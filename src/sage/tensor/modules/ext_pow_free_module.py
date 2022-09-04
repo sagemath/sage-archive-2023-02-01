@@ -253,6 +253,10 @@ class ExtPowerFreeModule(FiniteRankFreeModule_abstract):
 
     def construction(self):
         r"""
+        Return the functorial construction of ``self``.
+
+        This implementation just returns ``None``, as no functorial construction is implemented.
+
         TESTS::
 
             sage: from sage.tensor.modules.ext_pow_free_module import ExtPowerFreeModule
@@ -634,6 +638,10 @@ class ExtPowerDualFreeModule(FiniteRankFreeModule_abstract):
 
     def construction(self):
         r"""
+        Return the functorial construction of ``self``.
+
+        This implementation just returns ``None``, as no functorial construction is implemented.
+
         TESTS::
 
             sage: from sage.tensor.modules.ext_pow_free_module import ExtPowerDualFreeModule

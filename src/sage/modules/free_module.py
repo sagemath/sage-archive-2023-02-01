@@ -870,8 +870,8 @@ class Module_free_ambient(Module):
             raise ValueError("degree (=%s) must be nonnegative" % degree)
 
         if category is None:
-            from sage.categories.all import FreeModules
-            category = FreeModules(base_ring.category()).FiniteDimensional()
+            from sage.categories.modules_with_basis import ModulesWithBasis
+            category = ModulesWithBasis(base_ring.category()).FiniteDimensional()
             try:
                 if base_ring.is_finite() or degree == 0:
                     category = category.Enumerated().Finite()
@@ -6409,8 +6409,8 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
 
         # Adapted from Module_free_ambient.__init__
         if category is None:
-            from sage.categories.all import FreeModules
-            category = FreeModules(R.category()).FiniteDimensional()
+            from sage.categories.modules_with_basis import ModulesWithBasis
+            category = ModulesWithBasis(R.category()).FiniteDimensional()
             try:
                 if base_ring.is_finite() or len(basis) == 0:
                     category = category.Enumerated().Finite()

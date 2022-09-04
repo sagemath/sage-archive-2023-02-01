@@ -385,10 +385,7 @@ class TensorFreeModule(FiniteRankFreeModule_abstract):
         if self._tensor_type == (0,1):  # case of the dual
             raise NotImplementedError
         factors = [self._fmodule] * self._tensor_type[0]
-        # Until https://trac.sagemath.org/ticket/30241 is done, the dual is identified with
-        # ExtPowerDualFreeModule of degree 1. But that class does not have a tensor_product method,
-        # so we use instead the (0,1)-tensor module.
-        dmodule = self._fmodule.tensor_module(0, 1)
+        dmodule = self._fmodule.dual()
         if self._tensor_type[1]:
             factors += [dmodule] * self._tensor_type[1]
         return factors

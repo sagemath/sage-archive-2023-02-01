@@ -1103,62 +1103,75 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             raise TypeError("must be a forward orbit")
         return self.orbit(P, [n,n+1], **kwds)[0]
 
-    def arakelov_zhang_pairing(self, g, n=5, f_starting_point=None, g_starting_point=None, check_primes_of_bad_reduction=False, prec=None, noise_multiplier=2):
+    def arakelov_zhang_pairing(
+        self, g, n=5,
+        f_starting_point=None, g_starting_point=None,
+        check_primes_of_bad_reduction=False,
+        prec=None,
+        noise_multiplier=2
+    ):
         r"""
-        Returns an estimate of the Arakelov-Zhang pairing of the rational maps ``self`` and ``g`` on `\mathbb{P}^1` over
-        a number field.
+        Return an estimate of the Arakelov-Zhang pairing of the rational
+        maps ``self`` and ``g`` on `\mathbb{P}^1` over a number field.
 
-        The Arakelov-Zhang pairing was introduced by Petsche, Szpiro, and Tucker in 2012, and is a measure of dynamical closeness
-        of two rational maps. They prove inter alia that if one takes a sequence of small points for one map (for example,
-        preperiodic points for ``self``) and measure their dynamical height with respect to the other map (say, ``g``), then
+        The Arakelov-Zhang pairing was introduced by Petsche, Szpiro, and
+        Tucker in 2012, which measures the dynamical closeness of two rational
+        maps. They prove inter alia that if one takes a sequence of small points
+        for one map (for example, preperiodic points for ``self``) and measure
+        their dynamical height with respect to the other map (say, ``g``), then
         the values of the height will tend to the value of the Arakelov-Zhang pairing.
 
-        The Arakelov-Zhang pairing involves mutual energy integrals between dynamical measures, which are in the case of
-        polynomials the equilibrium measures of the associated Julia sets at each place. As a result these pairings are
-        very difficult to compute exactly via analytic methods. We use a discrete approximation to these energy integrals.
+        The Arakelov-Zhang pairing involves mutual energy integrals between dynamical
+        measures, which are in the case of polynomials, the equilibrium measures
+        of the associated Julia sets at each place. As a result, these pairings
+        are very difficult to compute exactly via analytic methods. We use a
+        discrete approximation to these energy integrals.
 
         ALGORITHM:
-            We select periodic points of order `n`, or ``n``-th preimages of a specified starting value given by
-            ``f_starting_point`` and ``g_starting_point``, and then, at the archimedean places and the places of bad
-            reduction of the two maps, we compute the discrete approximations to the energy integrals involved using these
-            points.
+
+        We select periodic points of order `n`, or ``n``-th preimages of a
+        specified starting value given by ``f_starting_point`` and ``g_starting_point``.
+        At the archimedean places and the places of bad reduction of the two maps,
+        we compute the discrete approximations to the energy integrals involved
+        using these points.
 
         INPUT:
 
-        - ``g`` - a rational map of `\mathbb{P}^1` given as a ProjectiveMorphism. ``g`` and ``self`` should have the same field of definition.
+        - ``g`` - a rational map of `\mathbb{P}^1` given as a projective morphism.
+          ``g`` and ``self`` should have the same field of definition.
 
         kwds:
 
-        - ``n`` - positive integer
-            Order of periodic points to use or preimages to take if starting points are specified.
-            default: 5
+        - ``n`` - (default: 5) a positive integer
+          Order of periodic points to use or preimages to take if starting points are specified.
 
-        -  ``f_starting_point`` - value in the base number field or None.
-            If ``f_starting_point`` is None, we solve for points of period ``n`` for ``self``. Otherwise, we take
-            ``n``-th preimages of the point given by ``f_starting_point`` under ``f`` on the affine line. (optional)
-            default: None
+        - ``f_starting_point`` - (optional, default: ``None``) value in the base number field or None.
+          If ``f_starting_point`` is None, we solve for points of period ``n`` for ``self``.
+          Otherwise, we take ``n``-th preimages of the point given by ``f_starting_point``
+          under ``f`` on the affine line.
 
-        -  ``g_starting_point`` - value in the base number field or None.
-            If ``g_starting_point`` is None, we solve for points of period ``n`` for ``g``. Otherwise, we take
-            ``n``-th preimages of the point given by ``g_starting_point`` under ``g`` on the affine line. (optional)
-            default: None
+        - ``g_starting_point`` - (optional, default: ``None``) value in the base number field or None.
+          If ``g_starting_point`` is None, we solve for points of period ``n`` for ``g``.
+          Otherwise, we take ``n``-th preimages of the point given by ``g_starting_point``
+          under ``g`` on the affine line.
 
-        - ``check_primes_of_bad_reduction`` - boolean
-            Passed to the ``primes_of_bad_reduction`` function for ``self`` and ``g``. (optional)
-            default: False
+        - ``check_primes_of_bad_reduction`` - (optional, default: ``False``) boolean.
+          Passed to the ``primes_of_bad_reduction`` function for ``self`` and ``g``.
 
-        - ``prec`` - default precision for RealField values which are returned. (optional)
-            default: RealField default
+        - ``prec`` - (optional, default: ``RealField`` default)
+          default precision for RealField values which are returned.
 
-        - ``noise_multiplier`` - real value.
-            Discriminant terms involved in the computation at the archimedean places are often not needed, particularly
-            if the capacity of the Julia sets is 1, and introduce a lot of error. By a well-known result of Mahler
-            (see also M. Baker, ""A lower bound for averages of dynamical Green's functions") such error (for a set of
-            `N` points) is on the order of `\log(N)/N` after our normalization. We check if the value of the archimedean
-            discriminant terms is within ``2*noise_multiplier`` of `\log(N)/N`, and if so, we discard it. In practice this
-            greatly improves the accuracy of the estimate of the pairing. If desired, ``noise_multiplier`` can be set to 0,
-            and no terms will be ignored.
-            default: 2
+        - ``noise_multiplier`` - (default: 2) a real number.
+          Discriminant terms involved in the computation at the archimedean places
+          are often not needed, particularly if the capacity of the Julia sets is 1,
+          and introduce a lot of error. By a well-known result of Mahler (see
+          also M. Baker, ""A lower bound for averages of dynamical Green's
+          functions") such error (for a set of `N` points) is on the order of
+          `\log(N)/N` after our normalization. We check if the value of the
+          archimedean discriminant terms is within ``2*noise_multiplier`` of
+          `\log(N)/N`. If so, we discard it. In practice this greatly improves
+          the accuracy of the estimate of the pairing. If desired,
+          ``noise_multiplier`` can be set to 0, and no terms will be ignored.
 
         OUTPUT:
 
@@ -1216,7 +1229,6 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             1.93846423207664
             sage: _ - a.global_height()
             -0.00744591697867292
-
         """
         PS = self.domain()
         n = Integer(n)

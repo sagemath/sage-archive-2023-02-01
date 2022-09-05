@@ -3703,18 +3703,7 @@ class EquivariantSubobjectConstructionFunctor(ConstructionFunctor):
 
     When ``other_action`` is trivial, `X^S` is called the `S`-invariant subobject.
 
-    EXAMPLES::
-
-        sage: G = SymmetricGroup(3); G.rename('S3')
-        sage: M = FreeModule(ZZ, [1,2,3], prefix='M'); M.rename('M')
-        sage: action = lambda g, x: M.term(g(x))
-        sage: I = M.invariant_module(G, action_on_basis=action); I
-        (S3)-invariant submodule of M
-        sage: from sage.categories.pushout import pushout
-        sage: pushout(I, QQ)
-        Traceback (most recent call last):
-        ...
-        sage.structure.coerce_exceptions.CoercionException: No common base ("join") found for EquivariantSubobjectConstructionFunctor(Representation of S3 indexed by {1, 2, 3} over Integer Ring) and FractionField(Integer Ring).
+    EXAMPLES:
 
     Monoterm symmetries of a tensor, here only for matrices: row (index 0),
     column (index 1); the order of the extra element 2 in a permutation determines

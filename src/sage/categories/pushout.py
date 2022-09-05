@@ -3764,6 +3764,18 @@ class EquivariantSubobjectConstructionFunctor(ConstructionFunctor):
     """
     def __init__(self, S, action=operator.mul, side='left',
                  other_action=None, other_side='left'):
+        """
+        EXAMPLES::
+
+            sage: G = SymmetricGroup(3); G.rename('S3')
+            sage: M = FreeModule(ZZ, [1,2,3], prefix='M'); M.rename('M')
+            sage: action = lambda g, x: M.term(g(x))
+            sage: I = M.invariant_module(G, action_on_basis=action); I
+            (S3)-invariant submodule of M
+            sage: I.construction()
+            (EquivariantSubobjectConstructionFunctor,
+            Representation of S3 indexed by {1, 2, 3} over Integer Ring)
+        """
         from sage.categories.sets_cat import Sets
         super().__init__(Sets(), Sets())
         self.S = S
@@ -3775,8 +3787,23 @@ class EquivariantSubobjectConstructionFunctor(ConstructionFunctor):
     def _apply_functor(self, X):
         """
         Apply the functor to an object of ``self``'s domain.
+
+        TESTS::
+
+            sage: from sage.categories.pushout import EquivariantSubobjectConstructionFunctor
+            sage: M2 = MatrixSpace(QQ, 2); M2
+            Full MatrixSpace of 2 by 2 dense matrices over Rational Field
+            sage: F = EquivariantSubobjectConstructionFunctor(M2,
+            ....:                                             operator.mul, 'left',
+            ....:                                             operator.mul, 'right'); F
+            EquivariantSubobjectConstructionFunctor
+            sage: F(M2)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: non-trivial other_action=<built-in function mul> is not implemented
         """
-        if self.other_action is not None:
+        other_action = self.other_action
+        if other_action is not None:
             raise NotImplementedError(f'non-trivial {other_action=} is not implemented')
         # Currently only implemented for FiniteDimensionalModulesWithBasis
         return X.invariant_module(self.S, action=self.action, side=self.side)

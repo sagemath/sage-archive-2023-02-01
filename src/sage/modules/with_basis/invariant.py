@@ -4,7 +4,8 @@ Invariant modules
 
 # ****************************************************************************
 #       Copyright (C) 2021 Trevor K. Karn <karnx018 at umn.edu>
-#                          Travis Scrimshaw
+#                     2021 Travis Scrimshaw
+#                     2022 Matthias Koeppe
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by

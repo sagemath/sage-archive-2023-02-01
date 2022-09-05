@@ -3715,6 +3715,63 @@ class EquivariantSubobjectConstructionFunctor(ConstructionFunctor):
         Traceback (most recent call last):
         ...
         sage.structure.coerce_exceptions.CoercionException: No common base ("join") found for EquivariantSubobjectConstructionFunctor(Representation of S3 indexed by {1, 2, 3} over Integer Ring) and FractionField(Integer Ring).
+
+    Monoterm symmetries of a tensor, here only for matrices: row (index 0),
+    column (index 1); the order of the extra element 2 in a permutation determines
+    whether it is a symmetry or an antisymmetry::
+
+        sage: GSym01 = PermutationGroup([[(0,1),(2,),(3,)]]); GSym01
+        Permutation Group with generators [(0,1)]
+        sage: GASym01 = PermutationGroup([[(0,1),(2,3)]]); GASym01
+        Permutation Group with generators [(0,1)(2,3)]
+        sage: from sage.categories.action import Action
+        sage: from sage.structure.element import Matrix
+        sage: class TensorIndexAction(Action):
+        ....:     def _act_(self, g, x):
+        ....:         if isinstance(x, Matrix):
+        ....:             if g(0) == 1:
+        ....:                 if g(2) == 2:
+        ....:                     return x.transpose()
+        ....:                 else:
+        ....:                     return -x.transpose()
+        ....:             else:
+        ....:                 return x
+        ....:         raise NotImplementedError
+        sage: M = matrix([[1, 2], [3, 4]]); M
+        [1 2]
+        [3 4]
+        sage: GSym01_action = TensorIndexAction(GSym01, M.parent())
+        sage: GASym01_action = TensorIndexAction(GASym01, M.parent())
+        sage: GSym01_action.act(GSym01.0, M)
+        [1 3]
+        [2 4]
+        sage: GASym01_action.act(GASym01.0, M)
+        [-1 -3]
+        [-2 -4]
+        sage: Sym01 = M.parent().invariant_module(GSym01, action=GSym01_action); Sym01
+        (Permutation Group with generators [(0,1)])-invariant submodule
+         of Full MatrixSpace of 2 by 2 dense matrices over Integer Ring
+        sage: list(Sym01.basis())
+        [B[0], B[1], B[2]]
+        sage: list(Sym01.basis().map(Sym01.lift))
+        [
+        [1 0]  [0 1]  [0 0]
+        [0 0], [1 0], [0 1]
+        ]
+        sage: ASym01 = M.parent().invariant_module(GASym01, action=GASym01_action); ASym01
+        (Permutation Group with generators [(0,1)(2,3)])-invariant submodule
+         of Full MatrixSpace of 2 by 2 dense matrices over Integer Ring
+        sage: list(ASym01.basis())
+        [B[0]]
+        sage: list(ASym01.basis().map(ASym01.lift))
+        [
+        [ 0  1]
+        [-1  0]
+        ]
+        sage: from sage.categories.pushout import pushout
+        sage: pushout(Sym01, QQ)
+        (Permutation Group with generators [(0,1)])-invariant submodule
+         of Full MatrixSpace of 2 by 2 dense matrices over Rational Field
     """
     def __init__(self, S, action=operator.mul, side='left',
                  other_action=None, other_side='left'):

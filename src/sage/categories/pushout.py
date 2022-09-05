@@ -2,6 +2,8 @@
 Coercion via construction functors
 """
 
+import operator
+
 from sage.misc.lazy_import import lazy_import
 from sage.structure.coerce_exceptions import CoercionException
 from .functor import Functor, IdentityFunctor_generic
@@ -3681,7 +3683,7 @@ class PermutationGroupFunctor(ConstructionFunctor):
 
 class EquivariantSubobjectConstructionFunctor(ConstructionFunctor):
     r"""
-    Constructor for a subobject invariant or equivariant under a given semigroup action.
+    Constructor for subobjects invariant or equivariant under given semigroup actions.
 
     Let `S` be a semigroup that
     - acts on a parent `X` as `s \cdot x` (``action``, ``side='left'``) or
@@ -3700,10 +3702,38 @@ class EquivariantSubobjectConstructionFunctor(ConstructionFunctor):
     of ``side`` and ``other_side``.
 
     When ``other_action`` is trivial, `X^S` is called the `S`-invariant subobject.
+
+    EXAMPLES::
+
+        sage: G = SymmetricGroup(3); G.rename('S3')
+        sage: M = FreeModule(ZZ, [1,2,3], prefix='M'); M.rename('M')
+        sage: action = lambda g, x: M.term(g(x))
+        sage: I = M.invariant_module(G, action_on_basis=action); I
+        (S3)-invariant submodule of M
+        sage: from sage.categories.pushout import pushout
+        sage: pushout(I, QQ)
+        Traceback (most recent call last):
+        ...
+        sage.structure.coerce_exceptions.CoercionException: No common base ("join") found for EquivariantSubobjectConstructionFunctor(Representation of S3 indexed by {1, 2, 3} over Integer Ring) and FractionField(Integer Ring).
     """
     def __init__(self, S, action=operator.mul, side='left',
                  other_action=None, other_side='left'):
-        raise NotImplementedError
+        from sage.categories.sets_cat import Sets
+        super().__init__(Sets(), Sets())
+        self.S = S
+        self.action = action
+        self.side = side
+        self.other_action = other_action
+        self.other_side = other_side
+
+    def _apply_functor(self, X):
+        """
+        Apply the functor to an object of ``self``'s domain.
+        """
+        if self.other_action is not None:
+            raise NotImplementedError(f'non-trivial {other_action=} is not implemented')
+        # Currently only implemented for FiniteDimensionalModulesWithBasis
+        return X.invariant_module(self.S, action=self.action, side=self.side)
 
 
 class BlackBoxConstructionFunctor(ConstructionFunctor):

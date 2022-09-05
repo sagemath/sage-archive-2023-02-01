@@ -262,9 +262,29 @@ class FiniteDimensionalInvariantModule(SubmoduleWithBasis):
                          category=category,
                          *args, **kwargs)
 
+    def construction(self):
+        r"""
+        Return the functorial construction of ``self``.
+
+        EXAMPLES::
+
+            sage: G = CyclicPermutationGroup(3)
+            sage: R = G.regular_representation(); R
+            Left Regular Representation of Cyclic group of order 3 as a permutation group over Integer Ring
+            sage: I = R.invariant_module()
+            sage: I.construction()
+            (EquivariantSubobjectConstructionFunctor,
+            Left Regular Representation of Cyclic group of order 3 as a permutation group over Integer Ring)
+        """
+        from sage.categories.pushout import EquivariantSubobjectConstructionFunctor
+        return (EquivariantSubobjectConstructionFunctor(self._semigroup,
+                                                        self._action,
+                                                        self._side),
+                self.ambient())
+
     def _repr_(self):
         r"""
-        Return a string representaion of ``self``.
+        Return a string representation of ``self``.
 
         EXAMPLES::
 

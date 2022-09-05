@@ -3679,6 +3679,33 @@ class PermutationGroupFunctor(ConstructionFunctor):
                                        new_domain)
 
 
+class EquivariantSubobjectConstructionFunctor(ConstructionFunctor):
+    r"""
+    Constructor for a subobject invariant or equivariant under a given semigroup action.
+
+    Let `S` be a semigroup that
+    - acts on a parent `X` as `s \cdot x` (``action``, ``side='left'``) or
+    - acts on `X` as `x \cdot s` (``action``, ``side='right'``),
+    and (possibly trivially)
+    - acts on `X` as `s * x` (``other_action``, ``other_side='left'``) or
+    - acts on `X` as `x * s` (``other_action``, ``other_side='right'``).
+
+    The `S`-equivariant subobject is the subobject
+
+    .. MATH::
+
+        X^S := \{x \in X : s \cdot x = s * x,\, \forall s \in S \}
+
+    when ``side = other_side = 'left'`` and mutatis mutandis for the other values
+    of ``side`` and ``other_side``.
+
+    When ``other_action`` is trivial, `X^S` is called the `S`-invariant subobject.
+    """
+    def __init__(self, S, action=operator.mul, side='left',
+                 other_action=None, other_side='left'):
+        raise NotImplementedError
+
+
 class BlackBoxConstructionFunctor(ConstructionFunctor):
     """
     Construction functor obtained from any callable object.

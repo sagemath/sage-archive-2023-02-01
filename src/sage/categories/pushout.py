@@ -2,6 +2,30 @@
 Coercion via construction functors
 """
 
+# ****************************************************************************
+#       Copyright (C) 2007-2014 Robert Bradshaw
+#                     2007-2018 David Roe
+#                     2009-2013 Simon King
+#                     2010      John Cremona
+#                     2010-2011 Mike Hansen
+#                     2012      Julian Rueth
+#                     2013-2016 Peter Bruin
+#                     2014      Wilfried Luebbe
+#                     2015      Benjamin Hackl
+#                     2015      Daniel Krenn
+#                     2016-2020 Frédéric Chapoton
+#                     2017      Jori Mäntysalo
+#                     2018      Vincent Delecroix
+#                     2020      Marc Mezzarobba
+#                     2020-2022 Matthias Koeppe
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
+
 import operator
 
 from sage.misc.lazy_import import lazy_import

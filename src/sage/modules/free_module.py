@@ -875,7 +875,7 @@ class Module_free_ambient(Module):
             try:
                 if base_ring.is_finite() or degree == 0:
                     category = category.Enumerated().Finite()
-            except Exception:
+            except (ValueError, TypeError, AttributeError, NotImplementedError):
                 pass
 
         if not hasattr(self, 'Element'):
@@ -6414,7 +6414,7 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
             try:
                 if R.is_finite() or len(basis) == 0:
                     category = category.Enumerated().Finite()
-            except Exception:
+            except (ValueError, TypeError, AttributeError, NotImplementedError):
                 pass
         category = category.Subobjects()
 

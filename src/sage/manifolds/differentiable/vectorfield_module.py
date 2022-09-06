@@ -1794,6 +1794,8 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
         except KeyError:
             if (k, l) == (1, 0):
                 T = self
+            elif (k, l) == (0, 1):
+                T = self.dual()
             else:
                 from sage.manifolds.differentiable.tensorfield_module import \
                                                           TensorFieldFreeModule

@@ -869,14 +869,14 @@ class Module_free_ambient(Module):
         if degree < 0:
             raise ValueError("degree (=%s) must be nonnegative" % degree)
 
-        if category is None:
-            from sage.categories.modules_with_basis import ModulesWithBasis
-            category = ModulesWithBasis(base_ring.category()).FiniteDimensional()
-            try:
-                if base_ring.is_finite() or degree == 0:
-                    category = category.Enumerated().Finite()
-            except (ValueError, TypeError, AttributeError, NotImplementedError):
-                pass
+        from sage.categories.modules_with_basis import ModulesWithBasis
+        modules_category = ModulesWithBasis(base_ring.category()).FiniteDimensional()
+        try:
+            if base_ring.is_finite() or degree == 0:
+                modules_category = modules_category.Enumerated().Finite()
+        except (ValueError, TypeError, AttributeError, NotImplementedError):
+            pass
+        category = modules_category.or_subcategory(category, join=True)
 
         if not hasattr(self, 'Element'):
             self.Element = element_class(base_ring, sparse)
@@ -6384,6 +6384,25 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
             sage: w = sqrt(2) * V([1,1])
             sage: 3 * w
             (3*sqrt(2), 3*sqrt(2))
+
+        TESTS:
+
+        Test that the category is determined as intended::
+
+            sage: from sage.modules.free_module import FreeModule_ambient_pid, FreeModule_submodule_with_basis_pid
+            sage: V = FreeModule_ambient_pid(QQ, 3, category=Algebras(QQ))
+            sage: V.category()
+            Category of finite dimensional algebras with basis over Rational Field
+            sage: W = FreeModule_submodule_with_basis_pid(V, [[1,2,3]])
+            sage: W.category()
+            Join of
+             Category of finite dimensional vector spaces with basis over (number fields and quotient fields and metric spaces) and
+             Category of subobjects of sets
+            sage: W = FreeModule_submodule_with_basis_pid(V, [[1,2,3]], category=Algebras(QQ))
+            sage: W.category()
+            Join of
+             Category of finite dimensional algebras with basis over Rational Field and
+             Category of subobjects of sets
         """
         if not isinstance(ambient, FreeModule_ambient_pid):
             raise TypeError("ambient (=%s) must be ambient." % ambient)
@@ -6408,15 +6427,15 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
             basis = self._echelonized_basis(ambient, basis)
 
         # Adapted from Module_free_ambient.__init__
-        if category is None:
-            from sage.categories.modules_with_basis import ModulesWithBasis
-            category = ModulesWithBasis(R.category()).FiniteDimensional()
-            try:
-                if R.is_finite() or len(basis) == 0:
-                    category = category.Enumerated().Finite()
-            except (ValueError, TypeError, AttributeError, NotImplementedError):
-                pass
-        category = category.Subobjects()
+        from sage.categories.modules_with_basis import ModulesWithBasis
+        modules_category = ModulesWithBasis(R.category()).FiniteDimensional()
+        try:
+            if R.is_finite() or len(basis) == 0:
+                modules_category = modules_category.Enumerated().Finite()
+        except (ValueError, TypeError, AttributeError, NotImplementedError):
+            pass
+        modules_category = modules_category.Subobjects()
+        category = modules_category.or_subcategory(category, join=True)
 
         FreeModule_generic_pid.__init__(self, base_ring=R, coordinate_ring=R_coord,
                                         rank=len(basis), degree=ambient.degree(),

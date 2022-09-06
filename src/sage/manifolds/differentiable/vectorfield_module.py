@@ -1893,8 +1893,7 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
             Free module Omega^2(M) of 2-forms on the 2-dimensional
              differentiable manifold M
             sage: XM.dual_exterior_power(1)
-            Free module Omega^1(M) of 1-forms on the 2-dimensional
-             differentiable manifold M
+            Free module Omega^1(M) of 1-forms on the 2-dimensional differentiable manifold M
             sage: XM.dual_exterior_power(1) is XM.dual()
             True
             sage: XM.dual_exterior_power(0)
@@ -1914,6 +1913,10 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
         except KeyError:
             if p == 0:
                 L = self._ring
+            elif p == 1:
+                from sage.manifolds.differentiable.diff_form_module import \
+                                                      VectorFieldDualFreeModule
+                L = VectorFieldDualFreeModule(self)
             else:
                 from sage.manifolds.differentiable.diff_form_module import \
                                                       DiffFormFreeModule

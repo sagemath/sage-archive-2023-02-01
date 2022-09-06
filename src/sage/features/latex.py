@@ -13,7 +13,6 @@ Features for testing the presence of ``latex`` and equivalent programs
 # ****************************************************************************
 
 from . import StaticFile, Executable, FeatureTestResult, FeatureNotPresentError
-from sage.features.join_feature import JoinFeature
 
 latex_url = 'https://www.latex-project.org/'
 latex_spkg = 'texlive'
@@ -179,6 +178,7 @@ class TeXFile(StaticFile):
 
         TESTS::
 
+            sage: from sage.features.latex import TeXFile
             sage: TeXFile('nonexisting', 'xxxxxx-nonexisting-file.tex').is_present()  # optional - latex
             FeatureTestResult('nonexisting', False)
         """

@@ -1616,8 +1616,8 @@ class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
             sage: plane1 = P.subscheme(x + y + z)
             sage: plane2 = P.subscheme(z)
             sage: P.hyperplane_transformation_matrix(plane1, plane2)
-            [1 0 0]
-            [1 1 0]
+            [0 1 1]
+            [0 0 1]
             [1 1 1]
 
         ::
@@ -1698,7 +1698,7 @@ class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
                         source_points.append(self(point))
                         base_list = [list(s) for s in source_points]
                 elif len(source_points) == N + 1:
-                    Ms = matrix(base_list + [point])
+                    Ms = matrix(base_list + [point.change_ring(self.base_ring())])
                     if not any([m == 0 for m in Ms.minors(N + 1)]):
                         source_points.append(self(point))
                         break

@@ -378,9 +378,9 @@ class TensorFreeModule(FiniteRankFreeModule_abstract):
             sage: T.tensor_factors()
             [Rank-3 free module M over the Integer Ring,
              Rank-3 free module M over the Integer Ring,
-             Free module of type-(0,1) tensors on the Rank-3 free module M over the Integer Ring,
-             Free module of type-(0,1) tensors on the Rank-3 free module M over the Integer Ring,
-             Free module of type-(0,1) tensors on the Rank-3 free module M over the Integer Ring]
+             Dual of the Rank-3 free module M over the Integer Ring,
+             Dual of the Rank-3 free module M over the Integer Ring,
+             Dual of the Rank-3 free module M over the Integer Ring]
         """
         if self._tensor_type == (0,1):  # case of the dual
             raise NotImplementedError

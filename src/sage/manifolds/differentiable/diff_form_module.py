@@ -665,8 +665,7 @@ class DiffFormFreeModule(ExtPowerDualFreeModule):
     map from the set `T^{(0,1)}(M)` of such tensors to `\Omega^1(M)`::
 
         sage: T01 = M.tensor_field_module((0,1)) ; T01
-        Free module T^(0,1)(M) of type-(0,1) tensors fields on the
-         3-dimensional differentiable manifold M
+        Free module Omega^1(M) of 1-forms on the 3-dimensional differentiable manifold M
         sage: L1.has_coerce_map_from(T01)
         True
 
@@ -689,8 +688,7 @@ class DiffFormFreeModule(ExtPowerDualFreeModule):
     The coercion map `T^{(0,1)}(M) \rightarrow \Omega^1(M)` in action::
 
         sage: b = T01([-x,2,3*y], name='b'); b
-        Tensor field b of type (0,1) on the 3-dimensional differentiable
-         manifold M
+        1-form b on the 3-dimensional differentiable manifold M
         sage: b.display()
         b = -x dx + 2 dy + 3*y dz
         sage: lb = L1(b) ; lb
@@ -701,8 +699,7 @@ class DiffFormFreeModule(ExtPowerDualFreeModule):
     The coercion map `\Omega^1(M) \rightarrow T^{(0,1)}(M)` in action::
 
         sage: tlb = T01(lb); tlb
-        Tensor field b of type (0,1) on
-         the 3-dimensional differentiable manifold M
+        1-form b on the 3-dimensional differentiable manifold M
         sage: tlb == b
         True
 
@@ -1011,8 +1008,7 @@ class VectorFieldDualFreeModule(DiffFormFreeModule):
     map from the set `T^{(0,1)}(M)` of such tensors to `\Omega^1(M)`::
 
         sage: T01 = M.tensor_field_module((0,1)) ; T01
-        Free module T^(0,1)(M) of type-(0,1) tensors fields on the
-         3-dimensional differentiable manifold M
+        Free module Omega^1(M) of 1-forms on the 3-dimensional differentiable manifold M
         sage: A.has_coerce_map_from(T01)
         True
 
@@ -1024,8 +1020,7 @@ class VectorFieldDualFreeModule(DiffFormFreeModule):
     The coercion map `T^{(0,1)}(M) \rightarrow \Omega^1(M)` in action::
 
         sage: b = T01([-x,2,3*y], name='b'); b
-        Tensor field b of type (0,1) on the 3-dimensional differentiable
-         manifold M
+        1-form b on the 3-dimensional differentiable manifold M
         sage: b.display()
         b = -x dx + 2 dy + 3*y dz
         sage: lb = A(b) ; lb
@@ -1036,8 +1031,7 @@ class VectorFieldDualFreeModule(DiffFormFreeModule):
     The coercion map `\Omega^1(M) \rightarrow T^{(0,1)}(M)` in action::
 
         sage: tlb = T01(lb); tlb
-        Tensor field b of type (0,1) on
-         the 3-dimensional differentiable manifold M
+        1-form b on the 3-dimensional differentiable manifold M
         sage: tlb == b
         True
     """

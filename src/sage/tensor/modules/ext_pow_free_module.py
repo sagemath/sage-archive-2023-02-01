@@ -253,6 +253,10 @@ class ExtPowerFreeModule(FiniteRankFreeModule_abstract):
 
     def construction(self):
         r"""
+        Return the functorial construction of ``self``.
+
+        This implementation just returns ``None``, as no functorial construction is implemented.
+
         TESTS::
 
             sage: from sage.tensor.modules.ext_pow_free_module import ExtPowerFreeModule
@@ -621,24 +625,22 @@ class ExtPowerDualFreeModule(FiniteRankFreeModule_abstract):
         self._fmodule = fmodule
         self._degree = ZZ(degree)
         rank = binomial(fmodule._rank, degree)
-        if degree == 1:  # case of the dual
-            if name is None and fmodule._name is not None:
-                name = fmodule._name + '*'
-            if latex_name is None and fmodule._latex_name is not None:
-                latex_name = fmodule._latex_name + r'^*'
-        else:
-            if name is None and fmodule._name is not None:
-                name = unicode_bigwedge + r'^{}('.format(degree) \
-                       + fmodule._name + '*)'
-            if latex_name is None and fmodule._latex_name is not None:
-                latex_name = r'\Lambda^{' + str(degree) + r'}\left(' \
-                             + fmodule._latex_name + r'^*\right)'
+        if name is None and fmodule._name is not None:
+            name = unicode_bigwedge + r'^{}('.format(degree) \
+                   + fmodule._name + '*)'
+        if latex_name is None and fmodule._latex_name is not None:
+            latex_name = r'\Lambda^{' + str(degree) + r'}\left(' \
+                         + fmodule._latex_name + r'^*\right)'
         super().__init__(fmodule._ring, rank, name=name,
                          latex_name=latex_name)
         fmodule._all_modules.add(self)
 
     def construction(self):
         r"""
+        Return the functorial construction of ``self``.
+
+        This implementation just returns ``None``, as no functorial construction is implemented.
+
         TESTS::
 
             sage: from sage.tensor.modules.ext_pow_free_module import ExtPowerDualFreeModule
@@ -663,13 +665,6 @@ class ExtPowerDualFreeModule(FiniteRankFreeModule_abstract):
 
             sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
             sage: e = M.basis('e')
-            sage: A = M.dual_exterior_power(1)
-            sage: a = A._element_constructor_(0) ; a
-            Linear form zero on the Rank-3 free module M over the Integer Ring
-            sage: a = A._element_constructor_([2,0,-1], name='a') ; a
-            Linear form a on the Rank-3 free module M over the Integer Ring
-            sage: a.display()
-            a = 2 e^0 - e^2
             sage: A = M.dual_exterior_power(2)
             sage: a = A._element_constructor_(0) ; a
             Alternating form zero of degree 2 on the Rank-3 free module M over
@@ -712,11 +707,6 @@ class ExtPowerDualFreeModule(FiniteRankFreeModule_abstract):
 
             sage: M = FiniteRankFreeModule(QQ, 4, name='M')
             sage: e = M.basis('e')
-            sage: a = M.dual_exterior_power(1)._an_element_() ; a
-            Linear form on the 4-dimensional vector space M over the Rational
-             Field
-            sage: a.display()
-            1/2 e^0
             sage: a = M.dual_exterior_power(2)._an_element_() ; a
             Alternating form of degree 2 on the 4-dimensional vector space M
              over the Rational Field
@@ -789,8 +779,6 @@ class ExtPowerDualFreeModule(FiniteRankFreeModule_abstract):
         EXAMPLES::
 
             sage: M = FiniteRankFreeModule(ZZ, 5, name='M')
-            sage: M.dual_exterior_power(1)._repr_()
-            'Dual of the Rank-5 free module M over the Integer Ring'
             sage: M.dual_exterior_power(2)._repr_()
             '2nd exterior power of the dual of the Rank-5 free module M over the Integer Ring'
             sage: M.dual_exterior_power(3)._repr_()
@@ -803,8 +791,6 @@ class ExtPowerDualFreeModule(FiniteRankFreeModule_abstract):
             '21st exterior power of the dual of the Rank-5 free module M over the Integer Ring'
 
         """
-        if self._degree == 1:
-            return "Dual of the {}".format(self._fmodule)
         description = "{}".format(self._degree.ordinal_str())
         description += " exterior power of the dual of the {}".format(
                                                                  self._fmodule)

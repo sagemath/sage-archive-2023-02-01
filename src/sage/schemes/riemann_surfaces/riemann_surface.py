@@ -3083,18 +3083,12 @@ class RiemannSurface(object):
         # raises an error. If the value of False is taken, this failure to
         # converge happens silently, thus allowing the user to get *an*
         # answer out of the integration, but numerical imprecision is to be
-        # expected.
+        # expected. As such, we set the maximum number of steps in the sequence
+        # of DE integrations to be lower in the latter case. 
         if raise_errors:
             n_steps = self._prec - 1
-
-            def error_handle(out):
-                raise ConvergenceError("Newton iteration fails to converge")
-
         else:
             n_steps = 15
-
-            def error_handle(out):
-                return out
 
         V = VectorSpace(self._CC, self.genus)
         h = one
@@ -3144,7 +3138,10 @@ class RiemannSurface(object):
                             Ndelta = Nnew_delta
                             newg -= delta
                         else:
-                            outg.append(error_handle(newg))
+                            if raise_errors:
+                                ConvergenceError("Newton iteration fails to converge")
+                            else:
+                                outg.append(newg)
                 fj = V(outg)
                 u1 = la * hj.cosh()
                 w = u1 / (2 * u2.cosh() ** 2)
@@ -3180,7 +3177,10 @@ class RiemannSurface(object):
                         Ndelta = Nnew_delta
                         newg -= delta
                     else:
-                        outg.append(error_handle(newg))
+                        if raise_errors:
+                            ConvergenceError("Newton iteration fails to converge")
+                        else:
+                            outg.append(newg)
                 fj = V(outg)
                 u1 = la * hj.cosh()
                 w = u1 / (2 * u2.cosh() ** 2)
@@ -3199,9 +3199,8 @@ class RiemannSurface(object):
 
         # we now calculate the integral via double-exponential methods
         # repeatedly halving the step size and then using a heuristic
-        # convergence check. We again use the error_handle function to deal
-        # with the case where we exceed the maximum number of steps allowed,
-        # currently set by to make sure the step size does not fall below the
+        # convergence check. The maximum number of steps allowed is
+        # currently set to make sure the step size does not fall below the
         # resolution set by the binary precision used.
         for k in range(n_steps):
             hj = h0
@@ -3246,8 +3245,11 @@ class RiemannSurface(object):
         # deemed to have converged by the heuristic error. If this has no 
         # happened by the time we have gone through the process n_steps times,
         # we have one final error handle. Again, this will throw an error if 
-        # the raise_errors flag is true, but will just return the answer otherwise. 
-        return error_handle((J * results[-1], endscale * fj))
+        # the raise_errors flag is true, but will just return the answer otherwise.
+        if raise_errors:
+            ConvergenceError("Newton iteration fails to converge")
+
+        return (J * results[-1], endscale * fj)
 
     def _aj_based(self, P):
         r"""

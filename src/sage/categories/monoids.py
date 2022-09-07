@@ -252,18 +252,18 @@ class Monoids(CategoryWithAxiom):
                 sage: c1._div_(c2)
                 (x0*x1^-1, x1*x0^-1)
 
-            With this implementation, division will fail as soon
-            as ``right`` is not invertible, even if ``right``
+            With this default implementation, division will fail as
+            soon as ``right`` is not invertible, even if ``right``
             actually divides ``left``::
 
-                sage: x = cartesian_product([2, 1])
+                sage: x = cartesian_product([2, 0])
                 sage: y = cartesian_product([1, 1])
                 sage: x / y
-                (2, 1)
-                sage: x / x
+                (2, 0)
+                sage: y / x
                 Traceback (most recent call last):
                 ...
-                TypeError: no conversion of this rational to integer
+                ZeroDivisionError: rational division by zero
 
             TESTS::
 
@@ -367,7 +367,7 @@ class Monoids(CategoryWithAxiom):
                 [ 1 0]
                 [-1 1]
             """
-            return self.parent().one()._div_(self)
+            raise NotImplementedError("please implement __invert__")
 
         def inverse(self):
             """
@@ -669,3 +669,31 @@ class Monoids(CategoryWithAxiom):
                                                       lambda g: (i, g))
                                                for i, M in enumerate(F)])
                 return Family(gens_prod, lift, name="gen")
+
+        class ElementMethods:
+            def multiplicative_order(self):
+                r"""
+                Return the multiplicative order of this element.
+
+                EXAMPLES::
+
+                    sage: G1 = SymmetricGroup(3)
+                    sage: G2 = SL(2,3)
+                    sage: G = cartesian_product([G1,G2])
+                    sage: G((G1.gen(0), G2.gen(1))).multiplicative_order()
+                    12
+                """
+                from sage.rings.infinity import Infinity
+                orders = [x.multiplicative_order() for x in self.cartesian_factors()]
+                if any(o is Infinity for o in orders):
+                    return Infinity
+                else:
+                    from sage.arith.functions import LCM_list
+                    return LCM_list(orders)
+
+            def __invert__(self):
+                """
+                Return the inverse.
+                """
+                build = self.parent()._cartesian_product_of_elements
+                return build([x.__invert__() for x in self.cartesian_factors()])

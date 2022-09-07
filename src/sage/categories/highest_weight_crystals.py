@@ -322,14 +322,9 @@ class HighestWeightCrystals(Category_singleton):
                 1 + q + 2*q^2 + 2*q^3 + 4*q^4 + 5*q^5 + 7*q^6
                  + 9*q^7 + 13*q^8 + 16*q^9 + O(q^10)
                 sage: qdim = C.q_dimension(); qdim
-                1 + q + 2*q^2 + 2*q^3 + 4*q^4 + 5*q^5 + 7*q^6
-                 + 9*q^7 + 13*q^8 + 16*q^9 + 22*q^10 + O(x^11)
-                sage: qdim.compute_coefficients(15)
-                sage: qdim
-                1 + q + 2*q^2 + 2*q^3 + 4*q^4 + 5*q^5 + 7*q^6
-                 + 9*q^7 + 13*q^8 + 16*q^9 + 22*q^10 + 27*q^11
-                 + 36*q^12 + 44*q^13 + 57*q^14 + 70*q^15 + O(x^16)
-
+                1 + q + 2*q^2 + 2*q^3 + 4*q^4 + 5*q^5 + 7*q^6 + O(q^7)
+                sage: qdim[:16]
+                [1, 1, 2, 2, 4, 5, 7, 9, 13, 16, 22, 27, 36, 44, 57, 70]
             """
             from sage.rings.integer_ring import ZZ
             WLR = self.weight_lattice_realization()
@@ -375,22 +370,21 @@ class HighestWeightCrystals(Category_singleton):
             elif prec is None:
                 # If we're here, we may not be a finite crystal.
                 # In fact, we're probably infinite.
-                from sage.combinat.species.series import LazyPowerSeriesRing
+                from sage.rings.lazy_series_ring import LazyTaylorSeriesRing
                 if q is None:
-                    P = LazyPowerSeriesRing(ZZ, names='q')
+                    P = LazyTaylorSeriesRing(ZZ, names='q')
                 else:
                     P = q.parent()
-                if not isinstance(P, LazyPowerSeriesRing):
+                if not isinstance(P, LazyTaylorSeriesRing):
                     raise TypeError("the parent of q must be a lazy power series ring")
                 ret = P(iter_by_deg(mg))
-                ret.compute_coefficients(10)
                 return ret
 
             from sage.rings.power_series_ring import PowerSeriesRing, PowerSeriesRing_generic
             if q is None:
                 q = PowerSeriesRing(ZZ, 'q', default_prec=prec).gen(0)
             P = q.parent()
-            ret = P.sum(c * q**deg for deg,c in enumerate(iter_by_deg(mg)))
+            ret = P.sum(c * q**deg for deg, c in enumerate(iter_by_deg(mg)))
             if ret.degree() == max_deg and isinstance(P, PowerSeriesRing_generic):
                 ret = P(ret, prec)
             return ret

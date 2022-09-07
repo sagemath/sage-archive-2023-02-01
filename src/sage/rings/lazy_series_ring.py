@@ -61,10 +61,12 @@ from sage.symbolic.ring import SR
 from sage.data_structures.stream import (
     Stream_zero,
     Stream_function,
+    Stream_iterator,
     Stream_exact,
     Stream_uninitialized
 )
 
+from types import GeneratorType
 
 class LazySeriesRing(UniqueRepresentation, Parent):
     """
@@ -329,6 +331,11 @@ class LazySeriesRing(UniqueRepresentation, Parent):
             sage: f == g
             True
 
+        We support passing a generator::
+
+            sage: L(filter(is_odd, NN), -3)
+            z^-3 + 3*z^-2 + 5*z^-1 + 7 + 9*z + 11*z^2 + 13*z^3 + O(z^4)
+
         .. TODO::
 
             Add a method to change the sparse/dense implementation.
@@ -342,6 +349,8 @@ class LazySeriesRing(UniqueRepresentation, Parent):
                 raise ValueError("the valuation must be specified")
             return self.element_class(self, Stream_uninitialized(self._sparse, valuation))
 
+        # WARNING: if x is not explicitly specified as None, it is
+        # set to 0 by Parent.__call__
         if coefficients is not None and (x is not None and (not isinstance(x, int) or x)):
             raise ValueError("coefficients must be None if x is provided")
 
@@ -376,7 +385,7 @@ class LazySeriesRing(UniqueRepresentation, Parent):
                     return self.element_class(self, coeff_stream)
                 initial_coefficients = [x[i] for i in range(x.valuation(), x.degree() + 1)]
                 coeff_stream = Stream_exact(initial_coefficients, self._sparse,
-                                            order=x.valuation(), constant=constant, degree=degree)
+                                            order=x.valuation(), degree=degree, constant=constant)
                 return self.element_class(self, coeff_stream)
 
             # Handle when it is a lazy series
@@ -413,7 +422,7 @@ class LazySeriesRing(UniqueRepresentation, Parent):
                         x._coeff_stream._approximate_order += len(initial_coefficients)
                         initial_coefficients = []
                     coeff_stream = Stream_exact(initial_coefficients, self._sparse,
-                                                order=valuation, constant=constant, degree=degree)
+                                                order=valuation, degree=degree, constant=constant)
                     return self.element_class(self, coeff_stream)
 
                 # We are just possibly shifting the result
@@ -425,19 +434,25 @@ class LazySeriesRing(UniqueRepresentation, Parent):
         else:
             x = coefficients
 
-        if callable(x):
+        if callable(x) or isinstance(x, (GeneratorType, map, filter)):
             if valuation is None:
                 raise ValueError("the valuation must be specified")
             if degree is None:
                 if constant is not None:
                     raise ValueError("constant may only be specified if the degree is specified")
-                coeff_stream = Stream_function(lambda i: BR(x(i)), self._sparse, valuation)
+                if callable(x):
+                    coeff_stream = Stream_function(lambda i: BR(x(i)), self._sparse, valuation)
+                else:
+                    coeff_stream = Stream_iterator(map(BR, _skip_leading_zeros(x)), valuation)
                 return self.element_class(self, coeff_stream)
 
             # degree is not None
             if constant is None:
                 constant = BR.zero()
-            p = [BR(x(i)) for i in range(valuation, degree)]
+            if callable(x):
+                p = [BR(x(i)) for i in range(valuation, degree)]
+            else:
+                p = [BR(c) for c, _ in zip(_skip_leading_zeros(x), range(valuation, degree))]
             if not any(p) and not constant:
                 return self.zero()
             coeff_stream = Stream_exact(p, self._sparse, order=valuation,
@@ -466,7 +481,8 @@ class LazySeriesRing(UniqueRepresentation, Parent):
             sage: s
             z + z^2 + z^3 + 2*z^4 + 3*z^5 + 6*z^6 + 11*z^7 + O(z^8)
         """
-        return self(None, valuation=valuation)
+        coeff_stream = Stream_uninitialized(self._sparse, valuation)
+        return self.element_class(self, coeff_stream)
 
     unknown = undefined
 
@@ -870,6 +886,7 @@ class LazyLaurentSeriesRing(LazySeriesRing):
             sage: L = LazyLaurentSeriesRing(E, 't')  # not tested
         """
         self._sparse = sparse
+        self._arity = 1
         # We always use the dense because our CS_exact is implemented densely
         self._laurent_poly_ring = LaurentPolynomialRing(base_ring, names)
         self._internal_poly_ring = self._laurent_poly_ring
@@ -1156,8 +1173,7 @@ class LazyTaylorSeriesRing(LazySeriesRing):
         if self._arity == 1:
             self._internal_poly_ring = self._laurent_poly_ring
         else:
-            coeff_ring = PolynomialRing(base_ring, names)
-            self._internal_poly_ring = PolynomialRing(coeff_ring, "DUMMY_VARIABLE")
+            self._internal_poly_ring = PolynomialRing(self._laurent_poly_ring, "DUMMY_VARIABLE")
         category = Algebras(base_ring.category())
         if base_ring in Fields():
             category &= CompleteDiscreteValuationRings()
@@ -1272,7 +1288,7 @@ class LazyTaylorSeriesRing(LazySeriesRing):
         """
         return tuple([self.gen(n) for n in range(self.ngens())])
 
-    def _element_constructor_(self, x=None, valuation=None, constant=None, degree=None, check=True):
+    def _element_constructor_(self, x=None, valuation=None, constant=None, degree=None, coefficients=None, check=True):
         """
         Construct a Taylor series from ``x``.
 
@@ -1379,10 +1395,11 @@ class LazyTaylorSeriesRing(LazySeriesRing):
         """
         if valuation is not None:
             if valuation < 0:
-                raise ValueError("the valuation of a Taylor series must be positive")
-            if len(self.variable_names()) > 1:
+                raise ValueError("the valuation of a Taylor series must be non-negative")
+            # TODO: the following is nonsense, think of an iterator
+            if self._arity > 1:
                 raise ValueError("valuation must not be specified for multivariate Taylor series")
-        if len(self.variable_names()) > 1:
+        if self._arity > 1:
             valuation = 0
 
         R = self._laurent_poly_ring
@@ -1399,7 +1416,7 @@ class LazyTaylorSeriesRing(LazySeriesRing):
         if isinstance(constant, (tuple, list)):
             constant, degree = constant
         if constant is not None:
-            if len(self.variable_names()) > 1 and constant:
+            if self._arity > 1 and constant:
                 raise ValueError("constant must be zero for multivariate Taylor series")
             constant = BR(constant)
         if x in R:
@@ -1413,7 +1430,7 @@ class LazyTaylorSeriesRing(LazySeriesRing):
                                                 constant=constant)
                     return self.element_class(self, coeff_stream)
 
-                if len(self.variable_names()) == 1:
+                if self._arity == 1:
                     v = x.valuation()
                     d = x.degree()
                     p_list = [x[i] for i in range(v, d + 1)]
@@ -1436,16 +1453,20 @@ class LazyTaylorSeriesRing(LazySeriesRing):
                 return self.element_class(self, x._coeff_stream)
             # TODO: Implement a way to make a self._sparse copy
             raise NotImplementedError("cannot convert between sparse and dense")
-        if callable(x):
+        if callable(x) or isinstance(x, (GeneratorType, map, filter)):
             if valuation is None:
                 valuation = 0
             if degree is not None:
                 if constant is None:
                     constant = ZZ.zero()
-                if len(self.variable_names()) == 1:
-                    p = [BR(x(i)) for i in range(valuation, degree)]
+                if callable(x):
+                    p = [x(i) for i in range(valuation, degree)]
                 else:
-                    p = [R(x(i)) for i in range(valuation, degree)]
+                    p = [c for c, _ in zip(_skip_leading_zeros(x), range(valuation, degree))]
+                if self._arity == 1:
+                    p = [BR(c) for c in p]
+                else:
+                    p = [R(c) for c in p]
                     if not all(e.is_homogeneous() and e.degree() == i
                                for i, e in enumerate(p, valuation)):
                         raise ValueError("coefficients must be homogeneous polynomials of the correct degree")
@@ -1454,15 +1475,21 @@ class LazyTaylorSeriesRing(LazySeriesRing):
                                             constant=constant,
                                             degree=degree)
                 return self.element_class(self, coeff_stream)
-            if check and len(self.variable_names()) > 1:
-                def y(n):
-                    e = R(x(n))
-                    if not e or e.is_homogeneous() and e.degree() == n:
-                        return e
-                    raise ValueError("coefficient %s at degree %s is not a homogeneous polynomial" % (e, n))
-                coeff_stream = Stream_function(y, self._sparse, valuation)
+            if check and self._arity > 1:
+                if callable(x):
+                    def y(n):
+                        e = R(x(n))
+                        if not e or e.is_homogeneous() and e.degree() == n:
+                            return e
+                        raise ValueError("coefficient %s at degree %s is not a homogeneous polynomial" % (e, n))
+                    coeff_stream = Stream_function(y, self._sparse, valuation)
+                else:
+                    coeff_stream = Stream_iterator(map(R, _skip_leading_zeros(x)), valuation)
             else:
-                coeff_stream = Stream_function(x, self._sparse, valuation)
+                if callable(x):
+                    coeff_stream = Stream_function(x, self._sparse, valuation)
+                else:
+                    coeff_stream = Stream_iterator(map(BR, _skip_leading_zeros(x)), valuation)
             return self.element_class(self, coeff_stream)
         raise ValueError(f"unable to convert {x} into a lazy Taylor series")
 
@@ -1868,8 +1895,8 @@ class LazyDirichletSeriesRing(LazySeriesRing):
             raise ValueError("positive characteristic not allowed for Dirichlet series")
 
         self._sparse = sparse
-        # TODO: it would be good to have something better than the symbolic ring
-        self._laurent_poly_ring = SR
+        self._arity = 1
+        self._laurent_poly_ring = SR  # TODO: it would be good to have something better than the symbolic ring
         self._internal_poly_ring = PolynomialRing(base_ring, names, sparse=True)
 
         category = Algebras(base_ring.category())
@@ -2067,3 +2094,28 @@ class LazyDirichletSeriesRing(LazySeriesRing):
             return L(c) * L(n) ** -L(self.variable_name())
         except (ValueError, TypeError):
             return '({})/{}^{}'.format(self.base_ring()(c), n, self.variable_name())
+
+def _skip_leading_zeros(iterator):
+    """
+    Return an iterator which discards all leading zeros.
+
+    EXAMPLES::
+
+        sage: from sage.rings.lazy_series_ring import _skip_leading_zeros
+        sage: it = map(lambda x: 0 if x < 10 else x, NN)
+        sage: [x for x, _ in zip(_skip_leading_zeros(it), range(10))]
+        [10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
+
+        sage: it = map(GF(3), NN)
+        sage: [x for x, _ in zip(it, range(10))]
+        [0, 1, 2, 0, 1, 2, 0, 1, 2, 0]
+        sage: it = map(GF(3), NN)
+        sage: [x for x, _ in zip(_skip_leading_zeros(it), range(10))]
+        [1, 2, 0, 1, 2, 0, 1, 2, 0, 1]
+    """
+    while True:
+        c = next(iterator)
+        if c:
+            yield c
+            break
+    yield from iterator

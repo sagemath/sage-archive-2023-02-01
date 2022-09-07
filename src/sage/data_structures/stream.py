@@ -749,6 +749,45 @@ class Stream_exact(Stream):
         return R(self._initial_coefficients).shift(v)
 
 
+class Stream_iterator(Stream_inexact):
+    r"""
+    Class that creates a stream from an iterator.
+
+    INPUT:
+
+    - ``iter`` -- a function that generates the coefficients of the
+      stream
+    - ``approximate_order`` -- integer; a lower bound for the order
+      of the stream
+
+    Instances of this class are always dense.
+
+    EXAMPLES::
+
+        sage: from sage.data_structures.stream import Stream_iterator
+        sage: f = Stream_iterator(iter(NonNegativeIntegers()), 0)
+        sage: [f[i] for i in range(10)]
+        [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+
+        sage: f = Stream_iterator(iter(NonNegativeIntegers()), 1)
+        sage: [f[i] for i in range(10)]
+        [0, 0, 1, 2, 3, 4, 5, 6, 7, 8]
+
+    """
+    def __init__(self, iter, approximate_order):
+        """
+        Initialize.
+
+        TESTS::
+
+            sage: from sage.data_structures.stream import Stream_iterator
+            sage: f = Stream_iterator(iter(NonNegativeIntegers()), 0)
+            sage: TestSuite(f).run(skip="_test_pickling")
+        """
+        self.iterate_coefficients = lambda: iter
+        super().__init__(False, approximate_order)
+
+
 class Stream_function(Stream_inexact):
     r"""
     Class that creates a stream from a function on the integers.
@@ -2449,6 +2488,7 @@ class Stream_shift(Stream_inexact):
             True
         """
         return self._series.is_nonzero()
+
 
 class Stream_derivative(Stream_inexact):
     """

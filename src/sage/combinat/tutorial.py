@@ -315,13 +315,12 @@ one can define them from a system of equations without solving it, and,
 in particular, without needing a closed form for the answer. We begin by
 defining the ring of lazy power series::
 
-    sage: L.<z> = LazyPowerSeriesRing(QQ)
+    sage: L.<z> = LazyTaylorSeriesRing(QQ)
 
 Then we create a “free” power series, which we name, and which we then
 define by a recursive equation::
 
-    sage: C = L()
-    sage: C._name = 'C'
+    sage: C = L.undefined(valuation=1)
     sage: C.define( z + C * C )
 
 ::
@@ -1672,7 +1671,7 @@ combinatorial species::
 We begin by redefining the complete binary trees; to do so, we stipulate
 the recurrence relation directly on the sets::
 
-    sage: BT = CombinatorialSpecies()
+    sage: BT = CombinatorialSpecies(min=1)
     sage: Leaf =  SingletonSpecies()
     sage: BT.define( Leaf + (BT*BT) )
 
@@ -1697,7 +1696,7 @@ desired display capabilities.
 We recover the generating function for the Catalan numbers::
 
     sage: g = BT.isotype_generating_series(); g
-    x + x^2 + 2*x^3 + 5*x^4 + 14*x^5 + O(x^6)
+    z + z^2 + 2*z^3 + 5*z^4 + 14*z^5 + 42*z^6 + 132*z^7 + O(z^8)
 
 which is returned in the form of a lazy power series::
 
@@ -1715,7 +1714,7 @@ consecutive “`1`”s. They admit a natural recursive definition::
 
 The Fibonacci sequence is easily recognized here, hence the name::
 
-    sage: L = FW.isotype_generating_series().coefficients(15); L
+    sage: L = FW.isotype_generating_series()[:15]; L
     [1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610, 987]
 
 ::

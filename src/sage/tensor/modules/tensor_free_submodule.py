@@ -178,13 +178,22 @@ class TensorFreeSubmodule_sym(TensorFreeModule):
                                                latex_name=latex_name,
                                                category=category, ambient=ambient)
 
-    def tensor_factors(self):
-        raise NotImplementedError
-
     def construction(self):
-        # TODO: Adapt from the code for the default name/latex_name in __init__.
-        # Define the symmetry group and its action (https://trac.sagemath.org/ticket/32029),
-        # use a construction functor for quotienting by the action
+        # TODO: Define the symmetry group and its action (https://trac.sagemath.org/ticket/34495),
+        # return the construction functor for invariant subobjects.
+        r"""
+        Return the functorial construction of ``self``.
+
+        This implementation just returns ``None``.
+
+        EXAMPLES::
+
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: Sym2M = M.tensor_module(2, 0, sym=range(2)); Sym2M
+            Free module of fully symmetric type-(2,0) tensors on the Rank-3 free module M over the Integer Ring
+            sage: Sym2M.construction() is None
+            True
+        """
         return None
 
     @cached_method

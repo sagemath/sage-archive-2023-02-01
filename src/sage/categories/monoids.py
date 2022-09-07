@@ -374,7 +374,7 @@ class Monoids(CategoryWithAxiom):
             """
             Return the inverse of ``self``.
 
-            This an alias for inversion, defined in ``__invert__``.
+            This is an alias for inversion, defined in ``__invert__``.
 
             Element classes should implement ``__invert__`` only.
 

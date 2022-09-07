@@ -28,9 +28,14 @@ REFERENCES:
 """
 
 # ******************************************************************************
-#       Copyright (C) 2015 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
-#       Copyright (C) 2015 Michal Bejger <bejger@camk.edu.pl>
-#       Copyright (C) 2016 Travis Scrimshaw <tscrimsh@umn.edu>
+#       Copyright (C) 2015-2021 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
+#                     2015      Michal Bejger <bejger@camk.edu.pl>
+#                     2016      Travis Scrimshaw <tscrimsh@umn.edu>
+#                     2018      Florentin Jaffredo
+#                     2019      Hans Fotsing Tetsing
+#                     2020      Michael Jung
+#                     2020-2022 Matthias Koeppe
+#                     2021-2022 Tobias Diez
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of

@@ -12,11 +12,14 @@ two classes implement `\Omega^p(U, \Phi)`:
   (in practice, not parallelizable) differentiable manifold `M`
 - :class:`DiffFormFreeModule` for differential forms with values on a
   parallelizable manifold `M`
+  (the subclass :class:`VectorFieldDualFreeModule` implements the special
+  case of differential 1-forms on a parallelizable manifold `M`)
 
 AUTHORS:
 
 - Eric Gourgoulhon (2015): initial version
 - Travis Scrimshaw (2016): review tweaks
+- Matthias Koeppe (2022): :class:`VectorFieldDualFreeModule`
 
 REFERENCES:
 
@@ -25,8 +28,10 @@ REFERENCES:
 
 """
 # *****************************************************************************
-#       Copyright (C) 2015 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
-#       Copyright (C) 2016 Travis Scrimshaw <tscrimsh@umn.edu>
+#       Copyright (C) 2015-2021 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
+#                     2016      Travis Scrimshaw <tscrimsh@umn.edu>
+#                     2020      Michael Jung
+#                     2022      Matthias Koeppe
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
@@ -574,6 +579,8 @@ class DiffFormFreeModule(ExtPowerDualFreeModule):
         parallelizable; `\Omega^p(U, \Phi)` is then a *free* module. If `M`
         is not parallelizable, the class :class:`DiffFormModule` must be used
         instead.
+
+    For the special case of `-forms, use the class :class:`VectorFieldDualFreeModule`.
 
     INPUT:
 

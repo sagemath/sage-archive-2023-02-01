@@ -653,6 +653,24 @@ cpdef list si2sa_resolution(Resolution res):
     - ``res`` -- Singular resolution
 
     The procedure is destructive and ``res`` is not usable afterward.
+
+    EXAMPLES::
+
+        sage: from sage.libs.singular.singular import si2sa_resolution
+        sage: from sage.libs.singular.function import singular_function
+        sage: module = singular_function("module")
+        sage: mres = singular_function('mres')
+
+        sage: S.<x,y,z,w> = PolynomialRing(QQ)
+        sage: I = S.ideal([y*w - z^2, -x*w + y*z, x*z - y^2])
+        sage: mod = module(I)
+        sage: r = mres(mod, 0)
+        sage: si2sa_resolution(r)
+        [
+                                         [ y  x]
+                                         [-z -y]
+        [z^2 - y*w y*z - x*w y^2 - x*z], [ w  z]
+        ]
     """
     cdef ring *singular_ring
     cdef syStrategy singular_res
@@ -754,6 +772,27 @@ cpdef tuple si2sa_resolution_graded(Resolution res, tuple degrees):
     - ``degrees`` -- list of integers or integer vectors
 
     The procedure is destructive, and ``res`` is not usable afterward.
+
+    EXAMPLES::
+
+        sage: from sage.libs.singular.singular import si2sa_resolution_graded
+        sage: from sage.libs.singular.function import singular_function
+        sage: module = singular_function("module")
+        sage: mres = singular_function('mres')
+
+        sage: S.<x,y,z,w> = PolynomialRing(QQ)
+        sage: I = S.ideal([y*w - z^2, -x*w + y*z, x*z - y^2])
+        sage: mod = module(I)
+        sage: r = mres(mod, 0)
+        sage: res_mats, res_degs = si2sa_resolution_graded(r, (1, 1, 1, 1))
+        sage: res_mats
+        [
+                                         [ y  x]
+                                         [-z -y]
+        [z^2 - y*w y*z - x*w y^2 - x*z], [ w  z]
+        ]
+        sage: res_degs
+        [[[2], [2], [2]], [[1, 1, 1], [1, 1, 1]]]
     """
     cdef ring *singular_ring
     cdef syStrategy singular_res

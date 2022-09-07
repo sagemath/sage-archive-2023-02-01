@@ -301,7 +301,7 @@ class ConvergenceError(ValueError):
 
 def differential_basis_baker(f):
     r"""
-    Compute a differential bases for a curve that is nonsingular outside (1:0:0),(0:1:0),(0:0:1)
+    Compute a differential basis for a curve that is nonsingular outside (1:0:0),(0:1:0),(0:0:1)
 
     Baker's theorem tells us that if a curve has its singularities at the coordinate vertices and meets
     some further easily tested genericity criteria,
@@ -487,18 +487,19 @@ class RiemannSurface(object):
     - ``prec`` -- the desired precision of computations on the surface in bits
       (default: 53)
 
-    - ``certification`` -- a boolean (default: True) value indicating whether
-      homotopy continuation is certified or not. Uncertified homotopy
-      continuation can be faster.
+    - ``certification`` -- a boolean (default: ``True``) value indicating
+      whether homotopy continuation is certified or not. Uncertified
+      homotopy continuation can be faster.
 
-    - ``differentials`` -- (default: None). If specified, provides a list of
-      polynomials `h` such that `h/(df/dw) dz` is a regular differential on the
-      Riemann surface. This is taken as a basis of the regular differentials, so
-      the genus is assumed to be equal to the length of this list. The results
-      from the homology basis computation are checked against this value.
-      Providing this parameter makes the computation independent from Singular.
-      For a nonsingular plane curve of degree `d`, an appropriate set is given
-      by the monomials of degree up to `d-3`.
+    - ``differentials`` -- (default: ``None``). If specified, provides a list
+      of polynomials `h` such that `h/(df/dw) dz` is a regular
+      differential on the Riemann surface. This is taken as a basis of
+      the regular differentials, so the genus is assumed to be equal
+      to the length of this list. The results from the homology basis
+      computation are checked against this value.  Providing this
+      parameter makes the computation independent from Singular.  For
+      a nonsingular plane curve of degree `d`, an appropriate set is
+      given by the monomials of degree up to `d-3`.
 
     - ``integration_method`` -- (default: ``'rigorous'``). String specifying the
       integration method to use when calculating the integrals of differentials.
@@ -831,7 +832,7 @@ class RiemannSurface(object):
         """
         # Because of how we constructed the Voronoi diagram, the first n points
         # correspond to the branch locus points.
-        # The regions of these points are all of the edges which don't go off
+        # The regions of these points are all of the edges which do not go off
         # to infinity, which are exactly the ones we want.
         n = len(self.branch_locus)
         desired_edges = [
@@ -839,7 +840,7 @@ class RiemannSurface(object):
             for i in range(n)
         ]
         # First construct the edges as a set because the regions will overlap
-        # and we don't want to have two of the same edge.
+        # and we do not want to have two of the same edge.
         edges1 = set()
         for c in desired_edges:
             for j in range(len(c) - 1):
@@ -2331,7 +2332,7 @@ class RiemannSurface(object):
             bd = self._bounding_data(differentials)
             line_int = lambda edge: self.rigorous_line_integral(edge, fcd, bd)
         else:
-            raise ValueError("Invalid integration method")
+            raise ValueError("invalid integration method")
 
         integral_dict = {edge: line_int(edge) for edge in occurring_edges}
 
@@ -2407,7 +2408,7 @@ class RiemannSurface(object):
             sage: S = RiemannSurface(f, prec=60)
             sage: M = S.riemann_matrix()
 
-        The Klein quartic has a Riemann matrix with values is a quadratic
+        The Klein quartic has a Riemann matrix with values in a quadratic
         field::
 
             sage: x = polygen(QQ)
@@ -3982,15 +3983,10 @@ def integer_matrix_relations(M1, M2, b=None, r=None):
     D = Matrix(R, g1, g2, vars[3 * g1 * g2 : 4 * g1 * g2])
     W = ((M1 * A + B) - (M1 * C + D) * M2).list()
     vars = R.gens()
-    mt = Matrix(
-        ZZ,
-        [
-            [1 if i == j else 0 for j in range(4 * g1 * g2)]
-            + [(S * w.monomial_coefficient(vars[i]).real_part()).round() for w in W]
-            + [(S * w.monomial_coefficient(vars[i]).imag_part()).round() for w in W]
-            for i in range(len(vars))
-        ],
-    )
+    mt = Matrix(ZZ, [[1 if i == j else 0 for j in range(4 * g1 * g2)] +
+      [(S * w.monomial_coefficient(vi).real_part()).round() for w in W] +
+      [(S * w.monomial_coefficient(vi).imag_part()).round() for w in W]
+                     for i, vi in enumerate(vars)])
     # we compute an LLL-reduced basis of this lattice:
     mtL = mt.LLL()
 

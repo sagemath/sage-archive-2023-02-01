@@ -1231,131 +1231,150 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         prec = kwds.pop('prec', None)
         noise_multiplier = kwds.pop('noise_multiplier', 2)
 
-        PS = self.domain()
-        R = PS.base_ring()
+        f_domain = self.domain()
+        K = f_domain.base_ring()
         g_domain = g.domain()
 
-        if PS != g_domain:
+        if f_domain != g_domain:
             raise TypeError("Implemented only for rational maps of the same projective line.")
 
         if n <= 0:
             raise ValueError("Period must be a positive integer.")
 
-        if not (is_ProjectiveSpace(PS) and is_ProjectiveSpace(g_domain)):
+        if not (is_ProjectiveSpace(f_domain) and is_ProjectiveSpace(g_domain)):
             raise NotImplementedError("Not implemented for subschemes.")
 
-        if PS.dimension_relative() > 1:
+        if f_domain.dimension_relative() > 1:
             raise NotImplementedError("Only implemented for dimension 1.")
 
         if not self.is_endomorphism():
             raise TypeError("Self must be an endomorphism.")
 
-        if R not in NumberFields() and R is not QQbar:
+        if K not in NumberFields() and K is not QQbar:
             raise NotImplementedError("Only implemented for number fields.")
 
-        from sage.misc.misc import union
-        badprimes = union(self.primes_of_bad_reduction(check=check_primes_of_bad_reduction), g.primes_of_bad_reduction(check=check_primes_of_bad_reduction))
-
-        fiterate = self.nth_iterate_map(n)
-        giterate = g.nth_iterate_map(n)
+        f_iterate_map = self.nth_iterate_map(n)
+        f_iter_map_poly = f_iterate_map.defining_polynomials()
         if f_starting_point is None:
-            Fpolyhom = fiterate.defining_polynomials()[0]*self.domain().gens()[1]-fiterate.defining_polynomials()[1]*self.domain().gens()[0]
+            f_poly_hom = f_iter_map_poly[0] * f_domain.gens()[1] - f_iter_map_poly[1] * f_domain.gens()[0]
         else:
-            Fpolyhom = fiterate.defining_polynomials()[0]-f_starting_point*fiterate.defining_polynomials()[1]
+            f_poly_hom = f_iter_map_poly[0] - f_starting_point * f_iter_map_poly[1]
+
+        g_iterate_map = g.nth_iterate_map(n)
+        g_iter_map_poly = g_iterate_map.defining_polynomials()
         if g_starting_point is None:
-            Gpolyhom = giterate.defining_polynomials()[0]*g_domain.gens()[1]-giterate.defining_polynomials()[1]*g_domain.gens()[0]
+            g_poly_hom = g_iter_map_poly[0] * g_domain.gens()[1] - g_iter_map_poly[1] * g_domain.gens()[0]
         else:
-            Gpolyhom = giterate.defining_polynomials()[0]-g_starting_point*giterate.defining_polynomials()[1]
+            g_poly_hom = g_iter_map_poly[0] - g_starting_point * g_iter_map_poly[1]
 
-        Fpoly = Fpolyhom([(self.domain().gens()[0]),1]).univariate_polynomial().monic()
-        Gpoly = Gpolyhom([(g_domain.gens()[0]),1]).univariate_polynomial().monic()
+        f_poly = f_poly_hom([(f_domain.gens()[0]), 1]).univariate_polynomial().monic()
+        g_poly = g_poly_hom([(g_domain.gens()[0]), 1]).univariate_polynomial().monic()
 
-        # If Fpoly and Gpoly are not squarefree, make them squarefree.
-        if not Fpoly.is_squarefree():
-            Fpoly = Fpoly.quo_rem(gcd(Fpoly, Fpoly.derivative()))[0]
-        if not Gpoly.is_squarefree():
-            Gpoly = Gpoly.quo_rem(gcd(Gpoly, Gpoly.derivative()))[0]
+        # If f_poly and g_poly are not square-free, make them square-free.
+        if not f_poly.is_squarefree():
+            f_poly = f_poly.quo_rem(gcd(f_poly, f_poly.derivative()))[0]
+        if not g_poly.is_squarefree():
+            g_poly = g_poly.quo_rem(gcd(g_poly, g_poly.derivative()))[0]
 
-        if Fpoly.degree() <= 2 or Gpoly.degree() <= 2:
-            # we are very unlucky and fpoint or gpoint is exceptional
-            raise ValueError("It appears that one of the starting points is exceptional. Please specify non-exceptional initial point.")
+        if f_poly.degree() <= 2 or g_poly.degree() <= 2:
+            # f_point or g_point is exceptional
+            raise ValueError("One of the starting points is exceptional. Please specify a non-exceptional initial point.")
 
-        if gcd(Fpoly,Gpoly).degree() > 0:
-            if Fpoly.degree() > Gpoly.degree():
-                Fpoly = Fpoly.quo_rem(gcd(Fpoly,Gpoly))[0]
+        if gcd(f_poly, g_poly).degree() > 0:
+            if f_poly.degree() > g_poly.degree():
+                f_poly = f_poly.quo_rem(gcd(f_poly, g_poly))[0]
             else:
-                Gpoly = Gpoly.quo_rem(gcd(Fpoly,Gpoly))[0]
-            if Fpoly.degree() <= 2 or Gpoly.degree() <= 2:
-                raise ValueError("It appears that after removing common factors, the n-th iterates of self and g had too many roots in common. Try another n or starting values.")
+                g_poly = g_poly.quo_rem(gcd(f_poly, g_poly))[0]
 
-        Fdisc = Fpoly.discriminant()
-        Gdisc = Gpoly.discriminant()
+            if f_poly.degree() <= 2 or g_poly.degree() <= 2:
+                raise ValueError("After removing common factors, the n-th iterates of 'self' and 'g' have too many roots in common. Try another 'n' or starting values.")
 
-        dF = Fpoly.degree()
-        dG = Gpoly.degree()
-
-        res = Fpoly.resultant(Gpoly)
-
-        oldprec = prec
+        # We want higher precision here temporarily, since resultants are
+        # usually very large. This is not to say that the computation is
+        # very accurate, merely that we want to keep track of potentially
+        # very large height integers/rationals.
+        old_prec = prec
         if prec is None:
             R = RealField(512)
+        else if prec < 512:
+            prec = 512
+            R = RealField(prec)
+    
+        bad_primes = list(set(self.primes_of_bad_reduction(check=check_primes_of_bad_reduction)).union(g.primes_of_bad_reduction(check=check_primes_of_bad_reduction)))
+
+        f_deg = f_poly.degree()
+        g_deg = g_poly.degree()
+
+        f_disc = f_poly.discriminant()
+        g_disc = g_poly.discriminant()
+
+        res = f_poly.resultant(g_poly)
+
+        # The code below actually computes -( mu_f - mu_g, mu_f - mu_g ),
+        # so flip the sign at the end.
+        AZ_pairing = R(0)
+        if K is QQ:
+            for p in bad_primes:
+                temp = (ZZ(1)/2) * (-f_disc.ord(p)) * R(p).log() / (f_deg**2)
+                if abs(temp) > noise_multiplier * R(f_deg).log() / (R(f_deg)):
+                    AZ_pairing += temp
+                AZ_pairing -= (-res.ord(p)) * R(p).log() / (f_deg * g_deg)
+
+                temp = (ZZ(1)/2) * (-g_disc.ord(p)) * R(p).log() / (g_deg**2)
+                if abs(temp) > noise_multiplier * R(g_deg).log() / (R(g_deg)):
+                    AZ_pairing += temp
+
+            temp = (ZZ(1)/2) * (R(f_disc).abs().log()) / (f_deg**2)
+            if abs(temp) > noise_multiplier * R(f_deg).log() / (R(f_deg)):
+                AZ_pairing += temp
+
+            temp = (ZZ(1)/2) * (R(g_disc).abs().log()) / (g_deg**2)
+            if abs(temp) > noise_multiplier*R(g_deg).log() / (R(g_deg)):
+                AZ_pairing += temp
+
+            AZ_pairing -= R(res).abs().log() / (f_deg * g_deg)
+
+        # For number fields
         else:
-            if prec < 512:
-            # Want temporarily higher precision here since resultants are usually very, very large.
-            # This isn't to say the computation is so accurate, merely that we want to keep track
-            # of potentially very large height integers/rationals.
-                prec = 512
-                R = RealField(prec)
-        AZpairing = R(0)
-        # The code below actually computes -( mu_f - mu_g, mu_f - mu_g ), so flip the sign at the end.
-        if R is QQ:
-            for p in badprimes:
-                temp = (ZZ(1)/2)*(-Fdisc.ord(p))*R(p).log()/(dF**2)
-                if abs(temp) > noise_multiplier*R(dF).log()/(R(dF)):
-                    AZpairing += temp
-                AZpairing -= (-res.ord(p))*R(p).log()/(dF*dG)
-                temp = (ZZ(1)/2)*(-Gdisc.ord(p))*R(p).log()/(dG**2)
-                if abs(temp) > noise_multiplier*R(dG).log()/(R(dG)):
-                    AZpairing += temp
-            temp = (ZZ(1)/2)*(R(Fdisc).abs().log())/(dF**2)
-            if abs(temp) > noise_multiplier*R(dF).log()/(R(dF)):
-                AZpairing += temp
-            temp = (ZZ(1)/2)*(R(Gdisc).abs().log())/(dG**2)
-            if abs(temp) > noise_multiplier*R(dG).log()/(R(dG)):
-                AZpairing += temp
-            AZpairing -= R(res).abs().log()/(dF*dG)
-        else: # number field case
-            K = self.base_ring()
             d = K.absolute_degree()
-            for v in badprimes:
-                Nv = v.absolute_ramification_index()*v.residue_class_degree()/d
-                AZpairing += Nv*((ZZ(1)/2)*K(Fdisc).abs_non_arch(v, prec=prec).log()/(dF**2) - K(res).abs_non_arch(v, prec=prec).log()/(dF*dG) + (ZZ(1)/2)*K(Gdisc).abs_non_arch(v, prec=prec).log()/(dG**2))
-            if Fdisc.is_rational():
-                Fdisc = QQ(Fdisc)
-                temp = (ZZ(1)/2)*(R(Fdisc).abs().log())/(dF**2)
-                if abs(temp) > noise_multiplier*R(dF).log()/R(dF):
-                    AZpairing += temp
+
+            for v in bad_primes:
+                Nv = v.absolute_ramification_index() * v.residue_class_degree() / d
+                AZ_pairing += Nv * ((ZZ(1)/2) * K(f_disc).abs_non_arch(v, prec=prec).log() / (f_deg**2) 
+                            + (ZZ(1)/2) * K(g_disc).abs_non_arch(v, prec=prec).log() / (g_deg**2))
+                            - K(res).abs_non_arch(v, prec=prec).log() / (f_deg * g_deg)
+
+            if f_disc.is_rational():
+                f_disc = QQ(f_disc)
+                temp = (ZZ(1)/2) * (R(f_disc).abs().log()) / (f_deg**2)
+                if abs(temp) > noise_multiplier * R(f_deg).log() / R(f_deg):
+                    AZ_pairing += temp
             else:
-                temp = (ZZ(1)/d)*(ZZ(1)/2)*(R(K(Fdisc).abs().norm()).log())/(dF**2)
-                if abs(temp) > noise_multiplier*R(dF).log()/R(dF):
-                    AZpairing += temp
-            if Gdisc.is_rational():
-                temp = (ZZ(1)/2)*(R(Gdisc).abs().log())/(dG**2)
-                if abs(temp) > noise_multiplier*R(dG).log()/R(dG):
-                    AZpairing += temp
+                temp = (ZZ(1)/d) * (ZZ(1)/2) * (R(K(f_disc).abs().norm()).log()) / (f_deg**2)
+                if abs(temp) > noise_multiplier*R(f_deg).log() / R(f_deg):
+                    AZ_pairing += temp
+
+            if g_disc.is_rational():
+                g_disc = QQ(g_disc)  # TODO newly add, maybe delete
+                temp = (ZZ(1)/2) * (R(g_disc).abs().log()) / (g_deg**2)
+                if abs(temp) > noise_multiplier * R(g_deg).log() / R(g_deg):
+                    AZ_pairing += temp
             else:
-                temp = (ZZ(1)/d)*(ZZ(1)/2)*(R(K(Gdisc).norm()).abs().log())/(dG**2)
-                if abs(temp) > noise_multiplier*R(dG).log()/R(dG):
-                    AZpairing += temp
+                temp = (ZZ(1)/d) * (ZZ(1)/2) * (R(K(g_disc).norm()).abs().log()) / (g_deg**2)
+                if abs(temp) > noise_multiplier*R(g_deg).log() / R(g_deg):
+                    AZ_pairing += temp
+
             if res.is_rational():
-                AZpairing -= (R(res).abs().log())/(dF*dG)
+                AZ_pairing -= (R(res).abs().log()) / (f_deg * g_deg)
             else:
-                AZpairing -= (ZZ(1)/d)*(R(K(res).norm()).abs().log())/(dF*dG)
-        if oldprec is None:
+                AZ_pairing -= (ZZ(1)/d) * (R(K(res).norm()).abs().log()) / (f_deg * g_deg)
+
+        if old_prec is None:
             R = RealField()
         else:
-            R = RealField(oldprec)
-        return R(-AZpairing)
+            R = RealField(old_prec)
+
+        return R(-AZ_pairing)
 
     def degree_sequence(self, iterates=2):
         r"""

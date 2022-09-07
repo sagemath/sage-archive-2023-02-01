@@ -1296,7 +1296,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         old_prec = prec
         if prec is None:
             R = RealField(512)
-        else if prec < 512:
+        elif prec < 512:
             prec = 512
             R = RealField(prec)
     
@@ -1340,9 +1340,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
             for v in bad_primes:
                 Nv = v.absolute_ramification_index() * v.residue_class_degree() / d
-                AZ_pairing += Nv * ((ZZ(1)/2) * K(f_disc).abs_non_arch(v, prec=prec).log() / (f_deg**2) 
-                            + (ZZ(1)/2) * K(g_disc).abs_non_arch(v, prec=prec).log() / (g_deg**2))
-                            - K(res).abs_non_arch(v, prec=prec).log() / (f_deg * g_deg)
+                AZ_pairing += Nv * ((ZZ(1)/2) * K(f_disc).abs_non_arch(v, prec=prec).log() / (f_deg**2) + (ZZ(1)/2) * K(g_disc).abs_non_arch(v, prec=prec).log() / (g_deg**2))- K(res).abs_non_arch(v, prec=prec).log() / (f_deg * g_deg)
 
             if f_disc.is_rational():
                 f_disc = QQ(f_disc)

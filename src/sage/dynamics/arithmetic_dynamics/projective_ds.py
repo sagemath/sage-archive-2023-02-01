@@ -1103,13 +1103,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             raise TypeError("must be a forward orbit")
         return self.orbit(P, [n,n+1], **kwds)[0]
 
-    def arakelov_zhang_pairing(
-        self, g, n=5,
-        f_starting_point=None, g_starting_point=None,
-        check_primes_of_bad_reduction=False,
-        prec=None,
-        noise_multiplier=2
-    ):
+    def arakelov_zhang_pairing(self, g, **kwds):
         r"""
         Return an estimate of the Arakelov-Zhang pairing of the rational
         maps ``self`` and ``g`` on `\mathbb{P}^1` over a number field.
@@ -1230,21 +1224,34 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: _ - a.global_height()
             -0.00744591697867292
         """
+        n = kwds.pop('n', 5)
+        f_starting_point = kwds.pop('f_starting_point', None)
+        g_starting_point = kwds.pop('g_starting_point', None)
+        check_primes_of_bad_reduction = kwds.pop('check_primes_of_bad_reduction', False)
+        prec = kwds.pop('prec', None)
+        noise_multiplier = kwds.pop('noise_multiplier', 2)
+
         PS = self.domain()
-        n = Integer(n)
-        if PS != g.domain():
+        R = PS.base_ring()
+        g_domain = g.domain()
+
+        if PS != g_domain:
             raise TypeError("Implemented only for rational maps of the same projective line.")
-        if (n < 1):
+
+        if n <= 0:
             raise ValueError("Period must be a positive integer.")
-        from sage.schemes.projective.projective_space import is_ProjectiveSpace
-        if not is_ProjectiveSpace(PS) or not is_ProjectiveSpace(g.domain()):
+
+        if not (is_ProjectiveSpace(PS) and is_ProjectiveSpace(g_domain)):
             raise NotImplementedError("Not implemented for subschemes.")
-        if (PS.dimension_relative() > 1):
+
+        if PS.dimension_relative() > 1:
             raise NotImplementedError("Only implemented for dimension 1.")
+
         if not self.is_endomorphism():
             raise TypeError("Self must be an endomorphism.")
-        if not PS.base_ring() in NumberFields() and not PS.base_ring() is QQbar:
-            raise NotImplementedError("Not implemented for base fields other than number fields.")
+
+        if R not in NumberFields() and R is not QQbar:
+            raise NotImplementedError("Only implemented for number fields.")
 
         from sage.misc.misc import union
         badprimes = union(self.primes_of_bad_reduction(check=check_primes_of_bad_reduction), g.primes_of_bad_reduction(check=check_primes_of_bad_reduction))
@@ -1256,12 +1263,12 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         else:
             Fpolyhom = fiterate.defining_polynomials()[0]-f_starting_point*fiterate.defining_polynomials()[1]
         if g_starting_point is None:
-            Gpolyhom = giterate.defining_polynomials()[0]*g.domain().gens()[1]-giterate.defining_polynomials()[1]*g.domain().gens()[0]
+            Gpolyhom = giterate.defining_polynomials()[0]*g_domain.gens()[1]-giterate.defining_polynomials()[1]*g_domain.gens()[0]
         else:
             Gpolyhom = giterate.defining_polynomials()[0]-g_starting_point*giterate.defining_polynomials()[1]
 
         Fpoly = Fpolyhom([(self.domain().gens()[0]),1]).univariate_polynomial().monic()
-        Gpoly = Gpolyhom([(g.domain().gens()[0]),1]).univariate_polynomial().monic()
+        Gpoly = Gpolyhom([(g_domain.gens()[0]),1]).univariate_polynomial().monic()
 
         # If Fpoly and Gpoly are not squarefree, make them squarefree.
         if not Fpoly.is_squarefree():
@@ -1301,7 +1308,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                 R = RealField(prec)
         AZpairing = R(0)
         # The code below actually computes -( mu_f - mu_g, mu_f - mu_g ), so flip the sign at the end.
-        if PS.base_ring() is QQ:
+        if R is QQ:
             for p in badprimes:
                 temp = (ZZ(1)/2)*(-Fdisc.ord(p))*R(p).log()/(dF**2)
                 if abs(temp) > noise_multiplier*R(dF).log()/(R(dF)):

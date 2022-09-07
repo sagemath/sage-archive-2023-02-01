@@ -729,7 +729,7 @@ class CharacteristicCohomologyClassRing(FiniteGCAlgebra):
         sage: CR.gens()
         (Characteristic cohomology class (e)(TS^2) of the Tangent bundle TS^2
          over the 2-sphere S^2 of radius 1 smoothly embedded in the Euclidean
-         space E^3)
+         space E^3,)
     """
     Element = CharacteristicCohomologyClassRingElement
 
@@ -1043,6 +1043,7 @@ class CharacteristicCohomologyClassRing(FiniteGCAlgebra):
         repr = f'Algebra of characteristic cohomology classes of the {vbundle}'
         return repr
 
+
 # *****************************************************************************
 # ALGORITHMS
 # *****************************************************************************
@@ -1102,6 +1103,7 @@ def multiplicative_sequence(q, n=None):
                             for k in range(n + 1)
                             for p in Partitions(k)})
     return Sym.e()(mon_pol)
+
 
 def additive_sequence(q, k, n=None):
     r"""
@@ -1845,4 +1847,4 @@ class PontryaginEulerAlgorithm(Singleton, Algorithm_generic):
             return nab._domain._one_scalar_field  # no computation necessary
         if i == 0:
             return fast_wedge_power(EulerAlgorithm().get(nab)[0], n)
-        return fast_wedge_power(PontryaginAlgorithm().get(nab)[i-1], n)
+        return fast_wedge_power(PontryaginAlgorithm().get(nab)[i - 1], n)

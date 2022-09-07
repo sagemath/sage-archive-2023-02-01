@@ -1044,13 +1044,9 @@ class VectorFieldDualFreeModule(DiffFormFreeModule):
 
             sage: M = Manifold(3, 'M')
             sage: X.<x,y,z> = M.chart()
-            sage: from sage.manifolds.differentiable.diff_form_module import DiffFormFreeModule
-            sage: A = DiffFormFreeModule(M.vector_field_module(), 1) ; A
+            sage: A = M.vector_field_module().dual(); A
             Free module Omega^1(M) of 1-forms on the 3-dimensional differentiable manifold M
             sage: TestSuite(A).run()
-            Traceback (most recent call last):
-            ...
-            The following tests failed: _test_zero
 
         """
         DiffFormFreeModule.__init__(self, vector_field_module, 1)
@@ -1063,7 +1059,6 @@ class VectorFieldDualFreeModule(DiffFormFreeModule):
 
             sage: M = Manifold(3, 'M')
             sage: X.<x,y,z> = M.chart()
-            sage: from sage.manifolds.differentiable.diff_form_module import DiffFormFreeModule
             sage: A = M.vector_field_module().dual(); A
             Free module Omega^1(M) of 1-forms on the 3-dimensional differentiable manifold M
             sage: A.tensor_type()

@@ -1232,7 +1232,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         noise_multiplier = kwds.pop('noise_multiplier', 2)
 
         f_domain = self.domain()
-        K = f_domain.base_ring()
+        R = f_domain.base_ring()
         g_domain = g.domain()
 
         if f_domain != g_domain:
@@ -1250,7 +1250,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         if not self.is_endomorphism():
             raise TypeError("Self must be an endomorphism.")
 
-        if K not in NumberFields() and K is not QQbar:
+        if R not in NumberFields() and R is not QQbar:
             raise NotImplementedError("Only implemented for number fields.")
 
         f_iterate_map = self.nth_iterate_map(n)
@@ -1295,10 +1295,10 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         # very large height integers/rationals.
         old_prec = prec
         if prec is None:
-            R = RealField(512)
+            Real = RealField(512)
         elif prec < 512:
             prec = 512
-            R = RealField(prec)
+            Real = RealField(prec)
     
         bad_primes = list(set(self.primes_of_bad_reduction(check=check_primes_of_bad_reduction)).union(g.primes_of_bad_reduction(check=check_primes_of_bad_reduction)))
 
@@ -1312,30 +1312,31 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
         # The code below actually computes -( mu_f - mu_g, mu_f - mu_g ),
         # so flip the sign at the end.
-        AZ_pairing = R(0)
-        if K is QQ:
+        AZ_pairing = Real(0)
+        if R is QQ:
             for p in bad_primes:
-                temp = (ZZ(1)/2) * (-f_disc.ord(p)) * R(p).log() / (f_deg**2)
-                if abs(temp) > noise_multiplier * R(f_deg).log() / (R(f_deg)):
+                temp = (ZZ(1)/2) * (-f_disc.ord(p)) * Real(p).log() / (f_deg**2)
+                if abs(temp) > noise_multiplier * Real(f_deg).log() / (Real(f_deg)):
                     AZ_pairing += temp
-                AZ_pairing -= (-res.ord(p)) * R(p).log() / (f_deg * g_deg)
+                AZ_pairing -= (-res.ord(p)) * Real(p).log() / (f_deg * g_deg)
 
-                temp = (ZZ(1)/2) * (-g_disc.ord(p)) * R(p).log() / (g_deg**2)
-                if abs(temp) > noise_multiplier * R(g_deg).log() / (R(g_deg)):
+                temp = (ZZ(1)/2) * (-g_disc.ord(p)) * Real(p).log() / (g_deg**2)
+                if abs(temp) > noise_multiplier * Real(g_deg).log() / (Real(g_deg)):
                     AZ_pairing += temp
 
-            temp = (ZZ(1)/2) * (R(f_disc).abs().log()) / (f_deg**2)
-            if abs(temp) > noise_multiplier * R(f_deg).log() / (R(f_deg)):
+            temp = (ZZ(1)/2) * (Real(f_disc).abs().log()) / (f_deg**2)
+            if abs(temp) > noise_multiplier * Real(f_deg).log() / (Real(f_deg)):
                 AZ_pairing += temp
 
-            temp = (ZZ(1)/2) * (R(g_disc).abs().log()) / (g_deg**2)
-            if abs(temp) > noise_multiplier*R(g_deg).log() / (R(g_deg)):
+            temp = (ZZ(1)/2) * (Real(g_disc).abs().log()) / (g_deg**2)
+            if abs(temp) > noise_multiplier*Real(g_deg).log() / (Real(g_deg)):
                 AZ_pairing += temp
 
-            AZ_pairing -= R(res).abs().log() / (f_deg * g_deg)
+            AZ_pairing -= Real(res).abs().log() / (f_deg * g_deg)
 
         # For number fields
         else:
+            K = self.base_ring()
             d = K.absolute_degree()
 
             for v in bad_primes:
@@ -1344,35 +1345,35 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
             if f_disc.is_rational():
                 f_disc = QQ(f_disc)
-                temp = (ZZ(1)/2) * (R(f_disc).abs().log()) / (f_deg**2)
-                if abs(temp) > noise_multiplier * R(f_deg).log() / R(f_deg):
+                temp = (ZZ(1)/2) * (Real(f_disc).abs().log()) / (f_deg**2)
+                if abs(temp) > noise_multiplier * Real(f_deg).log() / Real(f_deg):
                     AZ_pairing += temp
             else:
-                temp = (ZZ(1)/d) * (ZZ(1)/2) * (R(K(f_disc).abs().norm()).log()) / (f_deg**2)
-                if abs(temp) > noise_multiplier*R(f_deg).log() / R(f_deg):
+                temp = (ZZ(1)/d) * (ZZ(1)/2) * (Real(K(f_disc).abs().norm()).log()) / (f_deg**2)
+                if abs(temp) > noise_multiplier * Real(f_deg).log() / Real(f_deg):
                     AZ_pairing += temp
 
             if g_disc.is_rational():
                 g_disc = QQ(g_disc)  # TODO newly add, maybe delete
-                temp = (ZZ(1)/2) * (R(g_disc).abs().log()) / (g_deg**2)
-                if abs(temp) > noise_multiplier * R(g_deg).log() / R(g_deg):
+                temp = (ZZ(1)/2) * (Real(g_disc).abs().log()) / (g_deg**2)
+                if abs(temp) > noise_multiplier * Real(g_deg).log() / Real(g_deg):
                     AZ_pairing += temp
             else:
-                temp = (ZZ(1)/d) * (ZZ(1)/2) * (R(K(g_disc).norm()).abs().log()) / (g_deg**2)
-                if abs(temp) > noise_multiplier*R(g_deg).log() / R(g_deg):
+                temp = (ZZ(1)/d) * (ZZ(1)/2) * (Real(K(g_disc).norm()).abs().log()) / (g_deg**2)
+                if abs(temp) > noise_multiplier * Real(g_deg).log() / Real(g_deg):
                     AZ_pairing += temp
 
             if res.is_rational():
-                AZ_pairing -= (R(res).abs().log()) / (f_deg * g_deg)
+                AZ_pairing -= (Real(res).abs().log()) / (f_deg * g_deg)
             else:
-                AZ_pairing -= (ZZ(1)/d) * (R(K(res).norm()).abs().log()) / (f_deg * g_deg)
+                AZ_pairing -= (ZZ(1)/d) * (Real(K(res).norm()).abs().log()) / (f_deg * g_deg)
 
         if old_prec is None:
-            R = RealField()
+            Real = RealField()
         else:
-            R = RealField(old_prec)
+            Real = RealField(old_prec)
 
-        return R(-AZ_pairing)
+        return Real(-AZ_pairing)
 
     def degree_sequence(self, iterates=2):
         r"""

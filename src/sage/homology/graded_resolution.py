@@ -87,7 +87,6 @@ from sage.homology.free_resolution import (FiniteFreeResolution,
                                            FiniteFreeResolution_free_module,
                                            FiniteFreeResolution_singular)
 
-
 class GradedFiniteFreeResolution(FiniteFreeResolution):
     r"""
     Graded finite free resolutions.
@@ -96,14 +95,11 @@ class GradedFiniteFreeResolution(FiniteFreeResolution):
 
     - ``module`` -- a homogeneous submodule of a free module `M` of rank `n`
       over `S` or a homogeneous ideal of a multivariate polynomial ring `S`
-
     - ``degrees`` -- (default: a list with all entries `1`) a list of integers
       or integer vectors giving degrees of variables of `S`
-
     - ``shifts`` -- a list of integers or integer vectors giving shifts of
       degrees of `n` summands of the free module `M`; this is a list of zero
       degrees of length `n` by default
-
     - ``name`` -- a string; name of the base ring
 
     .. WARNING::
@@ -111,8 +107,8 @@ class GradedFiniteFreeResolution(FiniteFreeResolution):
         This does not check that the module is homogeneous.
     """
     def __init__(self, module, degrees=None, shifts=None, name='S', **kwds):
-        """
-        Initialize.
+        r"""
+        Initialize ``self``.
 
         TESTS::
 

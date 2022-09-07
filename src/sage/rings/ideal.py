@@ -1217,6 +1217,8 @@ class Ideal_generic(MonoidElement):
             sage: I.free_resolution()
             S^1 <-- S^1 <-- 0
         """
+        if not self.is_principal():
+            raise NotImplementedError("the ideal must be a prinical ideal")
         from sage.homology.free_resolution import FiniteFreeResolution_free_module
         return FiniteFreeResolution_free_module(self, *args, **kwds)
 

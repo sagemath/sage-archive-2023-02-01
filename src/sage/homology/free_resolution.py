@@ -138,6 +138,8 @@ class FreeResolution(SageObject, metaclass=ClasscallMetaclass):
             False
             sage: xb, yb = Q.gens()
             sage: FreeResolution(Q.ideal([xb]))  # has torsion
+            Traceback (most recent call last):
+            ...
             NotImplementedError: the ring must be a polynomial ring using Singular
         """
         if degrees is not None or shifts is not None:
@@ -743,7 +745,9 @@ class FiniteFreeResolution_singular(FiniteFreeResolution):
 
     - ``module`` -- a submodule of a free module `M` of rank `n` over `S` or
       an ideal of a multi-variate polynomial ring
+
     - ``name`` -- string (optional); name of the base ring
+
     - ``algorithm`` -- (default: ``'heuristic'``) Singular algorithm
       to compute a resolution of ``ideal``
 

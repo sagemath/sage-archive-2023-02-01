@@ -25,6 +25,7 @@ AUTHORS:
 - Alexandre Zotine, Nils Bruin (2017-06-10): initial version
 - Nils Bruin, Jeroen Sijsling (2018-01-05): algebraization, isomorphisms
 - Linden Disney-Hogg, Nils Bruin (2021-06-23): efficient integration
+- Linden Disney-Hogg, Nils Bruin (2022-09-07): Abel-Jacobi map
 
 EXAMPLES:
 

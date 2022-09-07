@@ -358,7 +358,8 @@ class Monoids(CategoryWithAxiom):
             r"""
             Return the inverse of ``self``.
 
-            The default implementation is to divide ``self.one()``.
+            There is no default implementation, to avoid conflict
+            with the default implementation of ``_div_``.
 
             EXAMPLES::
 

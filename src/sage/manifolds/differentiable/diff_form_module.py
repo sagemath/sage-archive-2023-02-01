@@ -661,17 +661,12 @@ class DiffFormFreeModule(ExtPowerDualFreeModule):
         sage: L1 is XM.dual()
         True
 
-    Since any tensor field of type `(0,1)` is a 1-form, there is a coercion
-    map from the set `T^{(0,1)}(M)` of such tensors to `\Omega^1(M)`::
+    Since any tensor field of type `(0,1)` is a 1-form, it is also equal to
+    the set `T^{(0,1)}(M)` of such tensors to `\Omega^1(M)`::
 
         sage: T01 = M.tensor_field_module((0,1)) ; T01
         Free module Omega^1(M) of 1-forms on the 3-dimensional differentiable manifold M
-        sage: L1.has_coerce_map_from(T01)
-        True
-
-    There is also a coercion map in the reverse direction::
-
-        sage: T01.has_coerce_map_from(L1)
+        sage: L1 is T01
         True
 
     For a degree `p \geq 2`, the coercion holds only in the direction
@@ -684,24 +679,6 @@ class DiffFormFreeModule(ExtPowerDualFreeModule):
         True
         sage: A.has_coerce_map_from(T02)
         False
-
-    The coercion map `T^{(0,1)}(M) \rightarrow \Omega^1(M)` in action::
-
-        sage: b = T01([-x,2,3*y], name='b'); b
-        1-form b on the 3-dimensional differentiable manifold M
-        sage: b.display()
-        b = -x dx + 2 dy + 3*y dz
-        sage: lb = L1(b) ; lb
-        1-form b on the 3-dimensional differentiable manifold M
-        sage: lb.display()
-        b = -x dx + 2 dy + 3*y dz
-
-    The coercion map `\Omega^1(M) \rightarrow T^{(0,1)}(M)` in action::
-
-        sage: tlb = T01(lb); tlb
-        1-form b on the 3-dimensional differentiable manifold M
-        sage: tlb == b
-        True
 
     The coercion map `\Omega^2(M) \rightarrow T^{(0,2)}(M)` in action::
 

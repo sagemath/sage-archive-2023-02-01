@@ -6,7 +6,7 @@ is a chain complex of free `R`-modules
 
 .. MATH::
 
-    0 \xleftarrow{d_0} R^{n_1} \xleftarrow{d_1}  R^{n_1} \xleftarrow{d_2}
+    R^{n_1} \xleftarrow{d_1}  R^{n_1} \xleftarrow{d_2}
     \cdots \xleftarrow{d_k} R^{n_k} \xleftarrow{d_{k+1}} 0
 
 terminating with a zero module at the end that is exact (all homology groups
@@ -92,7 +92,7 @@ class FreeResolution(SageObject, metaclass=ClasscallMetaclass):
 
     .. MATH::
 
-        0 \xleftarrow{d_0} R^{n_1} \xleftarrow{d_1}  R^{n_1} \xleftarrow{d_2}
+        R^{n_1} \xleftarrow{d_1}  R^{n_1} \xleftarrow{d_2}
         \cdots \xleftarrow{d_k} R^{n_k} \xleftarrow{d_{k+1}} \cdots
 
     that is exact (all homology groups are zero) such that the image
@@ -285,7 +285,10 @@ class FreeResolution(SageObject, metaclass=ClasscallMetaclass):
 
     def target(self):
         r"""
-        Return the codomain of the ``0``-th differential map.
+        Return the codomain of the `0`-th differential map.
+
+        The codomain of the `0`-th differential map is the cokernel of
+        the first differential map.
 
         EXAMPLES::
 

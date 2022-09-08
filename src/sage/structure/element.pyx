@@ -2613,6 +2613,15 @@ cdef class MultiplicativeGroupElement(MonoidElement):
         """
         return self * ~right
 
+    def __invert__(self):
+        r"""
+        Return the multiplicative inverse of ``self``.
+
+        This may cause infinite recursion because of the default definition
+        of division using inversion in ``_div_``.
+        """
+        return self._parent.one() / self
+
 
 def is_RingElement(x):
     """

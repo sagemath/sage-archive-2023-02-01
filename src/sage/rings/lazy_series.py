@@ -68,7 +68,7 @@ eventually constant 'exact'.  In some cases, computations with such
 series are much faster.  Moreover, these are the series where
 equality can be decided.  For example::
 
-    sage: L.<z> = LazyTaylorSeriesRing(ZZ)
+    sage: L.<z> = LazyPowerSeriesRing(ZZ)
     sage: f = 1 + 2*z^2 / (1 - z)
     sage: f - 2 / (1 - z) + 1 + 2*z
     0
@@ -77,7 +77,7 @@ However, multivariate Taylor series are actually represented as
 streams of multivariate polynomials.  Therefore, the only exact
 series in this case are polynomials::
 
-    sage: L.<x,y> = LazyTaylorSeriesRing(ZZ)
+    sage: L.<x,y> = LazyPowerSeriesRing(ZZ)
     sage: 1 / (1-x)
     1 + x + x^2 + x^3 + x^4 + x^5 + x^6 + O(x,y)^7
 
@@ -139,7 +139,7 @@ TESTS::
 
     sage: L.<z> = LazyLaurentSeriesRing(QQ)
     sage: check(L, z)
-    sage: L.<z> = LazyTaylorSeriesRing(QQ)
+    sage: L.<z> = LazyPowerSeriesRing(QQ)
     sage: check(L, z)
     sage: p = SymmetricFunctions(QQ).p()
     sage: L = LazySymmetricFunctions(p)
@@ -1066,7 +1066,7 @@ class LazyModuleElement(Element):
 
         A Taylor series example::
 
-            sage: L.<z> = LazyTaylorSeriesRing(ZZ)
+            sage: L.<z> = LazyPowerSeriesRing(ZZ)
             sage: s = 2 + z
             sage: t = s.change_ring(QQ)
             sage: t^-1
@@ -1479,7 +1479,7 @@ class LazyModuleElement(Element):
             ...
             ValueError: can only compose with a positive valuation series
 
-            sage: L.<x,y> = LazyTaylorSeriesRing(QQ)
+            sage: L.<x,y> = LazyPowerSeriesRing(QQ)
             sage: exp(x+y)[4].factor()
             (1/24) * (x + y)^4
             sage: exp(x/(1-y)).polynomial(3)
@@ -1506,7 +1506,7 @@ class LazyModuleElement(Element):
             sage: log(1/(1-z))
             z + 1/2*z^2 + 1/3*z^3 + 1/4*z^4 + 1/5*z^5 + 1/6*z^6 + 1/7*z^7 + O(z^8)
 
-            sage: L.<x, y> = LazyTaylorSeriesRing(QQ)
+            sage: L.<x, y> = LazyPowerSeriesRing(QQ)
             sage: log((1 + x/(1-y))).polynomial(3)
             1/3*x^3 - x^2*y + x*y^2 - 1/2*x^2 + x*y + x
 
@@ -1543,7 +1543,7 @@ class LazyModuleElement(Element):
             ...
             ValueError: can only compose with a positive valuation series
 
-            sage: L.<x,y> = LazyTaylorSeriesRing(QQ)
+            sage: L.<x,y> = LazyPowerSeriesRing(QQ)
             sage: sin(x/(1-y)).polynomial(3)
             -1/6*x^3 + x*y^2 + x*y + x
 
@@ -1569,7 +1569,7 @@ class LazyModuleElement(Element):
             sage: cos(z)
             1 - 1/2*z^2 + 1/24*z^4 - 1/720*z^6 + O(z^7)
 
-            sage: L.<x,y> = LazyTaylorSeriesRing(QQ)
+            sage: L.<x,y> = LazyPowerSeriesRing(QQ)
             sage: cos(x/(1-y)).polynomial(4)
             1/24*x^4 - 3/2*x^2*y^2 - x^2*y - 1/2*x^2 + 1
 
@@ -1595,7 +1595,7 @@ class LazyModuleElement(Element):
             sage: tan(z)
             z + 1/3*z^3 + 2/15*z^5 + 17/315*z^7 + O(z^8)
 
-            sage: L.<x,y> = LazyTaylorSeriesRing(QQ)
+            sage: L.<x,y> = LazyPowerSeriesRing(QQ)
             sage: tan(x/(1-y)).polynomial(5)
             2/15*x^5 + 2*x^3*y^2 + x*y^4 + x^3*y + x*y^3 + 1/3*x^3 + x*y^2 + x*y + x
 
@@ -1661,7 +1661,7 @@ class LazyModuleElement(Element):
             sage: sec(z)
             1 + 1/2*z^2 + 5/24*z^4 + 61/720*z^6 + O(z^7)
 
-            sage: L.<x,y> = LazyTaylorSeriesRing(QQ)
+            sage: L.<x,y> = LazyPowerSeriesRing(QQ)
             sage: sec(x/(1-y)).polynomial(4)
             5/24*x^4 + 3/2*x^2*y^2 + x^2*y + 1/2*x^2 + 1
 
@@ -1685,7 +1685,7 @@ class LazyModuleElement(Element):
             sage: arcsin(z)
             z + 1/6*z^3 + 3/40*z^5 + 5/112*z^7 + O(z^8)
 
-            sage: L.<x,y> = LazyTaylorSeriesRing(QQ)
+            sage: L.<x,y> = LazyPowerSeriesRing(QQ)
             sage: asin(x/(1-y))
             x + x*y + (1/6*x^3+x*y^2) + (1/2*x^3*y+x*y^3)
              + (3/40*x^5+x^3*y^2+x*y^4) + (3/8*x^5*y+5/3*x^3*y^3+x*y^5)
@@ -1723,7 +1723,7 @@ class LazyModuleElement(Element):
             sage: arccos(z/(1-z))
             1/2*pi - z - z^2 - 7/6*z^3 - 3/2*z^4 - 83/40*z^5 - 73/24*z^6 + O(z^7)
 
-            sage: L.<x,y> = LazyTaylorSeriesRing(SR)
+            sage: L.<x,y> = LazyPowerSeriesRing(SR)
             sage: arccos(x/(1-y))
             1/2*pi + (-x) + (-x*y) + ((-1/6)*x^3-x*y^2) + ((-1/2)*x^3*y-x*y^3)
              + ((-3/40)*x^5-x^3*y^2-x*y^4) + ((-3/8)*x^5*y+(-5/3)*x^3*y^3-x*y^5) + O(x,y)^7
@@ -1747,7 +1747,7 @@ class LazyModuleElement(Element):
             sage: arctan(z)
             z - 1/3*z^3 + 1/5*z^5 - 1/7*z^7 + O(z^8)
 
-            sage: L.<x,y> = LazyTaylorSeriesRing(QQ)
+            sage: L.<x,y> = LazyPowerSeriesRing(QQ)
             sage: atan(x/(1-y))
             x + x*y + (-1/3*x^3+x*y^2) + (-x^3*y+x*y^3) + (1/5*x^5-2*x^3*y^2+x*y^4)
              + (x^5*y-10/3*x^3*y^3+x*y^5) + (-1/7*x^7+3*x^5*y^2-5*x^3*y^4+x*y^6) + O(x,y)^8
@@ -1786,7 +1786,7 @@ class LazyModuleElement(Element):
             sage: arccot(z/(1-z))
             1/2*pi - z - z^2 - 2/3*z^3 + 4/5*z^5 + 4/3*z^6 + O(z^7)
 
-            sage: L.<x,y> = LazyTaylorSeriesRing(SR)
+            sage: L.<x,y> = LazyPowerSeriesRing(SR)
             sage: acot(x/(1-y))
             1/2*pi + (-x) + (-x*y) + (1/3*x^3-x*y^2) + (x^3*y-x*y^3)
              + ((-1/5)*x^5+2*x^3*y^2-x*y^4) + (-x^5*y+10/3*x^3*y^3-x*y^5) + O(x,y)^7
@@ -1812,7 +1812,7 @@ class LazyModuleElement(Element):
             sage: sinh(z)
             z + 1/6*z^3 + 1/120*z^5 + 1/5040*z^7 + O(z^8)
 
-            sage: L.<x,y> = LazyTaylorSeriesRing(QQ)
+            sage: L.<x,y> = LazyPowerSeriesRing(QQ)
             sage: sinh(x/(1-y))
             x + x*y + (1/6*x^3+x*y^2) + (1/2*x^3*y+x*y^3)
              + (1/120*x^5+x^3*y^2+x*y^4) + (1/24*x^5*y+5/3*x^3*y^3+x*y^5)
@@ -1840,7 +1840,7 @@ class LazyModuleElement(Element):
             sage: cosh(z)
             1 + 1/2*z^2 + 1/24*z^4 + 1/720*z^6 + O(z^7)
 
-            sage: L.<x,y> = LazyTaylorSeriesRing(QQ)
+            sage: L.<x,y> = LazyPowerSeriesRing(QQ)
             sage: cosh(x/(1-y))
             1 + 1/2*x^2 + x^2*y + (1/24*x^4+3/2*x^2*y^2) + (1/6*x^4*y+2*x^2*y^3)
              + (1/720*x^6+5/12*x^4*y^2+5/2*x^2*y^4) + O(x,y)^7
@@ -1867,7 +1867,7 @@ class LazyModuleElement(Element):
             sage: tanh(z)
             z - 1/3*z^3 + 2/15*z^5 - 17/315*z^7 + O(z^8)
 
-            sage: L.<x,y> = LazyTaylorSeriesRing(QQ)
+            sage: L.<x,y> = LazyPowerSeriesRing(QQ)
             sage: tanh(x/(1-y))
             x + x*y + (-1/3*x^3+x*y^2) + (-x^3*y+x*y^3) + (2/15*x^5-2*x^3*y^2+x*y^4)
              + (2/3*x^5*y-10/3*x^3*y^3+x*y^5) + (-17/315*x^7+2*x^5*y^2-5*x^3*y^4+x*y^6) + O(x,y)^8
@@ -1930,7 +1930,7 @@ class LazyModuleElement(Element):
             sage: sech(z)
             1 - 1/2*z^2 + 5/24*z^4 - 61/720*z^6 + O(z^7)
 
-            sage: L.<x, y> = LazyTaylorSeriesRing(QQ)
+            sage: L.<x, y> = LazyPowerSeriesRing(QQ)
             sage: sech(x/(1-y))
             1 + (-1/2*x^2) + (-x^2*y) + (5/24*x^4-3/2*x^2*y^2) + (5/6*x^4*y-2*x^2*y^3)
              + (-61/720*x^6+25/12*x^4*y^2-5/2*x^2*y^4) + O(x,y)^7
@@ -2000,7 +2000,7 @@ class LazyModuleElement(Element):
             sage: arcsinh(z)
             z - 1/6*z^3 + 3/40*z^5 - 5/112*z^7 + O(z^8)
 
-            sage: L.<x,y> = LazyTaylorSeriesRing(QQ)
+            sage: L.<x,y> = LazyPowerSeriesRing(QQ)
             sage: asinh(x/(1-y))
             x + x*y + (-1/6*x^3+x*y^2) + (-1/2*x^3*y+x*y^3) + (3/40*x^5-x^3*y^2+x*y^4)
              + (3/8*x^5*y-5/3*x^3*y^3+x*y^5) + (-5/112*x^7+9/8*x^5*y^2-5/2*x^3*y^4+x*y^6) + O(x,y)^8
@@ -2038,7 +2038,7 @@ class LazyModuleElement(Element):
             sage: arctanh(z)
             z + 1/3*z^3 + 1/5*z^5 + 1/7*z^7 + O(z^8)
 
-            sage: L.<x, y> = LazyTaylorSeriesRing(QQ)
+            sage: L.<x, y> = LazyPowerSeriesRing(QQ)
             sage: atanh(x/(1-y))
             x + x*y + (1/3*x^3+x*y^2) + (x^3*y+x*y^3) + (1/5*x^5+2*x^3*y^2+x*y^4)
              + (x^5*y+10/3*x^3*y^3+x*y^5) + (1/7*x^7+3*x^5*y^2+5*x^3*y^4+x*y^6) + O(x,y)^8
@@ -2073,7 +2073,7 @@ class LazyModuleElement(Element):
             sage: z.hypergeometric([], []) - exp(z)
             O(z^7)
 
-            sage: L.<x,y> = LazyTaylorSeriesRing(QQ)
+            sage: L.<x,y> = LazyPowerSeriesRing(QQ)
             sage: (x+y).hypergeometric([1, 1], [1]).polynomial(4)
             x^4 + 4*x^3*y + 6*x^2*y^2 + 4*x*y^3 + y^4 + x^3 + 3*x^2*y
              + 3*x*y^2 + y^3 + x^2 + 2*x*y + y^2 + x + y + 1
@@ -2140,7 +2140,7 @@ class LazyModuleElement(Element):
             sage: sqrt(1+z)
             1 + 1/2*z - 1/8*z^2 + 1/16*z^3 - 5/128*z^4 + 7/256*z^5 - 21/1024*z^6 + O(z^7)
 
-            sage: L.<x,y> = LazyTaylorSeriesRing(QQ)
+            sage: L.<x,y> = LazyPowerSeriesRing(QQ)
             sage: sqrt(1+x/(1-y))
             1 + 1/2*x + (-1/8*x^2+1/2*x*y) + (1/16*x^3-1/4*x^2*y+1/2*x*y^2)
              + (-5/128*x^4+3/16*x^3*y-3/8*x^2*y^2+1/2*x*y^3)
@@ -2576,7 +2576,7 @@ class LazyCauchyProductSeries(LazyModuleElement):
 
         Examples for multivariate Taylor series::
 
-            sage: L.<x, y> = LazyTaylorSeriesRing(QQ)
+            sage: L.<x, y> = LazyPowerSeriesRing(QQ)
             sage: 1 / (1 - y)
             1 + y + y^2 + y^3 + y^4 + y^5 + y^6 + O(x,y)^7
 
@@ -3575,13 +3575,13 @@ class LazyLaurentSeries(LazyCauchyProductSeries):
         return formatter(poly) + strformat(" + O({})".format(formatter(z**m)))
 
 
-class LazyTaylorSeries(LazyCauchyProductSeries):
+class LazyPowerSeries(LazyCauchyProductSeries):
     r"""
     A Taylor series where the coefficients are computed lazily.
 
     EXAMPLES::
 
-        sage: L.<x, y> = LazyTaylorSeriesRing(ZZ)
+        sage: L.<x, y> = LazyPowerSeriesRing(ZZ)
         sage: f = 1 / (1 - x^2 + y^3); f
         1 + x^2 + (-y^3) + x^4 + (-2*x^2*y^3) + (x^6+y^6) + O(x,y)^7
         sage: P.<x, y> = PowerSeriesRing(ZZ, default_prec=101)
@@ -3596,6 +3596,44 @@ class LazyTaylorSeries(LazyCauchyProductSeries):
         sage: g == f
         True
     """
+    def exponential(self):
+        r"""
+        Return the exponential series of ``self``.
+
+        This method is deprecated, use :meth:`exp` instead.
+
+        TESTS::
+
+            sage: L.<x> = LazyPowerSeriesRing(QQ)
+            sage: lazy_exp = x.exponential(); lazy_exp
+            doctest:...: DeprecationWarning: the method exponential is deprecated. Use exp instead.
+            See https://trac.sagemath.org/32367 for details.
+            1 + x + 1/2*x^2 + 1/6*x^3 + 1/24*x^4 + 1/120*x^5 + 1/720*x^6 + O(x^7)
+        """
+        from sage.misc.superseded import deprecation
+        deprecation(32367, 'the method exponential is deprecated. Use exp instead.')
+        return self.exp()
+
+    def compute_coefficients(self, i):
+        r"""
+        Computes all the coefficients of self up to i.
+
+        This method is deprecated, it has no effect anymore.
+
+        TESTS::
+
+            sage: L.<z> = LazyPowerSeriesRing(QQ)
+            sage: a = L([1,2,3], constant=3)
+            sage: a.compute_coefficients(5)
+            doctest:...: DeprecationWarning: the method compute_coefficients obsolete and has no effect.
+            See https://trac.sagemath.org/32367 for details.
+            sage: a
+            1 + 2*z + 3*z^2 + 3*z^3 + 3*z^4 + 3*z^5 + O(z^6)
+        """
+        from sage.misc.superseded import deprecation
+        deprecation(32367, "the method compute_coefficients obsolete and has no effect.")
+        return
+
     def __call__(self, *g, check=True):
         r"""
         Return the composition of ``self`` with ``g``.
@@ -3625,8 +3663,8 @@ class LazyTaylorSeries(LazyCauchyProductSeries):
 
         EXAMPLES::
 
-            sage: L.<x, y, z> = LazyTaylorSeriesRing(QQ)
-            sage: M.<a, b> = LazyTaylorSeriesRing(ZZ)
+            sage: L.<x, y, z> = LazyPowerSeriesRing(QQ)
+            sage: M.<a, b> = LazyPowerSeriesRing(ZZ)
             sage: g1 = 1 / (1 - x)
             sage: g2 = x + y^2
             sage: p = a^2 + b + 1
@@ -3636,7 +3674,7 @@ class LazyTaylorSeries(LazyCauchyProductSeries):
         The number of mappings from a set with `m` elements to a set
         with `n` elements::
 
-            sage: M.<a> = LazyTaylorSeriesRing(QQ)
+            sage: M.<a> = LazyPowerSeriesRing(QQ)
             sage: Ea = M(lambda n: 1/factorial(n))
             sage: Ex = L(lambda n: 1/factorial(n)*x^n)
             sage: Ea(Ex*y)[5]
@@ -3680,7 +3718,7 @@ class LazyTaylorSeries(LazyCauchyProductSeries):
         of `f` and the parent of `g` or extended to the corresponding
         lazy series::
 
-            sage: T.<x,y> = LazyTaylorSeriesRing(QQ)
+            sage: T.<x,y> = LazyPowerSeriesRing(QQ)
             sage: R.<a,b,c> = ZZ[]
             sage: S.<v> = R[]
             sage: L.<z> = LaurentPolynomialRing(ZZ)
@@ -3709,7 +3747,7 @@ class LazyTaylorSeries(LazyCauchyProductSeries):
 
         TESTS::
 
-            sage: L.<x,y> = LazyTaylorSeriesRing(ZZ)
+            sage: L.<x,y> = LazyPowerSeriesRing(ZZ)
             sage: f = 1 / (1 - x - y)
             sage: f(f)
             Traceback (most recent call last):
@@ -3732,7 +3770,7 @@ class LazyTaylorSeries(LazyCauchyProductSeries):
         Consistency check when `g` is an uninitialized series between a
         polynomial `f` as both a polynomial and a lazy series::
 
-            sage: L.<z> = LazyTaylorSeriesRing(QQ)
+            sage: L.<z> = LazyPowerSeriesRing(QQ)
             sage: f = 1 - z
             sage: g = L(None, valuation=1)
             sage: f(g) == f.polynomial()(g)
@@ -3749,8 +3787,8 @@ class LazyTaylorSeries(LazyCauchyProductSeries):
 
         Check that composing the zero series with anything yields zero::
 
-            sage: T.<x,y> = LazyTaylorSeriesRing(QQ)
-            sage: M.<a, b> = LazyTaylorSeriesRing(QQ)
+            sage: T.<x,y> = LazyPowerSeriesRing(QQ)
+            sage: M.<a, b> = LazyPowerSeriesRing(QQ)
             sage: T(0)(1/(1-a), a+b)
             0
 
@@ -3812,13 +3850,13 @@ class LazyTaylorSeries(LazyCauchyProductSeries):
                 S = fP._laurent_poly_ring
                 P = fP
             if isinstance(P, (PolynomialRing_general, MPolynomialRing_base)):
-                from sage.rings.lazy_series_ring import LazyTaylorSeriesRing
+                from sage.rings.lazy_series_ring import LazyPowerSeriesRing
                 S = P
                 try:
                     sparse = S.is_sparse()
                 except AttributeError:
                     sparse = fP.is_sparse()
-                P = LazyTaylorSeriesRing(S.base_ring(), S.variable_names(), sparse)
+                P = LazyPowerSeriesRing(S.base_ring(), S.variable_names(), sparse)
             elif isinstance(P, LaurentPolynomialRing_univariate):
                 from sage.rings.lazy_series_ring import LazyLaurentSeriesRing
                 S = P
@@ -3887,7 +3925,7 @@ class LazyTaylorSeries(LazyCauchyProductSeries):
 
         EXAMPLES::
 
-            sage: L.<z> = LazyTaylorSeriesRing(QQ)
+            sage: L.<z> = LazyPowerSeriesRing(QQ)
             sage: (2*z).revert()
             1/2*z
             sage: (z-z^2).revert()
@@ -3903,7 +3941,7 @@ class LazyTaylorSeries(LazyCauchyProductSeries):
 
         TESTS::
 
-            sage: L.<z> = LazyTaylorSeriesRing(QQ)
+            sage: L.<z> = LazyPowerSeriesRing(QQ)
             sage: s = L(lambda n: 2 if n == 1 else 0, valuation=1); s
             2*z + O(z^8)
             sage: s.revert()
@@ -3920,7 +3958,7 @@ class LazyTaylorSeries(LazyCauchyProductSeries):
             ValueError: cannot determine whether the compositional inverse exists
 
             sage: R.<q,t> = QQ[]
-            sage: L.<z> = LazyTaylorSeriesRing(R.fraction_field())
+            sage: L.<z> = LazyPowerSeriesRing(R.fraction_field())
             sage: s = L([q], valuation=0, constant=t); s
             q + t*z + t*z^2 + t*z^3 + O(z^4)
             sage: s.revert()
@@ -4029,7 +4067,7 @@ class LazyTaylorSeries(LazyCauchyProductSeries):
 
         EXAMPLES::
 
-            sage: T.<z> = LazyTaylorSeriesRing(ZZ)
+            sage: T.<z> = LazyPowerSeriesRing(ZZ)
             sage: z.derivative()
             1
             sage: (1+z+z^2).derivative(3)
@@ -4038,7 +4076,7 @@ class LazyTaylorSeries(LazyCauchyProductSeries):
             1 + 2*z + 3*z^2 + 4*z^3 + 5*z^4 + 6*z^5 + 7*z^6 + O(z^7)
 
             sage: R.<q> = QQ[]
-            sage: L.<x, y> = LazyTaylorSeriesRing(R)
+            sage: L.<x, y> = LazyPowerSeriesRing(R)
             sage: f = 1/(1-q*x+y); f
             1 + (q*x-y) + (q^2*x^2+(-2*q)*x*y+y^2) + (q^3*x^3+(-3*q^2)*x^2*y+3*q*x*y^2-y^3) + (q^4*x^4+(-4*q^3)*x^3*y+6*q^2*x^2*y^2+(-4*q)*x*y^3+y^4) + (q^5*x^5+(-5*q^4)*x^4*y+10*q^3*x^3*y^2+(-10*q^2)*x^2*y^3+5*q*x*y^4-y^5) + (q^6*x^6+(-6*q^5)*x^5*y+15*q^4*x^4*y^2+(-20*q^3)*x^3*y^3+15*q^2*x^2*y^4+(-6*q)*x*y^5+y^6) + O(x,y)^7
             sage: f.derivative(q)
@@ -4106,7 +4144,7 @@ class LazyTaylorSeries(LazyCauchyProductSeries):
 
         TESTS::
 
-            sage: L.<x,y> = LazyTaylorSeriesRing(QQ)
+            sage: L.<x,y> = LazyPowerSeriesRing(QQ)
             sage: f = 1 / (2 - x^2 + y)
             sage: f._format_series(repr)
             '1/2 + (-1/4*y) + (1/4*x^2+1/8*y^2) + (-1/4*x^2*y-1/16*y^3) + (1/8*x^4+3/16*x^2*y^2+1/32*y^4) + (-3/16*x^4*y-1/8*x^2*y^3-1/64*y^5) + (1/16*x^6+3/16*x^4*y^2+5/64*x^2*y^4+1/128*y^6) + O(x,y)^7'
@@ -4188,7 +4226,7 @@ class LazyTaylorSeries(LazyCauchyProductSeries):
 
         EXAMPLES::
 
-            sage: L.<x,y> = LazyTaylorSeriesRing(ZZ)
+            sage: L.<x,y> = LazyPowerSeriesRing(ZZ)
             sage: f = x^2 + y*x - x + 2; f
             2 + (-x) + (x^2+x*y)
             sage: f.polynomial()
@@ -4212,7 +4250,7 @@ class LazyTaylorSeries(LazyCauchyProductSeries):
             sage: g3.polynomial(0)
             1
 
-            sage: L.<z> = LazyTaylorSeriesRing(ZZ)
+            sage: L.<z> = LazyPowerSeriesRing(ZZ)
             sage: f = z-z^2
             sage: f.polynomial()
             -z^2 + z

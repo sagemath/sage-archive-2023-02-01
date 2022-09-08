@@ -117,7 +117,7 @@ Sage example in ./combinat.tex, line 634::
 
 Sage example in ./combinat.tex, line 654::
 
-  sage: L.<z> = LazyTaylorSeriesRing(QQ)
+  sage: L.<z> = LazyPowerSeriesRing(QQ)
 
 Sage example in ./combinat.tex, line 661::
 

@@ -49,8 +49,8 @@ REFERENCES:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-from sage.rings.lazy_series import LazyTaylorSeries, LazySymmetricFunction
-from sage.rings.lazy_series_ring import LazyTaylorSeriesRing, LazySymmetricFunctions
+from sage.rings.lazy_series import LazyPowerSeries, LazySymmetricFunction
+from sage.rings.lazy_series_ring import LazyPowerSeriesRing, LazySymmetricFunctions
 from sage.rings.integer import Integer
 from sage.rings.rational_field import RationalField
 from sage.arith.all import moebius, gcd, lcm, divisors
@@ -61,11 +61,11 @@ from sage.misc.cachefunc import cached_function
 from sage.arith.misc import factorial
 
 
-class OrdinaryGeneratingSeries(LazyTaylorSeries):
+class OrdinaryGeneratingSeries(LazyPowerSeries):
     r"""
     A class for ordinary generating series.
 
-    Note that it is just a :class:`LazyTaylorSeries` whose elements
+    Note that it is just a :class:`LazyPowerSeries` whose elements
     have some extra methods.
 
     EXAMPLES::
@@ -113,12 +113,12 @@ class OrdinaryGeneratingSeries(LazyTaylorSeries):
         return [self.count(i) for i in range(n)]
 
 
-class OrdinaryGeneratingSeriesRing(LazyTaylorSeriesRing):
+class OrdinaryGeneratingSeriesRing(LazyPowerSeriesRing):
     r"""
     Return the ring of ordinary generating series over ``R``.
 
     Note that it is just a
-    :class:`LazyTaylorSeriesRing` whose elements have
+    :class:`LazyPowerSeriesRing` whose elements have
     some extra methods.
 
     EXAMPLES::
@@ -153,12 +153,12 @@ class OrdinaryGeneratingSeriesRing(LazyTaylorSeriesRing):
     Element = OrdinaryGeneratingSeries
 
 
-class ExponentialGeneratingSeries(LazyTaylorSeries):
+class ExponentialGeneratingSeries(LazyPowerSeries):
     r"""
     A class for ordinary generating series.
 
     Note that it is just a
-    :class:`LazyTaylorSeries` whose elements have
+    :class:`LazyPowerSeries` whose elements have
     some extra methods.
 
     EXAMPLES::
@@ -238,12 +238,12 @@ class ExponentialGeneratingSeries(LazyTaylorSeries):
         P = self.parent()
         return P(lambda n: self.count(y.count(n)) / factorial(n), 0)
 
-class ExponentialGeneratingSeriesRing(LazyTaylorSeriesRing):
+class ExponentialGeneratingSeriesRing(LazyPowerSeriesRing):
     r"""
     Return the ring of exponential generating series over ``R``.
 
     Note that it is just a
-    :class:`LazyTaylorSeriesRing` whose elements have
+    :class:`LazyPowerSeriesRing` whose elements have
     some extra methods.
 
     EXAMPLES::
@@ -381,8 +381,7 @@ class CycleIndexSeries(LazySymmetricFunction):
 
     def derivative(self, n=1):
         r"""
-        Return the species-theoretic `n`-th derivative of ``self``,
-        where `n` is ``order``.
+        Return the species-theoretic `n`-th derivative of ``self``.
 
         For a cycle index series `F (p_{1}, p_{2}, p_{3}, \ldots)`, its
         derivative is the cycle index series `F' = D_{p_{1}} F` (that is,
@@ -518,7 +517,7 @@ class CycleIndexSeriesRing(LazySymmetricFunctions):
     difficult to implement in Sage, as it would be an element
     of a power series ring in infinitely many variables.
 
-    Note that it is just a :class:`LazyTaylorSeriesRing` (whose base
+    Note that it is just a :class:`LazyPowerSeriesRing` (whose base
     ring is `\Lambda`) whose elements have some extra methods.
 
     EXAMPLES::

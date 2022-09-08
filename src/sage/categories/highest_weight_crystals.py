@@ -370,12 +370,12 @@ class HighestWeightCrystals(Category_singleton):
             elif prec is None:
                 # If we're here, we may not be a finite crystal.
                 # In fact, we're probably infinite.
-                from sage.rings.lazy_series_ring import LazyTaylorSeriesRing
+                from sage.rings.lazy_series_ring import LazyPowerSeriesRing
                 if q is None:
-                    P = LazyTaylorSeriesRing(ZZ, names='q')
+                    P = LazyPowerSeriesRing(ZZ, names='q')
                 else:
                     P = q.parent()
-                if not isinstance(P, LazyTaylorSeriesRing):
+                if not isinstance(P, LazyPowerSeriesRing):
                     raise TypeError("the parent of q must be a lazy power series ring")
                 ret = P(iter_by_deg(mg))
                 return ret

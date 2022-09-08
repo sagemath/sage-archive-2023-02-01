@@ -315,7 +315,7 @@ one can define them from a system of equations without solving it, and,
 in particular, without needing a closed form for the answer. We begin by
 defining the ring of lazy power series::
 
-    sage: L.<z> = LazyTaylorSeriesRing(QQ)
+    sage: L.<z> = LazyPowerSeriesRing(QQ)
 
 Then we create a “free” power series, which we name, and which we then
 define by a recursive equation::

@@ -362,7 +362,7 @@ Sage example in ./polynomes.tex, line 1957::
 
 Sage example in ./polynomes.tex, line 2028::
 
-  sage: L.<x> = LazyTaylorSeriesRing(QQ)
+  sage: L.<x> = LazyPowerSeriesRing(QQ)
   sage: lazy_exp = x.exp(); lazy_exp
   1 + x + 1/2*x^2 + 1/6*x^3 + 1/24*x^4 + 1/120*x^5 + 1/720*x^6 + O(x^7)
 

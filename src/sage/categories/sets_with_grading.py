@@ -221,10 +221,10 @@ class SetsWithGrading(Category):
                  - Very likely, this should always return a lazy power series.
             """
             from sage.sets.non_negative_integers import NonNegativeIntegers
-            from sage.rings.lazy_series_ring import LazyTaylorSeriesRing
+            from sage.rings.lazy_series_ring import LazyPowerSeriesRing
             from sage.rings.integer_ring import ZZ
             if isinstance(self.grading_set(), NonNegativeIntegers):
-                R = LazyTaylorSeriesRing(ZZ, names="z")
+                R = LazyPowerSeriesRing(ZZ, names="z")
                 return R(lambda n: self.graded_component(n).cardinality())
             raise NotImplementedError
 

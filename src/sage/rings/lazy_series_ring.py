@@ -9,7 +9,7 @@ We provide lazy implementations for various `\NN`-graded rings.
     :delim: |
 
     :class:`LazyLaurentSeriesRing` | The ring of lazy Laurent series.
-    :class:`LazyTaylorSeriesRing` | The ring of (possibly multivariate) lazy Taylor series.
+    :class:`LazyPowerSeriesRing` | The ring of (possibly multivariate) lazy Taylor series.
     :class:`LazyCompletionGradedAlgebra` | The completion of a graded algebra consisting of formal series.
     :class:`LazySymmetricFunctions` | The ring of (possibly multivariate) lazy symmetric functions.
     :class:`LazyDirichletSeriesRing` | The ring of lazy Dirichlet series.
@@ -51,7 +51,7 @@ from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.lazy_series import (LazyModuleElement,
                                     LazyLaurentSeries,
-                                    LazyTaylorSeries,
+                                    LazyPowerSeries,
                                     LazyCompletionGradedAlgebraElement,
                                     LazySymmetricFunction,
                                     LazyDirichletSeries)
@@ -475,7 +475,7 @@ class LazySeriesRing(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: L.<z> = LazyTaylorSeriesRing(QQ)
+            sage: L.<z> = LazyPowerSeriesRing(QQ)
             sage: s = L.undefined(1)
             sage: s.define(z + (s^2+s(z^2))/2)
             sage: s
@@ -549,7 +549,7 @@ class LazySeriesRing(UniqueRepresentation, Parent):
             sage: L.one()
             1
 
-            sage: L = LazyTaylorSeriesRing(ZZ, 'z')
+            sage: L = LazyPowerSeriesRing(ZZ, 'z')
             sage: L.one()
             1
 
@@ -583,7 +583,7 @@ class LazySeriesRing(UniqueRepresentation, Parent):
             sage: L.zero()
             0
 
-            sage: L = LazyTaylorSeriesRing(ZZ, 'z')
+            sage: L = LazyPowerSeriesRing(ZZ, 'z')
             sage: L.zero()
             0
         """
@@ -605,7 +605,7 @@ class LazySeriesRing(UniqueRepresentation, Parent):
             sage: R.characteristic()
             11
 
-            sage: R.<x, y> = LazyTaylorSeriesRing(GF(7)); R
+            sage: R.<x, y> = LazyPowerSeriesRing(GF(7)); R
             Multivariate Lazy Taylor Series Ring in x, y over Finite Field of size 7
             sage: R.characteristic()
             7
@@ -628,7 +628,7 @@ class LazySeriesRing(UniqueRepresentation, Parent):
             sage: L.has_coerce_map_from(GF(2))
             True
 
-            sage: L = LazyTaylorSeriesRing(GF(2), 'z')
+            sage: L = LazyPowerSeriesRing(GF(2), 'z')
             sage: L.has_coerce_map_from(ZZ)
             True
             sage: L.has_coerce_map_from(GF(2))
@@ -1137,7 +1137,7 @@ class LazyLaurentSeriesRing(LazySeriesRing):
 ######################################################################
 
 
-class LazyTaylorSeriesRing(LazySeriesRing):
+class LazyPowerSeriesRing(LazySeriesRing):
     """
     The ring of (possibly multivariate) lazy Taylor series.
 
@@ -1149,13 +1149,13 @@ class LazyTaylorSeriesRing(LazySeriesRing):
 
     EXAMPLES::
 
-        sage: LazyTaylorSeriesRing(ZZ, 't')
+        sage: LazyPowerSeriesRing(ZZ, 't')
         Lazy Taylor Series Ring in t over Integer Ring
 
-        sage: L.<x, y> = LazyTaylorSeriesRing(QQ); L
+        sage: L.<x, y> = LazyPowerSeriesRing(QQ); L
         Multivariate Lazy Taylor Series Ring in x, y over Rational Field
     """
-    Element = LazyTaylorSeries
+    Element = LazyPowerSeries
 
     def __init__(self, base_ring, names, sparse=True, category=None):
         """
@@ -1163,7 +1163,7 @@ class LazyTaylorSeriesRing(LazySeriesRing):
 
         TESTS::
 
-            sage: L = LazyTaylorSeriesRing(ZZ, 't')
+            sage: L = LazyPowerSeriesRing(ZZ, 't')
             sage: TestSuite(L).run(skip=['_test_elements', '_test_associativity', '_test_distributivity', '_test_zero'])
         """
         from sage.structure.category_object import normalize_names
@@ -1197,7 +1197,7 @@ class LazyTaylorSeriesRing(LazySeriesRing):
 
         EXAMPLES::
 
-            sage: LazyTaylorSeriesRing(GF(2), 'z')
+            sage: LazyPowerSeriesRing(GF(2), 'z')
             Lazy Taylor Series Ring in z over Finite Field of size 2
         """
         BR = self.base_ring()
@@ -1212,7 +1212,7 @@ class LazyTaylorSeriesRing(LazySeriesRing):
 
         EXAMPLES::
 
-            sage: L = LazyTaylorSeriesRing(GF(2), 'z')
+            sage: L = LazyPowerSeriesRing(GF(2), 'z')
             sage: latex(L)
             \Bold{F}_{2} [\![z]\!]
         """
@@ -1226,7 +1226,7 @@ class LazyTaylorSeriesRing(LazySeriesRing):
 
         EXAMPLES::
 
-            sage: L = LazyTaylorSeriesRing(ZZ, 'z')
+            sage: L = LazyPowerSeriesRing(ZZ, 'z')
             sage: L._monomial(2, 3)
             2*z^3
         """
@@ -1243,7 +1243,7 @@ class LazyTaylorSeriesRing(LazySeriesRing):
 
         EXAMPLES::
 
-            sage: L = LazyTaylorSeriesRing(ZZ, 'z')
+            sage: L = LazyPowerSeriesRing(ZZ, 'z')
             sage: L.gen()
             z
             sage: L.gen(3)
@@ -1271,7 +1271,7 @@ class LazyTaylorSeriesRing(LazySeriesRing):
 
         EXAMPLES::
 
-            sage: L.<z> = LazyTaylorSeriesRing(ZZ)
+            sage: L.<z> = LazyPowerSeriesRing(ZZ)
             sage: L.ngens()
             1
         """
@@ -1284,7 +1284,7 @@ class LazyTaylorSeriesRing(LazySeriesRing):
 
         EXAMPLES::
 
-            sage: L = LazyTaylorSeriesRing(ZZ, 'x,y')
+            sage: L = LazyPowerSeriesRing(ZZ, 'x,y')
             sage: L.gens()
             (x, y)
         """
@@ -1304,13 +1304,13 @@ class LazyTaylorSeriesRing(LazySeriesRing):
 
         EXAMPLES::
 
-            sage: L = LazyTaylorSeriesRing(GF(2), 'z')
+            sage: L = LazyPowerSeriesRing(GF(2), 'z')
             sage: L(2)
             0
             sage: L(3)
             1
 
-            sage: L = LazyTaylorSeriesRing(ZZ, 'z')
+            sage: L = LazyPowerSeriesRing(ZZ, 'z')
             sage: L(lambda i: i, 5, 1, 10)
             5*z^5 + 6*z^6 + 7*z^7 + 8*z^8 + 9*z^9 + z^10 + z^11 + z^12 + O(z^13)
             sage: L(lambda i: i, 5, (1, 10))
@@ -1355,7 +1355,7 @@ class LazyTaylorSeriesRing(LazySeriesRing):
 
             sage: P.<x> = QQ[]
             sage: p = x + 3*x^2 + x^5
-            sage: L.<x> = LazyTaylorSeriesRing(ZZ)
+            sage: L.<x> = LazyPowerSeriesRing(ZZ)
             sage: L(p)
             x + 3*x^2 + x^5
 
@@ -1364,13 +1364,13 @@ class LazyTaylorSeriesRing(LazySeriesRing):
 
             sage: P.<x, y> = QQ[]
             sage: p = x + y^2 + x*y
-            sage: L.<x,y> = LazyTaylorSeriesRing(ZZ)
+            sage: L.<x,y> = LazyPowerSeriesRing(ZZ)
             sage: L(p)
             x + (x*y+y^2)
 
         TESTS::
 
-            sage: L.<x,y> = LazyTaylorSeriesRing(ZZ)
+            sage: L.<x,y> = LazyPowerSeriesRing(ZZ)
             sage: L(constant=1)
             Traceback (most recent call last):
             ...
@@ -1450,7 +1450,7 @@ class LazyTaylorSeriesRing(LazySeriesRing):
                                             degree=degree)
             return self.element_class(self, coeff_stream)
 
-        if isinstance(x, LazyTaylorSeries):
+        if isinstance(x, LazyPowerSeries):
             if x._coeff_stream._is_sparse is self._sparse:
                 return self.element_class(self, x._coeff_stream)
             # TODO: Implement a way to make a self._sparse copy
@@ -1501,7 +1501,7 @@ class LazyTaylorSeriesRing(LazySeriesRing):
 
         EXAMPLES::
 
-            sage: L = LazyTaylorSeriesRing(ZZ, 'z')
+            sage: L = LazyPowerSeriesRing(ZZ, 'z')
             sage: L.an_element()
             z + z^2 + z^3 + z^4 + O(z^5)
         """

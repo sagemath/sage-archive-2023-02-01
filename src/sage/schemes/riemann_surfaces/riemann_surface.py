@@ -85,7 +85,7 @@ divisor, and we can calculate the canonical divisor using curve functionality::
 Note we could check using exact techniques that `2D = K`::
 
     sage: Z = K - 2*D
-    sage: (Z.degree()==0, len(Z.basis_differential_space())==S.genus, len(Z.basis_function_space())==1)
+    sage: (Z.degree() == 0, len(Z.basis_differential_space()) == S.genus, len(Z.basis_function_space()) == 1)
     (True, True, True)
 
 We can also check this using our Abel-Jacobi functions::
@@ -325,10 +325,10 @@ def differential_basis_baker(f):
 
         sage: from sage.schemes.riemann_surfaces.riemann_surface import differential_basis_baker
         sage: R.<x,y> = QQ[]
-        sage: f = x^3+y^3+x^5*y^5
+        sage: f = x^3 + y^3 + x^5*y^5
         sage: differential_basis_baker(f)
         [y^2, x*y, x*y^2, x^2, x^2*y, x^2*y^2, x^2*y^3, x^3*y^2, x^3*y^3]
-        sage: f = y^2-(x-3)^2*x
+        sage: f = y^2 - (x-3)^2*x
         sage: differential_basis_baker(f) is None
         True
         sage: differential_basis_baker(x^2+y^2-1)
@@ -370,7 +370,7 @@ def differential_basis_baker(f):
             return None
     x, y = f.parent().gens()
     return [
-        x ** (a[0] - 1) * y ** (a[1] - 1)
+        x**(a[0] - 1) * y**(a[1] - 1)
         for a in P.integral_points()
         if P.interior_contains(a)
     ]
@@ -427,13 +427,17 @@ def reparameterize_differential_minpoly(minpoly, z0):
 
     EXAMPLES:
 
-    On the curve given by `w^2-z^3+1=0`, we have differential
+    On the curve given by `w^2 - z^3 + 1 = 0`, we have differential
     `\frac{dz}{2w} = \frac{dz}{2\sqrt{z^3-1}}`
-    with minimal polynomial `g^2(z^3-1)-1/4=0`. We can make the substitution
-    `\bar{z}=z^{-1}` to parameterise the differential about `z=\Infty` as
-    `\frac{-\bar{z}^{-2} d\bar{z}}{2\sqrt{\bar{z}^{-3}-1}} = \frac{-d\bar{z}}{2\sqrt{\bar{z}(1-\bar{z}^3)}}`.
+    with minimal polynomial `g^2(z^3-1) - 1/4=0`. We can make the substitution
+    `\bar{z}=z^{-1}` to parameterise the differential about `z=\infty` as
+
+    .. MATH::
+
+        `\frac{-\bar{z}^{-2} d\bar{z}}{2\sqrt{\bar{z}^{-3}-1}} = \frac{-d\bar{z}}{2\sqrt{\bar{z}(1-\bar{z}^3)}}`.
+
     Hence the transformed differential should have minimal polynomial
-    `\bar{g}^2\bar{z}(1-\bar{z}^3)-1/4=0`, and we can check this::
+    `\bar{g}^2 \bar{z} (1 - \bar{z}^3) - 1/4 = 0`, and we can check this::
 
         sage: from sage.schemes.riemann_surfaces.riemann_surface import RiemannSurface, reparameterize_differential_minpoly
         sage: R.<z,w> = QQ[]
@@ -446,7 +450,7 @@ def reparameterize_differential_minpoly(minpoly, z0):
     We can further check that reparameterising about `0` is the identity
     operation::
 
-        sage: reparameterize_differential_minpoly(minpoly, 0)(*minpoly.parent().gens())==minpoly
+        sage: reparameterize_differential_minpoly(minpoly, 0)(*minpoly.parent().gens()) == minpoly
         True
 
     .. NOTE::
@@ -466,7 +470,7 @@ def reparameterize_differential_minpoly(minpoly, z0):
 
     if Inf:
         F = F.fraction_field()
-        mt = F(minpoly(F.gen(0) ** (-1), -F.gen(0) ** (+2) * F.gen(1)))
+        mt = F(minpoly(F.gen(0)**(-1), -F.gen(0)**2 * F.gen(1)))
         mt.reduce()
         mt = mt.numerator()
     else:
@@ -531,7 +535,7 @@ class RiemannSurface(object):
         sage: Qt.<t> = QQ[]
         sage: K.<a> = NumberField(t^2-t+3,embedding=CC(0.5+1.6*I))
         sage: R.<x,y> = K[]
-        sage: f = y^2+y-(x^3+(1-a)*x^2-(2+a)*x-2)
+        sage: f = y^2 + y - (x^3 + (1-a)*x^2 - (2+a)*x - 2)
         sage: S = RiemannSurface(f, prec=100, differentials=[1])
         sage: A = S.endomorphism_basis()
         sage: len(A)
@@ -562,7 +566,7 @@ class RiemannSurface(object):
     rigorous method, but for slower computations the rigorous method can be much
     faster::
 
-        sage: f = z*w^3+z^3+w
+        sage: f = z*w^3 + z^3 + w
         sage: p = 53
         sage: Sh = RiemannSurface(f, prec=p, integration_method='heuristic')
         sage: Sr = RiemannSurface(f, prec=p, integration_method='rigorous')
@@ -585,21 +589,15 @@ class RiemannSurface(object):
     being significantly slower than the rigorous method. For a worse conditioned
     curve, this effect is more pronounced::
 
-        sage: q = 1/10
-        sage: f = y^2-(x^2-2*x+1+q^2)*(x^2+2*x+1+q^2)
+        sage: q = 1 / 10
+        sage: f = y^2 - (x^2 - 2*x + 1 + q^2) * (x^2 + 2*x + 1 + q^2)
         sage: p = 500
         sage: Sh = RiemannSurface(f, prec=p, integration_method='heuristic')
         sage: Sr = RiemannSurface(f, prec=p, integration_method='rigorous')
         sage: nodes.cache.clear()
-        sage: ct = time.time()
         sage: Rh = Sh.riemann_matrix()  # long time (8 seconds)
-        sage: ct1 = time.time()-ct
         sage: nodes.cache.clear()
-        sage: ct = time.time()
         sage: Rr = Sr.riemann_matrix()  # long time (1 seconds)
-        sage: ct2 = time.time()-ct
-        sage: ct2/ct1  # random
-        0.19453288941244148
 
     This disparity in timings can get increasingly worse, and testing has shown
     that even for random quadrics the heuristic method can be as bad as 30 times
@@ -632,7 +630,7 @@ class RiemannSurface(object):
         prec=53,
         certification=True,
         differentials=None,
-        integration_method="rigorous",
+        integration_method="rigorous"
     ):
         r"""
         TESTS::
@@ -646,13 +644,13 @@ class RiemannSurface(object):
         self._prec = prec
         self._certification = certification
         if not (integration_method == "heuristic" or integration_method == "rigorous"):
-            raise ValueError("Invalid integration method")
+            raise ValueError("invalid integration method")
         self._integration_method = integration_method
         self._R = f.parent()
         if len(self._R.gens()) != 2:
-            raise ValueError("only bivariate polynomials supported.")
+            raise ValueError('only bivariate polynomials supported')
         if f.degree() <= 1:
-            raise ValueError("equation must be of degree at least 2.")
+            raise ValueError('equation must be of degree at least 2')
         z, w = self._R.gen(0), self._R.gen(1)
         self._CC = ComplexField(self._prec)
         self._RR = RealField(self._prec)
@@ -981,7 +979,7 @@ class RiemannSurface(object):
 
             # compute M
             upperbounds = [
-                sum(ak[k] * (abs(z1) + rho) ** k for k in range(ak.degree()))
+                sum(ak[k] * (abs(z1) + rho)**k for k in range(ak.degree()))
                 for ak in self._aks
             ]
             upperbounds.reverse()
@@ -1001,7 +999,7 @@ class RiemannSurface(object):
             return (
                 rho
                 * (
-                    ((rho * Y - epsilon) ** 2 + 4 * epsilon * M).sqrt()
+                    ((rho * Y - epsilon)**2 + 4 * epsilon * M).sqrt()
                     - (rho * Y + epsilon)
                 )
                 / (2 * M - 2 * rho * Y)
@@ -1019,7 +1017,7 @@ class RiemannSurface(object):
         INPUT:
 
         - ``edge`` -- a tuple ``(z_start, z_end)`` indicating the straight line
-          over which to perform the homotopy continutation.
+          over which to perform the homotopy continutation
 
         OUTPUT:
 
@@ -1418,7 +1416,7 @@ class RiemannSurface(object):
         """
         D = {e: self._edge_permutation(e) for e in self.downstairs_edges()}
         for (a, b), p in list(D.items()):
-            D[(b, a)] = p ** (-1)
+            D[(b, a)] = p**(-1)
         return D
 
     @cached_method
@@ -1909,7 +1907,7 @@ class RiemannSurface(object):
             # lowest degree generators are a basis of the relevant subspace.
             d = fnew.total_degree()
             J2 = k.ideal(J).intersection(
-                k.ideal([k.gen(0), k.gen(1), k.gen(2)]) ** (d - 3)
+                k.ideal([k.gen(0), k.gen(1), k.gen(2)])**(d - 3)
             )
             generators = [dehom(c) for c in J2.gens() if c.degree() == d - 3]
             if len(generators) != self.genus:
@@ -1928,13 +1926,12 @@ class RiemannSurface(object):
 
         INPUT:
 
-        - ``differentials`` -- list. A list of polynomials in ``self._R`` giving
+        - ``differentials`` -- list of polynomials in ``self._R`` giving
           the numerators of the differentials, as per the output of
-          :meth:`cohomology_basis`.
+          :meth:`cohomology_basis`
 
-        - ``exact`` -- logical (default: False). Whether to return the minimal
-          polynomials over the exact base ring, or whether to return them over
-          ``self._CC``.
+        - ``exact`` -- boolean (default: ``False``); whether to return the minimal
+          polynomials over the exact base ring, or over ``self._CC``
 
         OUTPUT:
 
@@ -1961,7 +1958,7 @@ class RiemannSurface(object):
 
             sage: from sage.schemes.riemann_surfaces.riemann_surface import RiemannSurface
             sage: R.<x,y> = QQ[]
-            sage: f = y^2-x^3+1
+            sage: f = y^2 - x^3 + 1
             sage: S = RiemannSurface(f)
             sage: differentials = S.cohomology_basis(); differentials
             [1]
@@ -2155,7 +2152,7 @@ class RiemannSurface(object):
         alpha = self._RR(912 / 1000)
         # alpha set manually for scaling purposes. Basic benchmarking shows
         # that ~0.9 is a sensible value.
-        E_global = self._RR(2) ** (-self._prec + 3)
+        E_global = self._RR(2)**(-self._prec + 3)
 
         # Output will iteratively store the output of the integral.
         V = VectorSpace(self._CC, len(differentials))
@@ -2188,7 +2185,7 @@ class RiemannSurface(object):
             rho_z = rho_t * (z1 - z0).abs()
             delta_z = (alpha * rho_t + (1 - alpha) * rt) * (z1_minus_z0).abs()
             expr = (
-                rho_t / rt + ((rho_t / rt) ** 2 - 1).sqrt()
+                rho_t / rt + ((rho_t / rt)**2 - 1).sqrt()
             )  # Note this is really exp(arcosh(rho_t/rt))
             Ni = 3
             cw = zwt(ct)[1]
@@ -2203,7 +2200,7 @@ class RiemannSurface(object):
                 m = [a(rho_z) / z_1 for a in ai_pos]
                 l = len(m)
                 M_tilde = 2 * max(
-                    (m[i].abs()) ** (1 / self._RR(l - i)) for i in range(l)
+                    (m[i].abs())**(1 / self._RR(l - i)) for i in range(l)
                 )
                 cg = g(cz, cw)
                 cdgdz = dgdz(cz, cg)
@@ -2689,7 +2686,7 @@ class RiemannSurface(object):
             True
         """
         if not epscomp:
-            epscomp = 2 ** (-self._prec + 30)
+            epscomp = 2**(-self._prec + 30)
         QQalg = QQ.algebraic_closure()
 
         def polynomialize_element(alpha):
@@ -2989,13 +2986,13 @@ class RiemannSurface(object):
             CCzg = PolynomialRing(self._CC, ["zbar", "gbar"])
             mp_list = [CCzg(mp) for mp in mp_list]
             J = 1 / z_end
-            endscale = -(z_end ** (-2))
+            endscale = -(z_end**(-2))
 
             def initialise(z, i):
                 DF = ComplexField(2 * self._prec)
                 DFw = PolynomialRing(DF, "wbar")
                 z = DF(z)
-                R = DF(z ** (-1))
+                R = DF(z**(-1))
                 wR = DFw(self.f(R, DFw.gen(0))).roots(multiplicities=False)[w_start]
                 newg = -(R**2) * self.cohomology_basis()[i](R, wR) / self._dfdw(R, wR)
                 err = mp_list[i](z, newg).abs()
@@ -3032,7 +3029,7 @@ class RiemannSurface(object):
         if prec is None:
             prec = self._prec
         # tau here is playing the role of the desired error.
-        tau = self._RR(2) ** (-prec + 3)
+        tau = self._RR(2)**(-prec + 3)
         one = self._RR(1)
         la = self._RR.pi() / 2
 
@@ -3056,7 +3053,7 @@ class RiemannSurface(object):
                 d = mp.dict()
                 mp = sum(
                     [
-                        d[k] * CCzg.gen(0) ** k[0] * CCzg.gen(1) ** k[1]
+                        d[k] * CCzg.gen(0)**k[0] * CCzg.gen(1)**k[1]
                         for k in d.keys()
                         if d[k].abs() > tau
                     ]
@@ -3065,13 +3062,13 @@ class RiemannSurface(object):
                 a = QQ(max([(cst - iz) / ig for (iz, ig) in d.keys() if ig > 0]))
                 sum_coeffs = sum(
                     [
-                        d[k] * A.gen(0) ** k[1]
+                        d[k] * A.gen(0)**k[1]
                         for k in d.keys()
                         if ((k[1] == 0 and k[0] == cst) or k[1] * a + k[0] - cst == 0)
                     ]
                 )
                 G = max([r.abs() for r in sum_coeffs.roots(multiplicities=False)])
-                cutoffs.append(((a + 1) * tau / G) ** (1 / self._CC(a + 1)) / J.abs())
+                cutoffs.append(((a + 1) * tau / G)**(1 / self._CC(a + 1)) / J.abs())
                 aes.append(a)
             cutoff_individually = bool(
                 not all(ai <= 0 for ai in aes) and cutoff_individually
@@ -3145,7 +3142,7 @@ class RiemannSurface(object):
                                 outg.append(newg)
                 fj = V(outg)
                 u1 = la * hj.cosh()
-                w = u1 / (2 * u2.cosh() ** 2)
+                w = u1 / (2 * u2.cosh()**2)
                 return (fj, valid), w * fj
 
             f0, v0 = fv(h0, (self.genus * [0], self.genus * [False]))
@@ -3184,7 +3181,7 @@ class RiemannSurface(object):
                             outg.append(newg)
                 fj = V(outg)
                 u1 = la * hj.cosh()
-                w = u1 / (2 * u2.cosh() ** 2)
+                w = u1 / (2 * u2.cosh()**2)
                 return fj, w * fj
 
             u1, u2 = (la * h0.cosh(), la * h0.sinh())
@@ -3227,7 +3224,7 @@ class RiemannSurface(object):
                     D = min(
                         one,
                         max(
-                            D1 ** (D1.log() / D2.log()),
+                            D1**(D1.log() / D2.log()),
                             D2**2,
                             tau * D3_over_tau,
                             D4,
@@ -3359,7 +3356,7 @@ class RiemannSurface(object):
                 # We choose the first vertex we want to go to.
                 # If the closest vertex is closer than the nearest branch point, just take that vertex
                 # otherwise we need something smarter.
-                delta = self._RR(2) ** (-self._prec + 1)
+                delta = self._RR(2)**(-self._prec + 1)
                 if not (
                     (zP - self._vertices[V_index]).abs() < (zP - b).abs()
                     or (zP - b).abs() <= delta
@@ -3412,7 +3409,7 @@ class RiemannSurface(object):
                     ]
                     ts = [
                         ((c - zP) * (zV - zP).conjugate()).real()
-                        / (zP - zV).norm() ** 2
+                        / (zP - zV).norm()**2
                         for c in fl
                     ]
                     ds = [
@@ -3425,7 +3422,7 @@ class RiemannSurface(object):
                         zV = self._vertices[V_index]
                         ts = [
                             ((c - zP) * (zV - zP).conjugate()).real()
-                            / (zP - zV).norm() ** 2
+                            / (zP - zV).norm()**2
                             for c in fl
                         ]
                         ds = [
@@ -3623,7 +3620,7 @@ class RiemannSurface(object):
             if r is None:
                 r = b // 4
             S = 2**b
-            if H * S > 2 ** (self._prec - 4):
+            if H * S > 2**(self._prec - 4):
                 raise ValueError("insufficient precision for b=%s" % b)
 
             def C2Z(v):
@@ -3662,7 +3659,7 @@ class RiemannSurface(object):
 
     def curve(self):
         r"""
-        Return the curve from which this Riemann surface is obtained
+        Return the curve from which this Riemann surface is obtained.
 
         Riemann surfaces explicitly obtained from a curve return that same object.
         For others, the curve is constructed and cached, so that an identical curve is
@@ -3691,7 +3688,7 @@ class RiemannSurface(object):
         Return a list of the of places above the branch locus. This must be
         done over the base ring, and so the places are given in terms of the
         factors of the discriminant. Currently, this method only works when
-        ``self._R.base_ring()==QQ`` as for other rings, the function field
+        ``self._R.base_ring() == QQ`` as for other rings, the function field
         for ``Curve(self.f)`` is not implemented. To go from these divisors to
         a divisor list, see :meth:`divisor_to_divisor_list`.
 
@@ -3734,14 +3731,14 @@ class RiemannSurface(object):
 
         As described in [Neu2018]_, apply the method of strong approximation to
         ``divisor`` with list of places to avoid ``S``. Currently, this method
-        only works when ``self._R.base_ring()==QQ`` as for other rings, the function
+        only works when ``self._R.base_ring() == QQ`` as for other rings, the function
         field for ``Curve(self.f)`` is not implemented.
 
         INPUT:
 
         - ``divisor`` -- an element of ``Curve(self.f).function_field().divisor_group()``
 
-        - ``S`` -- list. A list of places to avoid.
+        - ``S`` -- list of places to avoid
 
         OUTPUT:
 
@@ -3830,7 +3827,7 @@ class RiemannSurface(object):
 
         - ``divisor`` -- an element of ``Curve(self.f).function_field().divisor_group()``
         - ``eps`` -- real number (optional); tolerance used to determine whether a complex
-          number is close enough to a root of a polynomial.
+          number is close enough to a root of a polynomial
 
         OUTPUT:
 
@@ -3856,7 +3853,7 @@ class RiemannSurface(object):
         # If this error bound is too restrictive, this method might fail and
         # not return. One might want to change the way this error is handled.
         if not eps:
-            eps = self._RR(2) ** (-self._prec + 3)
+            eps = self._RR(2)**(-self._prec + 3)
         dl = []
 
         PZ = PolynomialRing(self._R.base(), "z").fraction_field()
@@ -3872,7 +3869,7 @@ class RiemannSurface(object):
 
             g0 = self._R(gs[0])
             gis = [
-                sum([PZ(gi.list()[i]) * RF.gen() ** i for i in range(len(gi.list()))])
+                sum([PZ(gi.list()[i]) * RF.gen()**i for i in range(len(gi.list()))])
                 for gi in gs[1:]
             ]
 
@@ -3968,7 +3965,7 @@ def integer_matrix_relations(M1, M2, b=None, r=None):
     if r is None:
         r = b // 4
     S = 2**b
-    if H * S > 2 ** (prec - 4):
+    if H * S > 2**(prec - 4):
         raise ValueError("insufficient precision for b=%s" % b)
     g1 = M1.ncols()
     g2 = M2.ncols()

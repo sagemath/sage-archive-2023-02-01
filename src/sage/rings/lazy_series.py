@@ -294,11 +294,17 @@ class LazyModuleElement(Element):
             [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
         """
-        R = self.parent()._internal_poly_ring.base_ring()
+        L = self.parent()
+        R = L._internal_poly_ring.base_ring()
         if isinstance(n, slice):
             if n.stop is None:
                 raise NotImplementedError("cannot list an infinite set")
-            start = n.start if n.start is not None else self._coeff_stream._approximate_order
+            if n.start is not None:
+                start = n.start
+            elif L._minimal_valuation is not None:
+                start = L._minimal_valuation
+            else:
+                start = self._coeff_stream._approximate_order
             step = n.step if n.step is not None else 1
             return [R(self._coeff_stream[k]) for k in range(start, n.stop, step)]
         return R(self._coeff_stream[n])
@@ -2449,12 +2455,25 @@ class LazyCauchyProductSeries(LazyModuleElement):
             sage: ~z
             z^-1
 
+        We can also compute the multiplicative inverse of a symmetric
+        function::
+
+            sage: h = SymmetricFunctions(QQ).h()
+            sage: p = SymmetricFunctions(QQ).p()
+            sage: L = LazySymmetricFunctions(p)
+            sage: E = L(lambda n: h[n])
+            sage: (~E)[:4]
+            [p[], -p[1], 1/2*p[1, 1] - 1/2*p[2], -1/6*p[1, 1, 1] + 1/2*p[2, 1] - 1/3*p[3]]
+
+            sage: (E * ~E)[:6]
+            [p[], 0, 0, 0, 0, 0]
+
         TESTS::
 
             sage: L.<x> = LazyLaurentSeriesRing(QQ)
             sage: g = L([2], valuation=-1, constant=1); g
             2*x^-1 + 1 + x + x^2 + O(x^3)
-            sage: g*g^-1
+            sage: g * g^-1
             1 + O(x^7)
 
         """

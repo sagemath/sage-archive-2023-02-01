@@ -142,6 +142,12 @@ class OrdinaryGeneratingSeriesRing(LazyTaylorSeriesRing):
 
     """
     def __init__(self, base_ring):
+        """
+        TESTS::
+
+            self: R = OrdinaryGeneratingSeriesRing(QQ); R
+            Lazy Taylor Series Ring in z over Rational Field
+        """
         super().__init__(base_ring, names="z")
 
     Element = OrdinaryGeneratingSeries
@@ -252,15 +258,19 @@ class ExponentialGeneratingSeriesRing(LazyTaylorSeriesRing):
 
     TESTS:
 
-    We test to make sure that caching works.
-
-    ::
+    We test to make sure that caching works::
 
         sage: R is ExponentialGeneratingSeriesRing(QQ)
         True
 
     """
     def __init__(self, base_ring):
+        """
+        TESTS::
+
+            self: R = ExponentialGeneratingSeriesRing(QQ); R
+            Lazy Taylor Series Ring in z over Rational Field
+        """
         super().__init__(base_ring, names="z")
 
     Element = ExponentialGeneratingSeries
@@ -369,78 +379,7 @@ class CycleIndexSeries(LazySymmetricFunction):
             return 0
         return self.coefficient(n).coefficient([1]*n)
 
-        r"""
-        Return the multiplicative inverse of ``self``.
-
-        This algorithm is derived from [BLL]_.
-
-        EXAMPLES::
-
-            sage: E = species.SetSpecies().cycle_index_series()
-            sage: E.__invert__()[:4]
-            [p[], -p[1], 1/2*p[1, 1] - 1/2*p[2], -1/6*p[1, 1, 1] + 1/2*p[2, 1] - 1/3*p[3]]
-
-        The defining characteristic of the multiplicative inverse `F^{-1}` of
-        a cycle index series `F` is that `F \cdot F^{-1} = F^{-1} \cdot F = 1`
-        (that is, both products with `F` yield the multiplicative identity `1`)::
-
-            sage: E = species.SetSpecies().cycle_index_series()
-            sage: (E * ~E)[:6]
-            [p[], 0, 0, 0, 0, 0]
-
-        REFERENCES:
-
-        - [BLL]_
-        - [BLL-Intro]_
-        - http://bergeron.math.uqam.ca/Site/bergeron_anglais_files/livre_combinatoire.pdf
-
-        AUTHORS:
-
-        - Andrew Gainer-Dewar
-
-        TESTS::
-
-            sage: E = species.SetSpecies().cycle_index_series()
-            sage: (E / E)[:6]
-            [p[], 0, 0, 0, 0, 0]
-        """
-
-        """
-        Return a generator for the coefficients of the composition of this
-        cycle index series and the cycle index series ``y``. This overrides
-        the method defined in ``LazyTaylorSeries``.
-
-        The notion "composition" means plethystic substitution here, as
-        defined in Section 2.2 of [BLL-Intro]_.
-
-        EXAMPLES::
-
-            sage: E = species.SetSpecies(); C = species.CycleSpecies()
-            sage: E_cis = E.cycle_index_series()
-            sage: g = E_cis._compose_gen(C.cycle_index_series(),0)
-            sage: [next(g) for i in range(4)]
-            [p[], p[1], p[1, 1] + p[2], p[1, 1, 1] + p[2, 1] + p[3]]
-
-        Return the composition of one term in ``self`` with `y`.
-
-        INPUT:
-
-        -  ``p`` - a term in ``self``
-        -  ``y_powers`` - a stream for the powers of `y`
-           starting with `y`
-
-        EXAMPLES::
-
-            sage: E = species.SetSpecies(); C = species.CycleSpecies()
-            sage: E_cis = E.cycle_index_series()
-            sage: C_cis = C.cycle_index_series()
-            sage: c_powers = Stream(C_cis._power_gen())
-            sage: p2 = E_cis.coefficient(2); p2
-            1/2*p[1, 1] + 1/2*p[2]
-            sage: E_cis._compose_term(p2, c_powers)[:4]
-            [0, 0, 1/2*p[1, 1] + 1/2*p[2], 1/2*p[1, 1, 1] + 1/2*p[2, 1]]
-        """
-
+    def derivative(self, n=1):
         r"""
         Return the species-theoretic `n`-th derivative of ``self``,
         where `n` is ``order``.
@@ -469,7 +408,9 @@ class CycleIndexSeries(LazySymmetricFunction):
             sage: L[:8] == C.derivative()[:8]
             True
         """
+        return self.derivative_with_respect_to_p1(n=n)
 
+    def pointing(self):
         r"""
         Return the species-theoretic pointing of ``self``.
 
@@ -491,7 +432,10 @@ class CycleIndexSeries(LazySymmetricFunction):
             True
 
         """
+        X = self.parent()([1], valuation=1)
+        return X*self.derivative_with_respect_to_p1()
 
+    def exponential(self):
         r"""
         Return the species-theoretic exponential of ``self``.
 
@@ -649,7 +593,7 @@ def ExponentialCycleIndexSeries(R = RationalField()):
          + 1/3*p[3, 1] + 1/4*p[4]]
     """
     CIS = CycleIndexSeriesRing(R)
-    return CIS(lambda n: _exp_term(n))
+    return CIS(_exp_term)
 
 
 @cached_function
@@ -704,4 +648,4 @@ def LogarithmCycleIndexSeries(R = RationalField()):
         [0, p[1], 0, 0]
     """
     CIS = CycleIndexSeriesRing(R)
-    return CIS(lambda n: _cl_term(n))
+    return CIS(_cl_term)

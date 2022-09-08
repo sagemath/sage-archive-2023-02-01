@@ -197,7 +197,7 @@ class PermutationSpecies(GenericCombinatorialSpecies, UniqueRepresentation):
             sage: g[0:10]
             [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
         """
-        return base_ring(1)
+        return base_ring.one()
 
 
     def _itgs_callable(self, base_ring, n):
@@ -254,15 +254,14 @@ class PermutationSpecies(GenericCombinatorialSpecies, UniqueRepresentation):
 
         pn = p([m])
 
-        if n == 0:
+        if not n:
             return p(1)
         if m == 1:
             if n % 2:
-                return base_ring(0)
-            else:
-                return pn**(n//2)   
+                return base_ring.zero()
+            return pn**(n//2)
         elif n % m:
-            return base_ring(0)
+            return base_ring.zero()
         return pn**(n//m)
 
 #Backward compatibility

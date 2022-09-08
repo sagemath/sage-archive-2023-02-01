@@ -10,7 +10,7 @@ We provide lazy implementations for various `\NN`-graded rings.
 
     :class:`LazyLaurentSeriesRing` | The ring of lazy Laurent series.
     :class:`LazyTaylorSeriesRing` | The ring of (possibly multivariate) lazy Taylor series.
-    :class:`LazyCompletionGradedAlgebra` | The completion of a graded alebra consisting of formal series.
+    :class:`LazyCompletionGradedAlgebra` | The completion of a graded algebra consisting of formal series.
     :class:`LazySymmetricFunctions` | The ring of (possibly multivariate) lazy symmetric functions.
     :class:`LazyDirichletSeriesRing` | The ring of lazy Dirichlet series.
 
@@ -887,6 +887,7 @@ class LazyLaurentSeriesRing(LazySeriesRing):
         """
         self._sparse = sparse
         self._arity = 1
+        self._minimal_valuation = None
         # We always use the dense because our CS_exact is implemented densely
         self._laurent_poly_ring = LaurentPolynomialRing(base_ring, names)
         self._internal_poly_ring = self._laurent_poly_ring
@@ -1168,6 +1169,7 @@ class LazyTaylorSeriesRing(LazySeriesRing):
         from sage.structure.category_object import normalize_names
         names = normalize_names(-1, names)
         self._sparse = sparse
+        self._minimal_valuation = 0
         self._laurent_poly_ring = PolynomialRing(base_ring, names)
         self._arity = len(names)
         if self._arity == 1:
@@ -1513,7 +1515,7 @@ class LazyTaylorSeriesRing(LazySeriesRing):
 
 class LazyCompletionGradedAlgebra(LazySeriesRing):
     r"""
-    The completion of a graded alebra consisting of formal series.
+    The completion of a graded algebra consisting of formal series.
 
     For a graded algebra `A`, we can form a completion of `A` consisting of
     all formal series of `A` such that each homogeneous component is
@@ -1566,6 +1568,7 @@ class LazyCompletionGradedAlgebra(LazySeriesRing):
             sage: TestSuite(L).run(skip=['_test_elements', '_test_associativity', '_test_distributivity', '_test_zero'])
         """
         base_ring = basis.base_ring()
+        self._minimal_valuation = 0
         if basis in Algebras.TensorProducts:
             self._arity = len(basis._sets)
         else:
@@ -1895,6 +1898,7 @@ class LazyDirichletSeriesRing(LazySeriesRing):
             raise ValueError("positive characteristic not allowed for Dirichlet series")
 
         self._sparse = sparse
+        self._minimal_valuation = 1
         self._arity = 1
         self._laurent_poly_ring = SR  # TODO: it would be good to have something better than the symbolic ring
         self._internal_poly_ring = PolynomialRing(base_ring, names, sparse=True)

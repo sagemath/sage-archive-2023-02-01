@@ -134,7 +134,7 @@ class LinearOrderSpecies(GenericCombinatorialSpecies, UniqueRepresentation):
             sage: g[0:10]
             [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
         """
-        return base_ring(1)
+        return base_ring.one()
 
     def _itgs_list(self, base_ring, n):
         r"""
@@ -148,7 +148,7 @@ class LinearOrderSpecies(GenericCombinatorialSpecies, UniqueRepresentation):
             sage: g[0:10]
             [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
         """
-        return base_ring(1)
+        return base_ring.one()
 
 
     def _cis_callable(self, base_ring, n):

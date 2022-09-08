@@ -195,11 +195,9 @@ class CycleSpecies(GenericCombinatorialSpecies, UniqueRepresentation):
             sage: g[0:3]
             [0.000000000000000, 1.00000000000000, 0.500000000000000]
         """
-        one = base_ring(1)
-        if n == 0:
-            return base_ring(0)
-        else:
-            return self._weight*one/n
+        if n:
+            return self._weight * base_ring.one() / n
+        return base_ring.zero()
 
     def _order(self):
         """
@@ -232,7 +230,9 @@ class CycleSpecies(GenericCombinatorialSpecies, UniqueRepresentation):
             sage: g[0:3]
             [0.000000000000000, 1.00000000000000, 1.00000000000000]
         """
-        return base_ring(0) if n == 0 else self._weight*base_ring(1)
+        if n:
+            return self._weight * base_ring.one()
+        return base_ring.zero()
 
     def _cis_callable(self, base_ring, n):
         r"""
@@ -268,9 +268,9 @@ class CycleSpecies(GenericCombinatorialSpecies, UniqueRepresentation):
         from sage.combinat.sf.sf import SymmetricFunctions
         p = SymmetricFunctions(base_ring).power()
 
-        zero = base_ring(0)
+        zero = base_ring.zero()
 
-        if n == 0:
+        if not n:
             return zero
         res = zero
         for k in divisors(n):

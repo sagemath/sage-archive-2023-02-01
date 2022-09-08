@@ -356,7 +356,7 @@ class Monoids(CategoryWithAxiom):
 
         def __invert__(self):
             r"""
-            Return the inverse of ``self``.
+            Return the multiplicative inverse of ``self``.
 
             There is no default implementation, to avoid conflict
             with the default implementation of ``_div_``.
@@ -372,7 +372,7 @@ class Monoids(CategoryWithAxiom):
 
         def inverse(self):
             """
-            Return the inverse of ``self``.
+            Return the multiplicative inverse of ``self``.
 
             This is an alias for inversion, which can also be invoked
             by ``~x`` for an element ``x``.

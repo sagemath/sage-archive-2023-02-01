@@ -374,15 +374,15 @@ class Monoids(CategoryWithAxiom):
             """
             Return the inverse of ``self``.
 
-            This is an alias for inversion, defined in ``__invert__``.
-
-            Element classes should implement ``__invert__`` only.
+            This is an alias for inversion, which can also be invoked
+            by ``~x`` for an element ``x``.
 
             EXAMPLES::
 
                 sage: AA(sqrt(~2)).inverse()
                 1.414213562373095?
             """
+            # Nota Bene: Element classes should implement ``__invert__`` only.
             return self.__invert__()
 
     class Commutative(CategoryWithAxiom):

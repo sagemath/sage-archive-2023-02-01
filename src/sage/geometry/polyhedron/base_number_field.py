@@ -54,7 +54,7 @@ class Polyhedron_base_number_field(Polyhedron_base):
 
     def _compute_data_lists_and_internal_base_ring(self, data_lists, convert_QQ, convert_NF):
         r"""
-        Compute data lists in Normaliz format and the number field to use with Normaliz.
+        Compute data lists in Normaliz or ``number_field`` backend format and the internal base ring of the data.
 
         EXAMPLES::
 
@@ -97,22 +97,22 @@ class Polyhedron_base_number_field(Polyhedron_base):
         from sage.rings.real_double import RDF
 
         if self.base_ring() in (QQ, ZZ):
-            normaliz_field = QQ
-            nmz_data_lists = convert_QQ(*data_lists)
+            internal_base_ring = QQ
+            internal_data_lists = convert_QQ(*data_lists)
         else:
             # Allows to re-iterate if K is QQ below when data_lists contain
             # iterators:
             data_lists = [tuple(_) for _ in data_lists]
-            nmz_data_lists = convert_NF(*data_lists)
+            internal_data_lists = convert_NF(*data_lists)
             if self.base_ring() in NumberFields():
                 if not RDF.has_coerce_map_from(self.base_ring()):
                     raise ValueError("invalid base ring: {} is a number field that is not real embedded".format(self.base_ring()))
-                normaliz_field = self.base_ring()
+                internal_base_ring = self.base_ring()
             else:
-                K, nmz_data_lists, hom = _number_field_elements_from_algebraics_list_of_lists_of_lists(nmz_data_lists, embedded=True)
-                normaliz_field = K
+                K, internal_data_lists, hom = _number_field_elements_from_algebraics_list_of_lists_of_lists(internal_data_lists, embedded=True)
+                internal_base_ring = K
                 if K is QQ:
                     # Compute it with Normaliz, not QNormaliz
-                    nmz_data_lists = convert_QQ(*[ [ [ QQ(x) for x in v ] for v in l]
+                    internal_data_lists = convert_QQ(*[ [ [ QQ(x) for x in v ] for v in l]
                                                    for l in data_lists ])
-        return nmz_data_lists, normaliz_field
+        return internal_data_lists, internal_base_ring

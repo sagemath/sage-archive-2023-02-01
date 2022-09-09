@@ -3083,7 +3083,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
              + ... + O^8
             sage: fog = f(g)
             sage: fog[:8]
-            [s[2, 1],
+            [0, 0, 0, s[2, 1],
              s[1, 1, 1, 1] + 3*s[2, 1, 1] + 2*s[2, 2] + 3*s[3, 1] + s[4],
              2*s[1, 1, 1, 1, 1] + 8*s[2, 1, 1, 1] + 10*s[2, 2, 1]
              + 12*s[3, 1, 1] + 10*s[3, 2] + 8*s[4, 1] + 2*s[5],

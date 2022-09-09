@@ -709,7 +709,7 @@ class LazySeriesRing(UniqueRepresentation, Parent):
 
 
 class LazyLaurentSeriesRing(LazySeriesRing):
-    """
+    r"""
     The ring of lazy Laurent series.
 
     The ring of Laurent series over a ring with the usual arithmetic
@@ -743,8 +743,7 @@ class LazyLaurentSeriesRing(LazySeriesRing):
         Finite Field of size 3
 
     Series can be defined by specifying a coefficient function
-    along with a valuation or a degree where after the series
-    is evenutally constant::
+    and a valuation::
 
         sage: R.<x,y> = QQ[]
         sage: L.<z> = LazyLaurentSeriesRing(R)
@@ -764,9 +763,9 @@ class LazyLaurentSeriesRing(LazySeriesRing):
         -5*z^-3 - 4*z^-2 - 3*z^-1 + 6 + (x + y)*z + (y^2 + x)*z^2
          + x*z^3 + x*z^4 + x*z^5 + O(z^6)
 
-    Similarly, we can specify a polynomial or the initial
-    coefficients with anything that converts into the
-    corresponding Laurent polynomial ring::
+    We can also specify a polynomial or the initial coefficients.
+    Additionally, we may specify that all coefficients are equal to a
+    given constant, beginning at a given degree::
 
         sage: L([1, x, y, 0, x+y])
         1 + x*z + y*z^2 + (x + y)*z^4
@@ -797,8 +796,8 @@ class LazyLaurentSeriesRing(LazySeriesRing):
         sage: L(x^-2 + 3 + x, valuation=-5, degree=0, constant=2)
         z^-5 + 3*z^-3 + z^-2 + 2 + 2*z + 2*z^2 + O(z^3)
 
-    We can also truncate, shift, and make eventually constant any
-    Laurent series::
+    We can truncate a series, shift its coefficients, or replace all
+    coefficients beginning with a given degree by a constant::
 
         sage: f = 1 / (z + z^2)
         sage: f
@@ -819,16 +818,16 @@ class LazyLaurentSeriesRing(LazySeriesRing):
     more examples)::
 
         sage: L.<z> = LazyLaurentSeriesRing(ZZ)
-        sage: s = L(None, valuation=0)
+        sage: s = L.undefined(valuation=0)
         sage: s.define(1 + z*s^2)
         sage: s
         1 + z + 2*z^2 + 5*z^3 + 14*z^4 + 42*z^5 + 132*z^6 + O(z^7)
 
-    If we do not explicitly know the exact value of every
-    coefficient, then equality checking will depend on the computed
-    coefficients.  If at a certain point we cannot prove two series
-    are different (which involves the coefficients we have computed),
-    then we will raise an error::
+    If the series is not specified by a finite number of initial
+    coefficients and a constant for the remaining coefficients, then
+    equality checking will depend on the coefficients which have
+    already been computed.  If this information is not enough to
+    check that two series are different we raise an error::
 
         sage: f = 1 / (z + z^2); f
         z^-1 - 1 + z - z^2 + z^3 - z^4 + z^5 + O(z^6)
@@ -1301,6 +1300,13 @@ class LazyPowerSeriesRing(LazySeriesRing):
         - ``constant`` -- (optional) the eventual constant of the series
         - ``degree`` -- (optional) the degree when the series is ``constant``
         - ``check`` -- (optional) check that coefficients are homogeneous of the correct degree when they are retrieved
+
+        .. WARNING::
+
+            The behaviour of ``LazyPowerSeries(l)`` for a list ``l``
+            with non-zero last element `e` changed with
+            :trac:`32367`.  To obtain the old behaviour, use
+            ``LazyPowerSeries(l, constant=e)``.
 
         EXAMPLES::
 

@@ -310,7 +310,7 @@ or calculate, more or less instantaneously, the 100-th coefficient::
 
 It is unfortunate to have to recalculate everything if at some point we
 wanted the 101-st coefficient. Lazy power series (see
-:mod:`sage.combinat.species.series`) come into their own here, in that
+:mod:`sage.rings.lazy_series_ring`) come into their own here, in that
 one can define them from a system of equations without solving it, and,
 in particular, without needing a closed form for the answer. We begin by
 defining the ring of lazy power series::

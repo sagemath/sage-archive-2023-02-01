@@ -4981,7 +4981,7 @@ class LazySymmetricFunction(LazyCompletionGradedAlgebraElement):
             O^7
 
         Check that the arithmetic product of symmetric functions with
-constant a term works as advertised::
+        constant a term works as advertised::
 
             sage: p = SymmetricFunctions(QQ).p()
             sage: L = LazySymmetricFunctions(p)
@@ -4995,6 +4995,7 @@ constant a term works as advertised::
             sage: L = LazySymmetricFunctions(s)
             sage: L(s([2])).arithmetic_product(s([1,1,1]))
             s[2, 2, 1, 1] + s[3, 1, 1, 1] + s[3, 2, 1] + s[3, 3]
+
         """
         if len(args) != self.parent()._arity:
             raise ValueError("arity must be equal to the number of arguments provided")

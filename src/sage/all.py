@@ -38,6 +38,10 @@ Check lazy import of ``interacts``::
     <class 'sage.misc.lazy_import.LazyImport'>
     sage: interacts
     <module 'sage.interacts.all' from '...'>
+
+Check that :trac:`34506` is resolved::
+
+    sage: x = int('1'*4301)
 """
 # ****************************************************************************
 #       Copyright (C) 2005-2012 William Stein <wstein@gmail.com>

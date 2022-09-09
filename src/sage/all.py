@@ -285,6 +285,12 @@ set_random_seed()
 sage.misc.lazy_import.finish_startup()
 
 
+### Python broke large ints; see trac #34506
+
+if hasattr(sys, "set_int_max_str_digits"):
+    sys.set_int_max_str_digits(0)
+
+
 def sage_globals():
     r"""
     Return the Sage namespace.

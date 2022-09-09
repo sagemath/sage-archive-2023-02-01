@@ -65,7 +65,7 @@ class Polyhedron_base_number_field(Polyhedron_base):
             ....:            [ [ 1000*x for x in eq ] for eq in eqs]
             sage: def convert_NF(ieqs, eqs):                                            # optional - pynormaliz
             ....:     return ieqs, eqs
-            sage: p_compute_data_lists_and_internal_base_ring([[[1]], [[1/2]]],                 # optional - pynormaliz
+            sage: p._compute_data_lists_and_internal_base_ring([[[1]], [[1/2]]],                 # optional - pynormaliz
             ....:                                     convert_QQ, convert_NF)
             (([[1000]], [[500]]), Rational Field)
             sage: p._compute_data_lists_and_internal_base_ring([[[AA(1)]], [[1/2]]],             # optional - pynormaliz

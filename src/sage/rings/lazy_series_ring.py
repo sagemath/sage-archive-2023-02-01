@@ -1165,6 +1165,27 @@ class LazyPowerSeriesRing(LazySeriesRing):
 
             sage: L = LazyPowerSeriesRing(ZZ, 't')
             sage: TestSuite(L).run(skip=['_test_elements', '_test_associativity', '_test_distributivity', '_test_zero'])
+
+            sage: L = LazyPowerSeriesRing(ZZ, 's, t')
+            sage: TestSuite(L).run(skip=['_test_elements', '_test_associativity', '_test_distributivity', '_test_zero'])
+
+        Check that :trac:`34470` is fixed::
+
+            sage: L.<t> = LazyPowerSeriesRing(QQ)
+            sage: L in CompleteDiscreteValuationRings
+            True
+            sage: L.uniformizer()
+            t
+            sage: lcm(1/(1 - t^2) - 1, t)
+            t^2
+
+            sage: L.<t> = LazyPowerSeriesRing(ZZ)
+            sage: L in PrincipalIdealDomains
+            False
+
+            sage: L = LazyPowerSeriesRing(QQ, 's, t')
+            sage: L in PrincipalIdealDomains
+            False
         """
         from sage.structure.category_object import normalize_names
         names = normalize_names(-1, names)
@@ -1177,8 +1198,9 @@ class LazyPowerSeriesRing(LazySeriesRing):
         else:
             self._internal_poly_ring = PolynomialRing(self._laurent_poly_ring, "DUMMY_VARIABLE")
         category = Algebras(base_ring.category())
-        if base_ring in Fields():
+        if base_ring in Fields() and self._arity == 1:
             category &= CompleteDiscreteValuationRings()
+            self.uniformizer = lambda: self.gen()
         elif base_ring in IntegralDomains():
             category &= IntegralDomains()
         elif base_ring in Rings().Commutative():
@@ -1566,6 +1588,14 @@ class LazyCompletionGradedAlgebra(LazySeriesRing):
             sage: s = SymmetricFunctions(ZZ).s()
             sage: L = LazySymmetricFunctions(s)
             sage: TestSuite(L).run(skip=['_test_elements', '_test_associativity', '_test_distributivity', '_test_zero'])
+
+        Check that :trac:`34470` is fixed::
+
+            sage: s = SymmetricFunctions(QQ).s()
+            sage: L = LazySymmetricFunctions(s)
+            sage: L in PrincipalIdealDomains
+            False
+
         """
         base_ring = basis.base_ring()
         self._minimal_valuation = 0
@@ -1576,9 +1606,7 @@ class LazyCompletionGradedAlgebra(LazySeriesRing):
                 raise ValueError("basis should be a graded algebra")
             self._arity = 1
         category = Algebras(base_ring.category())
-        if base_ring in Fields():
-            category &= CompleteDiscreteValuationRings()
-        elif base_ring in IntegralDomains():
+        if base_ring in IntegralDomains():
             category &= IntegralDomains()
         elif base_ring in Rings().Commutative():
             category = category.Commutative()

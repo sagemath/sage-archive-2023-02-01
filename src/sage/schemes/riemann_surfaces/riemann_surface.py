@@ -3137,7 +3137,7 @@ class RiemannSurface(object):
                             newg -= delta
                         else:
                             if raise_errors:
-                                ConvergenceError("Newton iteration fails to converge")
+                                raise ConvergenceError("Newton iteration fails to converge")
                             else:
                                 outg.append(newg)
                 fj = V(outg)
@@ -3176,7 +3176,7 @@ class RiemannSurface(object):
                         newg -= delta
                     else:
                         if raise_errors:
-                            ConvergenceError("Newton iteration fails to converge")
+                            raise ConvergenceError("Newton iteration fails to converge")
                         else:
                             outg.append(newg)
                 fj = V(outg)
@@ -3245,7 +3245,7 @@ class RiemannSurface(object):
         # we have one final error handle. Again, this will throw an error if 
         # the raise_errors flag is true, but will just return the answer otherwise.
         if raise_errors:
-            ConvergenceError("Newton iteration fails to converge")
+            raise ConvergenceError("Newton iteration fails to converge")
 
         return (J * results[-1], endscale * fj)
 

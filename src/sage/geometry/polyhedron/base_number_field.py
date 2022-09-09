@@ -52,7 +52,7 @@ def _number_field_elements_from_algebraics_list_of_lists_of_lists(listss, **kwds
 
 class Polyhedron_base_number_field(Polyhedron_base):
 
-    def _compute_nmz_data_lists_and_field(self, data_lists, convert_QQ, convert_NF):
+    def _compute_data_lists_and_internal_base_ring(self, data_lists, convert_QQ, convert_NF):
         r"""
         Compute data lists in Normaliz format and the number field to use with Normaliz.
 
@@ -65,13 +65,13 @@ class Polyhedron_base_number_field(Polyhedron_base):
             ....:            [ [ 1000*x for x in eq ] for eq in eqs]
             sage: def convert_NF(ieqs, eqs):                                            # optional - pynormaliz
             ....:     return ieqs, eqs
-            sage: p._compute_nmz_data_lists_and_field([[[1]], [[1/2]]],                 # optional - pynormaliz
+            sage: p_compute_data_lists_and_internal_base_ring([[[1]], [[1/2]]],                 # optional - pynormaliz
             ....:                                     convert_QQ, convert_NF)
             (([[1000]], [[500]]), Rational Field)
-            sage: p._compute_nmz_data_lists_and_field([[[AA(1)]], [[1/2]]],             # optional - pynormaliz
+            sage: p._compute_data_lists_and_internal_base_ring([[[AA(1)]], [[1/2]]],             # optional - pynormaliz
             ....:                                     convert_QQ, convert_NF)
             (([[1000]], [[500]]), Rational Field)
-            sage: p._compute_nmz_data_lists_and_field([[[AA(sqrt(2))]], [[1/2]]],       # optional - pynormaliz  # optional - sage.rings.number_field
+            sage: p._compute_data_lists_and_internal_base_ring([[[AA(sqrt(2))]], [[1/2]]],       # optional - pynormaliz  # optional - sage.rings.number_field
             ....:                                     convert_QQ, convert_NF)
             ([[[a]], [[1/2]]],
              Number Field in a with defining polynomial y^2 - 2 with a = 1.414213562373095?)

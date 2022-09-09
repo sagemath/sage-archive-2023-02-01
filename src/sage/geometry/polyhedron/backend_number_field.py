@@ -122,7 +122,7 @@ class Polyhedron_number_field(Polyhedron_field, Polyhedron_base_number_field):
             0
         """
         (vertices, rays, lines), number_field \
-            = self._compute_nmz_data_lists_and_field((vertices, rays, lines),
+            = self._compute_data_lists_and_internal_base_ring((vertices, rays, lines),
                                                      lambda *x: x, lambda *x: x)
         self._number_field = number_field
         super()._init_from_Vrepresentation(vertices, rays, lines,
@@ -153,7 +153,7 @@ class Polyhedron_number_field(Polyhedron_field, Polyhedron_base_number_field):
             sage: Polyhedron_number_field._init_from_Hrepresentation(p, [(1, 2, 3)], [])
         """
         (ieqs, eqns), number_field \
-            = self._compute_nmz_data_lists_and_field((ieqs, eqns),
+            = self._compute_data_lists_and_internal_base_ring((ieqs, eqns),
                                                      lambda *x: x, lambda *x: x)
         self._number_field = number_field
         super()._init_from_Hrepresentation(ieqs, eqns,

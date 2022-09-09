@@ -527,9 +527,8 @@ class Polyhedron_normaliz(Polyhedron_base_number_field):
             lines = []
 
         (nmz_vertices, nmz_rays, nmz_lines), normaliz_field \
-            = self._compute_nmz_data_lists_and_field((vertices, rays, lines),
-                                                     vert_ray_line_QQ,
-                                                     vert_ray_line_NF)
+            = self._compute_data_lists_and_internal_base_ring(
+                (vertices, rays, lines), vert_ray_line_QQ, vert_ray_line_NF)
 
         if not nmz_vertices and not nmz_rays and not nmz_lines:
             # Special case to avoid:
@@ -626,9 +625,8 @@ class Polyhedron_normaliz(Polyhedron_base_number_field):
             eqns = []
 
         (nmz_ieqs, nmz_eqns), normaliz_field \
-            = self._compute_nmz_data_lists_and_field((ieqs, eqns),
-                                                     nmz_ieqs_eqns_QQ,
-                                                     nmz_ieqs_eqns_NF)
+            = self._compute_data_lists_and_internal_base_ring(
+                (ieqs, eqns), nmz_ieqs_eqns_QQ, nmz_ieqs_eqns_NF)
         if not nmz_ieqs:
             # If normaliz gets an empty list of inequalities, it adds
             # nonnegativities. So let's add a tautological inequality to work
@@ -834,9 +832,9 @@ class Polyhedron_normaliz(Polyhedron_base_number_field):
             return nmz_vertices + nmz_rays, nmz_lines, nmz_lattice, nmz_ieqs
 
         (nmz_extreme_rays, nmz_subspace, nmz_lattice, nmz_ieqs), normaliz_field \
-            = self._compute_nmz_data_lists_and_field((vertices, rays, lines, ieqs),
-                                                     rays_subspace_lattice_ieqs_QQ,
-                                                     rays_subspace_lattice_ieqs_NF)
+            = self._compute_data_lists_and_internal_base_ring(
+                (vertices, rays, lines, ieqs), rays_subspace_lattice_ieqs_QQ,
+                rays_subspace_lattice_ieqs_NF)
 
         data = {"extreme_rays": nmz_extreme_rays,
                 "maximal_subspace": nmz_subspace,

@@ -11,7 +11,7 @@ class JoinFeature(Feature):
 
     In the generic form this creates a new feature as the union of some given
     features. Typically these are executables of a SPKG. For an example see
-    :class:`~sage.features.rubics.Rubics`.
+    :class:`~sage.features.rubiks.Rubiks`.
 
     Furthermore, it can also be used to map a given feature to a more convenient
     name to be used in `optional` tags of doctests. Thus you can equip features

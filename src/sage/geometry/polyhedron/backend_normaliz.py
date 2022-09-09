@@ -191,7 +191,7 @@ class Polyhedron_normaliz(Polyhedron_base_number_field):
         (A vertex at (2^(1/3)), A vertex at (sqrt(2)))
 
     """
-    def __init__(self, parent, Vrep, Hrep, normaliz_cone=None, normaliz_data=None, normaliz_field=None, **kwds):
+    def __init__(self, parent, Vrep, Hrep, normaliz_cone=None, normaliz_data=None, internal_base_ring=None, **kwds):
         """
         Initializes the polyhedron.
 
@@ -213,15 +213,15 @@ class Polyhedron_normaliz(Polyhedron_base_number_field):
             if Hrep is not None or Vrep is not None or normaliz_data is not None:
                 raise ValueError("only one of Vrep, Hrep, normaliz_cone, or normaliz_data can be different from None")
             Element.__init__(self, parent=parent)
-            self._init_from_normaliz_cone(normaliz_cone, normaliz_field)
+            self._init_from_normaliz_cone(normaliz_cone, internal_base_ring)
         elif normaliz_data:
             if Hrep is not None or Vrep is not None:
                 raise ValueError("only one of Vrep, Hrep, normaliz_cone, or normaliz_data can be different from None")
             Element.__init__(self, parent=parent)
-            self._init_from_normaliz_data(normaliz_data, normaliz_field)
+            self._init_from_normaliz_data(normaliz_data, internal_base_ring)
         else:
-            if normaliz_field:
-                raise ValueError("if Vrep or Hrep are given, cannot provide normaliz_field")
+            if internal_base_ring:
+                raise ValueError("if Vrep or Hrep are given, cannot provide internal_base_ring")
             Polyhedron_base_number_field.__init__(self, parent, Vrep, Hrep, **kwds)
 
     def _nmz_result(self, normaliz_cone, property):
@@ -260,13 +260,13 @@ class Polyhedron_normaliz(Polyhedron_base_number_field):
 
         def nfelem_handler(coords):
             # coords might be too short which is not accepted by Sage number field
-            v = list(coords) + [0] * (self._normaliz_field.degree() - len(coords))
-            return self._normaliz_field(v)
+            v = list(coords) + [0] * (self._internal_base_ring.degree() - len(coords))
+            return self._internal_base_ring(v)
         return NmzResult(normaliz_cone, property,
                          RationalHandler=rational_handler,
                          NumberfieldElementHandler=nfelem_handler)
 
-    def _init_from_normaliz_cone(self, normaliz_cone, normaliz_field):
+    def _init_from_normaliz_cone(self, normaliz_cone, internal_base_ring):
         """
         Construct polyhedron from a PyNormaliz wrapper of a normaliz cone.
 
@@ -276,9 +276,9 @@ class Polyhedron_normaliz(Polyhedron_base_number_field):
             sage: from sage.geometry.polyhedron.backend_normaliz import Polyhedron_normaliz       # optional - pynormaliz
             sage: Polyhedron_normaliz._init_from_Hrepresentation(p, [], [])  # indirect doctest   # optional - pynormaliz
         """
-        if normaliz_field is None:
-            normaliz_field = QQ
-        self._normaliz_field = normaliz_field
+        if internal_base_ring is None:
+            internal_base_ring = QQ
+        self._internal_base_ring = internal_base_ring
 
         if normaliz_cone and self._nmz_result(normaliz_cone, "AffineDim") < 0:
             # Empty polyhedron. Special case because Normaliz defines the
@@ -339,7 +339,7 @@ class Polyhedron_normaliz(Polyhedron_base_number_field):
                 # number field
                 return [ _QQ_pair(c) for c in x.list() ]
 
-    def _init_from_normaliz_data(self, data, normaliz_field=None, verbose=False):
+    def _init_from_normaliz_data(self, data, internal_base_ring=None, verbose=False):
         """
         Construct polyhedron from normaliz ``data`` (a dictionary).
 
@@ -360,15 +360,15 @@ class Polyhedron_normaliz(Polyhedron_base_number_field):
             sage: from sage.geometry.polyhedron.parent import Polyhedra_normaliz                # optional - pynormaliz
             sage: parent = Polyhedra_normaliz(AA, 2, 'normaliz')                                # optional - pynormaliz  # optional - sage.rings.number_field
             sage: Polyhedron_normaliz(parent, None, None, normaliz_data=data, # indirect doctest, optional - pynormaliz  # optional - sage.rings.number_field
-            ....:                     normaliz_field=QuadraticField(2))
+            ....:                     internal_base_ring=QuadraticField(2))
             A 2-dimensional polyhedron in AA^2 defined as the convex hull of 1 vertex and 2 rays
             sage: _.inequalities_list()                                                         # optional - pynormaliz  # optional - sage.rings.number_field
             [[0, -1/2, 1], [0, 2, -1]]
         """
-        if normaliz_field is None:
-            normaliz_field = QQ
+        if internal_base_ring is None:
+            internal_base_ring = QQ
         cone = self._cone_from_normaliz_data(data, verbose)
-        self._init_from_normaliz_cone(cone, normaliz_field)
+        self._init_from_normaliz_cone(cone, internal_base_ring)
 
     def _cone_from_normaliz_data(self, data, verbose=False):
         """
@@ -526,7 +526,7 @@ class Polyhedron_normaliz(Polyhedron_base_number_field):
         if lines is None:
             lines = []
 
-        (nmz_vertices, nmz_rays, nmz_lines), normaliz_field \
+        (nmz_vertices, nmz_rays, nmz_lines), internal_base_ring \
             = self._compute_data_lists_and_internal_base_ring(
                 (vertices, rays, lines), vert_ray_line_QQ, vert_ray_line_NF)
 
@@ -539,10 +539,10 @@ class Polyhedron_normaliz(Polyhedron_base_number_field):
             data = {"vertices": nmz_vertices,
                     "cone": nmz_rays,
                     "subspace": nmz_lines}
-            number_field_data = self._number_field_triple(normaliz_field)
+            number_field_data = self._number_field_triple(internal_base_ring)
             if number_field_data:
                 data["number_field"] = number_field_data
-            self._init_from_normaliz_data(data, normaliz_field=normaliz_field, verbose=verbose)
+            self._init_from_normaliz_data(data, internal_base_ring=internal_base_ring, verbose=verbose)
 
     def _init_from_Hrepresentation(self, ieqs, eqns, minimize=True, verbose=False):
         r"""
@@ -624,7 +624,7 @@ class Polyhedron_normaliz(Polyhedron_base_number_field):
         if eqns is None:
             eqns = []
 
-        (nmz_ieqs, nmz_eqns), normaliz_field \
+        (nmz_ieqs, nmz_eqns), internal_base_ring \
             = self._compute_data_lists_and_internal_base_ring(
                 (ieqs, eqns), nmz_ieqs_eqns_QQ, nmz_ieqs_eqns_NF)
         if not nmz_ieqs:
@@ -634,10 +634,10 @@ class Polyhedron_normaliz(Polyhedron_base_number_field):
             nmz_ieqs.append([0] * self.ambient_dim() + [0])
         data = {"inhom_equations": nmz_eqns,
                 "inhom_inequalities": nmz_ieqs}
-        number_field_data = self._number_field_triple(normaliz_field)
+        number_field_data = self._number_field_triple(internal_base_ring)
         if number_field_data:
             data["number_field"] = number_field_data
-        self._init_from_normaliz_data(data, normaliz_field=normaliz_field, verbose=verbose)
+        self._init_from_normaliz_data(data, internal_base_ring=internal_base_ring, verbose=verbose)
 
     def _cone_from_Vrepresentation_and_Hrepresentation(self, vertices, rays, lines, ieqs, eqns=None, verbose=False, homogeneous=False):
         r"""
@@ -831,7 +831,7 @@ class Polyhedron_normaliz(Polyhedron_base_number_field):
 
             return nmz_vertices + nmz_rays, nmz_lines, nmz_lattice, nmz_ieqs
 
-        (nmz_extreme_rays, nmz_subspace, nmz_lattice, nmz_ieqs), normaliz_field \
+        (nmz_extreme_rays, nmz_subspace, nmz_lattice, nmz_ieqs), internal_base_ring \
             = self._compute_data_lists_and_internal_base_ring(
                 (vertices, rays, lines, ieqs), rays_subspace_lattice_ieqs_QQ,
                 rays_subspace_lattice_ieqs_NF)
@@ -845,7 +845,7 @@ class Polyhedron_normaliz(Polyhedron_base_number_field):
         if not homogeneous:
             data["dehomogenization"] = [[0] * (ambient_dim - 1) + [1]]
 
-        number_field_data = self._number_field_triple(normaliz_field)
+        number_field_data = self._number_field_triple(internal_base_ring)
         if number_field_data:
             data["number_field"] = number_field_data
         return self._cone_from_normaliz_data(data, verbose=verbose)
@@ -973,7 +973,7 @@ class Polyhedron_normaliz(Polyhedron_base_number_field):
         self._normaliz_cone = None
 
     @classmethod
-    def _from_normaliz_cone(cls, parent, normaliz_cone, normaliz_field=None):
+    def _from_normaliz_cone(cls, parent, normaliz_cone, internal_base_ring=None):
         r"""
         Initializes a polyhedron from a PyNormaliz wrapper of a normaliz cone.
 
@@ -983,12 +983,12 @@ class Polyhedron_normaliz(Polyhedron_base_number_field):
             ....:              backend='normaliz')
             sage: PI = P.integral_hull()                 # indirect doctest; optional - pynormaliz
         """
-        return cls(parent, None, None, normaliz_cone=normaliz_cone, normaliz_field=normaliz_field)
+        return cls(parent, None, None, normaliz_cone=normaliz_cone, internal_base_ring=internal_base_ring)
 
     @staticmethod
-    def _number_field_triple(normaliz_field):
+    def _number_field_triple(internal_base_ring):
         r"""
-        Construct the PyNormaliz triple that describes the number field ``normaliz_field``.
+        Construct the PyNormaliz triple that describes ``internal_base_ring``.
 
         TESTS::
 
@@ -998,7 +998,7 @@ class Polyhedron_normaliz(Polyhedron_base_number_field):
             sage: Pn._number_field_triple(QuadraticField(5))  # optional - sage.rings.number_field
             ['a^2 - 5', 'a', '[2.236067977499789 +/- 8.06e-16]']
         """
-        R = normaliz_field
+        R = internal_base_ring
         if R is QQ:
             return None
         from sage.rings.real_arb import RealBallField
@@ -1179,7 +1179,7 @@ class Polyhedron_normaliz(Polyhedron_base_number_field):
                A vertex at (0, 0, 1, 0),
                A vertex at (0, 1, 0, 0),
                A vertex at (1, 0, 0, 0)),
-              '_normaliz_field': Rational Field,
+              '_internal_base_ring': Rational Field,
               '_pickle_equations': [(-1, 1, 1, 1, 1)],
               '_pickle_inequalities': [(0, 0, 0, 0, 1),
                (0, 0, 0, 1, 0),
@@ -1246,7 +1246,7 @@ class Polyhedron_normaliz(Polyhedron_base_number_field):
 
             sage: P = polytopes.dodecahedron(backend='normaliz')  # optional - pynormaliz  # optional - sage.rings.number_field
             sage: P1 = loads(dumps(P))                            # optional - pynormaliz  # optional - sage.rings.number_field
-            sage: P2 = Polyhedron_normaliz(P1.parent(), None, None, P1._normaliz_cone, normaliz_field=P1._normaliz_field)  # optional - pynormaliz  # optional - sage.rings.number_field
+            sage: P2 = Polyhedron_normaliz(P1.parent(), None, None, P1._normaliz_cone, internal_base_ring=P1._internal_base_ring)  # optional - pynormaliz  # optional - sage.rings.number_field
             sage: P == P2                                         # optional - pynormaliz  # optional - sage.rings.number_field
             True
 
@@ -1453,7 +1453,7 @@ class Polyhedron_normaliz(Polyhedron_base_number_field):
         if measure == 'euclidean':
             return self._nmz_result(cone, 'EuclideanVolume')
         elif measure == 'induced_lattice':
-            if self._normaliz_field in (ZZ, QQ):
+            if self._internal_base_ring in (ZZ, QQ):
                 return self._nmz_result(cone, 'Volume')
             else:
                 return self._nmz_result(cone, 'RenfVolume')

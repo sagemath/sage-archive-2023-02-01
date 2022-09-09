@@ -225,6 +225,7 @@ from sage.categories.hopf_algebras_with_basis import HopfAlgebrasWithBasis
 from sage.categories.tensor import tensor
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.matrix.constructor import matrix
+from sage.structure.factorization import Factorization
 from sage.misc.misc_c import prod
 from sage.data_structures.blas_dict import convert_remove_zeroes, linear_combination
 from copy import copy
@@ -2992,6 +2993,57 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
         m[1, 1, 1] + m[2, 1] + m[3]
         sage: m.set_print_style('lex')
     """
+    def factor(self, proof=None):
+        """
+        Return the factorization of this symmetric function.
+
+        EXAMPLES::
+
+            sage: e = SymmetricFunctions(QQ).e()
+            sage: factor((5*e[3] + e[2,1] + e[1])*(7*e[2] + e[5,1]))
+            (e[1] + e[2, 1] + 5*e[3]) * (7*e[2] + e[5, 1])
+
+            sage: R.<x, y> = QQ[]
+            sage: s = SymmetricFunctions(R.fraction_field()).s()
+            sage: factor((s[3] + x*s[2,1] + 1)*(3*y*s[2] + s[4,1] + x*y))
+            (-s[] + (-x)*s[2, 1] - s[3]) * ((-x*y)*s[] + (-3*y)*s[2] - s[4, 1])
+
+        TESTS::
+
+            sage: p = SymmetricFunctions(QQ).p()
+            sage: factor((p[3] + p[2,1])*(p[2] + p[4,1]))
+            (p[2, 1] + p[3]) * (p[2] + p[4, 1])
+
+            sage: s = SymmetricFunctions(QQ).s()
+            sage: factor((s[3] + s[2,1])*(s[2] + s[4,1]))
+            (-1) * s[1] * s[2] * (-s[2] - s[4, 1])
+
+            sage: s = SymmetricFunctions(ZZ).s()
+            sage: factor((s[3] + s[2,1])*(s[2] + s[4,1]))
+            (-1) * s[1] * s[2] * (-s[2] - s[4, 1])
+
+        """
+        from sage.combinat.sf.multiplicative import SymmetricFunctionAlgebra_multiplicative
+        L = self.parent()
+        if isinstance(L, SymmetricFunctionAlgebra_multiplicative):
+            M = L
+        else:
+            M = L.realization_of().h()
+            self = M(self)
+
+        n = max((part[0] for part in self.support() if part), default=0)
+        R = PolynomialRing(self.base_ring(),
+                           ["v%s" % a for a in range(1, n + 1)])
+        poly = R({tuple(part.to_exp(n)): c for part, c in self})
+        factors = poly.factor(proof=proof)
+        unit = factors.unit()
+        factors = [(M.sum_of_terms((_Partitions.from_exp(e), c)
+                                   for e, c in factor.iterator_exp_coeff(False)),
+                    exponent)
+                   for factor, exponent in factors]
+        if not isinstance(L, SymmetricFunctionAlgebra_multiplicative):
+            factors = [(L(factor), exponent) for factor, exponent in factors]
+        return Factorization(factors, unit=unit)
 
     def plethysm(self, x, include=None, exclude=None):
         r"""

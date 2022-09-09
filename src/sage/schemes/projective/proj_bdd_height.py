@@ -51,8 +51,8 @@ def QQ_points_of_bounded_height(dim, bound):
     EXAMPLES:
 
         sage: from sage.schemes.projective.proj_bdd_height import QQ_points_of_bounded_height
-        sage: list(QQ_points_of_bounded_height(1, 1))
-        [(0 : 1), (1 : 0), (1 : 1), (-1 : 1)]
+        sage: sorted(list(QQ_points_of_bounded_height(1, 1)))
+        [(-1 : 1), (0 : 1), (1 : 0), (1 : 1)]
         sage: len(list(QQ_points_of_bounded_height(1, 5)))
         40
 

@@ -1892,8 +1892,8 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
             sage: L.<l> = CF.extension(x^3 + 2)
             sage: Q.<x,y> = ProjectiveSpace(L, 1)
             sage: sorted(list(Q.points_of_bounded_height(bound=1)))
-            [(0 : 1), (a : 1), (a + 1 : 1), (-a - 1 : 1),
-            (-a : 1), (-1 : 1), (1 : 1), (1 : 0)]
+            [(0 : 1), (1 : 0), (a + 1 : 1), (a : 1),
+             (-1 : 1), (-a - 1 : 1), (-a : 1), (1 : 1)]
 
         ::
 

@@ -37,9 +37,23 @@ class Polyhedron_number_field(Polyhedron_field, Polyhedron_base_number_field):
 
     - ``Hrep`` -- a list ``[ieqs, eqns]`` or ``None``.
 
-    EXAMPLES:
+    EXAMPLES::
 
-    TODO --- examples where input is in SR. Can copy from backend_normaliz.
+        sage: P = Polyhedron(vertices=[[1], [sqrt(2)]], backend='number_field')    # optional - sage.rings.number_field
+        sage: P                                                                    # optional - sage.rings.number_field
+        A 1-dimensional polyhedron in (Symbolic Ring)^1 defined as the convex hull of 2 vertices
+        sage: P.vertices()                                                         # optional - sage.rings.number_field
+        (A vertex at (1), A vertex at (sqrt(2)))
+
+        sage: P = polytopes.icosahedron(exact=True, backend='number_field')        # optional - sage.rings.number_field
+        sage: P                                                                    # optional - sage.rings.number_field
+        A 3-dimensional polyhedron in (Number Field in sqrt5 with defining polynomial x^2 - 5 with sqrt5 = 2.236067977499790?)^3 defined as the convex hull of 12 vertices
+
+        sage: x = polygen(ZZ); P = Polyhedron(vertices=[[sqrt(2)], [AA.polynomial_root(x^3-2, RIF(0,3))]], backend='number_field')    # optional - sage.rings.number_field
+        sage: P                                                                    # optional - sage.rings.number_field
+        A 1-dimensional polyhedron in (Symbolic Ring)^1 defined as the convex hull of 2 vertices
+        sage: P.vertices()                                                         # optional - sage.rings.number_field
+        (A vertex at (sqrt(2)), A vertex at (2^(1/3)))
 
 
     TESTS:
@@ -95,10 +109,25 @@ class Polyhedron_number_field(Polyhedron_field, Polyhedron_base_number_field):
             sage: p = Polyhedron(ambient_dim=2, backend='number_field')
             sage: from sage.geometry.polyhedron.backend_number_field import Polyhedron_number_field
             sage: Polyhedron_number_field._init_from_Vrepresentation(p, [(0,0)], [], [])
+
+        TESTS:
+
+        Check that the coordinates of a vertex get simplified in the Symbolic Ring::
+
+            sage: p = Polyhedron(ambient_dim=2, base_ring=SR, backend='number_field')
+            sage: from sage.geometry.polyhedron.backend_number_field import Polyhedron_number_field
+            sage: Polyhedron_number_field._init_from_Vrepresentation(p, [(0,1/2),(sqrt(2),0),(4,5/6)], [], []); p
+            A 2-dimensional polyhedron in (Symbolic Ring)^2 defined as the convex hull of 3 vertices
+            sage: p.vertices()[0][0]
+            0
         """
-        # TODO: Transform data
+        (vertices, rays, lines), number_field \
+            = self._compute_nmz_data_lists_and_field((vertices, rays, lines),
+                                                     lambda *x: x, lambda *x: x)
+        self._number_field = number_field
         super()._init_from_Vrepresentation(vertices, rays, lines,
-                                           minimize=minimize, verbose=verbose)
+                                           minimize=minimize, verbose=verbose,
+                                           number_field=number_field)
 
     def _init_from_Hrepresentation(self, ieqs, eqns, minimize=True, verbose=False):
         """
@@ -123,5 +152,10 @@ class Polyhedron_number_field(Polyhedron_field, Polyhedron_base_number_field):
             sage: from sage.geometry.polyhedron.backend_number_field import Polyhedron_number_field
             sage: Polyhedron_number_field._init_from_Hrepresentation(p, [(1, 2, 3)], [])
         """
-        # TODO: Transform data
-        super()._init_from_Hrepresentation(ieqs, eqns, minimize=minimize, verbose=verbose)
+        (ieqs, eqns), number_field \
+            = self._compute_nmz_data_lists_and_field((ieqs, eqns),
+                                                     lambda *x: x, lambda *x: x)
+        self._number_field = number_field
+        super()._init_from_Hrepresentation(ieqs, eqns,
+                                           minimize=minimize, verbose=verbose,
+                                           number_field=number_field)

@@ -162,26 +162,27 @@ class Polyhedron_field(Polyhedron_base):
         self._init_Hrepresentation(*Hrep)
 
     def _init_from_Vrepresentation(self, vertices, rays, lines,
-                                   minimize=True, verbose=False):
+                                   minimize=True, verbose=False, number_field=None):
         """
         Construct polyhedron from V-representation data.
 
         INPUT:
 
         - ``vertices`` -- list of points. Each point can be specified
-           as any iterable container of
-           :meth:`~sage.geometry.polyhedron.base.base_ring` elements.
+           as any iterable container of ``number_field`` elements.
 
         - ``rays`` -- list of rays. Each ray can be specified as any
-          iterable container of
-          :meth:`~sage.geometry.polyhedron.base.base_ring` elements.
+          iterable container of ``number_field`` elements.
 
         - ``lines`` -- list of lines. Each line can be specified as
-          any iterable container of
-          :meth:`~sage.geometry.polyhedron.base.base_ring` elements.
+          any iterable container of ``number_field`` elements.
 
         - ``verbose`` -- boolean (default: ``False``). Whether to print
           verbose output for debugging purposes.
+
+        - ``number_field`` -- the number field of the generators' components.
+          Defualt is ``None``, in which case, it is set to
+          :meth:`~sage.geometry.polyhedron.base.base_ring`.
 
         EXAMPLES::
 
@@ -189,29 +190,34 @@ class Polyhedron_field(Polyhedron_base):
             sage: from sage.geometry.polyhedron.backend_field import Polyhedron_field
             sage: Polyhedron_field._init_from_Vrepresentation(p, [(0,0)], [], [])
         """
+        if number_field is None:
+            number_field = self.base_ring()
         from sage.geometry.polyhedron.double_description_inhomogeneous import Hrep2Vrep, Vrep2Hrep
-        H = Vrep2Hrep(self.base_ring(), self.ambient_dim(), vertices, rays, lines)
-        V = Hrep2Vrep(self.base_ring(), self.ambient_dim(),
+        H = Vrep2Hrep(number_field, self.ambient_dim(), vertices, rays, lines)
+        V = Hrep2Vrep(number_field, self.ambient_dim(),
                       H.inequalities, H.equations)
         self._init_Vrepresentation_backend(V)
         self._init_Hrepresentation_backend(H)
 
-    def _init_from_Hrepresentation(self, ieqs, eqns, minimize=True, verbose=False):
+    def _init_from_Hrepresentation(self, ieqs, eqns,
+                                   minimize=True, verbose=False, number_field=None):
         """
         Construct polyhedron from H-representation data.
 
         INPUT:
 
         - ``ieqs`` -- list of inequalities. Each line can be specified
-          as any iterable container of
-          :meth:`~sage.geometry.polyhedron.base.base_ring` elements.
+          as any iterable container of ``number_field`` elements.
 
         - ``eqns`` -- list of equalities. Each line can be specified
-          as any iterable container of
-          :meth:`~sage.geometry.polyhedron.base.base_ring` elements.
+          as any iterable container of ``number_field`` elements.
 
         - ``verbose`` -- boolean (default: ``False``). Whether to print
           verbose output for debugging purposes.
+
+        - ``number_field`` -- the number field of the generators' components.
+          Defualt is ``None``, in which case, it is set to
+          :meth:`~sage.geometry.polyhedron.base.base_ring`.
 
         TESTS::
 
@@ -219,9 +225,11 @@ class Polyhedron_field(Polyhedron_base):
             sage: from sage.geometry.polyhedron.backend_field import Polyhedron_field
             sage: Polyhedron_field._init_from_Hrepresentation(p, [(1, 2, 3)], [])
         """
+        if number_field is None:
+            number_field = self.base_ring()
         from sage.geometry.polyhedron.double_description_inhomogeneous import Hrep2Vrep, Vrep2Hrep
-        V = Hrep2Vrep(self.base_ring(), self.ambient_dim(), ieqs, eqns)
-        H = Vrep2Hrep(self.base_ring(), self.ambient_dim(),
+        V = Hrep2Vrep(number_field, self.ambient_dim(), ieqs, eqns)
+        H = Vrep2Hrep(number_field, self.ambient_dim(),
                       V.vertices, V.rays, V.lines)
         self._init_Vrepresentation_backend(V)
         self._init_Hrepresentation_backend(H)

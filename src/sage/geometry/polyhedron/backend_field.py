@@ -182,7 +182,7 @@ class Polyhedron_field(Polyhedron_base):
           verbose output for debugging purposes.
 
         - ``internal_base_ring`` -- the base ring of the generators' components.
-          Defualt is ``None``, in which case, it is set to
+          Default is ``None``, in which case, it is set to
           :meth:`~sage.geometry.polyhedron.base.base_ring`.
 
         EXAMPLES::
@@ -218,7 +218,7 @@ class Polyhedron_field(Polyhedron_base):
           verbose output for debugging purposes.
 
         - ``internal_base_ring`` -- the base ring of the generators' components.
-          Defualt is ``None``, in which case, it is set to
+          Default is ``None``, in which case, it is set to
           :meth:`~sage.geometry.polyhedron.base.base_ring`.
 
         TESTS::

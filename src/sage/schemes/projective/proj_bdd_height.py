@@ -19,6 +19,8 @@ REFERENCES:
 
 import itertools
 
+from math import floor
+
 from sage.schemes.projective.projective_space import ProjectiveSpace
 from sage.rings.rational_field import QQ
 from sage.rings.all import RealField
@@ -66,15 +68,15 @@ def QQ_points_of_bounded_height(dim, bound):
     PN = ProjectiveSpace(QQ, dim)
     unit_tuples = list(itertools.product([-1, 1], repeat=dim))
     points_of_bounded_height = set([])
-    increasing_tuples = itertools.combinations_with_replacement(range(bound + 1), dim + 1)
+    increasing_tuples = itertools.combinations_with_replacement(range(floor(bound + 1)), dim + 1)
     for t in increasing_tuples:
         if gcd(t) == 1:
             for p in itertools.permutations(t):
                 for u in unit_tuples:
-                    new_point = [a*b for a, b in zip(u, p)] + [p[dim]]
-                    points_of_bounded_height.add(PN(new_point))
-
-    return iter(points_of_bounded_height)
+                    PN_point = PN([a*b for a, b in zip(u, p)] + [p[dim]])
+                    if PN_point not in points_of_bounded_height:
+                        points_of_bounded_height.add(PN_point)
+                        yield PN_point
 
 def IQ_points_of_bounded_height(K, dim, bound):
     r"""
@@ -107,7 +109,6 @@ def IQ_points_of_bounded_height(K, dim, bound):
 
     PN = ProjectiveSpace(K, dim)
     unit_tuples = list(itertools.product(K.roots_of_unity(), repeat=dim))
-    points_of_bounded_height = []
 
     class_group_ideals = [c.ideal() for c in K.class_group()]
     class_group_ideal_norms = [i.norm() for i in class_group_ideals]
@@ -115,7 +116,7 @@ def IQ_points_of_bounded_height(K, dim, bound):
 
     possible_norm_set = set([])
     for i in range(class_number):
-        for k in range(1, bound + 1):
+        for k in range(1, ):
             possible_norm_set.add(k*class_group_ideal_norms[i])
 
     coordinate_space = dict()
@@ -142,12 +143,10 @@ def IQ_points_of_bounded_height(K, dim, bound):
             point_coordinates = [a_coordinates[i] for i in index_tuple]
             if a == K.ideal(point_coordinates):
                 for p in itertools.permutations(point_coordinates):
-                    for u in unit_tuples:
-                        new_point = [i*j for i, j in zip(u, p)] + [p[dim]]
-                        points_in_class_a.add(PN(new_point))
-        points_of_bounded_height += list(points_in_class_a)
-
-    return iter(points_of_bounded_height)
+                    PN_point = PN([i*j for i, j in zip(u, p)] + [p[dim]])
+                    if PN_point not in points_in_class_a:
+                        points_in_class_a.add(PN_point)
+                        yield PN_point
 
 def points_of_bounded_height(K, dim, bound, prec=53):
     r"""
@@ -233,7 +232,7 @@ def points_of_bounded_height(K, dim, bound, prec=53):
 
     possible_norm_set = set([])
     for i in range(class_number):
-        for k in range(1, bound + 1):
+        for k in range(1, floor(bound + 1)):
             possible_norm_set.add(k*class_group_ideal_norms[i])
 
     principal_ideal_gens = dict()
@@ -318,7 +317,7 @@ def points_of_bounded_height(K, dim, bound, prec=53):
         a_const = (logB + log_a_norm)/K_degree
         a_coordinates = []
 
-        for k in range(bound + 1):
+        for k in range(floor(bound + 1)):
             norm = k * a_norm
             if norm in coordinate_space:
                 for pair in coordinate_space[norm]:
@@ -340,9 +339,7 @@ def points_of_bounded_height(K, dim, bound, prec=53):
             if log_arch_height <= log_arch_height_bound and a == K.ideal(point_coordinates):
                 for p in itertools.permutations(point_coordinates):
                     for u in unit_tuples:
-                        new_point = [i*j for i, j in zip(u, p)] + [p[dim]]
-                        points_in_class_a.add(PN(new_point))
-        points_of_bdd_height += list(points_in_class_a)
-
-    return iter(points_of_bdd_height)
-
+                        PN_point = PN([i*j for i, j in zip(u, p)] + [p[dim]])
+                        if PN_point not in points_in_class_a:
+                            points_in_class_a.add(PN_point)
+                            yield PN_point

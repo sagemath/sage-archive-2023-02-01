@@ -65,7 +65,7 @@ class Polyhedron_number_field(Polyhedron_field, Polyhedron_base_number_field):
     TESTS:
 
     Tests from :class:`~sage.geometry.polyhedron.backend_field.Polyhedron_field` --
-    here the data are already either in a number field or in ``AA``.
+    here the data are already either in a number field or in ``AA``::
 
         sage: p = Polyhedron(vertices=[(0,0),(AA(2).sqrt(),0),(0,AA(3).sqrt())],            # optional - sage.rings.number_field
         ....:                rays=[(1,1)], lines=[], backend='number_field', base_ring=AA)

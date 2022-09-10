@@ -1506,9 +1506,7 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: len(z)
                 4
             """
-            zero = self.parent().base_ring().zero()
-            return len([key for key, coeff in self.monomial_coefficients(copy=False).items()
-                        if coeff != zero])
+            return len(self.support())
 
         def length(self):
             """
@@ -1556,8 +1554,9 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 [[1], [1, 1, 1], [2, 1], [4]]
             """
             from sage.structure.support_view import SupportView
+            zero = self.parent().base_ring().zero()
             mc = self.monomial_coefficients(copy=False)
-            return SupportView(mc)
+            return SupportView(mc, zero=zero)
 
         def monomials(self):
             """

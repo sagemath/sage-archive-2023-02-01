@@ -204,9 +204,9 @@ class LazyModuleElement(Element):
         sage: L.<z> = LazyLaurentSeriesRing(ZZ)
         sage: M = L(lambda n: n, valuation=0)
         sage: N = L(lambda n: 1, valuation=0)
-        sage: M[:10]
+        sage: M[0:10]
         [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-        sage: N[:10]
+        sage: N[0:10]
         [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
 
     Two sequences can be added::
@@ -218,19 +218,19 @@ class LazyModuleElement(Element):
     Two sequences can be subtracted::
 
         sage: P = M - N
-        sage: P[:10]
+        sage: P[0:10]
         [-1, 0, 1, 2, 3, 4, 5, 6, 7, 8]
 
     A sequence can be multiplied by a scalar::
 
         sage: Q = 2 * M
-        sage: Q[:10]
+        sage: Q[0:10]
         [0, 2, 4, 6, 8, 10, 12, 14, 16, 18]
 
     The negation of a sequence can also be found::
 
         sage: R = -M
-        sage: R[:10]
+        sage: R[0:10]
         [0, -1, -2, -3, -4, -5, -6, -7, -8, -9]
     """
     def __init__(self, parent, coeff_stream):
@@ -304,7 +304,7 @@ class LazyModuleElement(Element):
             elif L._minimal_valuation is not None:
                 start = L._minimal_valuation
             else:
-                start = self._coeff_stream._approximate_order
+                raise ValueError("the start value must be specified if there is no minimal valuation, such as for LazyLaurentSeries")
             step = n.step if n.step is not None else 1
             return [R(self._coeff_stream[k]) for k in range(start, n.stop, step)]
         return R(self._coeff_stream[n])
@@ -739,9 +739,9 @@ class LazyModuleElement(Element):
             sage: t = L(None, valuation=0)
             sage: s.define(1 + z*t^3)
             sage: t.define(1 + z*s^2)
-            sage: s[:9]
+            sage: s[0:9]
             [1, 1, 3, 9, 34, 132, 546, 2327, 10191]
-            sage: t[:9]
+            sage: t[0:9]
             [1, 1, 2, 7, 24, 95, 386, 1641, 7150]
 
         A bigger example::
@@ -765,7 +765,7 @@ class LazyModuleElement(Element):
             sage: L.<z> = LazyLaurentSeriesRing(QQ)
             sage: s = L(None, valuation=1)
             sage: s.define(z + (s^2+s(z^2))/2)
-            sage: [s[i] for i in range(9)]
+            sage: s[0:9]
             [0, 1, 1, 1, 2, 3, 6, 11, 23]
 
         The `q`-Catalan numbers::
@@ -791,7 +791,7 @@ class LazyModuleElement(Element):
             sage: L = Q(constant=1, degree=1)
             sage: T = Q(None, valuation=1)
             sage: T.define(leaf + internal_node * L(T))
-            sage: [T[i] for i in range(6)]
+            sage: T[0:6]
             [0, 1, q, q^2 + q, q^3 + 3*q^2 + q, q^4 + 6*q^3 + 6*q^2 + q]
 
         Similarly for Dirichlet series::
@@ -799,7 +799,7 @@ class LazyModuleElement(Element):
             sage: L = LazyDirichletSeriesRing(ZZ, "z")
             sage: g = L(constant=1, valuation=2)
             sage: F = L(None); F.define(1 + g*F)
-            sage: [F[i] for i in range(1, 16)]
+            sage: F[:16]
             [1, 1, 1, 2, 1, 3, 1, 4, 2, 3, 1, 8, 1, 3, 3]
             sage: oeis(_)                                                       # optional, internet
             0: A002033: Number of perfect partitions of n.
@@ -807,7 +807,7 @@ class LazyModuleElement(Element):
             ...
 
             sage: F = L(None); F.define(1 + g*F*F)
-            sage: [F[i] for i in range(1, 16)]
+            sage: F[:16]
             [1, 1, 1, 3, 1, 5, 1, 10, 3, 5, 1, 24, 1, 5, 5]
 
         We can compute the Frobenius character of unlabeled trees::
@@ -831,7 +831,7 @@ class LazyModuleElement(Element):
             sage: L.<z> = LazyLaurentSeriesRing(ZZ, sparse=True)
             sage: s = L(None, valuation=0)
             sage: s.define(1 + z*s^3)
-            sage: s[:10]
+            sage: s[0:10]
             [1, 1, 3, 12, 55, 273, 1428, 7752, 43263, 246675]
 
             sage: e = L(None, valuation=0)

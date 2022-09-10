@@ -1534,7 +1534,7 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
 
         def support(self):
             """
-            Return a list of the objects indexing the basis of
+            Return an iterable of the objects indexing the basis of
             ``self.parent()`` whose corresponding coefficients of
             ``self`` are non-zero.
 
@@ -1555,9 +1555,9 @@ class ModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: sorted(z.support())
                 [[1], [1, 1, 1], [2, 1], [4]]
             """
-            zero = self.parent().base_ring().zero()
-            return [key for key, coeff in self.monomial_coefficients(copy=False).items()
-                    if coeff != zero]
+            from sage.structure.support_view import SupportView
+            mc = self.monomial_coefficients(copy=False)
+            return SupportView(mc)
 
         def monomials(self):
             """

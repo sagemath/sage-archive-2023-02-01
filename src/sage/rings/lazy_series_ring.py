@@ -1303,10 +1303,10 @@ class LazyPowerSeriesRing(LazySeriesRing):
 
         .. WARNING::
 
-            The behaviour of ``LazyPowerSeries(l)`` for a list ``l``
+            The behaviour of ``LazyPowerSeries(c)`` for a list ``c``
             with non-zero last element `e` changed with
             :trac:`32367`.  To obtain the old behaviour, use
-            ``LazyPowerSeries(l, constant=e)``.
+            ``LazyPowerSeries(c, constant=e)``.
 
         EXAMPLES::
 

@@ -39,6 +39,7 @@ class SupportView(MappingView, Sequence, Set):
             value = self._mapping[key]
         except KeyError:
             return False
+        zero = self._zero
         if zero is None:
             return bool(value)
         return value != zero

@@ -311,6 +311,67 @@ class LazyModuleElement(Element):
 
     coefficient = __getitem__
 
+    def coefficients(self, n=None):
+        """
+        Return the first `n` non-zero coefficients of self.
+
+        EXAMPLES::
+
+            sage: L.<x> = LazyPowerSeriesRing(QQ)
+            sage: f = L([1,2,3])
+            sage: f.coefficients(5)
+            doctest:...: DeprecationWarning: the method coefficients now only returns the non-zero coefficients. Use __getitem__ instead.
+            See https://trac.sagemath.org/32367 for details.
+            [1, 2, 3]
+
+            sage: f = sin(x)
+            sage: f.coefficients(5)
+            doctest:...: DeprecationWarning: the method coefficients now only returns the non-zero coefficients. Use __getitem__ instead.
+            See https://trac.sagemath.org/32367 for details.
+            [1, -1/6, 1/120, -1/5040, 1/362880]
+
+            sage: L.<x, y> = LazyPowerSeriesRing(QQ)
+            sage: f = sin(x^2+y^2)
+            sage: f.coefficients(5)        
+        """
+        coeff_stream = self._coeff_stream
+        if isinstance(coeff_stream, Stream_zero):
+            return []
+
+        if n is None:
+            from sage.misc.lazy_list import lazy_list
+            if isinstance(coeff_stream, Stream_exact):
+                if coeff_stream._constant:
+                    coeffs = ([c for c in coeff_stream._initial_coefficients if c]
+                              + lazy_list(lambda n: coeff_stream._constant))
+                else:
+                    coeffs = [c for c in coeff_stream._initial_coefficients if c]
+            else:
+                coeffs = lazy_list(filter(lambda c: c,
+                                          coeff_stream.iterate_coefficients()))
+        else:
+            if isinstance(self, LazyPowerSeries) and self.parent()._arity == 1:
+                from sage.misc.superseded import deprecation
+                deprecation(32367, 'the method coefficients now only returns the non-zero coefficients. Use __getitem__ instead.')
+
+            if isinstance(coeff_stream, Stream_exact) and not coeff_stream._constant:
+                coeffs = [c for c in coeff_stream._initial_coefficients if c]
+            else:
+                coeffs = []
+                i = self.valuation()
+                while len(coeffs) < n:
+                    if self[i]:
+                        coeffs.append(self[i])
+                    i += 1
+
+        if self.base_ring() == self.parent()._internal_poly_ring.base_ring():
+            return coeffs
+
+        if isinstance(coeffs, list):
+            return [c for coeff in coeffs for c in coeff.coefficients()]
+
+        return lazy_list(map(lambda coeff: coeff.coefficients(), coeffs))
+
     def map_coefficients(self, func):
         r"""
         Return the series with ``func`` applied to each nonzero

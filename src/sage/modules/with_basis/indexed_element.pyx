@@ -25,6 +25,7 @@ from cpython.object cimport Py_NE, Py_EQ
 from sage.misc.repr import repr_lincomb
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
+from sage.misc.superseded import deprecation
 from sage.typeset.ascii_art import AsciiArt, empty_ascii_art, ascii_art
 from sage.typeset.unicode_art import UnicodeArt, empty_unicode_art, unicode_art
 from sage.categories.all import Category, Sets, ModulesWithBasis
@@ -93,7 +94,8 @@ cdef class IndexedFreeModuleElement(ModuleElement):
             sage: Partition([1,1,1]) in a
             False
         """
-        return x in self._monomial_coefficients and self._monomial_coefficients[x] != 0
+        deprecation(34509, "using 'index in vector' is deprecated; use 'index in vector.support()' instead")
+        return x in self.support()
 
     def __hash__(self):
         """

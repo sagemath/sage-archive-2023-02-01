@@ -37,10 +37,8 @@ class SupportView(MappingView, Sequence, Set):
         'c'
         sage: supp[:]
         ('a', 'c')
-        sage: supp[2]
-        Traceback (most recent call last):
-        ...
-        IndexError
+
+    It reflects changes to the underlying dictionary::
 
         sage: d['b'] = 815
         sage: len(supp)
@@ -60,12 +58,34 @@ class SupportView(MappingView, Sequence, Set):
         self._zero = zero
 
     def __len__(self):
+        r"""
+        TESTS::
+
+            sage: d = {'a': 47, 'b': 0, 'c': 11}
+            sage: from sage.structure.support_view import SupportView
+            sage: supp = SupportView(d); supp
+            SupportView({'a': 47, 'b': 0, 'c': 11})
+            sage: len(supp)
+            2
+        """
         length = 0
         for key in self:
             length += 1
         return length
 
     def __getitem__(self, index):
+        r"""
+        TESTS::
+
+            sage: d = {'a': 47, 'b': 0, 'c': 11}
+            sage: from sage.structure.support_view import SupportView
+            sage: supp = SupportView(d); supp
+            SupportView({'a': 47, 'b': 0, 'c': 11})
+            sage: supp[2]
+            Traceback (most recent call last):
+            ...
+            IndexError
+        """
         if isinstance(index, slice):
             return tuple(self)[index]
         if index < 0:
@@ -76,6 +96,16 @@ class SupportView(MappingView, Sequence, Set):
         raise IndexError
 
     def __iter__(self):
+        r"""
+        TESTS::
+
+            sage: d = {'a': 47, 'b': 0, 'c': 11}
+            sage: from sage.structure.support_view import SupportView
+            sage: supp = SupportView(d); supp
+            SupportView({'a': 47, 'b': 0, 'c': 11})
+            sage: iter(supp)
+            <generator object SupportView.__iter__ at 0x7f7ebbb97e40>
+        """
         zero = self._zero
         if zero is None:
             for key, value in self._mapping.items():
@@ -87,6 +117,16 @@ class SupportView(MappingView, Sequence, Set):
                     yield key
 
     def __contains__(self, key):
+        r"""
+        TESTS::
+
+            sage: d = {'a': 47, 'b': 0, 'c': 11}
+            sage: from sage.structure.support_view import SupportView
+            sage: supp = SupportView(d); supp
+            SupportView({'a': 47, 'b': 0, 'c': 11})
+            sage: 'a' in supp, 'b' in supp, 'z' in supp
+            (True, False, False)
+        """
         try:
             value = self._mapping[key]
         except KeyError:

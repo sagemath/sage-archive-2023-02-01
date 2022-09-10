@@ -116,7 +116,7 @@ def IQ_points_of_bounded_height(K, dim, bound):
 
     possible_norm_set = set([])
     for i in range(class_number):
-        for k in range(1, ):
+        for k in range(1, floor(bound + 1)):
             possible_norm_set.add(k*class_group_ideal_norms[i])
 
     coordinate_space = dict()
@@ -143,10 +143,11 @@ def IQ_points_of_bounded_height(K, dim, bound):
             point_coordinates = [a_coordinates[i] for i in index_tuple]
             if a == K.ideal(point_coordinates):
                 for p in itertools.permutations(point_coordinates):
-                    PN_point = PN([i*j for i, j in zip(u, p)] + [p[dim]])
-                    if PN_point not in points_in_class_a:
-                        points_in_class_a.add(PN_point)
-                        yield PN_point
+                    for u in unit_tuples:
+                        PN_point = PN([i*j for i, j in zip(u, p)] + [p[dim]])
+                        if PN_point not in points_in_class_a:
+                            points_in_class_a.add(PN_point)
+                            yield PN_point
 
 def points_of_bounded_height(K, dim, bound, prec=53):
     r"""

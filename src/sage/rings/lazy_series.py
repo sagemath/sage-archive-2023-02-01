@@ -204,9 +204,9 @@ class LazyModuleElement(Element):
         sage: L.<z> = LazyLaurentSeriesRing(ZZ)
         sage: M = L(lambda n: n, valuation=0)
         sage: N = L(lambda n: 1, valuation=0)
-        sage: M[:10]
+        sage: M[0:10]
         [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-        sage: N[:10]
+        sage: N[0:10]
         [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
 
     Two sequences can be added::
@@ -218,19 +218,19 @@ class LazyModuleElement(Element):
     Two sequences can be subtracted::
 
         sage: P = M - N
-        sage: P[:10]
+        sage: P[0:10]
         [-1, 0, 1, 2, 3, 4, 5, 6, 7, 8]
 
     A sequence can be multiplied by a scalar::
 
         sage: Q = 2 * M
-        sage: Q[:10]
+        sage: Q[0:10]
         [0, 2, 4, 6, 8, 10, 12, 14, 16, 18]
 
     The negation of a sequence can also be found::
 
         sage: R = -M
-        sage: R[:10]
+        sage: R[0:10]
         [0, -1, -2, -3, -4, -5, -6, -7, -8, -9]
     """
     def __init__(self, parent, coeff_stream):
@@ -251,21 +251,36 @@ class LazyModuleElement(Element):
         self._coeff_stream = coeff_stream
 
     def __getitem__(self, n):
-        """
-        Return the coefficient of the term with exponent ``n`` of the series.
+        r"""
+        Return the homogeneous degree ``n`` part of the series.
 
         INPUT:
 
-        - ``n`` -- integer; the exponent
+        - ``n`` -- integer; the degree
+
+        For a series ``f``, the slice ``f[start:stop]`` produces the following:
+
+        - if ``start`` and ``stop`` are integers, return the list of
+          terms with given degrees
+
+        - if ``start`` is ``None``, return the list of terms
+          beginning with the valuation
+
+        - if ``stop`` is ``None``, return a
+          :class:`~sage.misc.lazy_list.lazy_list_generic` instead.
 
         EXAMPLES::
 
-            sage: L.<z> = LazyLaurentSeriesRing(ZZ, sparse=False)
+            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
             sage: f = z / (1 - 2*z^3)
             sage: [f[n] for n in range(20)]
             [0, 1, 0, 0, 2, 0, 0, 4, 0, 0, 8, 0, 0, 16, 0, 0, 32, 0, 0, 64]
             sage: f[0:20]
             [0, 1, 0, 0, 2, 0, 0, 4, 0, 0, 8, 0, 0, 16, 0, 0, 32, 0, 0, 64]
+            sage: f[:20]
+            [1, 0, 0, 2, 0, 0, 4, 0, 0, 8, 0, 0, 16, 0, 0, 32, 0, 0, 64]
+            sage: f[::3]
+            lazy list [1, 2, 4, ...]
 
             sage: M = L(lambda n: n, valuation=0)
             sage: [M[n] for n in range(20)]
@@ -276,40 +291,112 @@ class LazyModuleElement(Element):
             sage: [M[n] for n in range(20)]
             [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
 
+        Similarly for multivariate series::
+
+            sage: L.<x,y> = LazyPowerSeriesRing(QQ)
+            sage: sin(x*y)[:11]
+            [x*y, 0, 0, 0, -1/6*x^3*y^3, 0, 0, 0, 1/120*x^5*y^5]
+            sage: sin(x*y)[2::4]
+            lazy list [x*y, -1/6*x^3*y^3, 1/120*x^5*y^5, ...]
+
         Similarly for Dirichlet series::
 
             sage: L = LazyDirichletSeriesRing(ZZ, "z")
-            sage: f = L(lambda n: n)
-            sage: [f[n] for n in range(1, 11)]
+            sage: L(lambda n: n)[1:11]
             [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-            sage: f[1:11]
-            [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-
-            sage: M = L(lambda n: n)
-            sage: [M[n] for n in range(1, 11)]
-            [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-            sage: L = LazyDirichletSeriesRing(ZZ, "z", sparse=True)
-            sage: M = L(lambda n: n)
-            sage: [M[n] for n in range(1, 11)]
-            [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-
         """
-        L = self.parent()
-        R = L._internal_poly_ring.base_ring()
+        R = self.parent()._internal_poly_ring.base_ring()
         if isinstance(n, slice):
-            if n.stop is None:
-                raise NotImplementedError("cannot list an infinite set")
-            if n.start is not None:
-                start = n.start
-            elif L._minimal_valuation is not None:
-                start = L._minimal_valuation
+            if n.start is None:
+                # WARNING: for Dirichlet series, 'degree' and
+                # valuation are different
+                start = self._coeff_stream.order()
             else:
-                start = self._coeff_stream._approximate_order
+                start = n.start
             step = n.step if n.step is not None else 1
+            if n.stop is None:
+                from sage.misc.lazy_list import lazy_list
+                return lazy_list(lambda k: R(self._coeff_stream[start + k * step]))
+
             return [R(self._coeff_stream[k]) for k in range(start, n.stop, step)]
+
         return R(self._coeff_stream[n])
 
     coefficient = __getitem__
+
+    def coefficients(self, n=None):
+        r"""Return the first `n` non-zero coefficients of ``self``.
+
+        INPUT:
+
+        - ``n`` -- (default: ``None``), the number of non-zero
+          coefficients to return.
+
+        If the series has fewer than `n` non-zero coefficients, only
+        these are returned.
+
+        If ``n`` is ``None``, a
+        :class:`~sage.misc.lazy_list.lazy_list_generic` with all
+        non-zero coefficients is returned instead.
+
+        .. WARNING::
+
+            If there are fewer than `n` non-zero coefficients, but
+            this cannot be detected, this method will not return.
+
+        EXAMPLES::
+
+            sage: L.<x> = LazyPowerSeriesRing(QQ)
+            sage: f = L([1,2,3])
+            sage: f.coefficients(5)
+            doctest:...: DeprecationWarning: the method coefficients now only returns the non-zero coefficients. Use __getitem__ instead.
+            See https://trac.sagemath.org/32367 for details.
+            [1, 2, 3]
+
+            sage: f = sin(x)
+            sage: f.coefficients(5)
+            [1, -1/6, 1/120, -1/5040, 1/362880]
+
+            sage: L.<x, y> = LazyPowerSeriesRing(QQ)
+            sage: f = sin(x^2+y^2)
+            sage: f.coefficients(5)
+            [1, 1, -1/6, -1/2, -1/2]
+
+            sage: f.coefficients()
+            lazy list [1, 1, -1/6, ...]
+
+        """
+        coeff_stream = self._coeff_stream
+        if isinstance(coeff_stream, Stream_zero):
+            return []
+        from itertools import repeat, chain, islice
+        from sage.misc.lazy_list import lazy_list
+        # prepare a generator of the non-zero coefficients
+        if isinstance(coeff_stream, Stream_exact):
+            if coeff_stream._constant:
+                coeffs = chain([c for c in coeff_stream._initial_coefficients if c],
+                               repeat(coeff_stream._constant))
+            else:
+                coeffs = (c for c in coeff_stream._initial_coefficients if c)
+        else:
+            coeffs = filter(lambda c: c, coeff_stream.iterate_coefficients())
+
+        if n is None:
+            if self.base_ring() == self.parent()._internal_poly_ring.base_ring():
+                return lazy_list(coeffs)
+
+            # flatten out the generator in the multivariate case
+            return lazy_list(chain.from_iterable(map(lambda coeff: coeff.coefficients(), coeffs)))
+
+        if isinstance(self, LazyPowerSeries) and self.parent()._arity == 1:
+            from sage.misc.superseded import deprecation
+            deprecation(32367, 'the method coefficients now only returns the non-zero coefficients. Use __getitem__ instead.')
+
+        if self.base_ring() == self.parent()._internal_poly_ring.base_ring():
+            return list(islice(coeffs, n))
+
+        # flatten out the generator in the multivariate case
+        return list(islice(chain.from_iterable(map(lambda coeff: coeff.coefficients(), coeffs)), n))
 
     def map_coefficients(self, func):
         r"""
@@ -739,9 +826,9 @@ class LazyModuleElement(Element):
             sage: t = L(None, valuation=0)
             sage: s.define(1 + z*t^3)
             sage: t.define(1 + z*s^2)
-            sage: s[:9]
+            sage: s[0:9]
             [1, 1, 3, 9, 34, 132, 546, 2327, 10191]
-            sage: t[:9]
+            sage: t[0:9]
             [1, 1, 2, 7, 24, 95, 386, 1641, 7150]
 
         A bigger example::
@@ -765,7 +852,7 @@ class LazyModuleElement(Element):
             sage: L.<z> = LazyLaurentSeriesRing(QQ)
             sage: s = L(None, valuation=1)
             sage: s.define(z + (s^2+s(z^2))/2)
-            sage: [s[i] for i in range(9)]
+            sage: s[0:9]
             [0, 1, 1, 1, 2, 3, 6, 11, 23]
 
         The `q`-Catalan numbers::
@@ -791,7 +878,7 @@ class LazyModuleElement(Element):
             sage: L = Q(constant=1, degree=1)
             sage: T = Q(None, valuation=1)
             sage: T.define(leaf + internal_node * L(T))
-            sage: [T[i] for i in range(6)]
+            sage: T[0:6]
             [0, 1, q, q^2 + q, q^3 + 3*q^2 + q, q^4 + 6*q^3 + 6*q^2 + q]
 
         Similarly for Dirichlet series::
@@ -799,7 +886,7 @@ class LazyModuleElement(Element):
             sage: L = LazyDirichletSeriesRing(ZZ, "z")
             sage: g = L(constant=1, valuation=2)
             sage: F = L(None); F.define(1 + g*F)
-            sage: [F[i] for i in range(1, 16)]
+            sage: F[:16]
             [1, 1, 1, 2, 1, 3, 1, 4, 2, 3, 1, 8, 1, 3, 3]
             sage: oeis(_)                                                       # optional, internet
             0: A002033: Number of perfect partitions of n.
@@ -807,7 +894,7 @@ class LazyModuleElement(Element):
             ...
 
             sage: F = L(None); F.define(1 + g*F*F)
-            sage: [F[i] for i in range(1, 16)]
+            sage: F[:16]
             [1, 1, 1, 3, 1, 5, 1, 10, 3, 5, 1, 24, 1, 5, 5]
 
         We can compute the Frobenius character of unlabeled trees::
@@ -819,8 +906,7 @@ class LazyModuleElement(Element):
             sage: X = L(s[1])
             sage: A = L(None); A.define(X*E(A, check=False))
             sage: A[:6]
-            [0,
-             m[1],
+            [m[1],
              2*m[1, 1] + m[2],
              9*m[1, 1, 1] + 5*m[2, 1] + 2*m[3],
              64*m[1, 1, 1, 1] + 34*m[2, 1, 1] + 18*m[2, 2] + 13*m[3, 1] + 4*m[4],
@@ -831,7 +917,7 @@ class LazyModuleElement(Element):
             sage: L.<z> = LazyLaurentSeriesRing(ZZ, sparse=True)
             sage: s = L(None, valuation=0)
             sage: s.define(1 + z*s^3)
-            sage: s[:10]
+            sage: s[0:10]
             [1, 1, 3, 12, 55, 273, 1428, 7752, 43263, 246675]
 
             sage: e = L(None, valuation=0)
@@ -4934,6 +5020,14 @@ class LazySymmetricFunction(LazyCompletionGradedAlgebraElement):
         http://mathoverflow.net/questions/138148/ for a discussion of
         this arithmetic product.
 
+        .. WARNING::
+
+            The operation `f \boxdot g` was originally defined only
+            for symmetric functions `f` and `g` without constant
+            term.  We extend this definition using the convention
+            that the least common multiple of any integer with `0` is
+            `0`.
+
         If `f` and `g` are two symmetric functions which are homogeneous
         of degrees `a` and `b`, respectively, then `f \boxdot g` is
         homogeneous of degree `ab`.
@@ -5028,6 +5122,14 @@ class LazySymmetricFunction(LazyCompletionGradedAlgebraElement):
             sage: f = 1/(1-L(s[1]))
             sage: f.arithmetic_product(s[1]) - f
             O^7
+
+        Check that the arithmetic product of symmetric functions with
+        constant a term works as advertised::
+
+            sage: p = SymmetricFunctions(QQ).p()
+            sage: L = LazySymmetricFunctions(p)
+            sage: L(5).arithmetic_product(3*p[2,1])
+            15*p[]
 
         Check the arithmetic product of symmetric functions over a
         finite field works::

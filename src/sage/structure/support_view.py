@@ -104,7 +104,7 @@ class SupportView(MappingView, Sequence, Set):
             sage: supp = SupportView(d); supp
             SupportView({'a': 47, 'b': 0, 'c': 11})
             sage: iter(supp)
-            <generator object SupportView.__iter__ at 0x7f7ebbb97e40>
+            <generator object SupportView.__iter__ at ...>
         """
         zero = self._zero
         if zero is None:

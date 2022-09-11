@@ -32,6 +32,23 @@ from sage.categories.all import Category, Sets, ModulesWithBasis
 from sage.data_structures.blas_dict cimport add, negate, scal, axpy
 
 cdef class IndexedFreeModuleElement(ModuleElement):
+    r"""
+    Element class for :class:`~sage.combinat.free_module.CombinatorialFreeModule`
+
+    TESTS::
+
+        sage: import collections.abc
+        sage: F = CombinatorialFreeModule(QQ, ['a','b','c'])
+        sage: B = F.basis()
+        sage: f = B['a'] + 3*B['c']; f
+        B['a'] + 3*B['c']
+        sage: isinstance(f, collections.abc.Sized)
+        True
+        sage: isinstance(f, collections.abc.Iterable)
+        True
+        sage: isinstance(f, collections.abc.Collection)  # known bug - will be fixed by removing __contains__
+        False
+    """
     def __init__(self, M, x):
         """
         Create a combinatorial module element. This should never be
@@ -81,6 +98,9 @@ cdef class IndexedFreeModuleElement(ModuleElement):
             sage: B = F.basis()
             sage: f = B['a'] + 3*B['c']
             sage: 'a' in f
+            doctest:warning...
+            DeprecationWarning: using 'index in vector' is deprecated; use 'index in vector.support()' instead
+            See https://trac.sagemath.org/34509 for details.
             True
             sage: 'b' in f
             False

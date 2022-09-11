@@ -3302,6 +3302,8 @@ def CRT_list(v, moduli):
     if len(v) == 1:
         return moduli[0].parent()(v[0])
     from sage.arith.functions import lcm
+    v = [CRT(v[i], v[i+1], moduli[i], moduli[i+1]) for i in range(0, len(v)-1, 2)] + v[len(v)//2*2:]
+    moduli = [lcm(moduli[i], moduli[i+1]) for i in range(0, len(moduli)-1, 2)] + moduli[len(moduli)//2*2:]
     while len(v) > 1:
         for i in range(0, len(v)-1, 2):
             v[i] = CRT(v[i], v[i+1], moduli[i], moduli[i+1])

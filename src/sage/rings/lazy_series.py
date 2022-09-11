@@ -251,21 +251,36 @@ class LazyModuleElement(Element):
         self._coeff_stream = coeff_stream
 
     def __getitem__(self, n):
-        """
-        Return the coefficient of the term with exponent ``n`` of the series.
+        r"""
+        Return the homogeneous degree ``n`` part of the series.
 
         INPUT:
 
-        - ``n`` -- integer; the exponent
+        - ``n`` -- integer; the degree
+
+        For a series ``f``, the slice ``f[start:stop]`` produces the following:
+
+        - if ``start`` and ``stop`` are integers, return the list of
+          terms with given degrees
+
+        - if ``start`` is ``None``, return the list of terms
+          beginning with the valuation
+
+        - if ``stop`` is ``None``, return a
+          :class:`~sage.misc.lazy_list.lazy_list_generic` instead.
 
         EXAMPLES::
 
-            sage: L.<z> = LazyLaurentSeriesRing(ZZ, sparse=False)
+            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
             sage: f = z / (1 - 2*z^3)
             sage: [f[n] for n in range(20)]
             [0, 1, 0, 0, 2, 0, 0, 4, 0, 0, 8, 0, 0, 16, 0, 0, 32, 0, 0, 64]
             sage: f[0:20]
             [0, 1, 0, 0, 2, 0, 0, 4, 0, 0, 8, 0, 0, 16, 0, 0, 32, 0, 0, 64]
+            sage: f[:20]
+            [1, 0, 0, 2, 0, 0, 4, 0, 0, 8, 0, 0, 16, 0, 0, 32, 0, 0, 64]
+            sage: f[::3]
+            lazy list [1, 2, 4, ...]
 
             sage: M = L(lambda n: n, valuation=0)
             sage: [M[n] for n in range(20)]
@@ -276,37 +291,35 @@ class LazyModuleElement(Element):
             sage: [M[n] for n in range(20)]
             [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
 
+        Similarly for multivariate series::
+
+            sage: L.<x,y> = LazyPowerSeriesRing(QQ)
+            sage: sin(x*y)[:11]
+            [x*y, 0, 0, 0, -1/6*x^3*y^3, 0, 0, 0, 1/120*x^5*y^5]
+            sage: sin(x*y)[2::4]
+            lazy list [x*y, -1/6*x^3*y^3, 1/120*x^5*y^5, ...]
+
         Similarly for Dirichlet series::
 
             sage: L = LazyDirichletSeriesRing(ZZ, "z")
-            sage: f = L(lambda n: n)
-            sage: [f[n] for n in range(1, 11)]
+            sage: L(lambda n: n)[1:11]
             [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-            sage: f[1:11]
-            [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-
-            sage: M = L(lambda n: n)
-            sage: [M[n] for n in range(1, 11)]
-            [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-            sage: L = LazyDirichletSeriesRing(ZZ, "z", sparse=True)
-            sage: M = L(lambda n: n)
-            sage: [M[n] for n in range(1, 11)]
-            [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-
         """
-        L = self.parent()
-        R = L._internal_poly_ring.base_ring()
+        R = self.parent()._internal_poly_ring.base_ring()
         if isinstance(n, slice):
-            if n.stop is None:
-                raise NotImplementedError("cannot list an infinite set")
-            if n.start is not None:
-                start = n.start
-            elif L._minimal_valuation is not None:
-                start = L._minimal_valuation
+            if n.start is None:
+                # WARNING: for Dirichlet series, 'degree' and
+                # valuation are different
+                start = self._coeff_stream.order()
             else:
-                raise ValueError("the start value must be specified if there is no minimal valuation, such as for LazyLaurentSeries")
+                start = n.start
             step = n.step if n.step is not None else 1
+            if n.stop is None:
+                from sage.misc.lazy_list import lazy_list
+                return lazy_list(lambda k: R(self._coeff_stream[start + k * step]))
+
             return [R(self._coeff_stream[k]) for k in range(start, n.stop, step)]
+
         return R(self._coeff_stream[n])
 
     coefficient = __getitem__
@@ -893,8 +906,7 @@ class LazyModuleElement(Element):
             sage: X = L(s[1])
             sage: A = L(None); A.define(X*E(A, check=False))
             sage: A[:6]
-            [0,
-             m[1],
+            [m[1],
              2*m[1, 1] + m[2],
              9*m[1, 1, 1] + 5*m[2, 1] + 2*m[3],
              64*m[1, 1, 1, 1] + 34*m[2, 1, 1] + 18*m[2, 2] + 13*m[3, 1] + 4*m[4],

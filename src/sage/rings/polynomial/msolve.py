@@ -158,7 +158,10 @@ def _variety(ideal, ring, proof):
 
     # Interpret output
 
-    data = sage_eval(msolve_out.stdout[:-2])
+    try:
+        data = sage_eval(msolve_out.stdout[:-2])
+    except SyntaxError:
+        raise NotImplementedError(f"unsupported msolve output format: {data}")
 
     dim = data[0]
     if dim == -1:
@@ -176,10 +179,11 @@ def _variety(ideal, ring, proof):
             assert len(p[1]) == p[0] + 1
             return upol(p[1])
 
-        if len(data) != 3:
+        try:
+            [dim1, nvars, _, vars, _, [one, [elim, den, param]]] = data[1]
+        except (IndexError, ValueError):
             raise NotImplementedError(
                 f"unsupported msolve output format: {data}")
-        [dim1, nvars, _, vars, _, [one, elim, den, param]] = data[1]
         assert dim1.is_zero()
         assert one.is_one()
         assert len(vars) == nvars

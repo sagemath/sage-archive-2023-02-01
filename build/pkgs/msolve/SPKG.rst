@@ -16,3 +16,7 @@ Upstream Contact
 ----------------
 
 https://gitlab.lip6.fr/safey/msolve
+
+Upstream does not make source tarballs.
+
+We make tarballs from the fork https://github.com/sagemath/msolve (branch 0.4.4+sage)

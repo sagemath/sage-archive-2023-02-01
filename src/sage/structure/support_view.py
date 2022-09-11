@@ -4,6 +4,8 @@ Iterable of the keys of a Mapping associated with nonzero values
 
 from collections.abc import MappingView, Sequence, Set
 
+from sage.misc.superseded import deprecation
+
 
 class SupportView(MappingView, Sequence, Set):
     r"""
@@ -135,3 +137,41 @@ class SupportView(MappingView, Sequence, Set):
         if zero is None:
             return bool(value)
         return value != zero
+
+    def __eq__(self, other):
+        r"""
+        TESTS::
+
+            sage: d = {1: 17, 2: 0}
+            sage: from sage.structure.support_view import SupportView
+            sage: supp = SupportView(d); supp
+            SupportView({1: 17, 2: 0})
+            sage: supp == [1]
+            doctest:warning...
+            DeprecationWarning: comparing a SupportView with a list is deprecated
+            See https://trac.sagemath.org/34509 for details.
+            True
+        """
+        if isinstance(other, list):
+            deprecation(34509, 'comparing a SupportView with a list is deprecated')
+            return list(self) == other
+        return NotImplemented
+
+    def __ne__(self, other):
+        r"""
+        TESTS::
+
+            sage: d = {1: 17, 2: 0}
+            sage: from sage.structure.support_view import SupportView
+            sage: supp = SupportView(d); supp
+            SupportView({1: 17, 2: 0})
+            sage: supp != [1]
+            doctest:warning...
+            DeprecationWarning: comparing a SupportView with a list is deprecated
+            See https://trac.sagemath.org/34509 for details.
+            False
+        """
+        if isinstance(other, list):
+            deprecation(34509, 'comparing a SupportView with a list is deprecated')
+            return list(self) != other
+        return NotImplemented

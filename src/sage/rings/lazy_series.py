@@ -5020,6 +5020,14 @@ class LazySymmetricFunction(LazyCompletionGradedAlgebraElement):
         http://mathoverflow.net/questions/138148/ for a discussion of
         this arithmetic product.
 
+        .. WARNING::
+
+            The operation `f \boxdot g` was originally defined only
+            for symmetric functions `f` and `g` without constant
+            term.  We extend this definition using the convention
+            that the least common multiple of any integer with `0` is
+            `0`.
+
         If `f` and `g` are two symmetric functions which are homogeneous
         of degrees `a` and `b`, respectively, then `f \boxdot g` is
         homogeneous of degree `ab`.
@@ -5114,6 +5122,14 @@ class LazySymmetricFunction(LazyCompletionGradedAlgebraElement):
             sage: f = 1/(1-L(s[1]))
             sage: f.arithmetic_product(s[1]) - f
             O^7
+
+        Check that the arithmetic product of symmetric functions with
+        constant a term works as advertised::
+
+            sage: p = SymmetricFunctions(QQ).p()
+            sage: L = LazySymmetricFunctions(p)
+            sage: L(5).arithmetic_product(3*p[2,1])
+            15*p[]
 
         Check the arithmetic product of symmetric functions over a
         finite field works::

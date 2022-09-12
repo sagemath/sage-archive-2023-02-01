@@ -63,11 +63,11 @@ cdef class GabowEdgeConnectivity:
         6
     
     A complete digraph with `n` vertices is `n-1`-edge-connected::
-    
+
         sage: from sage.graphs.edge_connectivity import GabowEdgeConnectivity
-        sage: D = DiGraph(digraphs.Complete(2000))
+        sage: D = DiGraph(digraphs.Complete(10))
         sage: GabowEdgeConnectivity(D, use_rec = True).edge_connectivity()
-        1999
+        9
         
     TESTS:
 

@@ -126,7 +126,7 @@ class lfun_generic():
         EXAMPLES::
 
             sage: from sage.lfunctions.pari import lfun_generic, LFunction
-            sage: lf = lfun_generic(conductor=1, gammaV=[0,1], weight=12, eps=1)
+            sage: lf = lfun_generic(conductor=1, gammaV=[0, 1], weight=12, eps=1)
             sage: pari_coeffs = pari('k->vector(k,n,(5*sigma(n,3)+7*sigma(n,5))*n/12 - 35*sum(k=1,n-1,(6*k-4*(n-k))*sigma(k,3)*sigma(n-k,5)))')
             sage: lf.init_coeffs(pari_coeffs)
 
@@ -144,7 +144,7 @@ class lfun_generic():
         Illustrate that one can give a list of complex numbers for v
         (see :trac:`10937`)::
 
-            sage: l2 = lfun_generic(conductor=1, gammaV=[0,1], weight=12, eps=1)
+            sage: l2 = lfun_generic(conductor=1, gammaV=[0, 1], weight=12, eps=1)
             sage: l2.init_coeffs(list(delta_qexp(1000))[1:])
             sage: L2 = LFunction(l2)
             sage: L2(14)
@@ -155,7 +155,7 @@ class lfun_generic():
         Verify that setting the `w` parameter does not raise an error
         (see :trac:`10937`)::
 
-            sage: L2 = lfun_generic(conductor=1, gammaV=[0,1], weight=12, eps=1)
+            sage: L2 = lfun_generic(conductor=1, gammaV=[0, 1], weight=12, eps=1)
             sage: L2.init_coeffs(list(delta_qexp(1000))[1:], w=[1..1000])
 
         Additional arguments are ignored for compatibility with the old
@@ -250,12 +250,12 @@ def lfun_character(chi):
 
     Check the values::
 
-        sage: chi = DirichletGroup(24)([1,-1,-1]); chi
+        sage: chi = DirichletGroup(24)([1, -1, -1]); chi
         Dirichlet character modulo 24 of conductor 24
         mapping 7 |--> 1, 13 |--> -1, 17 |--> -1
         sage: Lchi = lfun_character(chi)
         sage: v = [0] + Lchi.lfunan(30).sage()
-        sage: all(v[i] == chi(i) for i in (7,13,17))
+        sage: all(v[i] == chi(i) for i in (7, 13, 17))
         True
     """
     if not chi.is_primitive():
@@ -285,7 +285,7 @@ def lfun_elliptic_curve(E):
     Over number fields::
 
         sage: K.<a> = QuadraticField(2)
-        sage: E = EllipticCurve([1,a])
+        sage: E = EllipticCurve([1, a])
         sage: L = LFunction(lfun_elliptic_curve(E))
         sage: L(3)
         1.00412346717019
@@ -338,10 +338,10 @@ def lfun_eta_quotient(scalings, exponents):
         sage: L(1)
         0.0374412812685155
 
-        sage: lfun_eta_quotient([6],[4])
+        sage: lfun_eta_quotient([6], [4])
         [[Vecsmall([7]), [Vecsmall([6]), Vecsmall([4])]], 0, [0, 1], 2, 36, 1]
 
-        sage: lfun_eta_quotient([2,1,4], [5,-2,-2])
+        sage: lfun_eta_quotient([2, 1, 4], [5, -2, -2])
         Traceback (most recent call last):
         ...
         PariError: sorry, noncuspidal eta quotient is not yet implemented
@@ -377,7 +377,7 @@ def lfun_quadratic_form(qf):
     EXAMPLES::
 
         sage: from sage.lfunctions.pari import lfun_quadratic_form, LFunction
-        sage: Q = QuadraticForm(ZZ,2,[2,3,4])
+        sage: Q = QuadraticForm(ZZ, 2, [2, 3, 4])
         sage: L = LFunction(lfun_quadratic_form(Q))
         sage: L(3)
         0.377597233183583

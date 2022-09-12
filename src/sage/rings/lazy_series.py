@@ -2724,6 +2724,32 @@ class LazyLaurentSeries(LazyCauchyProductSeries):
         sage: f = 1 / (1 - z - z^2)
         sage: TestSuite(f).run()
     """
+    def _im_gens_(self, codomain, im_gens, base_map=None):
+        """
+        Returns the image of ``self`` under the map that sends the
+        generators of the parent of ``self`` to the elements of the
+        tuple ``im_gens``.
+
+        EXAMPLES::
+
+            sage: Z.<x> = ZZ[]
+            sage: K.<i> = NumberField(x^2 + 1)
+            sage: R.<t> = LazyLaurentSeriesRing(K)
+            sage: f = R(lambda n: i^n, valuation=-2)
+            sage: f
+            -t^-2 - i*t^-1 + 1 + i*t - t^2 - i*t^3 + t^4 + O(t^5)
+            sage: f._im_gens_(R, [t + t^2])
+            -t^-2 + (-i + 2)*t^-1 + (i - 2) + 4*t + (2*i - 6)*t^2 + (-2*i + 4)*t^3 + (-2*i - 7)*t^4 + O(t^5)
+
+            sage: cc = K.hom([-i])
+            sage: f._im_gens_(R, [t + t^2], base_map=cc)
+            -t^-2 + (i + 2)*t^-1 + (-i - 2) + 4*t + (-2*i - 6)*t^2 + (2*i + 4)*t^3 + (2*i - 7)*t^4 + O(t^5)
+
+        """
+        if base_map is None:
+            return codomain(self(im_gens[0]))
+
+        return codomain(self.map_coefficients(base_map)(im_gens[0]))
 
     def __call__(self, g, *, check=True):
         r"""
@@ -3633,6 +3659,32 @@ class LazyPowerSeries(LazyCauchyProductSeries):
         from sage.misc.superseded import deprecation
         deprecation(32367, "the method compute_coefficients obsolete and has no effect.")
         return
+
+    def _im_gens_(self, codomain, im_gens, base_map=None):
+        """
+        Returns the image of ``self`` under the map that sends the
+        generators of the parent of ``self`` to the elements of the
+        tuple ``im_gens``.
+
+        EXAMPLES::
+
+            sage: Z.<x> = QQ[]
+            sage: R.<q, t> = LazyPowerSeriesRing(Z)
+            sage: f = 1/(1-q-t)
+            sage: f
+            1 + (q+t) + (q^2+2*q*t+t^2) + (q^3+3*q^2*t+3*q*t^2+t^3) + (q^4+4*q^3*t+6*q^2*t^2+4*q*t^3+t^4) + (q^5+5*q^4*t+10*q^3*t^2+10*q^2*t^3+5*q*t^4+t^5) + (q^6+6*q^5*t+15*q^4*t^2+20*q^3*t^3+15*q^2*t^4+6*q*t^5+t^6) + O(q,t)^7
+            sage: S.<t> = LazyPowerSeriesRing(Z)
+            sage: f._im_gens_(S, [t, x*t])
+            1 + ((x+1)*t) + ((x^2+2*x+1)*t^2) + ((x^3+3*x^2+3*x+1)*t^3) + ((x^4+4*x^3+6*x^2+4*x+1)*t^4) + ((x^5+5*x^4+10*x^3+10*x^2+5*x+1)*t^5) + ((x^6+6*x^5+15*x^4+20*x^3+15*x^2+6*x+1)*t^6) + O(t^7)
+
+            sage: cc = Z.hom([-x])
+            sage: f._im_gens_(S, [t, t], base_map=cc)
+
+        """
+        if base_map is None:
+            return codomain(self(*im_gens))
+
+        return codomain(self.map_coefficients(base_map)(*im_gens))
 
     def __call__(self, *g, check=True):
         r"""

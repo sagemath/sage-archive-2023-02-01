@@ -304,13 +304,31 @@ class LazyModuleElement(Element):
             sage: L = LazyDirichletSeriesRing(ZZ, "z")
             sage: L(lambda n: n)[1:11]
             [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+
+        TESTS:
+
+        Check that no more elements than necessary are computed::
+
+            sage: L = LazyDirichletSeriesRing(ZZ, "z")
+            sage: f = L(lambda n: 0 if n < 5 else n)
+            sage: f[:3]
+            []
+            sage: f._coeff_stream._cache
+            {1: 0, 2: 0}
         """
         R = self.parent()._internal_poly_ring.base_ring()
+        coeff_stream = self._coeff_stream
         if isinstance(n, slice):
             if n.start is None:
                 # WARNING: for Dirichlet series, 'degree' and
                 # valuation are different
-                start = self._coeff_stream.order()
+                if n.stop is None:
+                    start = coeff_stream.order()
+                else:
+                    start = coeff_stream._approximate_order
+                    while start < n.stop and not coeff_stream[start]:
+                        start += 1
+                        coeff_stream._approximate_order = start
             else:
                 start = n.start
             step = n.step if n.step is not None else 1
@@ -325,7 +343,8 @@ class LazyModuleElement(Element):
     coefficient = __getitem__
 
     def coefficients(self, n=None):
-        r"""Return the first `n` non-zero coefficients of ``self``.
+        r"""
+        Return the first `n` non-zero coefficients of ``self``.
 
         INPUT:
 
@@ -398,9 +417,9 @@ class LazyModuleElement(Element):
         # flatten out the generator in the multivariate case
         return list(islice(chain.from_iterable(map(lambda coeff: coeff.coefficients(), coeffs)), n))
 
-    def map_coefficients(self, func):
+    def map_coefficients(self, f):
         r"""
-        Return the series with ``func`` applied to each nonzero
+        Return the series with ``f`` applied to each nonzero
         coefficient of ``self``.
 
         INPUT:
@@ -408,7 +427,40 @@ class LazyModuleElement(Element):
         - ``func`` -- function that takes in a coefficient and returns
           a new coefficient
 
-        EXAMPLES:
+        EXAMPLES::
+
+            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
+            sage: m = L(lambda n: n, valuation=0); m
+            z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + O(z^7)
+            sage: m.map_coefficients(lambda c: c + 1)
+            2*z + 3*z^2 + 4*z^3 + 5*z^4 + 6*z^5 + 7*z^6 + O(z^7)
+
+        Similarly for Dirichlet series::
+
+            sage: L = LazyDirichletSeriesRing(ZZ, "z")
+            sage: s = L(lambda n: n-1); s
+            1/(2^z) + 2/3^z + 3/4^z + 4/5^z + 5/6^z + 6/7^z + O(1/(8^z))
+            sage: s.map_coefficients(lambda c: c + 1)
+            2/2^z + 3/3^z + 4/4^z + 5/5^z + 6/6^z + 7/7^z + O(1/(8^z))
+
+        Similarly for multivariate power series::
+
+            sage: L.<x, y> = LazyPowerSeriesRing(QQ)
+            sage: f = 1/(1-(x+y)); f
+            1 + (x+y) + (x^2+2*x*y+y^2) + (x^3+3*x^2*y+3*x*y^2+y^3) + (x^4+4*x^3*y+6*x^2*y^2+4*x*y^3+y^4) + (x^5+5*x^4*y+10*x^3*y^2+10*x^2*y^3+5*x*y^4+y^5) + (x^6+6*x^5*y+15*x^4*y^2+20*x^3*y^3+15*x^2*y^4+6*x*y^5+y^6) + O(x,y)^7
+            sage: f.map_coefficients(lambda c: c^2)
+            1 + (x+y) + (x^2+4*x*y+y^2) + (x^3+9*x^2*y+9*x*y^2+y^3) + (x^4+16*x^3*y+36*x^2*y^2+16*x*y^3+y^4) + (x^5+25*x^4*y+100*x^3*y^2+100*x^2*y^3+25*x*y^4+y^5) + (x^6+36*x^5*y+225*x^4*y^2+400*x^3*y^3+225*x^2*y^4+36*x*y^5+y^6) + O(x,y)^7
+
+        Similarly for lazy symmetric functions::
+
+            sage: p = SymmetricFunctions(QQ).p()
+            sage: L = LazySymmetricFunctions(p)
+            sage: f = 1/(1-2*L(p[1])); f
+            p[] + 2*p[1] + (4*p[1,1]) + (8*p[1,1,1]) + (16*p[1,1,1,1]) + (32*p[1,1,1,1,1]) + (64*p[1,1,1,1,1,1]) + O^7
+            sage: f.map_coefficients(lambda c: log(c, 2))
+            p[1] + (2*p[1,1]) + (3*p[1,1,1]) + (4*p[1,1,1,1]) + (5*p[1,1,1,1,1]) + (6*p[1,1,1,1,1,1]) + O^7
+
+        TESTS:
 
         Dense Implementation::
 
@@ -424,29 +476,7 @@ class LazyModuleElement(Element):
             sage: m.map_coefficients(lambda c: c + 1)
             2*z + 3*z^2 + 4*z^3 + 5*z^4 + 6*z^5 + 7*z^6 + O(z^7)
 
-        Sparse Implementation::
-
-            sage: L.<z> = LazyLaurentSeriesRing(ZZ, sparse=True)
-            sage: m = L(lambda n: n, valuation=0); m
-            z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + O(z^7)
-            sage: m.map_coefficients(lambda c: c + 1)
-            2*z + 3*z^2 + 4*z^3 + 5*z^4 + 6*z^5 + 7*z^6 + O(z^7)
-
-        An example where the series is known to be exact::
-
-            sage: f = z + z^2 + z^3
-            sage: f.map_coefficients(lambda c: c + 1)
-            2*z + 2*z^2 + 2*z^3
-
-        Similarly for Dirichlet series::
-
-            sage: L = LazyDirichletSeriesRing(ZZ, "z")
-            sage: s = L(lambda n: n-1); s
-            1/(2^z) + 2/3^z + 3/4^z + 4/5^z + 5/6^z + 6/7^z + O(1/(8^z))
-            sage: s.map_coefficients(lambda c: c + 1)
-            2/2^z + 3/3^z + 4/4^z + 5/5^z + 6/6^z + 7/7^z + O(1/(8^z))
-
-        TESTS::
+        Test the zero series::
 
             sage: from sage.data_structures.stream import Stream_zero
             sage: L.<z> = LazyLaurentSeriesRing(ZZ)
@@ -455,12 +485,22 @@ class LazyModuleElement(Element):
             sage: isinstance(s._coeff_stream, Stream_zero)
             True
 
+        An example where the series is known to be exact::
+
+            sage: f = z + z^2 + z^3
+            sage: f.map_coefficients(lambda c: c + 1)
+            2*z + 2*z^2 + 2*z^3
+
         """
         P = self.parent()
         coeff_stream = self._coeff_stream
         if isinstance(coeff_stream, Stream_zero):
             return self
-        BR = P.base_ring()
+        R = P._internal_poly_ring.base_ring()
+        if P.base_ring() == R:
+            func = f
+        else:
+            func = lambda c: R(c).map_coefficients(f)
         if isinstance(coeff_stream, Stream_exact):
             initial_coefficients = [func(i) if i else 0
                                     for i in coeff_stream._initial_coefficients]
@@ -471,7 +511,7 @@ class LazyModuleElement(Element):
                                         self._coeff_stream._is_sparse,
                                         order=coeff_stream._approximate_order,
                                         degree=coeff_stream._degree,
-                                        constant=BR(c))
+                                        constant=P.base_ring()(c))
             return P.element_class(P, coeff_stream)
         coeff_stream = Stream_map_coefficients(self._coeff_stream, func)
         return P.element_class(P, coeff_stream)

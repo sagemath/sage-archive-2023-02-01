@@ -409,7 +409,7 @@ def lfun_genus2(C):
         sage: L(3)
         0.965946926261520
 
-        sage: C = HyperellipticCurve(x^2+x, x^3+x^2+1)
+        sage: C = HyperellipticCurve(x^2 + x, x^3 + x^2 + 1)
         sage: L = LFunction(lfun_genus2(C))
         sage: L(2)
         0.364286342944359
@@ -445,11 +445,11 @@ class LFunction(SageObject):
         0.000000000000000
         sage: L.derivative(1)
         0.305999773834052
-        sage: L.derivative(1,2)
+        sage: L.derivative(1, 2)
         0.373095594536324
         sage: L.num_coeffs()
         50
-        sage: L.taylor_series(1,4)
+        sage: L.taylor_series(1, 4)
         0.000000000000000 + 0.305999773834052*z + 0.186547797268162*z^2 - 0.136791463097188*z^3 + O(z^4)
         sage: L.check_functional_equation()  # abs tol 4e-19
         1.08420217248550e-19
@@ -463,9 +463,9 @@ class LFunction(SageObject):
         sage: L = E.lseries().dokchitser(algorithm="pari")
         sage: L.num_coeffs()
         163
-        sage: L.derivative(1,E.rank())
+        sage: L.derivative(1, E.rank())
         1.51863300057685
-        sage: L.taylor_series(1,4)
+        sage: L.taylor_series(1, 4)
         ...e-19 + (...e-19)*z + 0.759316500288427*z^2 - 0.430302337583362*z^3 + O(z^4)
 
     .. RUBRIC:: Number field
@@ -481,7 +481,7 @@ class LFunction(SageObject):
         348
         sage: L(2)
         1.10398438736918
-        sage: L.taylor_series(2,3)
+        sage: L.taylor_series(2, 3)
         1.10398438736918 - 0.215822638498759*z + 0.279836437522536*z^2 + O(z^3)
 
     .. RUBRIC:: Ramanujan `\Delta` L-function
@@ -489,7 +489,7 @@ class LFunction(SageObject):
     The coefficients are given by Ramanujan's tau function::
 
         sage: from sage.lfunctions.pari import lfun_generic, LFunction
-        sage: lf = lfun_generic(conductor=1, gammaV=[0,1], weight=12, eps=1)
+        sage: lf = lfun_generic(conductor=1, gammaV=[0, 1], weight=12, eps=1)
         sage: tau = pari('k->vector(k,n,(5*sigma(n,3)+7*sigma(n,5))*n/12 - 35*sum(k=1,n-1,(6*k-4*(n-k))*sigma(k,3)*sigma(n-k,5)))')
         sage: lf.init_coeffs(tau)
         sage: L = LFunction(lf)
@@ -498,7 +498,7 @@ class LFunction(SageObject):
 
         sage: L(1)
         0.0374412812685155
-        sage: L.taylor_series(1,3)
+        sage: L.taylor_series(1, 3)
         0.0374412812685155 + 0.0709221123619322*z + 0.0380744761270520*z^2 + O(z^3)
     """
     def __init__(self, lfun, prec=None):
@@ -608,7 +608,7 @@ class LFunction(SageObject):
             sage: L = LFunction(lfun_number_field(QQ))
             sage: L.Lambda(2)
             0.523598775598299
-            sage: L.Lambda(1-2)
+            sage: L.Lambda(1 - 2)
             0.523598775598299
         """
         s = self._CCin(s)
@@ -630,7 +630,7 @@ class LFunction(SageObject):
 
         TESTS::
 
-            sage: L.hardy(.4+.3*I)
+            sage: L.hardy(.4 + .3*I)
             Traceback (most recent call last):
             ...
             PariError: incorrect type in lfunhardy (t_COMPLEX)
@@ -694,7 +694,7 @@ class LFunction(SageObject):
 
             sage: E = EllipticCurve('389a')
             sage: L = E.lseries().dokchitser(200,algorithm="pari")
-            sage: L.taylor_series(1,3)
+            sage: L.taylor_series(1, 3)
             2...e-63 + (...e-63)*z + 0.75931650028842677023019260789472201907809751649492435158581*z^2 + O(z^3)
 
         Check that :trac:`25402` is fixed::
@@ -757,7 +757,7 @@ class LFunction(SageObject):
             sage: L = E.lseries().dokchitser(100, algorithm="pari")
             sage: L(1)
             0.00000000000000000000000000000
-            sage: L(1+I)
+            sage: L(1 + I)
             -1.3085436607849493358323930438 + 0.81298000036784359634835412129*I
         """
         s = self._CC(s)

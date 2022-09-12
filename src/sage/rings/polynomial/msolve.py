@@ -205,10 +205,9 @@ def _variety(ideal, ring, proof):
 
     else:
 
-        if len(data) != 2 or data[1][0] != 1:
+        if len(data[1]) < 2 or len(data[1]) != data[1][0] + 1:
             raise NotImplementedError(
                 f"unsupported msolve output format: {data}")
-        _, [_, variety] = data
         if isinstance(ring, (RealIntervalField_class, RealBallField)):
             to_out_ring = ring
         else:
@@ -217,7 +216,8 @@ def _variety(ideal, ring, proof):
             to_out_ring = lambda iv: ring.coerce(myRIF(iv).center())
         vars = out_ring.gens()
         variety = [[to_out_ring(iv) for iv in point]
-                   for point in variety]
+                   for l in data[1][1:]
+                   for point in l]
 
     return [KeyConvertingDict(out_ring, zip(vars, point)) for point in variety]
 

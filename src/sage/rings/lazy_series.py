@@ -3883,13 +3883,14 @@ class LazyPowerSeries(LazyCauchyProductSeries):
             sage: f = 1/(1-q-t)
             sage: f
             1 + (q+t) + (q^2+2*q*t+t^2) + (q^3+3*q^2*t+3*q*t^2+t^3) + (q^4+4*q^3*t+6*q^2*t^2+4*q*t^3+t^4) + (q^5+5*q^4*t+10*q^3*t^2+10*q^2*t^3+5*q*t^4+t^5) + (q^6+6*q^5*t+15*q^4*t^2+20*q^3*t^3+15*q^2*t^4+6*q*t^5+t^6) + O(q,t)^7
-            sage: S.<t> = LazyPowerSeriesRing(Z)
-            sage: f._im_gens_(S, [t, x*t])
-            1 + ((x+1)*t) + ((x^2+2*x+1)*t^2) + ((x^3+3*x^2+3*x+1)*t^3) + ((x^4+4*x^3+6*x^2+4*x+1)*t^4) + ((x^5+5*x^4+10*x^3+10*x^2+5*x+1)*t^5) + ((x^6+6*x^5+15*x^4+20*x^3+15*x^2+6*x+1)*t^6) + O(t^7)
+            sage: S.<s> = LazyPowerSeriesRing(Z)
+            sage: f._im_gens_(S, [s, x*s])
+            1 + ((x+1)*s) + ((x^2+2*x+1)*s^2) + ((x^3+3*x^2+3*x+1)*s^3) + ((x^4+4*x^3+6*x^2+4*x+1)*s^4) + ((x^5+5*x^4+10*x^3+10*x^2+5*x+1)*s^5) + ((x^6+6*x^5+15*x^4+20*x^3+15*x^2+6*x+1)*s^6) + O(s^7)
 
             sage: cc = Z.hom([-x])
-            sage: f._im_gens_(S, [t, t], base_map=cc)
-
+            sage: f = 1/(1+x*q-t)
+            sage: f._im_gens_(S, [s, x*s], base_map=cc)
+            1 + 2*x*s + 4*x^2*s^2 + 8*x^3*s^3 + 16*x^4*s^4 + 32*x^5*s^5 + 64*x^6*s^6 + O(s^7)
         """
         if base_map is None:
             return codomain(self(*im_gens))

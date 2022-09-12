@@ -171,45 +171,7 @@ class Diagram(ClonableArray, metaclass=InheritComparisonClasscallMetaclass):
         self._n_nonempty_rows = len(set(i for i, j in self._cells))
         self._n_nonempty_cols = len(set(j for i, j in self._cells))
 
-        ClonableArray.__init__(self, parent, cells, check)
-
-    def _hash_(self):
-        r"""
-        TESTS::
-
-            sage: from sage.combinat.diagram import Diagram
-            sage: D = Diagram([(0,2),(0,3),(1,1),(3,2)])
-            sage: hash(D)
-            5125392318921082108
-        """
-        return hash(tuple(sorted(self._cells)))
-
-    def __contains__(self, other):
-        r"""
-        EXAMPLES::
-
-            sage: from sage.combinat.diagram import Diagram
-            sage: D = Diagram([(0,2),(0,3),(1,1),(3,2)])
-            sage: (1, 2) in D
-            False
-            sage: (0, 2) in D
-            True
-            sage: (2, 1) in D
-            False
-            sage: (3, 2) in D
-            True
-        """
-        return other in self._cells
-
-    def _repr_(self):
-        r"""
-        EXAMPLES::
-
-            sage: from sage.combinat.diagram import Diagram
-            sage: D = Diagram([(0,2),(0,3),(1,1),(3,2)]); D
-            [(0, 2), (0, 3), (1, 1), (3, 2)]
-        """
-        return str(sorted(self._cells))
+        ClonableArray.__init__(self, parent, sorted(cells), check)
 
     def pp(self):
         r"""
@@ -474,7 +436,7 @@ class Diagrams(UniqueRepresentation, Parent):
         """
         if not p._dimension == 2:
             raise ValueError("Dimension of the polyomino must be 2")
-        cells = map(tuple, list(p))
+        cells = list(map(tuple, p))
         return self.element_class(self, cells)
 
     def from_composition(self, alpha):

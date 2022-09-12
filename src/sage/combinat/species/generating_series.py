@@ -480,7 +480,7 @@ class CycleIndexSeries(LazySymmetricFunction):
             sage: G = species.SimpleGraphSpecies().cycle_index_series() - 1
             sage: from sage.combinat.species.generating_series import LogarithmCycleIndexSeries
             sage: CG = LogarithmCycleIndexSeries()(G)
-            sage: CG.isotype_generating_series()[:8]
+            sage: CG.isotype_generating_series()[0:8]
             [0, 1, 1, 2, 6, 21, 112, 853]
         """
         base_ring = self.parent().base_ring().base_ring()
@@ -635,7 +635,7 @@ def LogarithmCycleIndexSeries(R = RationalField()):
     its cycle index has negative coefficients::
 
         sage: from sage.combinat.species.generating_series import LogarithmCycleIndexSeries
-        sage: LogarithmCycleIndexSeries()[:4]
+        sage: LogarithmCycleIndexSeries()[0:4]
         [0, p[1], -1/2*p[1, 1] - 1/2*p[2], 1/3*p[1, 1, 1] - 1/3*p[3]]
 
     Its defining property is that `\Omega \circ E^{+} = E^{+} \circ \Omega = X`
@@ -643,7 +643,7 @@ def LogarithmCycleIndexSeries(R = RationalField()):
     multiplicative identity `X`)::
 
         sage: Eplus = sage.combinat.species.set_species.SetSpecies(min=1).cycle_index_series()
-        sage: LogarithmCycleIndexSeries()(Eplus)[:4]
+        sage: LogarithmCycleIndexSeries()(Eplus)[0:4]
         [0, p[1], 0, 0]
     """
     CIS = CycleIndexSeriesRing(R)

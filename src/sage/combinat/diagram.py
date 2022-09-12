@@ -2,190 +2,12 @@ r"""
 Combinatorial diagrams
 
 A combinatorial diagram is a collection of cells `(i,j)` indexed by pairs of
-natural numbers. The positions are indexed by rows and columns. For example,
-a Ferrer's diagram is a diagram obtained from a partition
-`\lambda = (\lambda_0, \lambda_1, \ldots, \lambda_\ell)` where the cells are
-in rows `i` for `0 \leq i \leq \ell` and the cells in row `i` consist of
-`(i,j)` for `0 \leq j < \lambda_i`. In English notation, the indices are read
-from top left to bottom right as in a matrix.
+natural numbers.
 
-Indexing conventions are the same as
-:class:`~sage.combinat.partition.Partition`.
-
-EXAMPLES:
-
-To create an arbirtrary diagram, pass a list of all cells::
-
-    sage: from sage.combinat.diagram import Diagram
-    sage: cells = [(0,0), (0,1), (1,0), (1,1), (4,4), (4,5), (4,6), (5,4), (7, 6)]
-    sage: D = Diagram(cells); D
-    [(0, 0), (0, 1), (1, 0), (1, 1), (4, 4), (4, 5), (4, 6), (5, 4), (7, 6)]
-
-We can visualize the diagram by printing ``O``'s and ``.``'s. ``O``'s are
-present in the cells which are present in the diagram and a ``.`` represents
-the absence of a cell in the diagram::
-
-    sage: D.pp()
-    O O . . . . .
-    O O . . . . .
-    . . . . . . .
-    . . . . . . .
-    . . . . O O O
-    . . . . O . .
-    . . . . . . .
-    . . . . . . O
-
-We can also check if certain cells are contained in a given diagram::
-
-    sage: (1, 0) in D
-    True
-    sage: (2, 2) in D
-    False
-
-If you know that there are entire empty rows or columns at the end of the
-diagram, you can manually pass them with keyword arguments ``n_rows=`` or
-``n_cols=``::
-
-    sage: Diagram([(0,0), (0,3), (2,2), (2,4)]).pp()
-    O . . O .
-    . . . . .
-    . . O . O
-    sage: Diagram([(0,0), (0,3), (2,2), (2,4)], n_rows=6, n_cols=6).pp()
-    O . . O . .
-    . . . . . .
-    . . O . O .
-    . . . . . .
-    . . . . . .
-    . . . . . .
-
-There are two other specific types of diagrams which are implemented in Sage,
-namely northwest diagrams (:class:`NorthwestDiagram`) and Rothe diagrams
-(:func:`RotheDiagram`, a special kind of northwest diagram).
-
-A diagram is a
-*northwest diagram* if it satsifies the property that: the presence of two
-cells `(i_1, j_1)` and `(i_2, j_2)` in a diagram `D` implies the presence of
-the cell `(\min(i_1, i_2), \min(j_1, j_2))`::
-
-    sage: from sage.combinat.diagram import NorthwestDiagram
-    sage: N = NorthwestDiagram([(0,0), (0, 10), (5,0)]); N.pp()
-    O . . . . . . . . . O
-    . . . . . . . . . . .
-    . . . . . . . . . . .
-    . . . . . . . . . . .
-    . . . . . . . . . . .
-    O . . . . . . . . . .
-
-Note that checking whether or not the northwest property is satisfied is
-automatically checked. The diagram found by adding the cell `(1,1)` to the
-diagram above is *not* a northwest diagram. The cell `(1,0)` should be
-present due to the presence of `(5,0)` and `(1,1)`::
-
-    sage: Diagram([(0, 0), (0, 10), (5, 0), (1, 1)]).pp()
-    O . . . . . . . . . O
-    . O . . . . . . . . .
-    . . . . . . . . . . .
-    . . . . . . . . . . .
-    . . . . . . . . . . .
-    O . . . . . . . . . .
-    sage: NorthwestDiagram([(0, 0), (0, 10), (5, 0), (1, 1)])
-    Traceback (most recent call last):
-    ...
-    ValueError: diagram is not northwest
-
-However, this behavior can be turned off if you are confident that you are
-providing a northwest diagram::
-
-    sage: N = NorthwestDiagram([(0, 0), (0, 10), (5, 0),
-    ....:                      (1, 1), (0, 1), (1, 0)],
-    ....:                      check=False)
-    sage: N.pp()
-    O O . . . . . . . . O
-    O O . . . . . . . . .
-    . . . . . . . . . . .
-    . . . . . . . . . . .
-    . . . . . . . . . . .
-    O . . . . . . . . . .
-
-Note that arbitrary diagrams which happen to be northwest diagrams only live
-in the parent of :class:`Diagrams`::
-
-    sage: D = Diagram([(0, 0), (0, 10), (5, 0), (1, 1), (0, 1), (1, 0)])
-    sage: D.pp()
-    O O . . . . . . . . O
-    O O . . . . . . . . .
-    . . . . . . . . . . .
-    . . . . . . . . . . .
-    . . . . . . . . . . .
-    O . . . . . . . . . .
-    sage: from sage.combinat.diagram import NorthwestDiagrams
-    sage: D in NorthwestDiagrams()
-    False
-
-One particular way of constructing a northwest diagram from a permutation is
-by constructing its Rothe diagram. Formally, if `\omega` is a permutation,
-then the Rothe diagram `D(\omega)` is the diagram whose cells are
-
-.. MATH::
-
-    D(\omega) = \{(\omega_j, i) : i<j,\, \omega_i > \omega_j \}.
-
-Informally, one can construct the Rothe diagram by starting with all `n^2`
-possible cells, and then deleting the cells `(i, \omega(i))` as well as all
-cells to the right and below. (These are sometimes called "death rays".) To
-compute a Rothe diagram in Sage, start with a
-:class:`~sage.combinat.permutation.Permutation`::
-
-    sage: w = Permutations(8)([2,5,4,1,3,6,7,8])
-
-Then call :func:`RotheDiagram` on ``w``::
-
-    sage: from sage.combinat.diagram import RotheDiagram
-    sage: RotheDiagram(w).pp()
-    O . . . . . . .
-    O . O O . . . .
-    O . O . . . . .
-    . . . . . . . .
-    . . . . . . . .
-    . . . . . . . .
-    . . . . . . . .
-    . . . . . . . .
-
-For a fixed northwest diagram `D`, we say that a Young tableau `T` is
-`D`-peelable if:
-
-- the row indices of the cells in the first column of `D` are
-the entries in an initial segment in the first column of `T` and
-
-- the tableau `Q` obtained by removing those cells from `T` and playing jeu de
-taquin is `D-C`-peelable, where `D-C` is the diagram formed by forgetting the
-first column of `D`.
-
-Reiner and Shimozono [RS1995]_ showed that the number `\operatorname{red}(w)`
-of reduced words of a permutation `w` may be computed using the peelable
-tableaux of the Rothe diagram `D(w)`. Explicitly,
-
-.. MATH::
-
-    \operatorname{red}(w) = \sum_{T} f_{\operatorname{shape} T}
-
-where the sum runs over the `D(w)`-peelable tableaux `T` and `f_\lambda` is the
-number of standard Young tableaux of shape `\lambda` (which may be computed
-using the hook-length formula).
-
-We can compute the `D`-peelable diagrams for a northwest diagram `D`::
-
-    sage: cells = [(0,0), (0,1), (0,2), (1,0), (2,0), (2,2), (2,4),
-    ....:          (4,0), (4,2)]
-    sage: D = NorthwestDiagram(cells); D.pp()
-    O O O . .
-    O . . . .
-    O . O . O
-    . . . . .
-    O . O . .
-    sage: D.peelable_tableaux()
-    {[[1, 1, 1], [2, 3, 3], [3, 5], [5]],
-    [[1, 1, 1, 3], [2, 3], [3, 5], [5]]}
+For arbitrary diagrams, see :class:`Diagram`. There are also two other specific
+types of diagrams implemented here. They are northwest diagrams
+(:class:`NorthwestDiagram`) and Rothe diagrams (:func:`RotheDiagram`, a special
+kind of northwest diagram).
 
 AUTHORS:
 
@@ -217,13 +39,64 @@ from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 
 class Diagram(ClonableArray, metaclass=InheritComparisonClasscallMetaclass):
     r"""
-    A class to model arbitrary combinatorial diagrams.
+    Combinatorial diagrams with positions indexed by rows in columns.
 
-    EXAMPLES::
+    The positions are indexed by rows and columns as in a matrix. For example,
+    a Ferrer's diagram is a diagram obtained from a partition
+    `\lambda = (\lambda_0, \lambda_1, \ldots, \lambda_\ell)` where the cells are
+    in rows `i` for `0 \leq i \leq \ell` and the cells in row `i` consist of
+    `(i,j)` for `0 \leq j < \lambda_i`. In English notation, the indices are
+    read from top left to bottom right as in a matrix.
+
+    Indexing conventions are the same as
+    :class:`~sage.combinat.partition.Partition`. Printing the diagram of a
+    partition, however, will always be in English notation.
+
+    EXAMPLES:
+
+    To create an arbirtrary diagram, pass a list of all cells::
 
         sage: from sage.combinat.diagram import Diagram
-        sage: D = Diagram([(0,0), (0,3), (2,2), (2,4)]); D
-        [(0, 0), (0, 3), (2, 2), (2, 4)]
+        sage: cells = [(0,0), (0,1), (1,0), (1,1), (4,4), (4,5), (4,6), (5,4), (7, 6)]
+        sage: D = Diagram(cells); D
+        [(0, 0), (0, 1), (1, 0), (1, 1), (4, 4), (4, 5), (4, 6), (5, 4), (7, 6)]
+
+    We can visualize the diagram by printing ``O``'s and ``.``'s. ``O``'s are
+    present in the cells which are present in the diagram and a ``.`` represents
+    the absence of a cell in the diagram::
+
+        sage: D.pp()
+        O O . . . . .
+        O O . . . . .
+        . . . . . . .
+        . . . . . . .
+        . . . . O O O
+        . . . . O . .
+        . . . . . . .
+        . . . . . . O
+
+    We can also check if certain cells are contained in a given diagram::
+
+        sage: (1, 0) in D
+        True
+        sage: (2, 2) in D
+        False
+
+    If you know that there are entire empty rows or columns at the end of the
+    diagram, you can manually pass them with keyword arguments ``n_rows=`` or
+    ``n_cols=``::
+
+        sage: Diagram([(0,0), (0,3), (2,2), (2,4)]).pp()
+        O . . O .
+        . . . . .
+        . . O . O
+        sage: Diagram([(0,0), (0,3), (2,2), (2,4)], n_rows=6, n_cols=6).pp()
+        O . . O . .
+        . . . . . .
+        . . O . O .
+        . . . . . .
+        . . . . . .
+        . . . . . .
 
     TESTS::
 
@@ -469,7 +342,7 @@ class Diagram(ClonableArray, metaclass=InheritComparisonClasscallMetaclass):
         return len(self._cells)
 
     n_cells = number_of_cells
-    
+
     size = number_of_cells
 
     def check(self):
@@ -757,8 +630,45 @@ class NorthwestDiagram(Diagram, metaclass=InheritComparisonClasscallMetaclass):
 
     def peelable_tableaux(self):
         r"""
-        Given a northwest diagram `D`, a tableau `T` is said to be
-        `D`-peelable if...
+        For a fixed northwest diagram `D`, we say that a Young tableau `T` is
+        `D`-peelable if:
+
+        - the row indices of the cells in the first column of `D` are
+        the entries in an initial segment in the first column of `T` and
+
+        - the tableau `Q` obtained by removing those cells from `T` and playing
+        jeu de taquin is `D-C`-peelable, where `D-C` is the diagram formed by
+        forgetting the first column of `D`.
+
+        Reiner and Shimozono [RS1995]_ showed that the number
+        `\operatorname{red}(w)` of reduced words of a permutation `w` may be
+        computed using the peelable tableaux of the Rothe diagram `D(w)`.
+        Explicitly,
+
+        .. MATH::
+
+            \operatorname{red}(w) = \sum_{T} f_{\operatorname{shape} T}
+
+        where the sum runs over the `D(w)`-peelable tableaux `T` and `f_\lambda`
+        is the number of standard Young tableaux of shape `\lambda` (which may
+        be computed using the hook-length formula).
+
+        EXAMPLES:
+
+        We can compute the `D`-peelable diagrams for a northwest diagram `D`::
+
+            sage: from sage.combinat.diagram import NorthwestDiagram
+            sage: cells = [(0,0), (0,1), (0,2), (1,0), (2,0), (2,2), (2,4),
+            ....:          (4,0), (4,2)]
+            sage: D = NorthwestDiagram(cells); D.pp()
+            O O O . .
+            O . . . .
+            O . O . O
+            . . . . .
+            O . O . .
+            sage: D.peelable_tableaux()
+            {[[1, 1, 1], [2, 3, 3], [3, 5], [5]],
+            [[1, 1, 1, 3], [2, 3], [3, 5], [5]]}
 
         EXAMPLES:
 
@@ -925,19 +835,72 @@ class NorthwestDiagram(Diagram, metaclass=InheritComparisonClasscallMetaclass):
 
 class NorthwestDiagrams(Diagrams):
     r"""
-    The class of northwest diagrams.
+    Diagrams satisfying the northwest property.
 
-    A diagram has the *northwest property* if the presence of cells
-    `(i1, j1)` and `(i2, j2)` implies the presence of the cell
-    `(min(i1, i2), min(j1, j2))`. For the class of general diagrams, see
-    :class:`Diagrams`.
-
-    One may create an instance of a northwest diagram either by directly
-    calling :class:`NorthwestDiagram` or by creating an instance of the
-    parent class ``NorthwestDiagrams`` (with an `s`) and calling it on a 
-    ``list`` of ``tuple``s consisting of the coordinates of the diagram.
+    A diagram is a
+    *northwest diagram* if it satsifies the property that: the presence of two
+    cells `(i_1, j_1)` and `(i_2, j_2)` in a diagram `D` implies the presence of
+    the cell `(\min(i_1, i_2), \min(j_1, j_2))`.
 
     EXAMPLES::
+
+        sage: from sage.combinat.diagram import NorthwestDiagram
+        sage: N = NorthwestDiagram([(0,0), (0, 10), (5,0)]); N.pp()
+        O . . . . . . . . . O
+        . . . . . . . . . . .
+        . . . . . . . . . . .
+        . . . . . . . . . . .
+        . . . . . . . . . . .
+        O . . . . . . . . . .
+
+    Note that checking whether or not the northwest property is satisfied is
+    automatically checked. The diagram found by adding the cell `(1,1)` to the
+    diagram above is *not* a northwest diagram. The cell `(1,0)` should be
+    present due to the presence of `(5,0)` and `(1,1)`::
+
+        sage: from sage.combinat.diagram import Diagram
+        sage: Diagram([(0, 0), (0, 10), (5, 0), (1, 1)]).pp()
+        O . . . . . . . . . O
+        . O . . . . . . . . .
+        . . . . . . . . . . .
+        . . . . . . . . . . .
+        . . . . . . . . . . .
+        O . . . . . . . . . .
+        sage: NorthwestDiagram([(0, 0), (0, 10), (5, 0), (1, 1)])
+        Traceback (most recent call last):
+        ...
+        ValueError: diagram is not northwest
+
+    However, this behavior can be turned off if you are confident that you are
+    providing a northwest diagram::
+
+        sage: N = NorthwestDiagram([(0, 0), (0, 10), (5, 0),
+        ....:                      (1, 1), (0, 1), (1, 0)],
+        ....:                      check=False)
+        sage: N.pp()
+        O O . . . . . . . . O
+        O O . . . . . . . . .
+        . . . . . . . . . . .
+        . . . . . . . . . . .
+        . . . . . . . . . . .
+        O . . . . . . . . . .
+
+    Note that arbitrary diagrams which happen to be northwest diagrams only live
+    in the parent of :class:`Diagrams`::
+
+        sage: D = Diagram([(0, 0), (0, 10), (5, 0), (1, 1), (0, 1), (1, 0)])
+        sage: D.pp()
+        O O . . . . . . . . O
+        O O . . . . . . . . .
+        . . . . . . . . . . .
+        . . . . . . . . . . .
+        . . . . . . . . . . .
+        O . . . . . . . . . .
+        sage: from sage.combinat.diagram import NorthwestDiagrams
+        sage: D in NorthwestDiagrams()
+        False
+
+    Here are some more examples::
 
         sage: from sage.combinat.diagram import NorthwestDiagram, NorthwestDiagrams
         sage: D = NorthwestDiagram([(0,1), (0,2), (1,1)]); D.pp()
@@ -1042,6 +1005,35 @@ class NorthwestDiagrams(Diagrams):
         r"""
         Return the Rothe diagram of ``w``.
 
+        One particular way of constructing a northwest diagram from a permutation is
+        by constructing its Rothe diagram. Formally, if `\omega` is a permutation,
+        then the Rothe diagram `D(\omega)` is the diagram whose cells are
+
+        .. MATH::
+
+            D(\omega) = \{(\omega_j, i) : i<j,\, \omega_i > \omega_j \}.
+
+        Informally, one can construct the Rothe diagram by starting with all
+        `n^2` possible cells, and then deleting the cells `(i, \omega(i))` as
+        well as all cells to the right and below. (These are sometimes called
+        "death rays".) To compute a Rothe diagram in Sage, start with a
+        :class:`~sage.combinat.permutation.Permutation`::
+
+            sage: w = Permutations(8)([2,5,4,1,3,6,7,8])
+
+        Then call :func:`RotheDiagram` on ``w``::
+
+            sage: from sage.combinat.diagram import RotheDiagram
+            sage: RotheDiagram(w).pp()
+            O . . . . . . .
+            O . O O . . . .
+            O . O . . . . .
+            . . . . . . . .
+            . . . . . . . .
+            . . . . . . . .
+            . . . . . . . .
+            . . . . . . . .
+
         EXAMPLES::
 
             sage: w = Permutations(3)([2,1,3])
@@ -1080,6 +1072,19 @@ class NorthwestDiagrams(Diagrams):
             O . . . .
             sage: D.parent()
             Combinatorial northwest diagrams
+
+        This will print in English notation even if the notation is set to
+        French for the partition.
+
+            sage: Partitions.options.convention="french"
+            sage: mu.pp()
+            *
+            **
+            *****
+            sage: D.pp()
+            O O O O O
+            O O . . .
+            O . . . .
 
         TESTS::
 
@@ -1133,7 +1138,7 @@ class NorthwestDiagrams(Diagrams):
         if not isinstance(s, SkewPartition):
             raise ValueError("mu must be a SkewPartition")
 
-        n_cols = s.outer()[0] 
+        n_cols = s.outer()[0]
         n_rows = len(s.outer())
 
         cells = [(i, n_cols - 1 - j) for i, j in s.cells()]

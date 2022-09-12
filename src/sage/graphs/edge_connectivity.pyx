@@ -9,7 +9,6 @@ from a `2k` edge-connected graph or a `k` edge-connected digraph.
 
 .. TODO::
 
-    - Add speedup methods proposed in [GKLP2021]_ for the edge connectivity
     - Implement the tree-packing algorithms proposed in [Gabow1995]_ and
       [BHKP2008]_
     - Extend to digraphs with multiple edges
@@ -62,7 +61,14 @@ cdef class GabowEdgeConnectivity:
         ....:     D = DiGraph(graphs.RandomRegular(6, 50))
         sage: GabowEdgeConnectivity(D).edge_connectivity()
         6
-
+    
+    A complete digraph with `n` vertices is `n-1`-edge-connected::
+    
+        sage: from sage.graphs.edge_connectivity import GabowEdgeConnectivity
+        sage: D = DiGraph(digraphs.Complete(2000))
+        sage: GabowEdgeConnectivity(D, use_rec = True).edge_connectivity()
+        1999
+        
     TESTS:
 
     :trac:`32169`::
@@ -174,17 +180,22 @@ cdef class GabowEdgeConnectivity:
     cdef int num_joins  # number of joined vertices from dfs
     cdef bint* T  # whether the an edge is in the proven k-intersection
     cdef bint* visited  # for method find_dfs_tree
-    cdef bint dfs  # whether or not we should use dfs-based fast initialization
+    cdef bint dfs_preprocessing  # whether or not we should use DFS-based fast initialization
     cdef int * incident_edge_index  # used for DFS initialization
     cdef bint use_rec  # variable to remove, used for development
 
-    def __init__(self, G, dfs=True, use_rec=False):
+    def __init__(self, G, dfs_preprocessing=True, use_rec=False):
         r"""
         Initialize this object.
 
         INPUT:
 
         - ``G`` -- a :class:`~sage.graphs.digraph.DiGraph`
+        - ``dfs_preprocessing`` -- boolean (default: ``True``); indicates whether to
+          use the DFS-based "Fast initialization" provided in [GKLP2021]_
+        - ``use_rec`` -- boolean (default: ``False``); indicates whether to use a 
+          recursive or non-recursive DFS for ``dfs_preprocessing``. The recursive DFS
+          tends to be faster than the non-recursive version on complete digraphs
 
         EXAMPLES::
 
@@ -193,7 +204,7 @@ cdef class GabowEdgeConnectivity:
             sage: GabowEdgeConnectivity(D).edge_connectivity()
             4
         """
-        self.dfs = dfs
+        self.dfs_preprocessing = dfs_preprocessing
         self.use_rec = use_rec
         self.ec_checked = False
         from sage.graphs.digraph import DiGraph
@@ -379,7 +390,7 @@ cdef class GabowEdgeConnectivity:
         # There are fewer than n f-trees. We prepare to join them.  If there's
         # only one f-tree, we just save the edges and advance to the next
         # iteration
-        if self.dfs and self.num_start_f_trees < self.n - 1:
+        if self.dfs_preprocessing and self.num_start_f_trees < self.n - 1:
             self.re_init(tree)
 
         # There are n f-trees, and we try to join them 
@@ -444,7 +455,7 @@ cdef class GabowEdgeConnectivity:
         self.num_joins = 0
         
         # Initialize T_k to be a DFS spanning forest of G \ T
-        if self.dfs:
+        if self.dfs_preprocessing:
             self.compute_dfs_tree()
 
         # Set inactive the f-trees of the root vertex
@@ -993,14 +1004,14 @@ cdef class GabowEdgeConnectivity:
 
         # Arrange the edges of each tree
         for j in range(tree + 1):
-            if self.dfs:
+            if self.dfs_preprocessing:
                 for e_id in self.tree_edges[j]:
                     self.T[e_id] = False
             self.tree_edges[j].clear()
         for j in range(self.m):
             if self.my_edge_state[j] != self.UNUSED:
                 self.tree_edges[self.my_edge_state[j]].push_back(j)
-                if self.dfs:
+                if self.dfs_preprocessing:
                     self.T[j] = True
 
         for j in range(tree + 1):

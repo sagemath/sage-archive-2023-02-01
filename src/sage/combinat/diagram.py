@@ -105,7 +105,7 @@ class Diagram(ClonableArray, metaclass=InheritComparisonClasscallMetaclass):
         sage: TestSuite(D).run()
     """
     @staticmethod
-    def __classcall_private__(self, cells, n_rows=None, n_cols=None, check=False):
+    def __classcall_private__(self, cells, n_rows=None, n_cols=None, check=True):
         r"""
         Normalize the input so that it lives in the correct parent.
 
@@ -363,13 +363,11 @@ class Diagram(ClonableArray, metaclass=InheritComparisonClasscallMetaclass):
             sage: D = Diagram([(0,0), (0,3), (2,2), (2,4)])
             sage: D.check()
 
-        In the next two examples, the diagram ``D`` is initialized but with
-        bad information that is not detected untill we call ``D.check()``.
+        In the next two examples, a bad diagram is passed.
         The first example fails because one cells is indexed by negative
         integers::
 
             sage: D = Diagram([(0,0), (0,-3), (2,2), (2,4)])
-            sage: D.check()
             Traceback (most recent call last):
             ...
             ValueError: Diagrams must be indexed by non-negative integers
@@ -378,7 +376,6 @@ class Diagram(ClonableArray, metaclass=InheritComparisonClasscallMetaclass):
         numbers::
 
             sage: D = Diagram([(0,0), (0,3), (2/3,2), (2,4)])
-            sage: D.check()
             Traceback (most recent call last):
             ...
             ValueError: Diagrams must be indexed by non-negative integers

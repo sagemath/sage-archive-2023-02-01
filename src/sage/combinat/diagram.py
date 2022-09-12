@@ -156,13 +156,13 @@ class Diagram(ClonableArray, metaclass=InheritComparisonClasscallMetaclass):
             N_cols = 0
 
         if n_rows is not None:
-            if n_rows < N_rows + 1:
+            if n_rows <= N_rows:
                 raise ValueError('n_rows is too small')
             self._n_rows = n_rows
         else:
             self._n_rows = N_rows + 1
         if n_cols is not None:
-            if n_cols < N_cols + 1:
+            if n_cols <= N_cols:
                 raise ValueError('n_cols is too small')
             self._n_cols = n_cols
         else:

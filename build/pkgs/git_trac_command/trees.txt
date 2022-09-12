@@ -1,1 +1,0 @@
-# Users should install this manually in their environment. It should not be installed in SAGE_VENV

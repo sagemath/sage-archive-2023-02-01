@@ -222,6 +222,8 @@ from sage.rings.polynomial.multi_polynomial import is_MPolynomial
 from sage.combinat.partition import _Partitions, Partitions, Partitions_n, Partition
 from sage.categories.hopf_algebras import HopfAlgebras
 from sage.categories.hopf_algebras_with_basis import HopfAlgebrasWithBasis
+from sage.categories.principal_ideal_domains import PrincipalIdealDomains
+from sage.categories.unique_factorization_domains import UniqueFactorizationDomains
 from sage.categories.tensor import tensor
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.matrix.constructor import matrix
@@ -356,14 +358,32 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
              Category of commutative hopf algebras with basis over Rational Field,
              Join of Category of realizations of hopf algebras over Rational Field
                  and Category of graded algebras over Rational Field
-                 and Category of graded coalgebras over Rational Field]
+                 and Category of graded coalgebras over Rational Field,
+             Category of unique factorization domains]
+
+            sage: Sym = SymmetricFunctions(ZZ["x"])
+            sage: bases = SymmetricFunctionsBases(Sym)
+            sage: bases.super_categories()
+            [Category of realizations of Symmetric Functions over Univariate Polynomial Ring in x over Integer Ring,
+             Category of commutative hopf algebras with basis over Univariate Polynomial Ring in x over Integer Ring,
+             Join of Category of realizations of hopf algebras over Univariate Polynomial Ring in x over Integer Ring
+                 and Category of graded algebras over Univariate Polynomial Ring in x over Integer Ring
+                 and Category of graded coalgebras over Univariate Polynomial Ring in x over Integer Ring]
         """
         # FIXME: The last one should also be commutative, but this triggers a
         #   KeyError when doing the C3 algorithm!!!
-        cat = HopfAlgebras(self.base().base_ring())
+        R = self.base().base_ring()
+        cat = HopfAlgebras(R)
+        if R in PrincipalIdealDomains:
+            return [self.base().Realizations(),
+                    cat.Commutative().WithBasis(),
+                    cat.Graded().Realizations(),
+                    UniqueFactorizationDomains()]
+
         return [self.base().Realizations(),
                 cat.Commutative().WithBasis(),
                 cat.Graded().Realizations()]
+
 
     class ParentMethods:
 
@@ -3022,6 +3042,12 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             sage: factor((s[3] + s[2,1])*(s[2] + s[4,1]))
             (-1) * s[1] * s[2] * (-s[2] - s[4, 1])
 
+            sage: R.<t> = QQ[]
+            sage: JP = SymmetricFunctions(FractionField(R)).jack(t).P()
+            sage: f = (JP[2,1]*t + JP[1,1,1])^2
+            sage: f.factor()
+            (1/(t^2 + 4*t + 4)) * ((-t-2)*JackP[1, 1, 1] + (-t^2-2*t)*JackP[2, 1])^2
+
         """
         from sage.combinat.sf.multiplicative import SymmetricFunctionAlgebra_multiplicative
         L = self.parent()
@@ -3037,10 +3063,11 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
         poly = R({tuple(part.to_exp(n)): c for part, c in self})
         factors = poly.factor(proof=proof)
         unit = factors.unit()
-        factors = [(M.sum_of_terms((_Partitions.from_exp(e), c)
-                                   for e, c in factor.iterator_exp_coeff(False)),
+        factors = [(M.element_class(M, {_Partitions.from_exp(e): c
+                                        for e, c in factor.iterator_exp_coeff(False)}),
                     exponent)
                    for factor, exponent in factors]
+
         if not isinstance(L, SymmetricFunctionAlgebra_multiplicative):
             factors = [(L(factor), exponent) for factor, exponent in factors]
         return Factorization(factors, unit=unit)

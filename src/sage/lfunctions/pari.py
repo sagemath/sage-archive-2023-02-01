@@ -157,18 +157,7 @@ class lfun_generic():
 
             sage: L2 = lfun_generic(conductor=1, gammaV=[0, 1], weight=12, eps=1)
             sage: L2.init_coeffs(list(delta_qexp(1000))[1:], w=[1..1000])
-
-        Additional arguments are ignored for compatibility with the old
-        Dokchitser script::
-
-            sage: L2.init_coeffs(list(delta_qexp(1000))[1:], foo="bar")
-            doctest:...: DeprecationWarning: additional arguments for initializing an lfun_generic are ignored
-            See https://trac.sagemath.org/26098 for details.
         """
-        if args or kwds:
-            from sage.misc.superseded import deprecation
-            deprecation(26098, "additional arguments for initializing an lfun_generic are ignored")
-
         v = pari(v)
         if v.type() not in ('t_CLOSURE', 't_VEC'):
             raise TypeError("v (coefficients) must be a list or a function")

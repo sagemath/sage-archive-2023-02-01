@@ -304,13 +304,31 @@ class LazyModuleElement(Element):
             sage: L = LazyDirichletSeriesRing(ZZ, "z")
             sage: L(lambda n: n)[1:11]
             [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+
+        TESTS:
+
+        Check that no more elements than necessary are computed::
+
+            sage: L = LazyDirichletSeriesRing(ZZ, "z")
+            sage: f = L(lambda n: 0 if n < 5 else n)
+            sage: f[:3]
+            []
+            sage: f._coeff_stream._cache
+            {1: 0, 2: 0}
         """
         R = self.parent()._internal_poly_ring.base_ring()
+        coeff_stream = self._coeff_stream
         if isinstance(n, slice):
             if n.start is None:
                 # WARNING: for Dirichlet series, 'degree' and
                 # valuation are different
-                start = self._coeff_stream.order()
+                if n.stop is None:
+                    start = coeff_stream.order()
+                else:
+                    start = coeff_stream._approximate_order
+                    while start < n.stop and not coeff_stream[start]:
+                        start += 1
+                        coeff_stream._approximate_order = start
             else:
                 start = n.start
             step = n.step if n.step is not None else 1

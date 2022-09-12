@@ -213,7 +213,9 @@ class Diagram(ClonableArray, metaclass=InheritComparisonClasscallMetaclass):
 
     def pp(self):
         r"""
-        Return a visualization of the diagram. Cells which are present in the
+        Return a visualization of the diagram.
+
+        Cells which are present in the
         diagram are filled with a ``O``. Cells which are not present in the
         diagram are filled with a ``.``.
 
@@ -246,8 +248,7 @@ class Diagram(ClonableArray, metaclass=InheritComparisonClasscallMetaclass):
 
     def number_of_rows(self):
         r"""
-        Return the total number of rows of the cell, including those which do
-        not have any cells.
+        Return the total number of rows of the cell.
 
         EXAMPLES:
 
@@ -261,6 +262,7 @@ class Diagram(ClonableArray, metaclass=InheritComparisonClasscallMetaclass):
             sage: D1.nrows()
             4
 
+        The total number of rows includes including those which are empty.
         We can also include empty rows at the end::
 
             sage: from sage.combinat.diagram import Diagram
@@ -281,8 +283,7 @@ class Diagram(ClonableArray, metaclass=InheritComparisonClasscallMetaclass):
 
     def number_of_cols(self):
         r"""
-        Return the total number of rows of the cell, including those which do
-        not have any cells.
+        Return the total number of rows of the cell.
 
         EXAMPLES:
 
@@ -347,15 +348,7 @@ class Diagram(ClonableArray, metaclass=InheritComparisonClasscallMetaclass):
 
     def check(self):
         r"""
-        Check that this is a valid diagram by checking that it is an iterable
-        of length-two tuples. (The fact that each tuple is length-two is
-        implicitly checked during creation of the diagram).
-
-        .. WARNING::
-
-            This method is required for ``Diagram`` to be a subclass of
-            :class:`~sage.structure.list_clone.ClonableArray`, however the check
-            is *not* automatically performed upon creation of the element.
+        Check that this is a valid diagram.
 
         EXAMPLES::
 
@@ -549,6 +542,8 @@ class Diagrams(UniqueRepresentation, Parent):
 
 class NorthwestDiagram(Diagram, metaclass=InheritComparisonClasscallMetaclass):
     r"""
+    Diagrams with the northwest property.
+
     A diagram is a set of cells indexed by natural numbers. Such a diagram
     has the *northwest property* if the presence of cells `(i1, j1)` and
     `(i2, j2)` implies the presence of the cell
@@ -1050,8 +1045,7 @@ class NorthwestDiagrams(Diagrams):
 
     def from_partition(self, mu):
         r"""
-        Return the Ferrer's diagram of ``mu`` as an element of the parent
-        ``NorthwestDiagrams``
+        Return the Ferrer's diagram of ``mu`` as a northwest diagram.
 
         EXAMPLES::
 
@@ -1168,8 +1162,7 @@ class NorthwestDiagrams(Diagrams):
 
 def RotheDiagram(w):
     r"""
-    A constructor to build the Rothe diagram of a permutation w as an element
-    in the parent of :class:`NorthwestDiagrams`.
+    The Rothe diagram of a permutation ``w``
 
     EXAMPLES::
 
@@ -1185,6 +1178,11 @@ def RotheDiagram(w):
         . . . . . . . . .
         . . . . . O . . .
         . . . . . . . . .
+
+    The Rothe diagram is a northwest diagram::
+
+        sage: D.parent()
+        Combinatorial northwest diagrams
 
     Currently, only elements of the parent
     :class:`sage.combinat.permutations.Permutations` are supported. In

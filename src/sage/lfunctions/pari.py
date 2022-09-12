@@ -108,7 +108,7 @@ class lfun_generic():
         if args or kwds:
             self.init_coeffs(*args, **kwds)
 
-    def init_coeffs(self, v, cutoff=None, w=1, *args, **kwds):
+    def init_coeffs(self, v, cutoff=None, w=1):
         """
         Set the coefficients `a_n` of the `L`-series.
 
@@ -298,7 +298,7 @@ def lfun_number_field(K):
         sage: L(3)
         1.20205690315959
 
-        sage: K = NumberField(x**2-2, 'a')
+        sage: K = NumberField(x**2 - 2, 'a')
         sage: L = LFunction(lfun_number_field(K))
         sage: L(3)
         1.15202784126080

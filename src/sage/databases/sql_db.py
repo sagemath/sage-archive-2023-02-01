@@ -277,9 +277,10 @@ def construct_skeleton(database):
                 skeleton[table[0]][name]['unique'] = bool(col[2])
     return skeleton
 
+
 p = 0
 def _create_print_table(cur, col_titles, **kwds):
-    """
+    r"""
     Create a nice printable table from the cursor given with the given
     column titles.
 
@@ -1253,8 +1254,7 @@ class SQLDatabase(SageObject):
             d = construct_skeleton(self)
             if d == self.__skeleton__:
                 return d
-            else:
-                raise RuntimeError("Skeleton structure is out of whack!")
+            raise RuntimeError("skeleton structure is out of whack")
         return self.__skeleton__
 
     def query(self, *args, **kwds):

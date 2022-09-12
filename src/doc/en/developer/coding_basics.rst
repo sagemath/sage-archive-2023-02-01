@@ -113,7 +113,7 @@ of the directory containing the Sage sources:
         upstream/            # tarballs of upstream sources
         local/               # installed binaries
 
-Python Sage library code goes into ``src/`` and uses the following
+Python Sage library code goes into ``src/sage/`` and uses the following
 conventions. Directory names may be plural (e.g. ``rings``) and file
 names are almost always singular (e.g. ``polynomial_ring.py``). Note
 that the file ``polynomial_ring.py`` might still contain definitions
@@ -125,28 +125,33 @@ of several different types of polynomial rings.
    discussions, etc., in your package.  Make these plain text files
    (with extension ``.txt``) in a subdirectory called ``notes``.
 
-If you want to create a new directory in the Sage library
-``SAGE_ROOT/src/sage`` (say, ``measure_theory``), that directory
-should contain a file ``__init__.py`` that contains the single line
-``import all`` in addition to whatever
-files you want to add (say, ``borel_measure.py`` and
-``banach_tarski.py``), and also a file ``all.py`` listing imports from
-that directory that are important enough to be in the Sage’s global
-namespace at startup.
-The file ``all.py`` might look like this::
+If you want to create a new directory (`package
+<https://docs.python.org/3/tutorial/modules.html#packages>`_) in the
+Sage library ``SAGE_ROOT/src/sage`` (say, ``measure_theory``), that
+directory will usually contain an empty file ``__init__.py``, which
+marks the directory as an ordinary package (see
+:ref:`section_namespace_packages`), and also a file ``all.py``,
+listing imports from this package that are user-facing and important
+enough to be in the global namespace of Sage at startup.  The file
+``all.py`` might look like this::
 
-    from borel_measure import BorelMeasure
-    from banach_tarski import BanachTarskiParadox
+    from .borel_measure import BorelMeasure
+    from .banach_tarski import BanachTarskiParadox
 
-but it is generally better to use the lazy import framework::
+but it is generally better to use the :mod:`~sage.misc.lazy_import`
+framework::
 
     from sage.misc.lazy_import import lazy_import
-    lazy_import('sage.measure_theory.borel_measue', 'BorelMeasure')
+    lazy_import('sage.measure_theory.borel_measure', 'BorelMeasure')
     lazy_import('sage.measure_theory.banach_tarski', 'BanachTarskiParadox')
 
 Then in the file ``SAGE_ROOT/src/sage/all.py``, add a line ::
 
     from sage.measure_theory.all import *
+
+Adding new top-level packages below :mod:`sage` should be done
+sparingly.  It is often better to create subpackages of existing
+packages.
 
 Non-Python Sage source code and supporting files can be included in one
 of the following places:
@@ -172,7 +177,6 @@ In both cases, the files must be listed (explicitly or via wildcards) in
 the section ``options.package_data`` of the file
 ``SAGE_ROOT/pkgs/sagemath-standard/setup.cfg.m4`` (or the corresponding
 file of another distribution).
-
 
 
 Learn by copy/paste
@@ -679,6 +683,48 @@ You are strongly encouraged to:
   adaptability of Sage. Without such examples, small changes to one part
   of Sage that break something else might not go seen until much later
   when someone uses the system, which is unacceptable.
+
+Fine points on styles
+---------------------
+
+A Sage developer, in writing code and docstrings, should follow the styles
+suggested in this manual, except special cases with good reasons. However, there
+are some details where we as a community did not reach to an agreement on
+the official style. These are
+
+- one space::
+
+    This is the first sentence. This is the second sentence.
+
+  vs two spaces::
+
+    This is the first sentence.  This is the second sentence.
+
+  between sentences.
+
+- tight list::
+
+    - first item
+    - second item
+    - third item
+
+  vs spaced list::
+
+    - first item
+
+    - second item
+
+    - third item
+
+There are different opinions on each of these, and in reality, we find
+instances in each style in our codebase. Then what should we do? Do we decide
+on one style by voting? There are different opinions even on what to do!
+
+We can at least do this to prevent any dispute about these style conflicts:
+
+- Acknowledge different authors may have different preferences on these.
+
+- Respect the style choice of the author who first wrote the code or the docstrings.
 
 Private functions
 ^^^^^^^^^^^^^^^^^

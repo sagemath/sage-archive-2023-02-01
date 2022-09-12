@@ -325,9 +325,8 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
             if len(star_point)<len(points[0]):
                 star_point = tuple(star)+(1,)
             star = points.index(star_point)
-        return super(PointConfiguration, cls)\
-            .__classcall__(cls, points, connected, fine, regular, star, defined_affine)
-
+        return super().__classcall__(cls, points, connected, fine,
+                                     regular, star, defined_affine)
 
     def __init__(self, points, connected, fine, regular, star, defined_affine):
         """
@@ -1378,8 +1377,7 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
         #change the next line to only take the regular triangulations,
         #since they are the vertices of the secondary polytope anyway.
         l = self.triangulations_list()
-        return Polyhedron(vertices = [x.gkz_phi() for x in l])
-
+        return Polyhedron(vertices=[x.gkz_phi() for x in l])
 
     def circuits_support(self):
         r"""
@@ -2020,7 +2018,7 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
 
         # construct the initial simplex
         if point_order_is_given:
-            simplices = [frozenset(self.contained_simplex(large=False, point_order = point_order))]
+            simplices = [frozenset(self.contained_simplex(large=False, point_order=point_order))]
         else:
             simplices = [frozenset(self.contained_simplex(large=True))]
         for s in simplices[0]:

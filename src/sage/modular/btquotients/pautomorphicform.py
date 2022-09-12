@@ -40,26 +40,29 @@ This can then be lifted to an overconvergent `p`-adic modular form::
     p-adic automorphic form of cohomological weight 0
 """
 
-from sage.modular.btquotients.btquotient import DoubleCosetReduction
-from sage.structure.unique_representation import UniqueRepresentation
-from sage.structure.richcmp import op_EQ, op_NE
-
-from sage.matrix.matrix_space import MatrixSpace
-from sage.structure.element import ModuleElement
-from sage.modules.module import Module
-from sage.rings.integer import Integer
-from sage.matrix.constructor import Matrix, zero_matrix
-from sage.rings.all import Qp, QQ, ZZ
 from copy import copy
-from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-from sage.rings.laurent_series_ring import LaurentSeriesRing
-from sage.modular.hecke.all import (AmbientHeckeModule, HeckeModuleElement)
-from sage.rings.infinity import Infinity
+
 import sage.modular.hecke.hecke_operator
+
+from sage.matrix.constructor import Matrix, zero_matrix
+from sage.matrix.matrix_space import MatrixSpace
 from sage.misc.verbose import verbose
-from sage.rings.real_mpfr import RR
-from sage.modular.pollack_stevens.sigma0 import Sigma0ActionAdjuster
+from sage.modular.btquotients.btquotient import DoubleCosetReduction
+from sage.modular.hecke.all import AmbientHeckeModule, HeckeModuleElement
 from sage.modular.pollack_stevens.distributions import OverconvergentDistributions, Symk
+from sage.modular.pollack_stevens.sigma0 import Sigma0ActionAdjuster
+from sage.modules.module import Module
+from sage.rings.infinity import Infinity
+from sage.rings.integer import Integer
+from sage.rings.integer_ring import ZZ
+from sage.rings.laurent_series_ring import LaurentSeriesRing
+from sage.rings.padics.factory import Qp
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+from sage.rings.rational_field import QQ
+from sage.rings.real_mpfr import RR
+from sage.structure.element import ModuleElement
+from sage.structure.richcmp import op_EQ, op_NE
+from sage.structure.unique_representation import UniqueRepresentation
 
 # Need this to be pickleable
 
@@ -672,7 +675,7 @@ class BruhatTitsHarmonicCocycles(AmbientHeckeModule, UniqueRepresentation):
         - ``k`` - integer - The weight. It must be even.
 
         - ``prec`` - integer (default: None). If specified, the
-        precision for the coefficient module
+          precision for the coefficient module
 
         - ``basis_matrix`` - a matrix (default: None).
 
@@ -2223,12 +2226,12 @@ class pAdicAutomorphicForms(Module, UniqueRepresentation):
           it automatically from ``prec``, ``U`` and the ``overconvergent`` flag.
 
         - ``R`` -- (default : None). If specified, coefficient field of the automorphic forms.
-        If not specified it defaults to the base ring of the distributions ``U``, or to `Q_p`
-        with the working precision ``prec``.
+          If not specified it defaults to the base ring of the distributions ``U``, or to `Q_p`
+          with the working precision ``prec``.
 
         - ``overconvergent`` -- Boolean (default = False). If True, will construct overconvergent
-        `p`-adic automorphic forms. Otherwise it constructs the finite dimensional space of
-        `p`-adic automorphic forms which is isomorphic to the space of harmonic cocycles.
+          `p`-adic automorphic forms. Otherwise it constructs the finite dimensional space of
+          `p`-adic automorphic forms which is isomorphic to the space of harmonic cocycles.
 
         EXAMPLES:
 
@@ -2464,14 +2467,14 @@ class pAdicAutomorphicForms(Module, UniqueRepresentation):
 
             sage: X = BruhatTitsQuotient(13,5)
             sage: H = X.harmonic_cocycles(2,prec=10)
-            sage: h=H.an_element() # indirect doctest
+            sage: h = H.an_element()  # indirect doctest
             sage: A = X.padic_automorphic_forms(2,prec=10)
             sage: A(h)
             p-adic automorphic form of cohomological weight 0
         """
         # Code how to coerce x into the space
         # Admissible values of x?
-        if type(data) is list:
+        if isinstance(data, list):
             return self.element_class(self, [self._U(o, normalize=False) for o in data])
 
         if isinstance(data, pAdicAutomorphicFormElement):

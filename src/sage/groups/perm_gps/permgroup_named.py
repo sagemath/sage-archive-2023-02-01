@@ -838,7 +838,7 @@ class DiCyclicGroup(PermutationGroup_unique):
     A large generalized quaternion group (order is a power of 2)::
 
         sage: n = 2^10
-        sage: G=DiCyclicGroup(n)
+        sage: G = DiCyclicGroup(n)
         sage: G.order()
         4096
         sage: a = G.gen(0)
@@ -858,7 +858,7 @@ class DiCyclicGroup(PermutationGroup_unique):
     subgroup of order 2 (thus has the unique element of
     order 2 as its non-identity element). ::
 
-        sage: G=DiCyclicGroup(3*5*4)
+        sage: G = DiCyclicGroup(3*5*4)
         sage: G.order()
         240
         sage: two = [g for g in G if g.order()==2]; two
@@ -1145,7 +1145,7 @@ class QuaternionGroup(DiCyclicGroup):
         r"""
         EXAMPLES::
 
-            sage: Q=QuaternionGroup(); Q
+            sage: Q = QuaternionGroup(); Q
             Quaternion group of order 8 as a permutation group
         """
         return "Quaternion group of order 8 as a permutation group"
@@ -1745,7 +1745,7 @@ class MathieuGroup(PermutationGroup_unique):
         """
         n = Integer(n)
         self._n = n
-        if not(n in [9, 10, 11, 12, 21, 22, 23, 24]):
+        if n not in [9, 10, 11, 12, 21, 22, 23, 24]:
             raise ValueError("argument must belong to {9, 10, 11, 12, 21, 22, 23, 24}")
         id = 'MathieuGroup(%s)' % n
         PermutationGroup_generic.__init__(self, gap_group=id)
@@ -2702,7 +2702,7 @@ class PSL(PermutationGroup_plg):
         if q in FiniteFields():
             name = q.gen()
             q = q.cardinality()
-        if not(q in NonNegativeIntegers()):
+        if q not in NonNegativeIntegers():
             raise ValueError('q must be a prime power or a finite field')
         if n == 1:
             id = 'Group([()])'

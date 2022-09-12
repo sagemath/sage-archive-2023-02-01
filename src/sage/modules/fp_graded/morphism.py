@@ -955,7 +955,7 @@ class FPModuleMorphism(Morphism):
         if self.is_zero():
             return None
 
-        # Handle the case where both the morhism and the element is non-trivial.
+        # Handle the case where both morphism and element are non-trivial.
         n = x.degree() - self.degree()
         f_n = self.vector_presentation(n)
 
@@ -1689,7 +1689,7 @@ class FPModuleMorphism(Morphism):
         #  1) `j` be a homomorphism into `\ker(self)`, and
         #  2) 'n' be an integer.
         #
-        # The induction loop starts each iteration assuming that that `j` is onto
+        # The induction loop starts each iteration assuming that `j` is onto
         # the kernel in degrees below `n`.  Each iteration of the loop then
         # extends the map `j` minimally so that `j_n` becomes onto the kernel.
         #
@@ -1821,7 +1821,7 @@ class FPModuleMorphism(Morphism):
         #  1) `j` be a homomorphism into `\im(self)`, and
         #  2) 'n' be an integer.
         #
-        # The induction loop starts each iteration assuming that that `j` is onto
+        # The induction loop starts each iteration assuming that `j` is onto
         # the image in degrees below `n`.  Each iteration of the loop then
         # extends the map `j` minimally so that `j_n` becomes onto the image.
         #

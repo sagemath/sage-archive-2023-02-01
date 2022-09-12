@@ -28,7 +28,8 @@ the full Hecke algebra, only with the anemic algebra.
 
 import sage.rings.infinity
 from sage.matrix.constructor import matrix
-from sage.arith.all import lcm, gcd
+from sage.arith.functions import lcm
+from sage.arith.misc import gcd
 from sage.misc.latex import latex
 from sage.matrix.matrix_space import MatrixSpace
 from sage.rings.ring import CommutativeAlgebra
@@ -206,9 +207,9 @@ class HeckeAlgebra_base(CachedRepresentation, CommutativeAlgebra):
         - something that can be converted into an element of the
           underlying matrix space.
 
-        In the last case, the parameter ``check'' controls whether or
+        In the last case, the parameter ``check`` controls whether or
         not to check that this element really does lie in the
-        appropriate algebra. At present, setting ``check=True'' raises
+        appropriate algebra. At present, setting ``check=True`` raises
         a NotImplementedError unless x is a scalar (or a diagonal
         matrix).
 

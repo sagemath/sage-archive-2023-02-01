@@ -178,9 +178,9 @@ class FilteredModulesWithBasis(FilteredModulesCategory):
 
                 sage: E.<x,y> = ExteriorAlgebra(QQ)
                 sage: E.basis()
-                Lazy family (Term map from Subsets of {0, 1} to
+                Lazy family (Term map from Subsets of {0,1} to
                  The exterior algebra of rank 2 over Rational Field(i))_{i in
-                 Subsets of {0, 1}}
+                 Subsets of {0,1}}
             """
             if d is None:
                 from sage.sets.family import Family
@@ -644,9 +644,9 @@ class FilteredModulesWithBasis(FilteredModulesCategory):
             EXAMPLES::
 
                 sage: A = ModulesWithBasis(ZZ).Filtered().example()
-                sage: x=A(Partition((3,2,1)))
-                sage: y=A(Partition((4,4,1)))
-                sage: z=A(Partition((2,2,2)))
+                sage: x = A(Partition((3,2,1)))
+                sage: y = A(Partition((4,4,1)))
+                sage: z = A(Partition((2,2,2)))
                 sage: (3*x).is_homogeneous()
                 True
                 sage: (x - y).is_homogeneous()

@@ -518,6 +518,11 @@ Verify that a clean sage startup does *not* import matplotlib::
     sage: os.system("sage -c \"if 'matplotlib' in sys.modules: sys.exit(1)\"") # long time
     0
 
+Verify that :trac:`10980` is fixed::
+
+    sage: plot(x,0,2,gridlines=([sqrt(2)],[]))
+    Graphics object consisting of 1 graphics primitive
+
 AUTHORS:
 
 - Alex Clemesha and William Stein (2006-04-10): initial version
@@ -2064,7 +2069,7 @@ def _plot(funcs, xrange, parametric=False,
 
     OUTPUT: a ``Graphics`` object
 
-    EXAMPLES::
+    EXAMPLES:
 
     See :func:`plot` for many, many implicit examples.
     Here is an explicit one::
@@ -2105,8 +2110,6 @@ def _plot(funcs, xrange, parametric=False,
         2
         sage: q2
         Graphics object consisting of 2 graphics primitives
-
-    ::
 
     Make sure that we don't get multiple legend labels for plot segments
     (:trac:`11998`)::

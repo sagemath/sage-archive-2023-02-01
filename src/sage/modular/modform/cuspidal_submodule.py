@@ -37,10 +37,13 @@ EXAMPLES::
 #
 #                  http://www.gnu.org/licenses/
 #########################################################################
-from sage.rings.all     import QQ, Integer
-from sage.misc.all      import cached_method
+
+from sage.matrix.constructor import Matrix
+from sage.matrix.special import identity_matrix
+from sage.misc.cachefunc import cached_method
 from sage.misc.verbose  import verbose
-from sage.matrix.all    import Matrix, identity_matrix
+from sage.rings.integer import Integer
+from sage.rings.rational_field import QQ
 
 from .submodule import ModularFormsSubmodule
 from . import vm_basis
@@ -242,7 +245,7 @@ class CuspidalSubmodule_modsym_qexp(CuspidalSubmodule):
 
         EXAMPLES::
 
-            sage: C=CuspForms(38, 2)
+            sage: C = CuspForms(38, 2)
             sage: C._compute_hecke_matrix_prime(7)
             [-1  0  0  0]
             [ 0 -1  0  0]

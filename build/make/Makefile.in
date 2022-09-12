@@ -340,9 +340,10 @@ doc-html: sagemath_doc_html
 
 # 'doc-html-no-plot': build docs without building the graphics coming
 # from the '.. plot' directive, in case you want to save a few
-# megabytes of disk space. 'doc-clean' is a prerequisite because the
-# presence of graphics is cached in src/doc/output.
-doc-html-no-plot: doc-clean
+# megabytes of disk space. Run 'make doc-clean' first because the
+# presence of graphics is cached in the built documentation.
+doc-html-no-plot:
+	(cd $(SAGE_ROOT) && $(MAKE) doc-clean)
 	+$(MAKE_REC) SAGE_DOCBUILD_OPTS="$(SAGE_DOCBUILD_OPTS) --no-plot" doc-html
 
 # Using mathjax is actually the only options, but we keep
@@ -553,7 +554,7 @@ $(1)-$(4)-no-deps:
 	    echo "$$($(4)_DISABLED_MESSAGE)" 2>&1; \
 	    exit 1; \
 	else \
-	    sage-logger -p 'SAGE_CHECK=$$(SAGE_CHECK_$(1)) PATH=$$($(4))/bin:$$$$PATH $$(SAGE_SPKG) $$(SAGE_SPKG_OPTIONS) \
+	    sage-logger -p 'SAGE_CHECK=$$(SAGE_CHECK_$(1)) PATH=$$(SAGE_SRC)/bin:$$($(4))/bin:$$$$PATH $$(SAGE_SPKG) $$(SAGE_SPKG_OPTIONS) \
 		$(if $(filter $(1),$(TOOLCHAIN_DEPS)),--keep-existing) \
 		$(1)-$(2) $$($(4))' '$$(SAGE_LOGS)/$(1)-$(2).log'; \
 	fi
@@ -676,10 +677,11 @@ $(1)-$(4)-no-deps:
 		SAGE_SPKG_WHEELS=$$($(4))/var/lib/sage/wheels \
 		SAGE_INST_LOCAL=$$($(4)) \
 		sage-logger -p '$$(SAGE_ROOT)/build/pkgs/$(1)/spkg-install' '$$(SAGE_LOGS)/$(1)-$(2).log' && \
+	    rm -f "$$($(4))/$(SPKG_INST_RELDIR)/$(1)-*" && \
 	    touch "$$($(4))/$(SPKG_INST_RELDIR)/$(1)-$(2)"; \
-	else \
+	else ( \
 	    echo; \
-	    echo "Error: $(1) is a dummy script package that the Sage distribution uses"; \
+	    echo "Note: $(1) is a dummy package that the Sage distribution uses"; \
 	    echo "to provide information about equivalent system packages."; \
 	    echo "It cannot be installed using the Sage distribution."; \
 	    echo "Please install it manually, for example using the system packages"; \
@@ -687,7 +689,9 @@ $(1)-$(4)-no-deps:
 	    echo "See below for package-specific information."; \
 	    echo; \
 	    $$(SAGE_ROOT)/build/bin/sage-spkg-info $(1); \
-	    exit 1; \
+	    echo; \
+	    echo "Error: $(1) is a dummy package and "; \
+	    echo "cannot be installed using the Sage distribution." ) | sage-logger -p 'cat; exit 1' '$$(SAGE_LOGS)/$(1)-$(2).log'; \
 	fi
 
 $(1)-no-deps: $(1)-$(4)-no-deps

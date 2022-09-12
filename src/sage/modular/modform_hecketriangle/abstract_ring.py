@@ -16,14 +16,15 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from sage.algebras.free_algebra import FreeAlgebra
+from sage.misc.cachefunc import cached_method
+from sage.rings.fraction_field import FractionField
 from sage.rings.infinity import infinity
 from sage.rings.integer_ring import ZZ
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+from sage.rings.power_series_ring import PowerSeriesRing
 from sage.rings.rational_field import QQ
-from sage.rings.all import FractionField, PolynomialRing, PowerSeriesRing
-from sage.algebras.free_algebra import FreeAlgebra
-
 from sage.structure.parent import Parent
-from sage.misc.cachefunc import cached_method
 
 from .constructor import FormsRing, FormsSpace
 from .series_constructor import MFSeriesConstructor
@@ -52,7 +53,7 @@ class FormsRing_abstract(Parent):
 
         - ``group``      -- The Hecke triangle group (default: ``HeckeTriangleGroup(3)``)
 
-        - ``base_ring``  -- The base_ring (default: `\Z).
+        - ``base_ring``  -- The base_ring (default: `\Z`).
 
         - ``red_hom``    -- If ``True`` then results of binary operations are considered
                             homogeneous whenever it makes sense (default: ``False``).

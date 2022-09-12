@@ -18,7 +18,7 @@ overridden by subclasses.
 import operator as _operator
 from sage.rings.rational_field import QQ
 from sage.symbolic.ring import SR
-from sage.symbolic.callable import is_CallableSymbolicExpression
+from sage.structure.element import Expression
 from sage.functions.all import exp
 from sage.symbolic.operators import arithmetic_operators, relation_operators, FDerivativeOperator, add_vararg, mul_vararg
 from sage.rings.number_field.number_field_element_quadratic import NumberFieldElement_gaussian
@@ -701,7 +701,7 @@ class SympyConverter(Converter):
             sage: s(f)
             Lambda((x, y), x**2 + y**2)
         """
-        if is_CallableSymbolicExpression(ex):
+        if isinstance(ex, Expression) and ex.is_callable():
             from sympy import Symbol, Lambda
             return Lambda(tuple(Symbol(str(arg)) for arg in ex.arguments()),
                           super().__call__(ex))
@@ -1200,7 +1200,7 @@ class AlgebraicConverter(Converter):
         # root is selected).
         try:
             if operator is _operator.pow:
-                from sage.rings.all import Rational
+                from sage.rings.rational import Rational
                 base, expt = ex.operands()
                 base = self.field(base)
                 expt = Rational(expt)
@@ -1590,8 +1590,8 @@ def polynomial(ex, base_ring=None, ring=None):
          sage: _.parent()
          Multivariate Polynomial Ring in x, y over Rational Field
 
-         sage: s,t=var('s,t')
-         sage: expr=t^2-2*s*t+1
+         sage: s,t = var('s,t')
+         sage: expr = t^2-2*s*t+1
          sage: expr.polynomial(None,ring=SR['t'])
          t^2 - 2*s*t + 1
          sage: _.parent()
@@ -1636,7 +1636,7 @@ class LaurentPolynomialConverter(PolynomialConverter):
         super().__init__(ex, base_ring, ring)
 
         if ring is None and base_ring is not None:
-            from sage.rings.all import LaurentPolynomialRing
+            from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
             self.ring = LaurentPolynomialRing(self.base_ring,
                                               names=self.varnames)
 
@@ -1945,7 +1945,9 @@ class RingConverter(Converter):
 
         operands = ex.operands()
         if operator is _operator.pow:
-            from sage.all import Integer, Rational
+            from sage.rings.integer import Integer
+            from sage.rings.rational import Rational
+
             base, expt = operands
 
             if expt == Rational(((1,2))):
@@ -2108,7 +2110,7 @@ class SubstituteFunction(ExpressionTreeWalker):
             sage: s(1/foo(foo(x)) + foo(2))
             1/bar(bar(x)) + bar(2)
 
-        TESTS::
+        TESTS:
 
         Check that the old syntax still works::
 
@@ -2218,7 +2220,7 @@ class Exponentialize(ExpressionTreeWalker):
         EXAMPLES::
         
             sage: from sage.symbolic.expression_conversions import Exponentialize
-            sage: d=Exponentialize(sin(x))
+            sage: d = Exponentialize(sin(x))
             sage: d(sin(x))
             -1/2*I*e^(I*x) + 1/2*I*e^(-I*x)
             sage: d(cosh(x))
@@ -2262,7 +2264,7 @@ class DeMoivre(ExpressionTreeWalker):
 
             sage: a, b = SR.var("a, b")
             sage: from sage.symbolic.expression_conversions import DeMoivre
-            sage: d=DeMoivre(e^a)
+            sage: d = DeMoivre(e^a)
             sage: d(e^(a+I*b))
             (cos(b) + I*sin(b))*e^a
         """

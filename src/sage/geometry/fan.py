@@ -646,7 +646,8 @@ def Fan(cones, rays=None, lattice=None, check=True, normalize=True,
             rays = new_rays
         else:
             rays = tuple(sorted(ray_set))
-        cones = (tuple(sorted(rays.index(ray) for ray in cone.rays()))
+        ray_to_index = {ray: i for i, ray in enumerate(rays)}
+        cones = (tuple(sorted(ray_to_index[ray] for ray in cone.rays()))
                  for cone in cones)
         return result()
     # Construct the fan from rays and "tuple cones"
@@ -1047,8 +1048,8 @@ class Cone_of_fan(ConvexRationalPolyhedralCone):
             1-d cone of Rational polyhedral fan in 2-d lattice N
             sage: TestSuite(cone).run()                                         # optional - palp
         """
-        super(Cone_of_fan, self).__init__(
-                    ambient=ambient, ambient_ray_indices=ambient_ray_indices)
+        super().__init__(ambient=ambient,
+                         ambient_ray_indices=ambient_ray_indices)
         self._is_strictly_convex = True
         # Because if not, this cone should not have been constructed
 
@@ -1207,7 +1208,7 @@ class RationalPolyhedralFan(IntegralRayCollection, Callable, Container):
             sage: f = Fan([(0,)], [(0,1)])
             sage: TestSuite(f).run()
         """
-        super(RationalPolyhedralFan, self).__init__(rays, lattice)
+        super().__init__(rays, lattice)
         self._generating_cones = tuple(Cone_of_fan(self, c) for c in cones)
         for i, cone in enumerate(self._generating_cones):
             cone._star_generator_indices = (i,)
@@ -1675,8 +1676,7 @@ class RationalPolyhedralFan(IntegralRayCollection, Callable, Container):
             6
         """
         assert is_Fan(other)
-        rc = super(RationalPolyhedralFan, self).cartesian_product(
-                                                                other, lattice)
+        rc = super().cartesian_product(other, lattice)
         self_cones = [cone.ambient_ray_indices() for cone in self]
         n = self.nrays()
         other_cones = [tuple(n + i for i in cone.ambient_ray_indices())
@@ -1926,7 +1926,8 @@ class RationalPolyhedralFan(IntegralRayCollection, Callable, Container):
         new_fan_rays = list(self.rays())
         new_fan_rays.extend(ray for ray in new_rays
                                 if ray not in self.rays().set())
-        cones = tuple(tuple(sorted(new_fan_rays.index(ray) for ray in cone))
+        ray_to_index = {ray: i for i, ray in enumerate(new_fan_rays)}
+        cones = tuple(tuple(sorted(ray_to_index[ray] for ray in cone))
                       for cone in cones)
         fan = Fan(cones, new_fan_rays, check=False, normalize=False)
         return fan
@@ -2510,7 +2511,7 @@ class RationalPolyhedralFan(IntegralRayCollection, Callable, Container):
             sage: dP8 = toric_varieties.dP8()                                               # optional - palp sage.graphs
             sage: g = dP8.fan().vertex_graph(); g                                           # optional - palp sage.graphs
             Graph on 4 vertices
-            sage: set(dP8.fan(1)) == set(g.vertices())                                      # optional - palp sage.graphs
+            sage: set(dP8.fan(1)) == set(g.vertices(sort=False))                            # optional - palp sage.graphs
             True
             sage: g.edge_labels()  # all edge labels the same since every cone is smooth    # optional - palp sage.graphs
             [(1, 0), (1, 0), (1, 0), (1, 0)]
@@ -3185,10 +3186,10 @@ class RationalPolyhedralFan(IntegralRayCollection, Callable, Container):
             pass
 
         def is_not_facet(I):
-            return all(not(I <= f) for f in facets)
+            return all(not (I <= f) for f in facets)
 
         def is_in_SR(I):
-            return all(not(I >= sr) for sr in SR)
+            return all(not (I >= sr) for sr in SR)
 
         # Generators of SR are index sets I = {i1, ..., ik}
         # called "primitive collections" such that

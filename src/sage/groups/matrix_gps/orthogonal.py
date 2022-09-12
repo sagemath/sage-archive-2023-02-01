@@ -135,16 +135,15 @@ def normalize_args_e(degree, ring, e):
     return ZZ(e)
 
 
-
-
 ###############################################################################
 # Orthogonal Group: common Code for both GO and SO
 ###############################################################################
 
 def _OG(n, R, special, e=0, var='a', invariant_form=None):
     r"""
-    This function is commonly used by the functions GO and SO to avoid uneccessarily
-    duplicated code. For documentation and examples see the individual functions.
+    This function is commonly used by the functions GO and SO to avoid
+    unnecessarily duplicated code. For documentation and examples see
+    the individual functions.
 
     TESTS:
 
@@ -389,7 +388,7 @@ def SO(n, R, e=None, var='a', invariant_form=None):
     Using the ``invariant_form`` option::
 
         sage: CF3 = CyclotomicField(3); e3 = CF3.gen()
-        sage: m=matrix(CF3, 3,3, [[1,e3,0],[e3,2,0],[0,0,1]])
+        sage: m = matrix(CF3, 3,3, [[1,e3,0],[e3,2,0],[0,0,1]])
         sage: SO3  = SO(3, CF3)
         sage: SO3m = SO(3, CF3, invariant_form=m)
         sage: SO3 == SO3m
@@ -454,7 +453,7 @@ class OrthogonalMatrixGroup_generic(NamedMatrixGroup_generic):
         \text{SO}_{3}(\Bold{F}_{5})
 
         sage: CF3 = CyclotomicField(3); e3 = CF3.gen()
-        sage: m=matrix(CF3, 3,3, [[1,e3,0],[e3,2,0],[0,0,1]])
+        sage: m = matrix(CF3, 3,3, [[1,e3,0],[e3,2,0],[0,0,1]])
         sage: G = SO(3, CF3, invariant_form=m)
         sage: latex(G)
         \text{SO}_{3}(\Bold{Q}(\zeta_{3}))\text{ with respect to non positive definite symmetric form }\left(\begin{array}{rrr}

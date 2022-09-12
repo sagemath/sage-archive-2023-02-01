@@ -884,7 +884,7 @@ class ImplicitSuffixTree(SageObject):
             for (u,v,label) in tree.edge_iterator():
                 tree.set_edge_label(u, v, label.string_rep())
         if vertex_colors is None:
-            vertex_colors = {'#fec7b8':tree.vertices()}
+            vertex_colors = {'#fec7b8':tree.vertices(sort=True)}
         return tree.plot(layout=layout, tree_root=tree_root,
                 tree_orientation=tree_orientation,
                 vertex_colors=vertex_colors, edge_labels=edge_labels,
@@ -1729,7 +1729,7 @@ class DecoratedSuffixTree(ImplicitSuffixTree):
         EXAMPLES::
 
             sage: from sage.combinat.words.suffix_trees import DecoratedSuffixTree
-            sage: w=Word('aabbaaba')
+            sage: w = Word('aabbaaba')
             sage: DecoratedSuffixTree(w)._complete_labeling()
             {(2, 7): [1], (5, 4): [1]}
         """
@@ -1745,7 +1745,7 @@ class DecoratedSuffixTree(ImplicitSuffixTree):
             - ``(u, v)`` -- edge on which the point is registered
             - ``l`` -- depth of the registered point on (u,v)
             - ``start`` -- beginning of the squares registered by the label
-            ``(u, v), l``
+              ``(u, v), l``
             """
             # Mark the point in labeling
             if (u, v) in labeling:

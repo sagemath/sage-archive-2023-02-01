@@ -248,9 +248,9 @@ class WeylGroups(Category_singleton):
                 sage: g = W.quantum_bruhat_graph((1,3))
                 sage: g
                 Parabolic Quantum Bruhat Graph of Weyl Group of type ['A', 3] (as a matrix group acting on the ambient space) for nodes (1, 3): Digraph on 6 vertices
-                sage: g.vertices()
+                sage: g.vertices(sort=True)
                 [s2*s3*s1*s2, s3*s1*s2, s1*s2, s3*s2, s2, 1]
-                sage: g.edges()
+                sage: g.edges(sort=True)
                 [(s2*s3*s1*s2, s2, alpha[2]),
                  (s3*s1*s2, s2*s3*s1*s2, alpha[1] + alpha[2] + alpha[3]),
                  (s3*s1*s2, 1, alpha[2]),
@@ -495,7 +495,7 @@ class WeylGroups(Category_singleton):
             if self.is_one():
                 return R.one()
 
-            return R(sum(2**(pieri_factors.stanley_symm_poly_weight(u))*x[u.length()-1] * v.stanley_symmetric_function_as_polynomial(max_length = u.length())
+            return R(sum(2**(pieri_factors.stanley_symm_poly_weight(u))*x[u.length()-1] * v.stanley_symmetric_function_as_polynomial(max_length=u.length())
                            for (u,v) in self.left_pieri_factorizations(max_length)
                            if u != W.one()))
 
@@ -574,11 +574,11 @@ class WeylGroups(Category_singleton):
         @cached_in_parent_method
         def reflection_to_root(self):
             r"""
-            Returns the root associated with the reflection ``self``.
+            Return the root associated with the reflection ``self``.
 
             EXAMPLES::
 
-                sage: W=WeylGroup(['C',2],prefix="s")
+                sage: W = WeylGroup(['C',2],prefix="s")
                 sage: W.from_reduced_word([1,2,1]).reflection_to_root()
                 2*alpha[1] + alpha[2]
                 sage: W.from_reduced_word([1,2]).reflection_to_root()
@@ -590,7 +590,6 @@ class WeylGroups(Category_singleton):
                 ...
                 ValueError: s2*s1*s2*s1 is not a reflection
             """
-
             i = self.first_descent()
             if i is None:
                 raise ValueError("{} is not a reflection".format(self))
@@ -604,11 +603,11 @@ class WeylGroups(Category_singleton):
         @cached_in_parent_method
         def reflection_to_coroot(self):
             r"""
-            Returns the coroot associated with the reflection ``self``.
+            Return the coroot associated with the reflection ``self``.
 
             EXAMPLES::
 
-                sage: W=WeylGroup(['C',2],prefix="s")
+                sage: W = WeylGroup(['C',2],prefix="s")
                 sage: W.from_reduced_word([1,2,1]).reflection_to_coroot()
                 alphacheck[1] + alphacheck[2]
                 sage: W.from_reduced_word([1,2]).reflection_to_coroot()
@@ -620,7 +619,6 @@ class WeylGroups(Category_singleton):
                 ...
                 ValueError: s2*s1*s2*s1 is not a reflection
             """
-
             i = self.first_descent()
             if i is None:
                 raise ValueError("{} is not a reflection".format(self))
@@ -631,14 +629,14 @@ class WeylGroups(Category_singleton):
                 raise ValueError("{} is not a reflection".format(self))
             return rsi.apply_simple_reflection(i, side='left').reflection_to_coroot().simple_reflection(i)
 
-        def inversions(self, side = 'right', inversion_type = 'reflections'):
+        def inversions(self, side='right', inversion_type='reflections'):
             """
-            Returns the set of inversions of ``self``.
+            Return the set of inversions of ``self``.
 
             INPUT:
 
             - ``side`` -- 'right' (default) or 'left'
-            - ``inversion_type`` -- 'reflections' (default), 'roots', or 'coroots'.
+            - ``inversion_type`` -- 'reflections' (default), 'roots', or 'coroots'
 
             OUTPUT:
 
@@ -650,8 +648,8 @@ class WeylGroups(Category_singleton):
 
             EXAMPLES::
 
-                sage: W=WeylGroup(['C',2], prefix="s")
-                sage: w=W.from_reduced_word([1,2])
+                sage: W = WeylGroup(['C',2], prefix="s")
+                sage: w = W.from_reduced_word([1,2])
                 sage: w.inversions()
                 [s2, s2*s1*s2]
                 sage: w.inversions(inversion_type = 'reflections')
@@ -666,9 +664,7 @@ class WeylGroups(Category_singleton):
                 [alpha[1], 2*alpha[1] + alpha[2]]
                 sage: w.inversions(side = 'left', inversion_type = 'coroots')
                 [alphacheck[1], alphacheck[1] + alphacheck[2]]
-
             """
-
             if side == 'left':
                 self = self.inverse()
             reflections = self.inversions_as_reflections()
@@ -678,7 +674,7 @@ class WeylGroups(Category_singleton):
                 return [r.reflection_to_root() for r in reflections]
             if inversion_type == 'coroots':
                 return [r.reflection_to_coroot() for r in reflections]
-            raise ValueError("inversion_type {} is invalid".format(inversion_type))
+            raise ValueError(f"inversion_type {inversion_type} is invalid")
 
         def inversion_arrangement(self, side='right'):
             r"""

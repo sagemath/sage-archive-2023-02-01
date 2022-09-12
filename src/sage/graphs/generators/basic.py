@@ -742,23 +742,23 @@ def ToroidalGrid2dGraph(p, q):
         sage: tgrid.is_regular()
         True
     """
-    g = Grid2dGraph(p, q, set_positions=False)
+    g = Grid2dGraph(p, q, set_positions=True)
 
     g.add_edges([((i, 0), (i, q - 1)) for i in range(p)])
     g.add_edges([((0, i), (p - 1, i)) for i in range(q)])
 
     g.name("Toroidal 2D Grid Graph with parameters {},{}".format(p, q))
 
-    d = g.get_pos()
+    pos = g._pos
     p += 0.
     q += 0.
     uf = (p / 2) * (p / 2)
     vf = (q / 2) * (q / 2)
-    for u, v in d:
-        x, y = d[u, v]
+    for u, v in g:
+        x, y = pos[u, v]
         x += 0.25 * (1.0 + u * (u - p + 1) / uf)
-        y += 0.25 * (1 + v * (v - q + 1) / vf)
-        d[u, v] = (x, y)
+        y += 0.25 * (1.0 + v * (v - q + 1) / vf)
+        pos[u, v] = (x, y)
 
     return g
 
@@ -926,7 +926,7 @@ def GridGraph(dim_list):
     One dimensional grids (i.e., path) have simple vertex labels::
 
         sage: g = graphs.GridGraph([5])
-        sage: g.vertices()
+        sage: g.vertices(sort=True)
         [0, 1, 2, 3, 4]
 
     The graph is correct::
@@ -940,22 +940,22 @@ def GridGraph(dim_list):
 
     Trivial cases::
 
-        sage: g = graphs.GridGraph([]); g; g.vertices()
+        sage: g = graphs.GridGraph([]); g; g.vertices(sort=False)
         Grid Graph for []: Graph on 0 vertices
         []
-        sage: g = graphs.GridGraph([1]); g; g.vertices()
+        sage: g = graphs.GridGraph([1]); g; g.vertices(sort=False)
         Grid Graph for [1]: Graph on 1 vertex
         [0]
-        sage: g = graphs.GridGraph([2]); g; g.vertices()
+        sage: g = graphs.GridGraph([2]); g; g.vertices(sort=True)
         Grid Graph for [2]: Graph on 2 vertices
         [0, 1]
-        sage: g = graphs.GridGraph([1,1]); g; g.vertices()
+        sage: g = graphs.GridGraph([1,1]); g; g.vertices(sort=False)
         Grid Graph for [1, 1]: Graph on 1 vertex
         [(0, 0)]
-        sage: g = graphs.GridGraph([1, 1, 1]); g; g.vertices()
+        sage: g = graphs.GridGraph([1, 1, 1]); g; g.vertices(sort=False)
         Grid Graph for [1, 1, 1]: Graph on 1 vertex
         [(0, 0, 0)]
-        sage: g = graphs.GridGraph([1,1,2]); g; g.vertices()
+        sage: g = graphs.GridGraph([1,1,2]); g; g.vertices(sort=True)
         Grid Graph for [1, 1, 2]: Graph on 2 vertices
         [(0, 0, 0), (0, 0, 1)]
 

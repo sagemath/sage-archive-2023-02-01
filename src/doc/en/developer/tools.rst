@@ -8,6 +8,8 @@
 Additional development and testing tools
 ========================================
 
+.. _section-tools-tox:
+
 Tox
 ===
 
@@ -72,6 +74,8 @@ Sage doctester in the normal Sage environment.  This is equivalent to
 using the command ``./sage -t``; see :ref:`chapter-doctesting`.
 
 
+.. _section-tools-coverage:
+
 Coverage
 ========
 
@@ -82,6 +86,8 @@ arguments are provided) or ``./sage --coverage`` (if arguments are
 provided).
 
 
+.. _section-tools-startuptime:
+
 Startuptime
 ===========
 
@@ -89,6 +95,8 @@ The command ``./sage -tox -e startuptime`` requires that Sage has been
 built already.  ``startuptime`` is a special tox environment that is
 equivalent to using the command ``./sage --startuptime``.
 
+
+.. _section-tools-pycodestyle:
 
 Pycodestyle
 ===========
@@ -188,12 +196,19 @@ or a few related issues::
 
 - Manual: Run ``pycodestyle path/to/the/file.py``.
 
-- VS Code: Activate by adding the setting ``"python.linting.pycodestyleEnabled": true``, see `official VS Code documentation <https://code.visualstudio.com/docs/python/linting>`__ for details.
+- VS Code: The minimal version of pycodestyle is activated by default in
+  ``SAGE_ROOT/.vscode/settings.json`` (the corresponding setting is
+  ``"python.linting.pycodestyleEnabled": true``). Note that the
+  ``settings.json`` file is not ignored by git so be aware to keep it in sync
+  with the trac repo. For further details, see the
+  `official VS Code documentation <https://code.visualstudio.com/docs/python/linting>`__.
 
 *Configuration:* ``[pycodestyle]`` block in ``SAGE_ROOT/src/tox.ini``
 
 *Documentation:* https://pycodestyle.pycqa.org/en/latest/index.html
 
+
+.. _section-tools-relint:
 
 Relint
 ======
@@ -209,6 +224,8 @@ documentation markup, and modularization anti-patterns.
 
 *Documentation:* https://pypi.org/project/relint/
 
+
+.. _section-tools-codespell:
 
 Codespell
 =========
@@ -241,6 +258,8 @@ Sage defines a configuration for codespell::
 - ``SAGE_ROOT/src/.codespell-dictionary.txt`` and ``SAGE_ROOT/src/.codespell-ignore.txt``
 
 
+.. _section-tools-pytest:
+
 Pytest
 ======
 `Pytest <https://docs.pytest.org/en/stable/>`_ is a testing framework.
@@ -271,6 +290,9 @@ package :mod:`sage.numerical.backends` and some modules in
 
 *Documentation:* https://docs.pytest.org/en/stable/index.html
 
+
+.. _section-tools-pyright:
+
 Pyright
 =======
 `Pyright <https://github.com/microsoft/pyright>`_ is static type checker.
@@ -291,9 +313,15 @@ Pyright
 
 *Documentation:* https://github.com/microsoft/pyright#documentation
 
+
+.. _section-tools-pyflakes:
+
 Pyflakes
 ========
 `Pyflakes <https://github.com/PyCQA/pyflakes>`_ checks for common coding errors.
+
+
+.. _section-tools-lgtm:
 
 LGTM
 ====

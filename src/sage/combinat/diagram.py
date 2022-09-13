@@ -25,7 +25,6 @@ AUTHORS:
 # ****************************************************************************
 
 from sage.categories.sets_cat import Sets
-from sage.sets.non_negative_integers import NonNegativeIntegers as NN
 from sage.combinat.partition import Partition
 from sage.combinat.skew_partition import SkewPartition
 from sage.combinat.permutation import Permutations
@@ -335,6 +334,8 @@ class Diagram(ClonableArray, metaclass=InheritComparisonClasscallMetaclass):
             ...
             ValueError: Diagrams must be indexed by non-negative integers
         """
+        from sage.sets.non_negative_integers import NonNegativeIntegers
+        NN = NonNegativeIntegers()
         if not all(all(list(i in NN for i in c)) for c in self._cells):
             raise ValueError("Diagrams must be indexed by non-negative integers")
 
@@ -1027,7 +1028,7 @@ class NorthwestDiagrams(Diagrams):
             Combinatorial northwest diagrams
 
         This will print in English notation even if the notation is set to
-        French for the partition.
+        French for the partition::
 
             sage: Partitions.options.convention="french"
             sage: mu.pp()

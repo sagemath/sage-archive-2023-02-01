@@ -100,7 +100,11 @@ We can change the base ring::
     sage: hinv.valuation()
     -1
 
-TESTS::
+TESTS:
+
+We check that -- at least for some simple cases -- division,
+composition and reversion do not raise exceptions for univariate lazy
+Laurent series, lazy power series and lazy symmetric functions::
 
     sage: def check(L, z, verbose=False):
     ....:     # division
@@ -144,6 +148,53 @@ TESTS::
     sage: p = SymmetricFunctions(QQ).p()
     sage: L = LazySymmetricFunctions(p)
     sage: check(L, L(p[1]))
+
+We check that the elements in the cache of the stream of homogeneous
+components are in the correct ring::
+
+    sage: def check(L, x, valuation, verbose=False):
+    ....:     f = L(x, valuation=valuation)
+    ....:     _ = f[2], f[5]
+    ....:     if callable(x):
+    ....:         assert len(f._coeff_stream._cache) == 2, "the cache is %s" % f._coeff_stream._cache
+    ....:     else:
+    ....:         m = 6 if valuation is None else 5 - valuation + 1
+    ....:         assert len(f._coeff_stream._cache) == m, "the cache is %s" % f._coeff_stream._cache
+    ....:     P = f._coeff_stream._cache[2].parent()
+    ....:     assert P is L._internal_poly_ring.base_ring(), "the cache is in %s" % P
+    ....:     if verbose:
+    ....:         print(P)
+
+    sage: def gen():
+    ....:     n = 0
+    ....:     while True:
+    ....:         yield n
+    ....:         n += 1
+
+    sage: L.<z> = LazyLaurentSeriesRing(GF(2))
+    sage: check(L, lambda n: n, valuation=-5)
+    sage: check(L, gen(), valuation=-5)
+
+    sage: L = LazyDirichletSeriesRing(QQbar, "s")
+    sage: check(L, lambda n: n, valuation=2)
+    sage: check(L, gen(), valuation=2)
+
+    sage: L.<z> = LazyPowerSeriesRing(GF(2))
+    sage: check(L, lambda n: n, valuation=0)
+    sage: check(L, gen(), valuation=0)
+
+    sage: L.<x,y> = LazyPowerSeriesRing(GF(2))
+    sage: check(L, lambda n: (x + y)^n, valuation=None)
+    sage: def gen():
+    ....:     n = 0
+    ....:     while True:
+    ....:         yield (x+y)^n
+    ....:         n += 1
+    sage: check(L, gen(), valuation=None)
+
+    sage: s = SymmetricFunctions(GF(2)).s()
+    sage: L = LazySymmetricFunctions(s)
+    sage: check(L, lambda n: sum(k*s(la) for k, la in enumerate(Partitions(n))), valuation=0)
 """
 
 # ****************************************************************************
@@ -406,7 +457,7 @@ class LazyModuleElement(Element):
 
         if n is None:
             if P._internal_poly_ring.base_ring() is not P._laurent_poly_ring:
-                return lazy_list(filter(bool, map(R, coeffs)))
+                return lazy_list(coeffs)
 
             # flatten out the generator in the multivariate case
             return lazy_list(chain.from_iterable(map(lambda coeff: coeff.coefficients(), coeffs)))
@@ -416,7 +467,7 @@ class LazyModuleElement(Element):
             deprecation(32367, 'the method coefficients now only returns the non-zero coefficients. Use __getitem__ instead.')
 
         if P._internal_poly_ring.base_ring() is not P._laurent_poly_ring:
-            return list(islice(filter(bool, map(R, coeffs)), n))
+            return list(islice(coeffs, n))
 
         # flatten out the generator in the multivariate case
         return list(islice(chain.from_iterable(map(lambda coeff: coeff.coefficients(), coeffs)), n))

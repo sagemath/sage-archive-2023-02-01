@@ -483,10 +483,9 @@ class Diagrams(UniqueRepresentation, Parent):
         # check matrix is zero-one
         n_rows, n_cols = M.dimensions()
 
-        zero = M.base_ring().zero()
-        one = M.base_ring().one()
-
         if check:
+            zero = M.base_ring().zero()
+            one = M.base_ring().one()
             for i in range(n_rows):
                 for j in range(n_cols):
                     if not (M[i,j] == zero or M[i,j] == one):

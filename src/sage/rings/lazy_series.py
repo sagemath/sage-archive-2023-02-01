@@ -4855,7 +4855,8 @@ class LazySymmetricFunction(LazyCompletionGradedAlgebraElement):
         return P.element_class(P, coeff_stream)
 
     def functorial_composition(self, *args):
-        r"""Return the functorial composition of ``self`` and ``g``.
+        r"""
+        Return the functorial composition of ``self`` and ``g``.
 
         Let `X` be a finite set of cardinality `m`.  For a group
         action of the symmetric group `g: S_n \to S_X` and a

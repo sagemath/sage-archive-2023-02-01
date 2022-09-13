@@ -62,7 +62,7 @@ class CompositionSpeciesStructure(GenericSpeciesStructure):
         f, gs = self._list
         pi = self._partition.transport(perm)
         f = f.change_labels(pi._list)
-        g = [g.change_labels(part) for g, part in zip(gs, pi)]  # BUG HERE ?
+        _ = [g.change_labels(part) for g, part in zip(gs, pi)]  # TODO: BUG HERE ?
         return self.__class__(self, self._labels, pi, f, gs)
 
     def change_labels(self, labels):

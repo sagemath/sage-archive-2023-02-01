@@ -153,7 +153,7 @@ def spkg_type(pkg):
 
     if not pth.isdir(pkgbase):
         raise argparse.ArgumentTypeError(
-            "'{0}' is not a known spkg".format(pkg))
+            "'{0}' is not an spkg listed in '{1}'".format(pkg, PKGS))
 
     return pkg
 

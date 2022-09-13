@@ -3224,10 +3224,10 @@ def crt(a, b, m=None, n=None):
 CRT = crt
 
 
-def CRT_list(v, moduli):
-    r""" Given a list ``v`` of elements and a list of corresponding
+def CRT_list(values, moduli):
+    r""" Given a list ``values`` of elements and a list of corresponding
     ``moduli``, find a single element that reduces to each element of
-    ``v`` modulo the corresponding moduli.
+    ``values`` modulo the corresponding moduli.
 
     The result is computed using a binary tree. In typical cases,
     this scales much better than folding the list from one side.
@@ -3292,24 +3292,32 @@ def CRT_list(v, moduli):
         sage: from gmpy2 import mpz
         sage: CRT_list([mpz(2),mpz(3),mpz(2)], [mpz(3),mpz(5),mpz(7)])
         23
+
+    Make sure we are not mutating the input lists::
+
+        sage: xs = [1,2,3]
+        sage: ms = [5,7,9]
+        sage: CRT_list(xs, ms)
+        156
+        sage: xs
+        [1, 2, 3]
+        sage: ms
+        [5, 7, 9]
     """
-    if not isinstance(v, list) or not isinstance(moduli, list):
+    if not isinstance(values, list) or not isinstance(moduli, list):
         raise ValueError("arguments to CRT_list should be lists")
-    if len(v) != len(moduli):
+    if len(values) != len(moduli):
         raise ValueError("arguments to CRT_list should be lists of the same length")
-    if not v:
+    if not values:
         return ZZ.zero()
-    if len(v) == 1:
-        return moduli[0].parent()(v[0])
     from sage.arith.functions import lcm
-    v = [CRT(v[i], v[i+1], moduli[i], moduli[i+1]) for i in range(0, len(v)-1, 2)] + v[len(v)//2*2:]
-    moduli = [lcm(moduli[i], moduli[i+1]) for i in range(0, len(moduli)-1, 2)] + moduli[len(moduli)//2*2:]
-    while len(v) > 1:
-        for i in range(0, len(v)-1, 2):
-            v[i] = CRT(v[i], v[i+1], moduli[i], moduli[i+1])
-            moduli[i] = lcm(moduli[i], moduli[i+1])
-        v, moduli = v[::2], moduli[::2]
-    return v[0] % moduli[0]
+    while len(values) > 1:
+        vs, ms = values[::2], moduli[::2]
+        for i,(v,m) in enumerate(zip(values[1::2], moduli[1::2])):
+            vs[i] = CRT(vs[i], v, ms[i], m)
+            ms[i] = lcm(ms[i], m)
+        values, moduli = vs, ms
+    return values[0] % moduli[0]
 
 
 def CRT_basis(moduli):

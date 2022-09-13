@@ -25,16 +25,19 @@ AUTHORS:
 # ****************************************************************************
 
 from sage.categories.sets_cat import Sets
+from sage.combinat.composition import Composition
 from sage.combinat.partition import Partition
-from sage.combinat.skew_partition import SkewPartition
 from sage.combinat.permutation import Permutations
+from sage.combinat.tableau import Tableau
+from sage.combinat.tiling import Polyomino
+from sage.combinat.skew_partition import SkewPartition
+from sage.combinat.skew_tableau import SkewTableaux
+from sage.matrix.matrix_dense import Matrix_dense
+from sage.matrix.matrix_sparse import Matrix_sparse
+from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.list_clone import ClonableArray
 from sage.structure.parent import Parent
-from sage.combinat.tableau import Tableau
-from sage.combinat.skew_tableau import SkewTableaux
-from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
-
 
 class Diagram(ClonableArray, metaclass=InheritComparisonClasscallMetaclass):
     r"""
@@ -393,10 +396,41 @@ class Diagrams(UniqueRepresentation, Parent):
             . . .
             . . O
 
+
+            sage: from sage.combinat.tiling import Polyomino
+            sage: p = Polyomino([(0,0),(1,0),(1,1),(1,2)])
+            sage: Dgms(p).pp()
+            O . .
+            O O O
+
+            sage: from sage.combinat.composition import Composition
+            sage: a = Composition([4,2,0,2,4])
+            sage: Dgms(a).pp()
+            O O O O
+            O O . .
+            . . . .
+            O O . .
+            O O O O
+
+            sage: M = Matrix([[1,1,1,1],[1,1,0,0],[0,0,0,0],[1,1,0,0],[1,1,1,1]])
+            sage: Dgms(M).pp()
+            O O O O
+            O O . .
+            . . . .
+            O O . .
+            O O O O
+
         TESTS::
 
             sage: TestSuite(Dgms).run()
         """
+        if isinstance(cells, Polyomino):
+            return self.from_polyomino(cells)
+        if isinstance(cells, Composition):
+            return self.from_composition(cells)
+        if isinstance(cells, (Matrix_dense, Matrix_sparse)):
+            return self.from_zero_one_matrix(cells)
+
         return self.element_class(self, cells, n_rows, n_cols, check)
 
     def _an_element_(self):
@@ -424,9 +458,18 @@ class Diagrams(UniqueRepresentation, Parent):
             sage: from sage.combinat.tiling import Polyomino
             sage: p = Polyomino([(0,0),(1,0),(1,1),(1,2)])
             sage: from sage.combinat.diagram import Diagrams
+            sage: Diagrams()(p).pp()
+            O . .
+            O O O
+
+        We can also call this method directly::
+
             sage: Diagrams().from_polyomino(p).pp()
             O . .
             O O O
+
+        The method only works for 2d `Polyomino`s::
+
             sage: p = Polyomino([(0,0,0), (0,1,0), (1,1,0), (1,1,1)], color='blue')
             sage: Diagrams().from_polyomino(p)
             Traceback (most recent call last):
@@ -446,6 +489,13 @@ class Diagrams(UniqueRepresentation, Parent):
 
             sage: alpha = Composition([3,0,2,1,4,4])
             sage: from sage.combinat.diagram import Diagrams
+            sage: Diagrams()(alpha).pp()
+            O O O .
+            . . . .
+            O O . .
+            O . . .
+            O O O O
+            O O O O
             sage: Diagrams().from_composition(alpha).pp()
             O O O .
             . . . .
@@ -468,12 +518,15 @@ class Diagrams(UniqueRepresentation, Parent):
 
             sage: M = matrix([[1,0,1,1],[0,1,1,0]])
             sage: from sage.combinat.diagram import Diagrams
+            sage: Diagrams()(M).pp()
+            O . O O
+            . O O .
             sage: Diagrams().from_zero_one_matrix(M).pp()
             O . O O
             . O O .
 
             sage: M = matrix([[1, 0, 0], [1, 0, 0], [0, 0, 0]])
-            sage: Diagrams().from_zero_one_matrix(M).pp()
+            sage: Diagrams()(M).pp()
             O . .
             O . .
             . . .

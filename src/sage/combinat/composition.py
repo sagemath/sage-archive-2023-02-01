@@ -20,6 +20,7 @@ AUTHORS:
 - Mike Hansen, Nicolas M. Thiéry
 - MuPAD-Combinat developers (algorithms and design inspiration)
 - Travis Scrimshaw (2013-02-03): Removed ``CombinatorialClass``
+- Trevor K. Karn (2022-09-13): Make ``Composition`` a ``collections.abc.Sequence``
 """
 # ****************************************************************************
 #       Copyright (C) 2007 Mike Hansen       <mhansen@gmail.com>
@@ -30,6 +31,7 @@ AUTHORS:
 # ****************************************************************************
 from __future__ import annotations
 from itertools import accumulate
+from collections.abc import Sequence
 
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
@@ -108,6 +110,12 @@ class Composition(CombinatorialElement):
         [1, 1, 2, 1]
         sage: Composition(descents=({0,1,3},5))
         [1, 1, 2, 1]
+
+    Check :trac:`34527`::
+
+        sage: from collections.abc import Sequence
+        sage: isinstance(Composition([3,2,3]), Sequence)
+        True
 
     EXAMPLES::
 
@@ -1350,6 +1358,7 @@ class Composition(CombinatorialElement):
                 return False
         return False
 
+Sequence.register(Composition)
 ##############################################################
 
 

@@ -335,8 +335,6 @@ class Diagram(ClonableArray, metaclass=InheritComparisonClasscallMetaclass):
             ...
             ValueError: Diagrams must be indexed by non-negative integers
         """
-        from sage.sets.non_negative_integers import NonNegativeIntegers
-        NN = NonNegativeIntegers()
         if not all(all(list(i in NN for i in c)) for c in self._cells):
             raise ValueError("Diagrams must be indexed by non-negative integers")
 

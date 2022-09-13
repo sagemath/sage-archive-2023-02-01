@@ -2373,9 +2373,6 @@ class MPolynomialIdeal_singular_repr(
             sage: I.variety(ring=AA)
             [{y: 1, x: 1},
              {y: 0.3611030805286474?, x: 2.769292354238632?}]
-            sage: I.variety(RBF, algorithm='msolve', proof=False) # optional - msolve
-            [{x: [2.76929235423863 +/- 2.08e-15], y: [0.361103080528647 +/- 4.53e-16]},
-             {x: 1.000000000000000, y: 1.000000000000000}]
 
         and a total of four intersections::
 
@@ -2393,6 +2390,13 @@ class MPolynomialIdeal_singular_repr(
               x: 0.11535382288068429? + 0.5897428050222055?*I},
              {y: 0.3611030805286474?, x: 2.769292354238632?},
              {y: 1, x: 1}]
+
+        We can also use the external program msolve to compute the variety.
+        See :mod:`~sage.rings.polynomial.msolve` for more information. ::
+
+            sage: I.variety(RBF, algorithm='msolve', proof=False) # optional - msolve
+            [{x: [2.76929235423863 +/- 2.08e-15], y: [0.361103080528647 +/- 4.53e-16]},
+             {x: 1.000000000000000, y: 1.000000000000000}]
 
         Computation over floating point numbers may compute only a partial solution,
         or even none at all. Notice that x values are missing from the following variety::
@@ -2436,6 +2440,26 @@ class MPolynomialIdeal_singular_repr(
             4.464101615137755?
             sage: v["y"]
             -7.464101615137755?
+
+        msolve also works over finite fields::
+
+            sage: R.<x, y> = PolynomialRing(GF(536870909), 2, order='lex')
+            sage: I = Ideal([ x^2 - 1, y^2 - 1 ])
+            sage: sorted(I.variety(algorithm='msolve', proof=False), key=str) # optional - msolve
+            [{x: 1, y: 1},
+             {x: 1, y: 536870908},
+             {x: 536870908, y: 1},
+             {x: 536870908, y: 536870908}]
+
+        but may fail in small characteristic, especially with ideals of high
+        degree with respect to the characteristic::
+
+            sage: R.<x, y> = PolynomialRing(GF(3), 2, order='lex')
+            sage: I = Ideal([ x^2 - 1, y^2 - 1 ])
+            sage: I.variety(algorithm='msolve', proof=False) # optional - msolve
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: characteristic 3 too small
 
         ALGORITHM:
 

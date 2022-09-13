@@ -28,6 +28,7 @@ from sage.features.msolve import msolve
 from sage.misc.converting_dict import KeyConvertingDict
 from sage.misc.sage_eval import sage_eval
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+from sage.rings.finite_rings.finite_field_base import FiniteField
 from sage.rings.rational_field import QQ
 from sage.rings.real_arb import RealBallField
 from sage.rings.real_double import RealDoubleField_class
@@ -44,7 +45,27 @@ def _variety(ideal, ring, proof):
 
     TESTS::
 
-        sage: K.<x, y> = PolynomialRing(QQ, 2, order='lex')
+        sage: p = 536870909
+        sage: R.<x, y> = PolynomialRing(GF(p), 2, order='lex')
+        sage: I = Ideal([ x*y - 1, (x-2)^2 + (y-1)^2 - 1])
+
+        sage: sorted(I.variety(algorithm="msolve", proof=False), key=str) # optional - msolve
+        [{x: 1, y: 1}, {x: 267525699, y: 473946006}]
+
+        sage: K.<a> = GF(p^2)
+        sage: sorted(I.variety(K, algorithm="msolve", proof=False), key=str) # optional - msolve
+        [{x: 1, y: 1},
+         {x: 118750849*a + 194048031, y: 510295713*a + 18174854},
+         {x: 267525699, y: 473946006},
+         {x: 418120060*a + 75297182, y: 26575196*a + 44750050}]
+
+        sage: R.<x, y> = PolynomialRing(GF(2147483659), 2, order='lex')
+        sage: ideal([x, y]).variety(algorithm="msolve", proof=False)
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: unsupported base field: Finite Field of size 2147483659
+
+        sage: R.<x, y> = PolynomialRing(QQ, 2, order='lex')
         sage: I = Ideal([ x*y - 1, (x-2)^2 + (y-1)^2 - 1])
 
         sage: I.variety(algorithm='msolve', proof=False) # optional - msolve
@@ -98,13 +119,13 @@ def _variety(ideal, ring, proof):
         ...
         ValueError: positive-dimensional ideal
 
-        sage: K.<x, y> = PolynomialRing(RR, 2, order='lex')
+        sage: R.<x, y> = PolynomialRing(RR, 2, order='lex')
         sage: Ideal(x, y).variety(algorithm='msolve', proof=False)
         Traceback (most recent call last):
         ...
         NotImplementedError: unsupported base field: Real Field with 53 bits of precision
 
-        sage: K.<x, y> = PolynomialRing(QQ, 2, order='lex')
+        sage: R.<x, y> = PolynomialRing(QQ, 2, order='lex')
         sage: Ideal(x, y).variety(ZZ, algorithm='msolve', proof=False)
         Traceback (most recent call last):
         ...
@@ -119,11 +140,8 @@ def _variety(ideal, ring, proof):
     proof = sage.structure.proof.proof.get_flag(proof, "polynomial")
     if proof:
         raise ValueError("msolve relies on heuristics; please use proof=False")
-    # As of msolve 0.2.4, prime fields seem to be supported, by I cannot
-    # make sense of msolve's output in the positive characteristic case.
-    # if not (base is QQ or isinstance(base, FiniteField) and
-    #         base.is_prime_field() and base.characteristic() < 2**31):
-    if base is not QQ:
+    if not (base is QQ or isinstance(base, FiniteField) and
+            base.is_prime_field() and base.characteristic() < 2**31):
         raise NotImplementedError(f"unsupported base field: {base}")
     if not ring.has_coerce_map_from(base):
         raise ValueError(
@@ -175,24 +193,32 @@ def _variety(ideal, ring, proof):
 
     if parameterization:
 
-        def to_poly(p, upol=PolynomialRing(base, 't')):
-            assert len(p[1]) == p[0] + 1
-            return upol(p[1])
+        def to_poly(p, d=1, *, upol=PolynomialRing(base, 't')):
+            assert len(p[1]) == p[0] + 1 or p == [-1, [0]]
+            return upol(p[1])/d
 
         try:
-            [dim1, nvars, _, vars, _, [one, [elim, den, param]]] = data[1]
+            [char, nvars, deg, vars, _, [one, [elim, den, param]]] = data[1]
         except (IndexError, ValueError):
             raise NotImplementedError(
                 f"unsupported msolve output format: {data}")
-        assert dim1.is_zero()
+        assert char == base.characteristic()
         assert one.is_one()
         assert len(vars) == nvars
         ringvars = out_ring.variable_names()
         assert sorted(vars[:len(ringvars)]) == sorted(ringvars)
         vars = [out_ring(name) for name in vars[:len(ringvars)]]
         elim = to_poly(elim)
+        # Criterion suggested by Mohab Safey El Din to avoid cases where there
+        # is no rational parameterization or where the one returned by msolve
+        # has a significant probability of being incorrect.
+        if deg >= char > 0 or 0 < char <= 2**17 and deg != elim.degree():
+            raise NotImplementedError(f"characteristic {char} too small")
         den = to_poly(den)
-        param = [to_poly(f)/d for [f, d] in param]
+        # As of msolve 0.4.4, param is of the form [pol, denom] in char 0, but
+        # [pol] in char p > 0. My understanding is that both cases will
+        # eventually use the same format, so let's not be too picky.
+        param = [to_poly(*f) for f in param]
         elim_roots = elim.roots(ring, multiplicities=False)
         variety = []
         for rt in elim_roots:

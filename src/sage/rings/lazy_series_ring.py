@@ -38,6 +38,7 @@ from sage.structure.parent import Parent
 from sage.structure.element import parent
 
 from sage.categories.algebras import Algebras
+from sage.categories.graded_algebras_with_basis import GradedAlgebrasWithBasis
 from sage.categories.rings import Rings
 from sage.categories.integral_domains import IntegralDomains
 from sage.categories.fields import Fields
@@ -1572,14 +1573,22 @@ class LazyCompletionGradedAlgebra(LazySeriesRing):
             sage: s = SymmetricFunctions(ZZ).s()
             sage: L = LazySymmetricFunctions(s)
             sage: TestSuite(L).run(skip=['_test_elements', '_test_associativity', '_test_distributivity', '_test_zero'])
+
+        Check that a basis which is not graded is not enough::
+
+            sage: ht = SymmetricFunctions(ZZ).ht()
+            sage: L = LazySymmetricFunctions(ht)
+            Traceback (most recent call last):
+            ...
+            ValueError: basis should be in GradedAlgebrasWithBasis
         """
         base_ring = basis.base_ring()
         self._minimal_valuation = 0
         if basis in Algebras.TensorProducts:
             self._arity = len(basis._sets)
         else:
-            if basis not in Algebras.Graded:
-                raise ValueError("basis should be a graded algebra")
+            if basis not in GradedAlgebrasWithBasis:
+                raise ValueError("basis should be in GradedAlgebrasWithBasis")
             self._arity = 1
         category = Algebras(base_ring.category())
         if base_ring in Fields():

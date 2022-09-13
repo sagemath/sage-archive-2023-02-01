@@ -663,7 +663,7 @@ class NorthwestDiagram(Diagram, metaclass=InheritComparisonClasscallMetaclass):
             {[[3]]}
 
         Now we know all of the `D_5` peelables, so we can compute the `D_4`
-        peelables.
+        peelables::
 
             sage: D4 = NorthwestDiagram([(0, 0), (2,0), (4, 0), (2, 2)])
             sage: D4.pp()
@@ -738,10 +738,10 @@ class NorthwestDiagram(Diagram, metaclass=InheritComparisonClasscallMetaclass):
              [[1, 1, 1, 1, 1, 3], [2, 2, 2, 3], [3, 3, 3], [5, 5, 5]],
              [[1, 1, 1, 1, 1, 3], [2, 2, 2, 3], [3, 3, 3, 5], [5, 5]]}
 
-        .. ALGORITHM::
+        ALGORITHM:
 
-            This implementation uses the algorithm suggested in remark 25
-            of [RS1995]_.
+        This implementation uses the algorithm suggested in Remark 25
+        of [RS1995]_.
         """
         # TODO: There is a condition on the first column (if the rows in Dhat
         # are a subset of the rows in the first column) which simplifies the

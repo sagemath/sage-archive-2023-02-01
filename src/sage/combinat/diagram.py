@@ -754,14 +754,17 @@ class NorthwestDiagram(Diagram, metaclass=InheritComparisonClasscallMetaclass):
 
         first_col = min(j for i, j in self._cells)
 
-        # TODO: The next two lines of code could be optimized by only
-        # looping over self._cells once (rather than two separate times)
-        # get the diagram without the first column
-        Dhat = NorthwestDiagram([c for c in self._cells if c[1] != first_col])
+        dhat_cells = []
+        new_vals_cells = []
+        for i, j in self._cells:
+            if j != first_col:
+                dhat_cells.append((i, j))
+            else:
+                new_vals_cells.append(i + 1)
 
-        # get the values from the first column
-        new_vals = sorted(i + 1 for i, j in self._cells if j == first_col)
+        new_vals = sorted(new_vals_cells)
 
+        Dhat = NorthwestDiagram(dhat_cells)
         k = self.n_cells() - Dhat.n_cells()
 
         peelables = set()

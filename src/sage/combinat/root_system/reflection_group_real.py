@@ -27,11 +27,6 @@ AUTHORS:
 
 - Christian Stump (initial version 2011--2015)
 
-REFERENCES:
-
-.. [Dye] Dyer. *Bruhat intervals, polyhedral cones and Kazhdan-Lusztig-Stanley polynomials*. Math.Z., 215(2):223-236, 1994.
-.. [JahStu] Jahn and Stump. *Bruhat intervals, subword complexes and brick polyhedra for finite Coxeter groups*. Preprint, available at :arxiv:`2103.03715`, 2021.
-
 .. WARNING::
 
     Uses the GAP3 package *Chevie* which is available as an
@@ -727,9 +722,7 @@ class RealReflectionGroup(ComplexReflectionGroup):
         INPUT:
 
         - ``x`` - an element in the group `W`
-
         - ``y`` - an element in the group `W`
-
         - ``side`` (default: ``'upper'``) -- must be one of the following:
 
           * ``'upper'`` - return the upper Bruhat cone of the interval [``x``, ``y``]
@@ -763,8 +756,8 @@ class RealReflectionGroup(ComplexReflectionGroup):
 
         REFERENCES:
 
-        - [Dye]_
-        - [JahStu]_
+        - [Dy1994]_
+        - [JS2021]_
         """
         if side == 'upper':
             roots = [self.reflection_to_positive_root(x * r * x.inverse())

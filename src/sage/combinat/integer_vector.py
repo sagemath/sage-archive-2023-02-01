@@ -30,6 +30,7 @@ AUTHORS:
 
 from sage.combinat.integer_lists import IntegerListsLex
 from itertools import product
+from collections.abc import Sequence
 import numbers
 
 from sage.structure.parent import Parent
@@ -696,7 +697,7 @@ class IntegerVectors(Parent, metaclass=ClasscallMetaclass):
         if isinstance(x, IntegerVector):
             return True
 
-        if not isinstance(x, (list, tuple)):
+        if not isinstance(x, Sequence):
             return False
 
         for i in x:

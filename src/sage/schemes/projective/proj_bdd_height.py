@@ -35,8 +35,8 @@ from sage.geometry.polyhedron.constructor import Polyhedron
 
 def QQ_points_of_bounded_height(dim, bound):
     r"""
-    Return an iterator of the points in ``self`` of absolute height of
-    at most ``bound`` in the rational field.
+    Return an iterator of the points in ``self`` of absolute multiplicative
+    height of at most ``bound`` in the rational field.
 
     INPUT:
 
@@ -65,7 +65,6 @@ def QQ_points_of_bounded_height(dim, bound):
     if bound < 1:
         return iter(set([]))
 
-    PN = ProjectiveSpace(QQ, dim)
     unit_tuples = list(itertools.product([-1, 1], repeat=dim))
     points_of_bounded_height = set([])
     increasing_tuples = itertools.combinations_with_replacement(range(floor(bound + 1)), dim + 1)
@@ -73,15 +72,15 @@ def QQ_points_of_bounded_height(dim, bound):
         if gcd(t) == 1:
             for p in itertools.permutations(t):
                 for u in unit_tuples:
-                    PN_point = PN([a*b for a, b in zip(u, p)] + [p[dim]])
-                    if PN_point not in points_of_bounded_height:
-                        points_of_bounded_height.add(PN_point)
-                        yield PN_point
+                    point = self([a*b for a, b in zip(u, p)] + [p[dim]])
+                    if point not in points_of_bounded_height:
+                        points_of_bounded_height.add(point)
+                        yield point
 
 def IQ_points_of_bounded_height(K, dim, bound):
     r"""
-    Return an iterator of the points in ``self`` of absolute height of
-    at most ``bound`` in the imaginary quadratic field ``K``.
+    Return an iterator of the points in ``self`` of absolute multiplicative
+    height of at most ``bound`` in the imaginary quadratic field ``K``.
 
     INPUT:
 
@@ -107,7 +106,6 @@ def IQ_points_of_bounded_height(K, dim, bound):
     if bound < 1:
         return iter([])
 
-    PN = ProjectiveSpace(K, dim)
     unit_tuples = list(itertools.product(K.roots_of_unity(), repeat=dim))
 
     class_group_ideals = [c.ideal() for c in K.class_group()]
@@ -144,15 +142,15 @@ def IQ_points_of_bounded_height(K, dim, bound):
             if a == K.ideal(point_coordinates):
                 for p in itertools.permutations(point_coordinates):
                     for u in unit_tuples:
-                        PN_point = PN([i*j for i, j in zip(u, p)] + [p[dim]])
-                        if PN_point not in points_in_class_a:
-                            points_in_class_a.add(PN_point)
-                            yield PN_point
+                        point = self([i*j for i, j in zip(u, p)] + [p[dim]])
+                        if point not in points_in_class_a:
+                            points_in_class_a.add(point)
+                            yield point
 
 def points_of_bounded_height(K, dim, bound, prec=53):
     r"""
     Return an iterator of the points in ``K`` with dimension ``dim`` of
-    absolute height of at most ``bound``.
+    absolute multiplicative height of at most ``bound``.
 
     ALGORITHM:
 
@@ -194,7 +192,6 @@ def points_of_bounded_height(K, dim, bound, prec=53):
     roots_of_unity = K.roots_of_unity()
     unit_tuples = list(itertools.product(roots_of_unity, repeat=dim))
 
-    PN = ProjectiveSpace(K, dim)
     log_embed = K.logarithmic_embedding()
 
     Reals = RealField(prec)
@@ -340,7 +337,7 @@ def points_of_bounded_height(K, dim, bound, prec=53):
             if log_arch_height <= log_arch_height_bound and a == K.ideal(point_coordinates):
                 for p in itertools.permutations(point_coordinates):
                     for u in unit_tuples:
-                        PN_point = PN([i*j for i, j in zip(u, p)] + [p[dim]])
-                        if PN_point not in points_in_class_a:
-                            points_in_class_a.add(PN_point)
-                            yield PN_point
+                        point = self([i*j for i, j in zip(u, p)] + [p[dim]])
+                        if point not in points_in_class_a:
+                            points_in_class_a.add(point)
+                            yield point

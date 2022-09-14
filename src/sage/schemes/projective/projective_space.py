@@ -1958,9 +1958,9 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
                 deg = R.degree()
 
             if deg == 2 and r == 0:
-                return IQ_points_of_bounded_height(R, dim, bound)
+                return IQ_points_of_bounded_height(self, R, dim, bound)
 
-            return points_of_bounded_height(R, dim, bound, prec)
+            return points_of_bounded_height(self, R, dim, bound, prec)
         else:
             return QQ_points_of_bounded_height(dim, bound)
 

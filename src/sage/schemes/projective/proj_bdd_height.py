@@ -78,12 +78,14 @@ def QQ_points_of_bounded_height(dim, bound):
                         points_of_bounded_height.add(point)
                         yield point
 
-def IQ_points_of_bounded_height(K, dim, bound):
+def IQ_points_of_bounded_height(PN, K, dim, bound):
     r"""
     Return an iterator of the points in ``self`` of absolute multiplicative
     height of at most ``bound`` in the imaginary quadratic field ``K``.
 
     INPUT:
+
+    - ``PN`` -- a projective space
 
     - ``K`` -- a number field
 
@@ -99,7 +101,8 @@ def IQ_points_of_bounded_height(K, dim, bound):
 
         sage: from sage.schemes.projective.proj_bdd_height import IQ_points_of_bounded_height
         sage: CF.<a> = CyclotomicField(3)
-        sage: len(list(IQ_points_of_bounded_height(CF, 2, -1)))
+        sage: P.<x,y,z> = ProjectiveSpace(CF, 2)
+        sage: len(list(IQ_points_of_bounded_height(P, CF, 2, -1)))
         0
         sage: len(list(IQ_points_of_bounded_height(CF, 2, 1)))
         57
@@ -143,12 +146,12 @@ def IQ_points_of_bounded_height(K, dim, bound):
             if a == K.ideal(point_coordinates):
                 for p in itertools.permutations(point_coordinates):
                     for u in unit_tuples:
-                        point = K([i*j for i, j in zip(u, p)] + [p[dim]])
+                        point = PN([i*j for i, j in zip(u, p)] + [p[dim]])
                         if point not in points_in_class_a:
                             points_in_class_a.add(point)
                             yield point
 
-def points_of_bounded_height(K, dim, bound, prec=53):
+def points_of_bounded_height(PN, K, dim, bound, prec=53):
     r"""
     Return an iterator of the points in ``K`` with dimension ``dim`` of
     absolute multiplicative height of at most ``bound``.
@@ -158,6 +161,8 @@ def points_of_bounded_height(K, dim, bound, prec=53):
     This is an implementation of Algorithm 6 in [Krumm2016]_.
 
     INPUT:
+
+    - ``PN`` -- a projective space
 
     - ``K`` -- a number field
 
@@ -175,6 +180,7 @@ def points_of_bounded_height(K, dim, bound, prec=53):
 
         sage: from sage.schemes.projective.proj_bdd_height import points_of_bounded_height
         sage: K.<a> = NumberField(x^3 - 7)
+        sage: P.<x,y,z> = ProjectiveSpace(K, 2)
         sage: len(list(points_of_bounded_height(K, 2, 1)))
         13
     """
@@ -338,7 +344,7 @@ def points_of_bounded_height(K, dim, bound, prec=53):
             if log_arch_height <= log_arch_height_bound and a == K.ideal(point_coordinates):
                 for p in itertools.permutations(point_coordinates):
                     for u in unit_tuples:
-                        point = K([i*j for i, j in zip(u, p)] + [p[dim]])
+                        point = PN([i*j for i, j in zip(u, p)] + [p[dim]])
                         if point not in points_in_class_a:
                             points_in_class_a.add(point)
                             yield point

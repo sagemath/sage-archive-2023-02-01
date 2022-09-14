@@ -1852,8 +1852,8 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
 
     def points_of_bounded_height(self, **kwds):
         r"""
-        Return an iterator of the points in ``self`` of absolute height of
-        at most the given bound.
+        Return an iterator of the points in ``self`` of absolute multiplicative
+        height of at most the given bound.
 
         ALGORITHM:
 

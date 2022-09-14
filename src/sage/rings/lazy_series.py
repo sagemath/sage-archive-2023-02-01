@@ -1681,10 +1681,17 @@ class LazyModuleElement(Element):
             sage: L.<z> = LazyLaurentSeriesRing(QQ); x = var("x")
             sage: exp(z)[0:6] == exp(x).series(x, 6).coefficients(sparse=False)
             True
+
+        Check the exponential when the base ring is a lazy ring::
+
+            sage: L.<t> = LazyPowerSeriesRing(QQ)
+            sage: M.<x> = LazyPowerSeriesRing(L)
+            sage: exp(x)
+            1 + x + 1/2*x^2 + 1/6*x^3 + 1/24*x^4 + 1/120*x^5 + 1/720*x^6 + O(x^7)
         """
         from .lazy_series_ring import LazyLaurentSeriesRing
         P = LazyLaurentSeriesRing(self.base_ring(), "z", sparse=self.parent()._sparse)
-        f = P(lambda n: 1/factorial(ZZ(n)), valuation=0)
+        f = P(coefficients=lambda n: 1/factorial(ZZ(n)), valuation=0)
         return f(self)
 
     def log(self):
@@ -1714,7 +1721,7 @@ class LazyModuleElement(Element):
         """
         from .lazy_series_ring import LazyLaurentSeriesRing
         P = LazyLaurentSeriesRing(self.base_ring(), "z", sparse=self.parent()._sparse)
-        f = P(lambda n: ((-1) ** (n + 1))/ZZ(n), valuation=1)
+        f = P(coefficients=lambda n: ((-1) ** (n + 1))/ZZ(n), valuation=1)
         return f(self-1)
 
     # trigonometric functions
@@ -1746,8 +1753,8 @@ class LazyModuleElement(Element):
         """
         from .lazy_series_ring import LazyLaurentSeriesRing
         P = LazyLaurentSeriesRing(self.base_ring(), "z", sparse=self.parent()._sparse)
-        f = P(lambda n: (n % 2)/factorial(ZZ(n)) if n % 4 == 1 else -(n % 2)/factorial(ZZ(n)),
-              valuation=1)
+        c = lambda n: (n % 2)/factorial(ZZ(n)) if n % 4 == 1 else -(n % 2)/factorial(ZZ(n))
+        f = P(coefficients=c, valuation=1)
         return f(self)
 
     def cos(self):
@@ -1772,8 +1779,8 @@ class LazyModuleElement(Element):
         """
         from .lazy_series_ring import LazyLaurentSeriesRing
         P = LazyLaurentSeriesRing(self.base_ring(), "z", sparse=self.parent()._sparse)
-        f = P(lambda n: 1/factorial(ZZ(n)) if n % 4 == 0 else (n % 2 - 1)/factorial(ZZ(n)),
-              valuation=0)
+        c = lambda n: 1/factorial(ZZ(n)) if n % 4 == 0 else (n % 2 - 1)/factorial(ZZ(n))
+        f = P(coefficients=c, valuation=0)
         return f(self)
 
     def tan(self):
@@ -2017,7 +2024,7 @@ class LazyModuleElement(Element):
         """
         from .lazy_series_ring import LazyLaurentSeriesRing
         P = LazyLaurentSeriesRing(self.base_ring(), "z", sparse=self.parent()._sparse)
-        f = P(lambda n: 1/factorial(ZZ(n)) if n % 2 else ZZ.zero(),
+        f = P(coefficients=lambda n: 1/factorial(ZZ(n)) if n % 2 else ZZ.zero(),
               valuation=1)
         return f(self)
 
@@ -2044,7 +2051,7 @@ class LazyModuleElement(Element):
         """
         from .lazy_series_ring import LazyLaurentSeriesRing
         P = LazyLaurentSeriesRing(self.base_ring(), "z", sparse=self.parent()._sparse)
-        f = P(lambda n: ZZ.zero() if n % 2 else 1/factorial(ZZ(n)),
+        f = P(coefficients=lambda n: ZZ.zero() if n % 2 else 1/factorial(ZZ(n)),
               valuation=0)
         return f(self)
 
@@ -2243,7 +2250,7 @@ class LazyModuleElement(Element):
         """
         from .lazy_series_ring import LazyLaurentSeriesRing
         P = LazyLaurentSeriesRing(self.base_ring(), "z", sparse=self.parent()._sparse)
-        f = P(lambda n: 1/ZZ(n) if n % 2 else ZZ.zero(), valuation=1)
+        f = P(coefficients=lambda n: 1/ZZ(n) if n % 2 else ZZ.zero(), valuation=1)
         return f(self)
 
     def hypergeometric(self, a, b):
@@ -2285,7 +2292,7 @@ class LazyModuleElement(Element):
             for term in range(len(c)):
                 num *= rising_factorial(c[term], n)
             return num
-        f = P(lambda n: coeff(n, a) / (coeff(n, b) * factorial(ZZ(n))),
+        f = P(coefficients=lambda n: coeff(n, a) / (coeff(n, b) * factorial(ZZ(n))),
               valuation=0)
         return f(self)
 
@@ -2318,7 +2325,7 @@ class LazyModuleElement(Element):
 
         from .lazy_series_ring import LazyLaurentSeriesRing
         P = LazyLaurentSeriesRing(self.base_ring(), "z", sparse=self.parent()._sparse)
-        exp = P(lambda k: 1/factorial(ZZ(k)), valuation=0)
+        exp = P(coefficients=lambda k: 1/factorial(ZZ(k)), valuation=0)
         return exp(self.log() * n)
 
     def sqrt(self):

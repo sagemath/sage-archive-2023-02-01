@@ -445,7 +445,6 @@ class LazyModuleElement(Element):
         from sage.misc.lazy_list import lazy_list
         # prepare a generator of the non-zero coefficients
         P = self.parent()
-        R = P.base_ring()
         if isinstance(coeff_stream, Stream_exact):
             if coeff_stream._constant:
                 coeffs = chain((c for c in coeff_stream._initial_coefficients if c),

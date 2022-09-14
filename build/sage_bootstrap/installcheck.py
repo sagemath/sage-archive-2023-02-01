@@ -51,8 +51,7 @@ def installcheck(spkg_name, sage_local, verbose=False):
     spkg_inst = pth.join(sage_local, 'var', 'lib', 'sage', 'installed')
 
     # Find all stamp files for the package; there should be only one, but if
-    # there is somehow more than one we'll work with the most recent and delete
-    # the rest
+    # there is somehow more than one we'll work with the most recent one.
     pattern = pth.join(spkg_inst, '{0}-*'.format(spkg_name))
     stamp_files = sorted(glob.glob(pattern), key=pth.getmtime)
 

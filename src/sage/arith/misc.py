@@ -3229,9 +3229,6 @@ def CRT_list(values, moduli):
     ``moduli``, find a single element that reduces to each element of
     ``values`` modulo the corresponding moduli.
 
-    The result is computed using a binary tree. In typical cases,
-    this scales much better than folding the list from one side.
-
     .. SEEALSO::
 
         - :func:`crt`
@@ -3310,6 +3307,9 @@ def CRT_list(values, moduli):
         raise ValueError("arguments to CRT_list should be lists of the same length")
     if not values:
         return ZZ.zero()
+
+    # The result is computed using a binary tree. In typical cases,
+    # this scales much better than folding the list from one side.
     from sage.arith.functions import lcm
     while len(values) > 1:
         vs, ms = values[::2], moduli[::2]

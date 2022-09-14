@@ -65,6 +65,7 @@ def QQ_points_of_bounded_height(dim, bound):
     if bound < 1:
         return iter(set([]))
 
+    PN = ProjectiveSpace(QQ, dim)
     unit_tuples = list(itertools.product([-1, 1], repeat=dim))
     points_of_bounded_height = set([])
     increasing_tuples = itertools.combinations_with_replacement(range(floor(bound + 1)), dim + 1)
@@ -72,7 +73,7 @@ def QQ_points_of_bounded_height(dim, bound):
         if gcd(t) == 1:
             for p in itertools.permutations(t):
                 for u in unit_tuples:
-                    point = self([a*b for a, b in zip(u, p)] + [p[dim]])
+                    point = PN([a*b for a, b in zip(u, p)] + [p[dim]])
                     if point not in points_of_bounded_height:
                         points_of_bounded_height.add(point)
                         yield point
@@ -142,7 +143,7 @@ def IQ_points_of_bounded_height(K, dim, bound):
             if a == K.ideal(point_coordinates):
                 for p in itertools.permutations(point_coordinates):
                     for u in unit_tuples:
-                        point = self([i*j for i, j in zip(u, p)] + [p[dim]])
+                        point = K([i*j for i, j in zip(u, p)] + [p[dim]])
                         if point not in points_in_class_a:
                             points_in_class_a.add(point)
                             yield point
@@ -337,7 +338,7 @@ def points_of_bounded_height(K, dim, bound, prec=53):
             if log_arch_height <= log_arch_height_bound and a == K.ideal(point_coordinates):
                 for p in itertools.permutations(point_coordinates):
                     for u in unit_tuples:
-                        point = self([i*j for i, j in zip(u, p)] + [p[dim]])
+                        point = K([i*j for i, j in zip(u, p)] + [p[dim]])
                         if point not in points_in_class_a:
                             points_in_class_a.add(point)
                             yield point

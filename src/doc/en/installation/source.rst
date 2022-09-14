@@ -59,9 +59,6 @@ and the :wikipedia:`bash <Bash_(Unix_shell)>` shell,
 the following standard command-line development tools must be installed on your
 computer:
 
-- A **C/C++ compiler**: GCC versions 8.x to 12.x are supported.
-  Clang (LLVM) is also supported.
-  See also `Using alternative compilers`_.
 - **make**: GNU make, version 3.80 or later. Version 3.82 or later is recommended.
 - **m4**: GNU m4 1.4.2 or later (non-GNU or older versions might also work).
 - **perl**: version 5.8.0 or later.
@@ -74,54 +71,6 @@ computer:
 Other versions of these may work, but they are untested.
 
 
-Fortran and compiler suites
-###########################
-
-Sage installation also needs a Fortran compiler.  It is determined
-automatically whether Sage's GCC package, or just its part containing
-Fortran compiler ``gfortran`` needs to be installed. This can be
-overwritten by running ``./configure`` with option
-``--without-system-gcc``.
-
-Officially we support
-gfortran from `GNU Compiler Collection (GCC) <https://gcc.gnu.org/>`_.
-If C and C++ compilers also come from there (i.e., gcc and g++), their versions
-should match.
-Alternatively, one may use C and C++ compilers from
-`Clang: a C language family frontend for LLVM <https://clang.llvm.org/>`_,
-and thus  matching versions of
-clang, clang++ , along with a recent gfortran. (Flang (or other LLVM-based
-Fortran compilers) are not officially supported, however it is possible to
-to build Sage using flang, with some extra efforts needed to set various flags;
-this is work in progress at the moment (May 2019)).
-
-Therefore, if you plan on using your own GCC compilers, then make sure that
-their versions match.
-
-To force using specific compilers, set environment variables ``CC``,
-``CXX``, and ``FC`` (for C, C++, and Fortran compilers, respectively)
-to the desired values, and run ``./configure``. For example,
-``./configure CC=clang CXX=clang++ FC=gfortran`` will configure Sage
-to be built with Clang C/C++ compilers and Fortran compiler
-``gfortran``.
-
-Alternatively, Sage includes a GCC package, so that C, C++ and Fortran
-compilers will be built when the build system detects that it is needed,
-e.g., non-GCC compilers, or
-versions of the GCC compilers known to miscompile some components of Sage,
-or simply a missing Fortran compiler.
-In any case, you always need at least a C/C++ compiler to build the GCC
-package and its prerequisites before the compilers it provides can be used.
-
-Note that you can always override this behavior through the configure
-options ``--without-system-gcc`` and ``--with-system-gcc``, see
-:ref:`section_compilers`.
-
-There are some known problems with old assemblers, in particular when
-building the ``ecm`` and ``fflas_ffpack`` packages. You should ensure
-that your assembler understands all instructions for your
-processor. On Linux, this means you need a recent version of
-``binutils``; on macOS you need a recent version of Xcode.
 
 Python for venv
 ^^^^^^^^^^^^^^^
@@ -316,21 +265,8 @@ a registration.
 macOS recommended installation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Although Sage can in theory build its own version of gfortran, this
-can take a while, and the process fails on some recent versions of
-OS X. So instead you can install your own copy. One advantage of this
-is that you can install it once, and it will get used every time you
-build Sage, rather than building gfortran every time.
-
-One way to do that is with the `Homebrew package manager
-<https://brew.sh>`_. Install Homebrew as their web page describes, and
-then the command ::
-
-    $ brew install gcc
-
-will install Homebrew's gcc package, which includes gfortran. Sage
-will also use other Homebrew packages, if they are present. You can
-install the following:
+If you use the `Homebrew package manager
+<https://brew.sh>`_, you can install the following:
 
 .. literalinclude:: homebrew.txt
 
@@ -552,44 +488,6 @@ Specific notes for ``make`` and ``tar``
 
 On macOS, the system-wide BSD ``tar`` supplied will build Sage, so there is no
 need to install the GNU ``tar``.
-
-.. _section_compilers:
-
-Using alternative compilers
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Sage developers tend to use fairly recent versions of GCC.
-Nonetheless, the Sage build process on Linux
-should succeed with any reasonable C/C++ compiler;
-(we do not recommend GCC older than version 5.1).
-This is because Sage will build GCC first (if needed) and then use that newly
-built GCC to compile Sage.
-
-If you don't want this and want to try building Sage with a different set of
-compilers,
-you need to pass Sage's ``./configure`` compiler names, via environment
-variables ``CC``, ``CXX``, and ``FC``, for C, C++, and Fortran compilers,
-respectively, e.g. if you C compiler is ``clang``, your C++ compiler is ``clang++``,
-and your Fortran compiler is ``flang`` then you would need to run::
-
-    $ CC=clang CXX=clang++ FC=flang ./configure
-
-before running ``make``. It is recommended that you inspect the output of ``./configure``
-in order to check that Sage will not try to build GCC. Namely, there should be lines like::
-
-       gcc-7.2.0 will not be installed (configure check)
-       ...
-       gfortran-7.2.0 will not be installed (configure check)
-
-indicating that Sage will not attempt to build ``gcc/g++/gfortran``.
-
-If you are interested in working on support for commercial compilers from
-`HP <http://docs.hp.com/en/5966-9844/ch01s03.html>`_,
-`IBM <http://www-01.ibm.com/software/awdtools/xlcpp/>`_,
-`Intel <http://software.intel.com/en-us/articles/intel-compilers/>`_,
-`Sun/Oracle <http://www.oracle.com/technetwork/server-storage/solarisstudio/overview/index.html>`_,
-etc,
-please email the sage-devel mailing list at https://groups.google.com/group/sage-devel.
 
 
 Additional software

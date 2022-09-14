@@ -4,8 +4,28 @@ gfortran: Fortran compiler from the GNU Compiler Collection
 Description
 -----------
 
-The GNU Compiler Collection, including the C, C++ and Fortran compiler.
-This particular package is meant to only make gfortran available.
+This package represents the required Fortran compiler.
+
+Officially we support ``gfortran`` from `GNU Compiler Collection (GCC)
+<https://gcc.gnu.org/>`_.  It has also been reported that using ``flang``
+(from LLVM) might work.
+
+You can pass the names of compilers to use to ``./configure`` using
+the environment variables :envvar:`CC`, :envvar:`CXX`, and
+:envvar:`FC`, for C, C++, and Fortran compilers, respectively.
+
+For example, if your C compiler is ``clang``, your C++ compiler is
+``clang++``, and your Fortran compiler is ``flang``, then you would
+need to run::
+
+    $ ./configure CC=clang CXX=clang++ FC=flang
+
+Building Sage from source on Apple Silicon (M1/M2) requires the use of
+​the `Homebrew package manager <https://brew.sh>`_ (recommended) or
+conda-forge, which package versions of GCC 12.x (including
+``gfortran``) with the necessary changes for this platform.  These
+changes are not in a released upstream version of GCC, and hence
+also the ``gfortran`` SPKG is not suitable for the M1/M2.
 
 License
 -------

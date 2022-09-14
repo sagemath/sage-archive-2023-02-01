@@ -79,7 +79,7 @@ If your Mac uses the Apple Silicon (M1, arm64) architecture:
   https://brew.sh/ required because it provides a version of ``gfortran`` with
   necessary changes for this platform that are not in a released upstream
   version of GCC. (The ``gfortran`` package that comes with the Sage
-  distribution is not suitable for the M1.)
+  distribution is not suitable for the M1/M2.)
 
 If your Mac uses the Intel (x86_64) architecture:
 

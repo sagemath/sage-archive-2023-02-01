@@ -510,6 +510,7 @@ class LazySeriesRing(UniqueRepresentation, Parent):
 
         Alternatively::
 
+            sage: L.<z> = LazyLaurentSeriesRing(QQ)
             sage: f = L(None, valuation=-1)
             sage: f.define(z^-1 + z^2*f^2)
             sage: f

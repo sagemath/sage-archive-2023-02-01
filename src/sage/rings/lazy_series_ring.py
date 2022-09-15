@@ -14,6 +14,11 @@ We provide lazy implementations for various `\NN`-graded rings.
     :class:`LazySymmetricFunctions` | The ring of (possibly multivariate) lazy symmetric functions.
     :class:`LazyDirichletSeriesRing` | The ring of lazy Dirichlet series.
 
+.. SEEALSO::
+
+    :class:`sage.rings.padics.generic_nodes.pAdicRelaxedGeneric`,
+    :func:`sage.rings.padics.factory.ZpER`
+
 AUTHORS:
 
 - Kwankyu Lee (2019-02-24): initial version
@@ -490,6 +495,10 @@ class LazySeriesRing(UniqueRepresentation, Parent):
         Power series can be defined recursively (see
         :meth:`sage.rings.lazy_series.LazyModuleElement.define` for
         more examples).
+
+        .. SEEALSO::
+
+            :meth:`sage.rings.padics.generic_nodes.pAdicRelaxedGeneric.unknown`
 
         EXAMPLES::
 

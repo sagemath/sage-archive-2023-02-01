@@ -4012,6 +4012,10 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         'macaulay2:mgb'
             Macaulay2's ``GroebnerBasis`` command with the strategy "MGB" (if available)
 
+        'msolve'
+            `msolve <https://msolve.lip6.fr/>`_ (if available, degrevlex order,
+            prime fields)
+
         'magma:GroebnerBasis'
             Magma's ``Groebnerbasis`` command (if available)
 
@@ -4134,6 +4138,15 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             sage: I = sage.rings.ideal.Katsura(R,3) # regenerate to prevent caching
             sage: I.groebner_basis('macaulay2:mgb') # optional - macaulay2
             [c^3 + 28*c^2 - 37*b + 13*c, b^2 - 41*c^2 + 20*b - 20*c, b*c - 19*c^2 + 10*b + 40*c, a + 2*b + 2*c - 1]
+
+        Over prime fields of small characteristic, we can also use
+        `msolve <https://msolve.lip6.fr/>`_ (if available in the system program
+        search path)::
+
+            sage: R.<a,b,c> = PolynomialRing(GF(101), 3)
+            sage: I = sage.rings.ideal.Katsura(R,3) # regenerate to prevent caching
+            sage: I.groebner_basis('msolve')  # optional - msolve
+            [a + 2*b + 2*c - 1, b*c - 19*c^2 + 10*b + 40*c, b^2 - 41*c^2 + 20*b - 20*c, c^3 + 28*c^2 - 37*b + 13*c]
 
         ::
 
@@ -4353,6 +4366,15 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             sage: I = sage.rings.ideal.Katsura(P,3) # regenerate to prevent caching
             sage: I.groebner_basis('magma:GroebnerBasis') # optional - magma
             [a + (-60)*c^3 + 158/7*c^2 + 8/7*c - 1, b + 30*c^3 + (-79/7)*c^2 + 3/7*c, c^4 + (-10/21)*c^3 + 1/84*c^2 + 1/84*c]
+
+        msolve currently supports the degrevlex order only::
+
+            sage: R.<a,b,c> = PolynomialRing(GF(101), 3, order='lex')
+            sage: I = sage.rings.ideal.Katsura(R,3) # regenerate to prevent caching
+            sage: I.groebner_basis('msolve')  # optional - msolve
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: msolve only supports the degrevlex order (use transformed_basis())
         """
         from sage.rings.polynomial.multi_polynomial_sequence import PolynomialSequence
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
@@ -4438,7 +4460,14 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         elif algorithm == 'giac:gbasis':
             from sage.libs.giac import groebner_basis as groebner_basis_libgiac
             gb = groebner_basis_libgiac(self, prot=prot, *args, **kwds)
-
+        elif algorithm == 'msolve':
+            if self.ring().term_order() != 'degrevlex':
+                raise NotImplementedError("msolve only supports the degrevlex order "
+                                          "(use transformed_basis())")
+            if not (deg_bound is mult_bound is None) or prot:
+                raise NotImplementedError("unsupported options for msolve")
+            from . import msolve
+            return msolve.groebner_basis_degrevlex(self, *args, **kwds)
         else:
             raise NameError("Algorithm '%s' unknown."%algorithm)
 

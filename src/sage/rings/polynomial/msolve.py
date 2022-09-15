@@ -34,6 +34,7 @@ from sage.rings.real_arb import RealBallField
 from sage.rings.real_double import RealDoubleField_class
 from sage.rings.real_mpfr import RealField_class
 from sage.rings.real_mpfi import RealIntervalField_class, RealIntervalField
+from sage.structure.sequence import Sequence
 
 def _run_msolve(ideal, options):
     r"""
@@ -67,8 +68,51 @@ def _run_msolve(ideal, options):
 
     return msolve_out.stdout
 
-def groebner_basis_degrevlex(ideal, *, proof=True):
-    pass
+def groebner_basis_degrevlex(ideal):
+    r"""
+    Compute a degrevlex Gröbner basis using msolve
+
+    EXAMPLES::
+
+        sage: from sage.rings.polynomial.msolve import groebner_basis_degrevlex
+
+        sage: R.<a,b,c> = PolynomialRing(GF(101), 3, order='lex')
+        sage: I = sage.rings.ideal.Katsura(R,3)
+        sage: gb = groebner_basis_degrevlex(I); gb # optional - msolve
+        [a + 2*b + 2*c - 1, b*c - 19*c^2 + 10*b + 40*c,
+        b^2 - 41*c^2 + 20*b - 20*c, c^3 + 28*c^2 - 37*b + 13*c]
+        sage: gb.universe() is R # optional - msolve
+        False
+        sage: gb.universe().term_order() # optional - msolve
+        Degree reverse lexicographic term order
+        sage: ideal(gb).transformed_basis(other_ring=R) # optional - msolve
+        [c^4 + 38*c^3 - 6*c^2 - 6*c, 30*c^3 + 32*c^2 + b - 14*c,
+        a + 2*b + 2*c - 1]
+
+    TESTS::
+
+        sage: R.<foo, bar> = PolynomialRing(GF(536870909), 2)
+        sage: I = Ideal([ foo^2 - 1, bar^2 - 1 ])
+        sage: I.groebner_basis(algorithm='msolve') # optional - msolve
+        [bar^2 - 1, foo^2 - 1]
+
+        sage: R.<x, y> = PolynomialRing(QQ, 2)
+        sage: I = Ideal([ x*y - 1, (x-2)^2 + (y-1)^2 - 1])
+        sage: I.groebner_basis(algorithm='msolve') # optional - msolve
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: unsupported base field: Rational Field
+    """
+
+    base = ideal.base_ring()
+    if not (isinstance(base, FiniteField) and base.is_prime_field() and
+            base.characteristic() < 2**31):
+        raise NotImplementedError(f"unsupported base field: {base}")
+
+    drlpolring = ideal.ring().change_ring(order='degrevlex')
+    msolve_out = _run_msolve(ideal, ["-g", "2"])
+    gbasis = sage_eval(msolve_out[:-2], locals=drlpolring.gens_dict())
+    return Sequence(gbasis)
 
 def variety(ideal, ring, *, proof=True):
     r"""

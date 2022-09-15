@@ -20,7 +20,6 @@ AUTHORS:
 - Mike Hansen, Nicolas M. Thiéry
 - MuPAD-Combinat developers (algorithms and design inspiration)
 - Travis Scrimshaw (2013-02-03): Removed ``CombinatorialClass``
-- Trevor K. Karn (2022-09-13): Make ``Composition`` a ``collections.abc.Sequence``
 """
 # ****************************************************************************
 #       Copyright (C) 2007 Mike Hansen       <mhansen@gmail.com>
@@ -113,8 +112,8 @@ class Composition(CombinatorialElement):
 
     Check :trac:`34527`::
 
-        sage: from collections.abc import Sequence
-        sage: isinstance(Composition([3,2,3]), Sequence)
+        sage: import collections.abc
+        sage: isinstance(Composition([3,2,3]), collections.abc.Sequence)
         True
 
     EXAMPLES::

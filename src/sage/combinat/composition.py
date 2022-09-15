@@ -113,8 +113,18 @@ class Composition(CombinatorialElement):
     Check :trac:`34527`::
 
         sage: import collections.abc
-        sage: isinstance(Composition([3,2,3]), collections.abc.Sequence)
+        sage: C = Composition([3,2,3])
+        sage: isinstance(C, collections.abc.Sequence)
         True
+        sage: issubclass(C.__class__, collections.abc.Sequence)
+        True
+        sage: C.count
+        Traceback (most recent call last):
+        ...
+        AttributeError: 'Compositions_all_with_category.element_class' object
+         has no attribute 'count'
+        sage: type(reversed(C))
+        <class 'reversed'>
 
     EXAMPLES::
 

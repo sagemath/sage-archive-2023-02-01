@@ -349,6 +349,21 @@ class InfinitePolynomial_sparse(RingElement):
         except Exception:
             return res
 
+    def _floordiv_(self, right):
+        """
+        Implement a floor division by passing to the finite polynomial ring.
+
+        EXAMPLES::
+
+            sage: R.<z> = InfinitePolynomialRing(QQ)
+            sage: (z[10]+z[0]) // (z[10] + z[0])
+            1
+            sage: z[10] // (z[10] + z[0])
+            0
+        """
+        R = self.parent()._P
+        return self.parent()(R(self)._floordiv_(R(right)))
+
     def _getAttributeNames(self):
         """
         This method implements tab completion, see :trac:`6854`.

@@ -498,6 +498,13 @@ class LazySeriesRing(UniqueRepresentation, Parent):
             sage: s.define(z + (s^2+s(z^2))/2)
             sage: s
             z + z^2 + z^3 + 2*z^4 + 3*z^5 + 6*z^6 + 11*z^7 + O(z^8)
+
+        Alternatively::
+
+            sage: f = L(None, valuation=-1)
+            sage: f.define(z^-1 + z^2*f^2)
+            sage: f
+            z^-1 + 1 + 2*z + 5*z^2 + 14*z^3 + 42*z^4 + 132*z^5 + O(z^6)
         """
         if valuation is None:
             valuation = self._minimal_valuation

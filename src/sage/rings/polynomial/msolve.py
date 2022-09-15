@@ -35,6 +35,40 @@ from sage.rings.real_double import RealDoubleField_class
 from sage.rings.real_mpfr import RealField_class
 from sage.rings.real_mpfi import RealIntervalField_class, RealIntervalField
 
+def _run_msolve(ideal, options):
+    r"""
+    Internal utility function
+    """
+
+    base = ideal.base_ring()
+    if not (base is QQ or isinstance(base, FiniteField) and
+            base.is_prime_field() and base.characteristic() < 2**31):
+        raise NotImplementedError(f"unsupported base field: {base}")
+
+    # Run msolve
+
+    msolve().require()
+
+    drlpolring = ideal.ring().change_ring(order='degrevlex')
+    polys = ideal.change_ring(drlpolring).gens()
+    msolve_in = tempfile.NamedTemporaryFile(mode='w',
+                                            encoding='ascii', delete=False)
+    command = ["msolve", "-f", msolve_in.name] + options
+    try:
+        print(",".join(drlpolring.variable_names()), file=msolve_in)
+        print(base.characteristic(), file=msolve_in)
+        print(*(pol._repr_().replace(" ", "") for pol in polys),
+                sep=',\n', file=msolve_in)
+        msolve_in.close()
+        msolve_out = subprocess.run(command, capture_output=True, text=True)
+    finally:
+        os.unlink(msolve_in.name)
+    msolve_out.check_returncode()
+
+    return msolve_out.stdout
+
+def groebner_basis_degrevlex(ideal, *, proof=True):
+    pass
 
 def variety(ideal, ring, *, proof=True):
     r"""
@@ -132,52 +166,31 @@ def variety(ideal, ring, *, proof=True):
         ValueError: no coercion from base field Rational Field to output ring Integer Ring
     """
 
-    # Normalize and check input
+    proof = sage.structure.proof.proof.get_flag(proof, "polynomial")
+    if proof:
+        raise ValueError("msolve relies on heuristics; please use proof=False")
 
     base = ideal.base_ring()
     if ring is None:
         ring = base
-    proof = sage.structure.proof.proof.get_flag(proof, "polynomial")
-    if proof:
-        raise ValueError("msolve relies on heuristics; please use proof=False")
-    if not (base is QQ or isinstance(base, FiniteField) and
-            base.is_prime_field() and base.characteristic() < 2**31):
-        raise NotImplementedError(f"unsupported base field: {base}")
     if not ring.has_coerce_map_from(base):
         raise ValueError(
             f"no coercion from base field {base} to output ring {ring}")
 
-    # Run msolve
-
-    msolve().require()
-
-    drlpolring = ideal.ring().change_ring(order='degrevlex')
-    polys = ideal.change_ring(drlpolring).gens()
-    msolve_in = tempfile.NamedTemporaryFile(mode='w',
-                                            encoding='ascii', delete=False)
-    command = ["msolve", "-f", msolve_in.name]
     if isinstance(ring, (RealIntervalField_class, RealBallField,
                          RealField_class, RealDoubleField_class)):
         parameterization = False
-        command += ["-p", str(ring.precision())]
+        options = ["-p", str(ring.precision())]
     else:
         parameterization = True
-        command += ["-P", "1"]
-    try:
-        print(",".join(drlpolring.variable_names()), file=msolve_in)
-        print(base.characteristic(), file=msolve_in)
-        print(*(pol._repr_().replace(" ", "") for pol in polys),
-                sep=',\n', file=msolve_in)
-        msolve_in.close()
-        msolve_out = subprocess.run(command, capture_output=True, text=True)
-    finally:
-        os.unlink(msolve_in.name)
-    msolve_out.check_returncode()
+        options = ["-P", "1"]
+
+    msolve_out = _run_msolve(ideal, options)
 
     # Interpret output
 
     try:
-        data = sage_eval(msolve_out.stdout[:-2])
+        data = sage_eval(msolve_out[:-2])
     except SyntaxError:
         raise NotImplementedError(f"unsupported msolve output format: {data}")
 
@@ -202,7 +215,7 @@ def variety(ideal, ring, *, proof=True):
         except (IndexError, ValueError):
             raise NotImplementedError(
                 f"unsupported msolve output format: {data}")
-        assert char == base.characteristic()
+        assert char == ideal.base_ring().characteristic()
         assert one.is_one()
         assert len(vars) == nvars
         ringvars = out_ring.variable_names()

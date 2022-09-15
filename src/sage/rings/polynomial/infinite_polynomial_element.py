@@ -349,21 +349,6 @@ class InfinitePolynomial_sparse(RingElement):
         except Exception:
             return res
 
-    def _floordiv_(self, right):
-        """
-        Implement a floor division by passing to the finite polynomial ring.
-
-        EXAMPLES::
-
-            sage: R.<z> = InfinitePolynomialRing(QQ)
-            sage: (z[10]+z[0]) // (z[10] + z[0])
-            1
-            sage: z[10] // (z[10] + z[0])
-            0
-        """
-        R = self.parent()._P
-        return self.parent()(R(self)._floordiv_(R(right)))
-
     def _getAttributeNames(self):
         """
         This method implements tab completion, see :trac:`6854`.
@@ -573,6 +558,11 @@ class InfinitePolynomial_sparse(RingElement):
             sage: x[1] + x[2] # indirect doctest
             x_2 + x_1
 
+        Check adding from a different parent::
+
+            sage: Y.<x_0> = PolynomialRing(QQ)
+            sage: x[0] - x_0
+            0
         """
         # One may need a new parent for  self._p and x._p
         try:
@@ -704,6 +694,29 @@ class InfinitePolynomial_sparse(RingElement):
             field = self.parent().fraction_field()
             # there remains a problem in reduction
             return FractionFieldElement(field, self, x, reduce=False)
+
+    def _floordiv_(self, x):
+        """
+        EXAMPLES::
+
+            sage: X.<x> = InfinitePolynomialRing(ZZ)
+            sage: x[2]//x[2] # indirect doctest
+            1
+        """
+        try:
+            return InfinitePolynomial_sparse(self.parent(),self._p//x._p)
+        except Exception:
+            pass
+        ## We can now assume that self._p and x._p actually are polynomials,
+        ## hence, their parent is not just the underlying ring.
+        VarList = list(set(self._p.parent().variable_names()).union(set(x._p.parent().variable_names())))
+        VarList.sort(key=self.parent().varname_key,reverse=True)
+        if VarList:
+            from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+            R = PolynomialRing(self._p.base_ring(),VarList,order=self.parent()._order)
+        else:
+            R = self._p.base_ring()
+        return InfinitePolynomial_sparse(self.parent(),R(self._p) // R(x._p))
 
     def _sub_(self, x):
         """

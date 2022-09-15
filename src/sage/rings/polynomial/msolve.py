@@ -36,7 +36,7 @@ from sage.rings.real_mpfr import RealField_class
 from sage.rings.real_mpfi import RealIntervalField_class, RealIntervalField
 
 
-def _variety(ideal, ring, proof):
+def variety(ideal, ring, *, proof=True):
     r"""
     Compute the variety of a zero-dimensional ideal using msolve.
 

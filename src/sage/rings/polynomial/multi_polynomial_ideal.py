@@ -2477,7 +2477,7 @@ class MPolynomialIdeal_singular_repr(
             return self._variety_triangular_decomposition(ring)
         elif algorithm == "msolve":
             from . import msolve
-            return msolve._variety(self, ring, proof)
+            return msolve.variety(self, ring, proof=proof)
         else:
             raise ValueError(f"unknown algorithm {algorithm!r}")
 

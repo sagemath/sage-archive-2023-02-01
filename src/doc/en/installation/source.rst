@@ -51,24 +51,6 @@ Your computer comes with at least 6 GB of free disk space.
 It is recommended to have at least 2 GB of RAM, but you might get away
 with less (be sure to have some swap space in this case).
 
-Python for venv
-^^^^^^^^^^^^^^^
-
-By default, Sage will try to use system's ``python3`` to set up a virtual
-environment, a.k.a. `venv <https://docs.python.org/3.10/library/venv.html>`_
-rather than building a Python 3 installation from scratch.
-Use the ``configure`` option ``--without-system-python3`` in case you want Python 3
-built from scratch.
-
-Sage will accept versions 3.8.x to 3.10.x.
-
-You can also use ``--with-python=/path/to/python3_binary`` to tell Sage to use
-``/path/to/python3_binary`` to set up the venv. Note that setting up venv requires
-a number of Python modules to be available within the Python in question. Currently,
-for Sage 9.6, these modules are as follows: ``sqlite3``, ``ctypes``, ``math``,
-``hashlib``, ``crypt``, ``socket``, ``zlib``, ``distutils.core``, ``ssl`` -
-they will be checked for by the ``configure`` script.
-
 Other notes
 ^^^^^^^^^^^
 

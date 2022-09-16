@@ -760,6 +760,15 @@ class LazyModuleElement(Element):
             Traceback (most recent call last):
             ...
             ValueError: undecidable
+
+        TESTS::
+
+            sage: L.<z> = LazyLaurentSeriesRing(QQ)
+            sage: f = L([0,0,1,0,1,0,0,1], constant=1)
+            sage: g = L([0,0,1,0,1,0,0], degree=7, constant=1)
+            sage: f == g
+            True
+
         """
         if op is op_EQ:
             if isinstance(self._coeff_stream, Stream_zero):  # self == 0
@@ -2497,6 +2506,9 @@ class LazyCauchyProductSeries(LazyModuleElement):
 
             sage: L([1], constant=3)^2
             1 + 6*z + 15*z^2 + 24*z^3 + 33*z^4 + 42*z^5 + 51*z^6 + O(z^7)
+
+            sage: (1+z) * L([1,0,1], constant=1)
+            1 + z + z^2 + 2*z^3 + 2*z^4 + 2*z^5 + O(z^6)
         """
         P = self.parent()
         left = self._coeff_stream
@@ -2515,11 +2527,11 @@ class LazyCauchyProductSeries(LazyModuleElement):
             and right.order() == 0
             and not right._constant):
             return self  # right == 1
-
         # The product is exact if and only if both factors are exact
         # and one of the factors has eventually 0 coefficients:
         # (p + a x^d/(1-x))(q + b x^e/(1-x))
         # = p q + (a x^d q + b x^e p)/(1-x) + a b x^(d+e)/(1-x)^2
+        # TODO: this is not true in characteristic 2
         if (isinstance(left, Stream_exact)
             and isinstance(right, Stream_exact)
             and not (left._constant and right._constant)):
@@ -2538,6 +2550,7 @@ class LazyCauchyProductSeries(LazyModuleElement):
             if right._constant:
                 d = right._degree
                 c = left._constant  # this is zero
+                initial_coefficients.extend([c]*(d - rv - len(ir)))
                 # left._constant must be 0 and thus len(il) >= 1
                 for k in range(len(il)-1):
                     c += il[k] * right._constant
@@ -2546,6 +2559,7 @@ class LazyCauchyProductSeries(LazyModuleElement):
             elif left._constant:
                 d = left._degree
                 c = right._constant  # this is zero
+                initial_coefficients.extend([c]*(d - lv - len(il)))
                 # left._constant must be 0 and thus len(il) >= 1
                 for k in range(len(ir)-1):
                     c += left._constant * ir[k]
@@ -2802,6 +2816,14 @@ class LazyCauchyProductSeries(LazyModuleElement):
             sage: (x + y) / (1 - y)
             (x+y) + (x*y+y^2) + (x*y^2+y^3) + (x*y^3+y^4) + (x*y^4+y^5) + (x*y^5+y^6) + (x*y^6+y^7) + O(x,y)^8
 
+        TESTS:
+
+            sage: L.<t> = LazyPowerSeriesRing(QQ)
+            sage: t/L(1)
+            t
+
+            sage: t^3*(1+2*t+3*t^2+4*t^3)/(t-t^2)
+            t^2 + 3*t^3 + 6*t^4 + 10*t^5 + 10*t^6 + 10*t^7 + O(t^8)
         """
         if isinstance(other._coeff_stream, Stream_zero):
             raise ZeroDivisionError("cannot divide by 0")
@@ -2831,9 +2853,11 @@ class LazyCauchyProductSeries(LazyModuleElement):
             den = den // g
             exponents = den.exponents()
             if len(exponents) == 1:
+                # dividing by z^k
                 d = den[exponents[0]]
-                initial_coefficients = [c / d for c in num]
-                order = num.valuation() - den.valuation()
+                v = num.valuation()
+                initial_coefficients = [num[i] / d for i in range(v, num.degree() + 1)]
+                order = v - den.valuation()
                 return P.element_class(P, Stream_exact(initial_coefficients,
                                                        P._sparse,
                                                        order=order,
@@ -2842,6 +2866,7 @@ class LazyCauchyProductSeries(LazyModuleElement):
             if (len(exponents) == 2
                 and exponents[0] + 1 == exponents[1]
                 and den[exponents[0]] == -den[exponents[1]]):
+                # dividing by z^k (1-z)
                 quo, rem = num.quo_rem(den)
                 # rem is a unit, i.e., in the Laurent case c*z^v
                 v_rem = rem.exponents()[0]
@@ -2858,7 +2883,8 @@ class LazyCauchyProductSeries(LazyModuleElement):
                         order = quo.valuation()
                     else:
                         order = 0
-                    return P.element_class(P, Stream_exact(list(quo),
+                    initial_coefficients = [quo[i] for i in range(order, quo.degree() + 1)]
+                    return P.element_class(P, Stream_exact(initial_coefficients,
                                                            P._sparse,
                                                            order=order,
                                                            degree=v,
@@ -3483,7 +3509,7 @@ class LazyLaurentSeries(LazyCauchyProductSeries):
 
             sage: f = L([-1, -1], valuation=1, constant=-1)
             sage: f.revert()
-            -z - z^2 - z^3 - z^4 - z^5 + O(z^6)
+            -z - z^2 - z^3 + O(z^4)
 
             sage: f = L([-1, 0, -1], valuation=1, constant=-1)
             sage: f.revert()
@@ -3873,7 +3899,7 @@ class LazyPowerSeries(LazyCauchyProductSeries):
             doctest:...: DeprecationWarning: the method compute_coefficients obsolete and has no effect.
             See https://trac.sagemath.org/32367 for details.
             sage: a
-            1 + 2*z + 3*z^2 + 3*z^3 + 3*z^4 + 3*z^5 + O(z^6)
+            1 + 2*z + 3*z^2 + 3*z^3 + 3*z^4 + O(z^5)
         """
         from sage.misc.superseded import deprecation
         deprecation(32367, "the method compute_coefficients obsolete and has no effect.")
@@ -4273,7 +4299,7 @@ class LazyPowerSeries(LazyCauchyProductSeries):
 
             sage: f = L([-1, -1], valuation=1, constant=-1)
             sage: f.revert()
-            (-z) + (-z^2) + (-z^3) + (-z^4) + (-z^5) + O(z^6)
+            (-z) + (-z^2) + (-z^3) + O(z^4)
 
             sage: f = L([-1, 0, -1], valuation=1, constant=-1)
             sage: f.revert()

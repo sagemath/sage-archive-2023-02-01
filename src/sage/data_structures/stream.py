@@ -544,14 +544,25 @@ class Stream_exact(Stream):
 
         assert order + len(initial_coefficients) <= self._degree
 
-        # We do not insist that the last entry of
-        # initial_coefficients is different from constant in case
-        # comparisons can be expensive such as in the symbolic ring,
-        # but we remove zeros
+        # we remove leading and trailing zeros from
+        # initial_coefficients
+
+        # if the degree is order + len(initial_coefficients), we also
+        # insist that the last entry of initial_coefficients is
+        # different from constant, because __eq__ below would become
+        # complicated otherwise
+
+        # TODO: simplify
         for i, v in enumerate(initial_coefficients):
             if v:
                 order += i
                 initial_coefficients = initial_coefficients[i:]
+                if order + len(initial_coefficients) == self._degree:
+                    for j, w in enumerate(reversed(initial_coefficients)):
+                        if w != constant:
+                            break
+                        initial_coefficients.pop()
+                        self._degree -= 1
                 for j, w in enumerate(reversed(initial_coefficients)):
                     if w:
                         break
@@ -599,6 +610,14 @@ class Stream_exact(Stream):
 
             sage: t = Stream_exact([0, 2, 0], False, order=-2, degree=2, constant=1)
             sage: t == s
+            True
+
+            sage: s = Stream_exact([0,1,2,1,0,0,1,1], False, constant=1)
+            sage: [s[i] for i in range(10)]
+            [0, 1, 2, 1, 0, 0, 1, 1, 1, 1]
+
+            sage: t = Stream_exact([0,1,2,1,0,0], False, constant=1)
+            sage: s == t
             True
         """
         if n >= self._degree:

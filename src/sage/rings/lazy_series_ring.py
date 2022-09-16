@@ -901,27 +901,32 @@ class LazyLaurentSeriesRing(LazySeriesRing):
         TESTS::
 
             sage: L = LazyLaurentSeriesRing(ZZ, 't')
-            sage: elts = L.some_elements()[:-2]  # skip the non-exact elements
-            sage: TestSuite(L).run(elements=elts, skip=['_test_elements', '_test_associativity', '_test_distributivity', '_test_zero'])
+            sage: TestSuite(L).run()
             sage: L.category()
             Category of infinite commutative no zero divisors algebras over
              (euclidean domains and infinite enumerated sets and metric spaces)
 
             sage: L = LazyLaurentSeriesRing(QQ, 't')
+            sage: TestSuite(L).run()
             sage: L.category()
             Join of Category of complete discrete valuation fields
              and Category of commutative algebras over (number fields and quotient fields and metric spaces)
              and Category of infinite sets
-            sage: L = LazyLaurentSeriesRing(ZZ['x,y'], 't')
+
+            sage: L = LazyLaurentSeriesRing(ZZ['x, y'], 't')
+            sage: TestSuite(L).run()
             sage: L.category()
             Category of infinite commutative no zero divisors algebras over
              (unique factorization domains and commutative algebras over
               (euclidean domains and infinite enumerated sets and metric spaces)
               and infinite sets)
+
             sage: E.<x,y> = ExteriorAlgebra(QQ)
             sage: L = LazyLaurentSeriesRing(E, 't')  # not tested
         """
         self._sparse = sparse
+        if len(names) != 1:
+            raise ValueError("only univariate lazy Laurent series are implemented")
         self._arity = 1
         self._minimal_valuation = None
         # We always use the dense because our CS_exact is implemented densely
@@ -1230,13 +1235,16 @@ class LazyPowerSeriesRing(LazySeriesRing):
         TESTS::
 
             sage: L = LazyPowerSeriesRing(ZZ, 't')
-            sage: TestSuite(L).run(skip=['_test_elements', '_test_associativity', '_test_distributivity', '_test_zero'])
+            sage: TestSuite(L).run()
 
             sage: L = LazyPowerSeriesRing(ZZ, 's, t')
-            sage: TestSuite(L).run(skip=['_test_elements', '_test_associativity', '_test_distributivity', '_test_zero'])
+            sage: TestSuite(L).run()
 
             sage: L = LazyPowerSeriesRing(QQ, 't')
-            sage: TestSuite(L).run(skip=['_test_elements', '_test_associativity', '_test_distributivity', '_test_zero', '_test_quo_rem'])
+            sage: TestSuite(L).run()
+
+            sage: L = LazyPowerSeriesRing(QQ, 's, t')
+            sage: TestSuite(L).run()
 
         Check that :trac:`34470` is fixed::
 
@@ -1610,7 +1618,7 @@ class LazyPowerSeriesRing(LazySeriesRing):
 
     def uniformizer(self):
         """
-        Return a uniformizer of ``self``..
+        Return a uniformizer of ``self``.
 
         EXAMPLES::
 
@@ -1641,6 +1649,49 @@ class LazyPowerSeriesRing(LazySeriesRing):
         if self._arity != 1:
             raise TypeError("the arity must be one")
         return R
+
+    def some_elements(self):
+        """
+        Return a list of elements of ``self``.
+
+        EXAMPLES::
+
+            sage: L = LazyPowerSeriesRing(ZZ, 'z')
+            sage: L.some_elements()
+            [0,
+             1,
+             z,
+             z + z^2 + z^3 + z^4 + O(z^5),
+             -12 - 8*z + z^2 + z^3,
+             1 + z - 2*z^2 - 7*z^3 - z^4 + 20*z^5 + 23*z^6 + O(z^7),
+             z + 4*z^2 + 9*z^3 + 16*z^4 + 25*z^5 + 36*z^6 + O(z^7)]
+
+            sage: L = LazyPowerSeriesRing(GF(3)["q"], 'z')
+            sage: L.some_elements()
+            [0,
+             1,
+             z,
+             z + q*z^2 + q*z^3 + q*z^4 + O(z^5),
+             z + z^2 + z^3,
+             1 + z + z^2 + 2*z^3 + 2*z^4 + 2*z^5 + O(z^6),
+             z + z^2 + z^4 + z^5 + O(z^7)]
+
+            sage: L = LazyPowerSeriesRing(GF(3), 'q, t')
+            sage: L.some_elements()
+            [0, 1, q, 1, q + q^2 + q^3,
+             1 + q + q^2 + (-q^3) + (-q^4) + (-q^5) + (-q^6) + O(q,t)^7,
+             1 + (q+t) + (q^2-q*t+t^2) + (q^3+t^3)
+               + (q^4+q^3*t+q*t^3+t^4)
+               + (q^5-q^4*t+q^3*t^2+q^2*t^3-q*t^4+t^5)
+               + (q^6-q^3*t^3+t^6) + O(q,t)^7]
+        """
+        z = self.gen(0)
+        elts = [self.zero(), self.one(), z, self.an_element()]
+        if self._arity == 1:
+            elts.extend([(z-3)*(2+z)**2, (1 - 2*z**3)/(1 - z + 3*z**2), self(lambda n: n**2)])
+        else:
+            elts.extend([(z-3)*(2+z)**2, (1 - 2*z**3)/(1 - z + 3*z**2), self(lambda n: sum(self.gens())**n)])
+        return elts
 
 ######################################################################
 
@@ -1697,7 +1748,11 @@ class LazyCompletionGradedAlgebra(LazySeriesRing):
 
             sage: s = SymmetricFunctions(ZZ).s()
             sage: L = LazySymmetricFunctions(s)
-            sage: TestSuite(L).run(skip=['_test_elements', '_test_associativity', '_test_distributivity', '_test_zero'])
+            sage: TestSuite(L).run()
+
+            sage: s = SymmetricFunctions(QQ).s()
+            sage: L = LazySymmetricFunctions(s)
+            sage: TestSuite(L).run()
 
         Check that :trac:`34470` is fixed::
 
@@ -2044,7 +2099,10 @@ class LazyDirichletSeriesRing(LazySeriesRing):
         TESTS::
 
             sage: L = LazyDirichletSeriesRing(ZZ, 't')
-            sage: TestSuite(L).run(skip=['_test_elements', '_test_associativity', '_test_distributivity', '_test_zero'])
+            sage: TestSuite(L).run()
+
+            sage: L = LazyDirichletSeriesRing(QQ, 't')
+            sage: TestSuite(L).run()
         """
         if base_ring.characteristic() > 0:
             raise ValueError("positive characteristic not allowed for Dirichlet series")
@@ -2234,6 +2292,36 @@ class LazyDirichletSeriesRing(LazySeriesRing):
         """
         c = self.base_ring().an_element()
         return self.element_class(self, Stream_exact([], self._sparse, constant=c, order=4))
+
+    def some_elements(self):
+        """
+        Return a list of elements of ``self``.
+
+        EXAMPLES::
+
+            sage: L = LazyDirichletSeriesRing(ZZ, 'z')
+            sage: L.some_elements()
+            [0, 1,
+             1/(4^z) + 1/(5^z) + 1/(6^z) + O(1/(7^z)),
+             1/(2^z) - 1/(3^z) + 2/4^z - 2/5^z + 3/6^z - 3/7^z + 4/8^z - 4/9^z,
+             1/(2^z) - 1/(3^z) + 2/4^z - 2/5^z + 3/6^z - 3/7^z + 4/8^z - 4/9^z + 1/(10^z) + 1/(11^z) + 1/(12^z) + O(1/(13^z)),
+             1 + 4/2^z + 9/3^z + 16/4^z + 25/5^z + 36/6^z + 49/7^z + O(1/(8^z))]
+
+            sage: L = LazyDirichletSeriesRing(QQ, 'z')
+            sage: L.some_elements()
+            [0, 1,
+             1/2/4^z + 1/2/5^z + 1/2/6^z + O(1/(7^z)),
+             1/2 - 1/2/2^z + 2/3^z - 2/4^z + 1/(6^z) - 1/(7^z) + 42/8^z + 2/3/9^z,
+             1/2 - 1/2/2^z + 2/3^z - 2/4^z + 1/(6^z) - 1/(7^z) + 42/8^z + 2/3/9^z + 1/2/10^z + 1/2/11^z + 1/2/12^z + O(1/(13^z)),
+             1 + 4/2^z + 9/3^z + 16/4^z + 25/5^z + 36/6^z + 49/7^z + O(1/(8^z))]
+        """
+        R = self.base_ring()
+        some_numbers = [c for c, _ in zip(R.some_elements(), range(9))]
+        elts = [self.zero(), self.one(), self.an_element(),
+                self(some_numbers),
+                self(some_numbers, constant = R.an_element()),
+                self(lambda n: n**2)]
+        return elts
 
     def _monomial(self, c, n):
         r"""

@@ -19,7 +19,6 @@ Permutation species
 from .species import GenericCombinatorialSpecies
 from .structure import GenericSpeciesStructure
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.rings.integer_ring import ZZ
 from sage.combinat.permutation import Permutation, Permutations
 from sage.combinat.species.misc import accept_size
 

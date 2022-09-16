@@ -15,7 +15,6 @@ Cycle Species
 from .species import GenericCombinatorialSpecies
 from .structure import GenericSpeciesStructure
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.rings.integer_ring import ZZ
 from sage.arith.all import divisors, euler_phi
 from sage.combinat.species.misc import accept_size
 

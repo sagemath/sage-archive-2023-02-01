@@ -53,9 +53,8 @@ from sage.rings.lazy_series import LazyPowerSeries, LazySymmetricFunction
 from sage.rings.lazy_series_ring import LazyPowerSeriesRing, LazySymmetricFunctions
 from sage.rings.integer import Integer
 from sage.rings.rational_field import RationalField
-from sage.arith.all import moebius, gcd, lcm, divisors
+from sage.arith.all import divisors
 from sage.combinat.partition import Partition, Partitions
-from functools import partial
 from sage.combinat.sf.sf import SymmetricFunctions
 from sage.misc.cachefunc import cached_function
 from sage.arith.misc import factorial

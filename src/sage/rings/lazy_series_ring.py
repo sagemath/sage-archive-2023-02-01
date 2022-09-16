@@ -14,6 +14,11 @@ We provide lazy implementations for various `\NN`-graded rings.
     :class:`LazySymmetricFunctions` | The ring of (possibly multivariate) lazy symmetric functions.
     :class:`LazyDirichletSeriesRing` | The ring of lazy Dirichlet series.
 
+.. SEEALSO::
+
+    :class:`sage.rings.padics.generic_nodes.pAdicRelaxedGeneric`,
+    :func:`sage.rings.padics.factory.ZpER`
+
 AUTHORS:
 
 - Kwankyu Lee (2019-02-24): initial version
@@ -38,6 +43,7 @@ from sage.structure.parent import Parent
 from sage.structure.element import parent
 
 from sage.categories.algebras import Algebras
+from sage.categories.graded_algebras_with_basis import GradedAlgebrasWithBasis
 from sage.categories.rings import Rings
 from sage.categories.integral_domains import IntegralDomains
 from sage.categories.fields import Fields
@@ -118,7 +124,10 @@ class LazySeriesRing(UniqueRepresentation, Parent):
             coefficients when evaluated at integers.  Examples are
             provided below.
 
-        EXAMPLES::
+        EXAMPLES:
+
+        If ``x`` can be converted into an element of the underlying
+        Laurent polynomial ring, we do this::
 
             sage: L = LazyLaurentSeriesRing(GF(2), 'z')
             sage: L(2)
@@ -126,17 +135,28 @@ class LazySeriesRing(UniqueRepresentation, Parent):
             sage: L(3)
             1
 
-            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
+        In particular, ``x`` can be a Laurent polynomial::
 
+            sage: P.<x> = LaurentPolynomialRing(QQ)
+            sage: p = x^-2 + 3*x^3
+            sage: L.<x> = LazyLaurentSeriesRing(ZZ)
+            sage: L(p)
+            x^-2 + 3*x^3
+
+            sage: L(p, valuation=0)
+            1 + 3*x^5
+
+            sage: L(p, valuation=1)
+            x + 3*x^6
+
+        If ``x`` is callable, its evaluation at the integers,
+        beginning at ``valuation``, defines the coefficients of the series::
+
+            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
             sage: L(lambda i: i, valuation=5, constant=1, degree=10)
             5*z^5 + 6*z^6 + 7*z^7 + 8*z^8 + 9*z^9 + z^10 + z^11 + z^12 + O(z^13)
             sage: L(lambda i: i, valuation=5, constant=(1, 10))
             5*z^5 + 6*z^6 + 7*z^7 + 8*z^8 + 9*z^9 + z^10 + z^11 + z^12 + O(z^13)
-
-            sage: X = L(constant=5, degree=2); X
-            5*z^2 + 5*z^3 + 5*z^4 + O(z^5)
-            sage: X.valuation()
-            2
 
             sage: def g(i):
             ....:     if i < 0:
@@ -153,6 +173,13 @@ class LazySeriesRing(UniqueRepresentation, Parent):
             9
             sage: f[30]
             -219
+
+        We can omit ``x``, when defining a series with constant coefficients::
+
+            sage: X = L(constant=5, degree=2); X
+            5*z^2 + 5*z^3 + 5*z^4 + O(z^5)
+            sage: X.valuation()
+            2
 
             sage: L(valuation=2, constant=1)
             z^2 + z^3 + z^4 + O(z^5)
@@ -174,19 +201,15 @@ class LazySeriesRing(UniqueRepresentation, Parent):
             sage: g
             z^5 + 3*z^6 + 5*z^7 + 7*z^8 + 9*z^9 - z^10 - z^11 - z^12 + O(z^13)
 
-        Finally, ``x`` can be a Laurent polynomial::
+        If ``x`` is explicitly passed as ``None``, the resulting
+        series is undefined.  This can be used to define it
+        implicitly, see
+        :meth:`sage.rings.lazy_series.LazyModuleElement.define`::
 
-            sage: P.<x> = LaurentPolynomialRing(QQ)
-            sage: p = x^-2 + 3*x^3
-            sage: L.<x> = LazyLaurentSeriesRing(ZZ)
-            sage: L(p)
-            x^-2 + 3*x^3
-
-            sage: L(p, valuation=0)
-            1 + 3*x^5
-
-            sage: L(p, valuation=1)
-            x + 3*x^6
+            sage: f = L(None, valuation=-1)
+            sage: f.define(z^-1 + z^2*f^2)
+            sage: f
+            z^-1 + 1 + 2*z + 5*z^2 + 14*z^3 + 42*z^4 + 132*z^5 + O(z^6)
 
         We construct a lazy Laurent series over another lazy Laurent series::
 
@@ -470,8 +493,12 @@ class LazySeriesRing(UniqueRepresentation, Parent):
         - ``valuation`` -- integer; a lower bound for the valuation of the series
 
         Power series can be defined recursively (see
-        :meth:`sage.rings.lazy_series.LazyModuleElement.define()` for
+        :meth:`sage.rings.lazy_series.LazyModuleElement.define` for
         more examples).
+
+        .. SEEALSO::
+
+            :meth:`sage.rings.padics.generic_nodes.pAdicRelaxedGeneric.unknown`
 
         EXAMPLES::
 
@@ -480,7 +507,17 @@ class LazySeriesRing(UniqueRepresentation, Parent):
             sage: s.define(z + (s^2+s(z^2))/2)
             sage: s
             z + z^2 + z^3 + 2*z^4 + 3*z^5 + 6*z^6 + 11*z^7 + O(z^8)
+
+        Alternatively::
+
+            sage: L.<z> = LazyLaurentSeriesRing(QQ)
+            sage: f = L(None, valuation=-1)
+            sage: f.define(z^-1 + z^2*f^2)
+            sage: f
+            z^-1 + 1 + 2*z + 5*z^2 + 14*z^3 + 42*z^4 + 132*z^5 + O(z^6)
         """
+        if valuation is None:
+            valuation = self._minimal_valuation
         coeff_stream = Stream_uninitialized(self._sparse, valuation)
         return self.element_class(self, coeff_stream)
 
@@ -814,7 +851,7 @@ class LazyLaurentSeriesRing(LazySeriesRing):
         z - z^2 + z^3 + 5*z^4 + 5*z^5 + 5*z^6 + O(z^7)
 
     Power series can be defined recursively (see
-    :meth:`sage.rings.lazy_series.LazyModuleElement.define()` for
+    :meth:`sage.rings.lazy_series.LazyModuleElement.define` for
     more examples)::
 
         sage: L.<z> = LazyLaurentSeriesRing(ZZ)
@@ -1517,7 +1554,7 @@ class LazyPowerSeriesRing(LazySeriesRing):
                     coeff_stream = Stream_iterator(map(R, _skip_leading_zeros(x)), valuation)
             else:
                 if callable(x):
-                    coeff_stream = Stream_function(x, self._sparse, valuation)
+                    coeff_stream = Stream_function(lambda i: BR(x(i)), self._sparse, valuation)
                 else:
                     coeff_stream = Stream_iterator(map(BR, _skip_leading_zeros(x)), valuation)
             return self.element_class(self, coeff_stream)
@@ -1602,14 +1639,21 @@ class LazyCompletionGradedAlgebra(LazySeriesRing):
             sage: L in PrincipalIdealDomains
             False
 
+        Check that a basis which is not graded is not enough::
+
+            sage: ht = SymmetricFunctions(ZZ).ht()
+            sage: L = LazySymmetricFunctions(ht)
+            Traceback (most recent call last):
+            ...
+            ValueError: basis should be in GradedAlgebrasWithBasis
         """
         base_ring = basis.base_ring()
         self._minimal_valuation = 0
         if basis in Algebras.TensorProducts:
             self._arity = len(basis._sets)
         else:
-            if basis not in Algebras.Graded:
-                raise ValueError("basis should be a graded algebra")
+            if basis not in GradedAlgebrasWithBasis:
+                raise ValueError("basis should be in GradedAlgebrasWithBasis")
             self._arity = 1
         category = Algebras(base_ring.category())
         if base_ring in IntegralDomains():

@@ -4285,8 +4285,8 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
 
         ALGORITHM:
 
-        Uses Singular, Magma (if available), Macaulay2 (if available),
-        Giac (if available), or a toy implementation.
+        Uses Singular, one of the other systems listed above (if available),
+        or a toy implementation.
 
         TESTS:
 

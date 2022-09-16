@@ -3,19 +3,17 @@ r"""
 Solution of polynomial systems using msolve
 
 `msolve <https://msolve.lip6.fr/>`_ is a multivariate polynomial system solver
-developed mainly by Jérémy Berthomieu (Sorbonne University), Christian Eder
-(TU Kaiserslautern), and Mohab Safey El Din (Sorbonne University).
+based on Gröbner bases.
 
 This module provide implementations of some operations on polynomial ideals
-based on msolve. Currently the only supported operation is the computation of
-the variety of zero-dimensional ideal over the rationals.
+based on msolve.
 
 Note that msolve must be installed separately.
 
 .. SEEALSO::
 
-- :mod:`sage.features.msolve`
-- :mod:`sage.rings.polynomial.multi_polynomial_ideal`
+    - :mod:`sage.features.msolve`
+    - :mod:`sage.rings.polynomial.multi_polynomial_ideal`
 """
 
 import os
@@ -120,6 +118,18 @@ def variety(ideal, ring, *, proof=True):
 
     Part of the initial implementation was loosely based on the example
     interfaces available as part of msolve, with the authors' permission.
+
+    EXAMPLES::
+
+        sage: from sage.rings.polynomial.msolve import variety
+        sage: p = 536870909
+        sage: R.<x, y> = PolynomialRing(GF(p), 2, order='lex')
+        sage: I = Ideal([ x*y - 1, (x-2)^2 + (y-1)^2 - 1])
+        sage: sorted(variety(I, GF(p^2), proof=False), key=str) # optional - msolve
+        [{x: 1, y: 1},
+         {x: 254228855*z2 + 114981228, y: 232449571*z2 + 402714189},
+         {x: 267525699, y: 473946006},
+         {x: 282642054*z2 + 154363985, y: 304421338*z2 + 197081624}]
 
     TESTS::
 

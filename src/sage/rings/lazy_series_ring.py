@@ -1170,6 +1170,36 @@ class LazyLaurentSeriesRing(LazySeriesRing):
         """
         return self._laurent_poly_ring(c).shift(n)
 
+    def uniformizer(self):
+        """
+        Return a uniformizer of ``self``..
+
+        EXAMPLES::
+
+            sage: L = LazyLaurentSeriesRing(QQ, 'z')
+            sage: L.uniformizer()
+            z
+        """
+        R = self.base_ring()
+        if R not in Fields():
+            raise TypeError("the base ring is not a field")
+        return self.gen()
+
+    def residue_field(self):
+        """
+        Return the residue field of the ring of integers of ``self``.
+
+        EXAMPLES::
+
+            sage: L = LazyLaurentSeriesRing(QQ, 'z')
+            sage: L.residue_field()
+            Rational Field
+        """
+        R = self.base_ring()
+        if R not in Fields():
+            raise TypeError("the base ring is not a field")
+        return R
+
 ######################################################################
 
 
@@ -1205,6 +1235,9 @@ class LazyPowerSeriesRing(LazySeriesRing):
             sage: L = LazyPowerSeriesRing(ZZ, 's, t')
             sage: TestSuite(L).run(skip=['_test_elements', '_test_associativity', '_test_distributivity', '_test_zero'])
 
+            sage: L = LazyPowerSeriesRing(QQ, 't')
+            sage: TestSuite(L).run(skip=['_test_elements', '_test_associativity', '_test_distributivity', '_test_zero', '_test_quo_rem'])
+
         Check that :trac:`34470` is fixed::
 
             sage: L.<t> = LazyPowerSeriesRing(QQ)
@@ -1234,7 +1267,7 @@ class LazyPowerSeriesRing(LazySeriesRing):
         else:
             self._internal_poly_ring = PolynomialRing(self._laurent_poly_ring, "DUMMY_VARIABLE")
         category = Algebras(base_ring.category())
-        if base_ring in Fields() and self._arity == 1:
+        if self._arity == 1 and base_ring in Fields():
             category &= CompleteDiscreteValuationRings()
             self.uniformizer = lambda: self.gen()
         elif base_ring in IntegralDomains():
@@ -1575,6 +1608,40 @@ class LazyPowerSeriesRing(LazySeriesRing):
         coeff_stream = Stream_exact([R.one()], self._sparse, order=1, constant=c)
         return self.element_class(self, coeff_stream)
 
+    def uniformizer(self):
+        """
+        Return a uniformizer of ``self``..
+
+        EXAMPLES::
+
+            sage: L = LazyPowerSeriesRing(QQ, 'x')
+            sage: L.uniformizer()
+            x
+        """
+        R = self.base_ring()
+        if R not in Fields():
+            raise TypeError("the base ring is not a field")
+        if self._arity != 1:
+            raise TypeError("the arity must be one")
+        return self.gen()
+
+    def residue_field(self):
+        """
+        Return the residue field of the ring of integers of ``self``.
+
+        EXAMPLES::
+
+            sage: L = LazyPowerSeriesRing(QQ, 'x')
+            sage: L.residue_field()
+            Rational Field
+        """
+        R = self.base_ring()
+        if R not in Fields():
+            raise TypeError("the base ring is not a field")
+        if self._arity != 1:
+            raise TypeError("the arity must be one")
+        return R
+
 ######################################################################
 
 
@@ -1646,6 +1713,13 @@ class LazyCompletionGradedAlgebra(LazySeriesRing):
             Traceback (most recent call last):
             ...
             ValueError: basis should be in GradedAlgebrasWithBasis
+
+        Check that :trac:`34470` is fixed::
+
+            sage: s = SymmetricFunctions(QQ).s()
+            sage: L = LazySymmetricFunctions(s)
+            sage: L in PrincipalIdealDomains
+            False
         """
         base_ring = basis.base_ring()
         self._minimal_valuation = 0

@@ -540,8 +540,9 @@ class LazySeriesRing(UniqueRepresentation, Parent):
             sage: LLS.<z> = LazyLaurentSeriesRing(QQ)
             sage: LLS.options
             Current options for lazy series rings
-              - constant_length: 3
-              - display_length:  7
+              - constant_length:   3
+              - display_length:    7
+              - halting_precision: None
 
             sage: LLS.options.display_length
             7
@@ -574,6 +575,9 @@ class LazySeriesRing(UniqueRepresentation, Parent):
         constant_length = dict(default=3,
                                description='the number of coefficients to display for nonzero constant series',
                                checker=lambda x: x in ZZ and x > 0)
+        halting_precision = dict(default=None,
+                               description='the number of coefficients, beginning with the approximate valuation, to check in equality tests',
+                               checker=lambda x: x is None or x in ZZ and x > 0)
 
     @cached_method
     def one(self):
@@ -901,6 +905,7 @@ class LazyLaurentSeriesRing(LazySeriesRing):
         TESTS::
 
             sage: L = LazyLaurentSeriesRing(ZZ, 't')
+            sage: LazyLaurentSeriesRing.options.halting_precision(20)
             sage: TestSuite(L).run()
             sage: L.category()
             Category of infinite commutative no zero divisors algebras over
@@ -1234,6 +1239,7 @@ class LazyPowerSeriesRing(LazySeriesRing):
 
         TESTS::
 
+            sage: LazyPowerSeriesRing.options.halting_precision(20)
             sage: L = LazyPowerSeriesRing(ZZ, 't')
             sage: TestSuite(L).run()
 

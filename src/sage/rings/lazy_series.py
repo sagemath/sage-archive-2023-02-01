@@ -785,7 +785,10 @@ class LazyModuleElement(Element):
                     return True
                 if self._coeff_stream != other._coeff_stream:
                     return False
-                raise ValueError("undecidable")
+                prec = self.parent().options.halting_precision
+                if prec == None:
+                    raise ValueError("undecidable")
+                return all(self[i] == other[i] for i in range(m, n + prec))
 
             # Both are Stream_exact, which implements a full check
             return self._coeff_stream == other._coeff_stream
@@ -895,9 +898,15 @@ class LazyModuleElement(Element):
         else:
             if any(a for a in self._coeff_stream._cache):
                 return True
-        if self[self._coeff_stream._approximate_order]:
+
+        v = self._coeff_stream._approximate_order
+        if self[v]:
             return True
-        raise ValueError("undecidable as lazy Laurent series")
+
+        prec = self.parent().options.halting_precision
+        if prec == None:
+            raise ValueError("undecidable as lazy Laurent series")
+        return any(self[i] for i in range(v, v + prec))
 
     def define(self, s):
         r"""

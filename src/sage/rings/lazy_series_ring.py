@@ -1170,6 +1170,36 @@ class LazyLaurentSeriesRing(LazySeriesRing):
         """
         return self._laurent_poly_ring(c).shift(n)
 
+    def uniformizer(self):
+        """
+        Return a uniformizer of ``self``..
+
+        EXAMPLES::
+
+            sage: L = LazyLaurentSeriesRing(QQ, 'z')
+            sage: L.uniformizer()
+            z
+        """
+        R = self.base_ring()
+        if R not in Fields():
+            raise TypeError("the base ring is not a field")
+        return self.gen()
+
+    def residue_field(self):
+        """
+        Return the residue field of the ring of integers of ``self``.
+
+        EXAMPLES::
+
+            sage: L = LazyLaurentSeriesRing(QQ, 'z')
+            sage: L.residue_field()
+            Rational Field
+        """
+        R = self.base_ring()
+        if R not in Fields():
+            raise TypeError("the base ring is not a field")
+        return R
+
 ######################################################################
 
 
@@ -1201,6 +1231,27 @@ class LazyPowerSeriesRing(LazySeriesRing):
 
             sage: L = LazyPowerSeriesRing(ZZ, 't')
             sage: TestSuite(L).run(skip=['_test_elements', '_test_associativity', '_test_distributivity', '_test_zero'])
+
+            sage: L = LazyTaylorSeriesRing(QQ, 't')
+            sage: TestSuite(L).run(skip=['_test_elements', '_test_associativity', '_test_distributivity', '_test_zero', '_test_quo_rem'])
+
+        Check that :trac:`34470` is fixed::
+
+            sage: L.<t> = LazyTaylorSeriesRing(QQ)
+            sage: L in CompleteDiscreteValuationRings
+            True
+            sage: L.uniformizer()
+            t
+            sage: lcm(1/(1 - t^2) - 1, t)
+            t^2
+
+            sage: L.<t> = LazyTaylorSeriesRing(ZZ)
+            sage: L in PrincipalIdealDomains
+            False
+
+            sage: L = LazyTaylorSeriesRing(QQ, 's, t')
+            sage: L in PrincipalIdealDomains
+            False
         """
         from sage.structure.category_object import normalize_names
         names = normalize_names(-1, names)
@@ -1213,7 +1264,7 @@ class LazyPowerSeriesRing(LazySeriesRing):
         else:
             self._internal_poly_ring = PolynomialRing(self._laurent_poly_ring, "DUMMY_VARIABLE")
         category = Algebras(base_ring.category())
-        if base_ring in Fields():
+        if self._arity == 1 and base_ring in Fields():
             category &= CompleteDiscreteValuationRings()
         elif base_ring in IntegralDomains():
             category &= IntegralDomains()
@@ -1553,6 +1604,40 @@ class LazyPowerSeriesRing(LazySeriesRing):
         coeff_stream = Stream_exact([R.one()], self._sparse, order=1, constant=c)
         return self.element_class(self, coeff_stream)
 
+    def uniformizer(self):
+        """
+        Return a uniformizer of ``self``..
+
+        EXAMPLES::
+
+            sage: L = LazyTaylorSeriesRing(QQ, 'x')
+            sage: L.uniformizer()
+            x
+        """
+        R = self.base_ring()
+        if R not in Fields():
+            raise TypeError("the base ring is not a field")
+        if self._arity != 1:
+            raise TypeError("the arity must be one")
+        return self.gen()
+
+    def residue_field(self):
+        """
+        Return the residue field of the ring of integers of ``self``.
+
+        EXAMPLES::
+
+            sage: L = LazyTaylorSeriesRing(QQ, 'x')
+            sage: L.residue_field()
+            Rational Field
+        """
+        R = self.base_ring()
+        if R not in Fields():
+            raise TypeError("the base ring is not a field")
+        if self._arity != 1:
+            raise TypeError("the arity must be one")
+        return R
+
 ######################################################################
 
 
@@ -1617,6 +1702,13 @@ class LazyCompletionGradedAlgebra(LazySeriesRing):
             Traceback (most recent call last):
             ...
             ValueError: basis should be in GradedAlgebrasWithBasis
+
+        Check that :trac:`34470` is fixed::
+
+            sage: s = SymmetricFunctions(QQ).s()
+            sage: L = LazySymmetricFunctions(s)
+            sage: L in PrincipalIdealDomains
+            False
         """
         base_ring = basis.base_ring()
         self._minimal_valuation = 0
@@ -1627,9 +1719,7 @@ class LazyCompletionGradedAlgebra(LazySeriesRing):
                 raise ValueError("basis should be in GradedAlgebrasWithBasis")
             self._arity = 1
         category = Algebras(base_ring.category())
-        if base_ring in Fields():
-            category &= CompleteDiscreteValuationRings()
-        elif base_ring in IntegralDomains():
+        if base_ring in IntegralDomains():
             category &= IntegralDomains()
         elif base_ring in Rings().Commutative():
             category = category.Commutative()

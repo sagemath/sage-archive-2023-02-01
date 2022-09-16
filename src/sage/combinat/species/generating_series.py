@@ -52,7 +52,7 @@ REFERENCES:
 from sage.rings.lazy_series import LazyPowerSeries, LazySymmetricFunction
 from sage.rings.lazy_series_ring import LazyPowerSeriesRing, LazySymmetricFunctions
 from sage.rings.integer import Integer
-from sage.rings.rational_field import RationalField
+from sage.rings.rational_field import QQ
 from sage.arith.all import divisors
 from sage.combinat.partition import Partition, Partitions
 from sage.combinat.sf.sf import SymmetricFunctions
@@ -74,7 +74,6 @@ class OrdinaryGeneratingSeries(LazyPowerSeries):
         sage: f = R(lambda n: n)
         sage: f
         z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + O(z^7)
-
     """
     def count(self, n):
         """
@@ -91,7 +90,6 @@ class OrdinaryGeneratingSeries(LazyPowerSeries):
             sage: f = R(range(20))
             sage: f.count(10)
             10
-
         """
         return self.coefficient(n)
 
@@ -107,7 +105,6 @@ class OrdinaryGeneratingSeries(LazyPowerSeries):
             sage: f = R(range(20))
             sage: f.counts(10)
             [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-
         """
         return [self.count(i) for i in range(n)]
 
@@ -134,18 +131,20 @@ class OrdinaryGeneratingSeriesRing(LazyPowerSeriesRing):
 
     TESTS:
 
-    We test to make sure that caching works.::
+    We test to make sure that caching works::
 
         sage: R is OrdinaryGeneratingSeriesRing(QQ)
         True
-
     """
     def __init__(self, base_ring):
         """
+        Initialize ``self``.
+
         TESTS::
 
-            self: R = OrdinaryGeneratingSeriesRing(QQ); R
-            Lazy Taylor Series Ring in z over Rational Field
+            sage: from sage.combinat.species.generating_series import OrdinaryGeneratingSeriesRing
+            sage: R = OrdinaryGeneratingSeriesRing(QQ)
+            sage: TestSuite(R).run(skip=["_test_associativity", "_test_distributivity", "_test_elements"])
         """
         super().__init__(base_ring, names="z")
 
@@ -167,7 +166,6 @@ class ExponentialGeneratingSeries(LazyPowerSeries):
         sage: f = R(lambda n: n)
         sage: f
         z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + O(z^7)
-
     """
     def count(self, n):
         """
@@ -180,7 +178,6 @@ class ExponentialGeneratingSeries(LazyPowerSeries):
             sage: f = R(lambda n: 1)
             sage: [f.count(i) for i in range(7)]
             [1, 1, 2, 6, 24, 120, 720]
-
         """
         return factorial(n) * self.coefficient(n)
 
@@ -196,7 +193,6 @@ class ExponentialGeneratingSeries(LazyPowerSeries):
             sage: f = R(range(20))
             sage: f.counts(5)
             [0, 1, 4, 18, 96]
-
         """
         return [self.count(i) for i in range(n)]
 
@@ -211,7 +207,7 @@ class ExponentialGeneratingSeries(LazyPowerSeries):
 
         .. MATH::
 
-             f \Box g = \sum_{n=0}^{\infty} f_{g_n} \frac{x^n}{n!}
+             f \Box g = \sum_{n=0}^{\infty} f_{g_n} \frac{x^n}{n!}.
 
         REFERENCES:
 
@@ -232,7 +228,6 @@ class ExponentialGeneratingSeries(LazyPowerSeries):
             sage: g2 = P2.generating_series()
             sage: g1.functorial_composition(g2)[:10]
             [1, 1, 1, 4/3, 8/3, 128/15, 2048/45, 131072/315, 2097152/315, 536870912/2835]
-
         """
         P = self.parent()
         return P(lambda n: self.count(y.count(n)) / factorial(n), 0)
@@ -261,14 +256,16 @@ class ExponentialGeneratingSeriesRing(LazyPowerSeriesRing):
 
         sage: R is ExponentialGeneratingSeriesRing(QQ)
         True
-
     """
     def __init__(self, base_ring):
         """
+        Initialize ``self``.
+
         TESTS::
 
-            self: R = ExponentialGeneratingSeriesRing(QQ); R
-            Lazy Taylor Series Ring in z over Rational Field
+            sage: from sage.combinat.species.generating_series import ExponentialGeneratingSeriesRing
+            sage: R = ExponentialGeneratingSeriesRing(QQ)
+            sage: TestSuite(R).run(skip=["_test_associativity", "_test_distributivity", "_test_elements""])
         """
         super().__init__(base_ring, names="z")
 
@@ -299,7 +296,7 @@ class CycleIndexSeries(LazySymmetricFunction):
 
     def coefficient_cycle_type(self, t):
         """
-        Returns the coefficient of a cycle type ``t`` in ``self``.
+        Return the coefficient of a cycle type ``t`` in ``self``.
 
         EXAMPLES::
 
@@ -320,6 +317,8 @@ class CycleIndexSeries(LazySymmetricFunction):
 
     def isotype_generating_series(self):
         """
+        Return the isotype generating series of ``self``.
+
         EXAMPLES::
 
             sage: P = species.PermutationSpecies()
@@ -330,11 +329,12 @@ class CycleIndexSeries(LazySymmetricFunction):
         """
         R = self.base_ring()
         OGS = OrdinaryGeneratingSeriesRing(R)
-        return OGS(lambda n: self._ogs_gen(n, self._coeff_stream._approximate_order), self._coeff_stream._approximate_order)
+        return OGS(lambda n: self._ogs_gen(n, self._coeff_stream._approximate_order),
+                   self._coeff_stream._approximate_order)
 
     def _ogs_gen(self, n, ao):
         """
-        Returns a generator for the coefficients of the ordinary generating
+        Return a generator for the coefficients of the ordinary generating
         series obtained from a cycle index series.
 
         EXAMPLES::
@@ -350,6 +350,8 @@ class CycleIndexSeries(LazySymmetricFunction):
 
     def generating_series(self):
         """
+        Return the generating series of ``self``.
+
         EXAMPLES::
 
             sage: P = species.PartitionSpecies()
@@ -360,11 +362,12 @@ class CycleIndexSeries(LazySymmetricFunction):
         """
         R = self.base_ring()
         EGS = ExponentialGeneratingSeriesRing(R)
-        return EGS(lambda n: self._egs_gen(n, self._coeff_stream._approximate_order), self._coeff_stream._approximate_order)
+        return EGS(lambda n: self._egs_gen(n, self._coeff_stream._approximate_order),
+                   self._coeff_stream._approximate_order)
 
     def _egs_gen(self, n, ao):
         """
-        Returns a generator for the coefficients of the exponential
+        Return a generator for the coefficients of the exponential
         generating series obtained from a cycle index series.
 
         EXAMPLES::
@@ -428,10 +431,9 @@ class CycleIndexSeries(LazySymmetricFunction):
             sage: X = species.SingletonSpecies().cycle_index_series()
             sage: E.pointing()[:8] == (X*E)[:8]
             True
-
         """
         X = self.parent()([1], valuation=1)
-        return X*self.derivative_with_respect_to_p1()
+        return X * self.derivative_with_respect_to_p1()
 
     def exponential(self):
         r"""
@@ -530,22 +532,30 @@ class CycleIndexSeriesRing(LazySymmetricFunctions):
 
     TESTS:
 
-    We test to make sure that caching works.
-
-    ::
+    We test to make sure that caching works::
 
         sage: R is CycleIndexSeriesRing(QQ)
         True
-
     """
     Element = CycleIndexSeries
 
     def __init__(self, base_ring, sparse=True):
+        """
+        Initialize ``self``.
+
+        TESTS::
+
+            sage: from sage.combinat.species.generating_series import CycleIndexSeriesRing
+            sage: R = CycleIndexSeriesRing(QQ)
+            sage: TestSuite(R).run(skip=["_test_elements", "_test_quo_rem"])
+        """
         p = SymmetricFunctions(base_ring).power()
         super().__init__(p)
 
-    def __repr__(self):
+    def _repr_(self):
         """
+        Return a string representation of ``self``.
+
         EXAMPLES::
 
             sage: from sage.combinat.species.generating_series import CycleIndexSeriesRing
@@ -556,9 +566,10 @@ class CycleIndexSeriesRing(LazySymmetricFunctions):
 
 
 @cached_function
-def _exp_term(n, R = RationalField()):
-    """
-    Compute the order-n term of the cycle index series of the species `E` of sets.
+def _exp_term(n, R=QQ):
+    r"""
+    Compute the order-``n`` term of the cycle index series of the species
+    `E` of sets.
 
     EXAMPLES::
 
@@ -571,7 +582,7 @@ def _exp_term(n, R = RationalField()):
 
 
 @cached_function
-def ExponentialCycleIndexSeries(R = RationalField()):
+def ExponentialCycleIndexSeries(R=QQ):
     r"""
     Return the cycle index series of the species `E` of sets.
 
@@ -595,10 +606,11 @@ def ExponentialCycleIndexSeries(R = RationalField()):
 
 
 @cached_function
-def _cl_term(n, R = RationalField()):
+def _cl_term(n, R=QQ):
     r"""
-    Compute the order-n term of the cycle index series of the virtual species
-    `\Omega`, the compositional inverse of the species `E^{+}` of nonempty sets.
+    Compute the order-``n`` term of the cycle index series of
+    the virtual species `\Omega`, the compositional inverse of
+    the species `E^{+}` of nonempty sets.
 
     EXAMPLES::
 
@@ -619,7 +631,7 @@ def _cl_term(n, R = RationalField()):
     return res
 
 @cached_function
-def LogarithmCycleIndexSeries(R = RationalField()):
+def LogarithmCycleIndexSeries(R=QQ):
     r"""
     Return the cycle index series of the virtual species `\Omega`, the
     compositional inverse of the species `E^{+}` of nonempty sets.
@@ -647,3 +659,4 @@ def LogarithmCycleIndexSeries(R = RationalField()):
     """
     CIS = CycleIndexSeriesRing(R)
     return CIS(_cl_term)
+

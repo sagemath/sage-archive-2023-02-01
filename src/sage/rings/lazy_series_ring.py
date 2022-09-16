@@ -1232,12 +1232,12 @@ class LazyPowerSeriesRing(LazySeriesRing):
             sage: L = LazyPowerSeriesRing(ZZ, 't')
             sage: TestSuite(L).run(skip=['_test_elements', '_test_associativity', '_test_distributivity', '_test_zero'])
 
-            sage: L = LazyTaylorSeriesRing(QQ, 't')
+            sage: L = LazyPowerSeriesRing(QQ, 't')
             sage: TestSuite(L).run(skip=['_test_elements', '_test_associativity', '_test_distributivity', '_test_zero', '_test_quo_rem'])
 
         Check that :trac:`34470` is fixed::
 
-            sage: L.<t> = LazyTaylorSeriesRing(QQ)
+            sage: L.<t> = LazyPowerSeriesRing(QQ)
             sage: L in CompleteDiscreteValuationRings
             True
             sage: L.uniformizer()
@@ -1245,11 +1245,11 @@ class LazyPowerSeriesRing(LazySeriesRing):
             sage: lcm(1/(1 - t^2) - 1, t)
             t^2
 
-            sage: L.<t> = LazyTaylorSeriesRing(ZZ)
+            sage: L.<t> = LazyPowerSeriesRing(ZZ)
             sage: L in PrincipalIdealDomains
             False
 
-            sage: L = LazyTaylorSeriesRing(QQ, 's, t')
+            sage: L = LazyPowerSeriesRing(QQ, 's, t')
             sage: L in PrincipalIdealDomains
             False
         """
@@ -1610,7 +1610,7 @@ class LazyPowerSeriesRing(LazySeriesRing):
 
         EXAMPLES::
 
-            sage: L = LazyTaylorSeriesRing(QQ, 'x')
+            sage: L = LazyPowerSeriesRing(QQ, 'x')
             sage: L.uniformizer()
             x
         """
@@ -1627,7 +1627,7 @@ class LazyPowerSeriesRing(LazySeriesRing):
 
         EXAMPLES::
 
-            sage: L = LazyTaylorSeriesRing(QQ, 'x')
+            sage: L = LazyPowerSeriesRing(QQ, 'x')
             sage: L.residue_field()
             Rational Field
         """

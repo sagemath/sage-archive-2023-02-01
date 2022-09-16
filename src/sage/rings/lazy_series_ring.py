@@ -915,8 +915,9 @@ class LazyLaurentSeriesRing(LazySeriesRing):
 
         TESTS::
 
+            sage: LazyLaurentSeriesRing.options.halting_precision(15)
+
             sage: L = LazyLaurentSeriesRing(ZZ, 't')
-            sage: LazyLaurentSeriesRing.options.halting_precision(20)
             sage: TestSuite(L).run()
             sage: L.category()
             Category of infinite commutative no zero divisors algebras over
@@ -939,6 +940,10 @@ class LazyLaurentSeriesRing(LazySeriesRing):
 
             sage: E.<x,y> = ExteriorAlgebra(QQ)
             sage: L = LazyLaurentSeriesRing(E, 't')  # not tested
+
+        Options are remembered across doctests::
+
+            sage: LazyLaurentSeriesRing.options.halting_precision(None)
         """
         self._sparse = sparse
         if len(names) != 1:
@@ -1250,7 +1255,8 @@ class LazyPowerSeriesRing(LazySeriesRing):
 
         TESTS::
 
-            sage: LazyPowerSeriesRing.options.halting_precision(20)
+            sage: LazyLaurentSeriesRing.options.halting_precision(15)
+
             sage: L = LazyPowerSeriesRing(ZZ, 't')
             sage: TestSuite(L).run()
 
@@ -1262,6 +1268,10 @@ class LazyPowerSeriesRing(LazySeriesRing):
 
             sage: L = LazyPowerSeriesRing(QQ, 's, t')
             sage: TestSuite(L).run()
+
+        Options are remembered across doctests::
+
+            sage: LazyLaurentSeriesRing.options.halting_precision(None)
 
         Check that :trac:`34470` is fixed::
 
@@ -1763,6 +1773,8 @@ class LazyCompletionGradedAlgebra(LazySeriesRing):
 
         TESTS::
 
+            sage: LazySymmetricFunctions.options.halting_precision(15)
+
             sage: s = SymmetricFunctions(ZZ).s()
             sage: L = LazySymmetricFunctions(s)
             sage: TestSuite(L).run()
@@ -1770,6 +1782,10 @@ class LazyCompletionGradedAlgebra(LazySeriesRing):
             sage: s = SymmetricFunctions(QQ).s()
             sage: L = LazySymmetricFunctions(s)
             sage: TestSuite(L).run()
+
+        Options are remembered across doctests::
+
+            sage: LazySymmetricFunctions.options.halting_precision(None)
 
         Check that :trac:`34470` is fixed::
 
@@ -2115,11 +2131,17 @@ class LazyDirichletSeriesRing(LazySeriesRing):
 
         TESTS::
 
+            sage: LazyDirichletSeriesRing.options.halting_precision(15)
+
             sage: L = LazyDirichletSeriesRing(ZZ, 't')
             sage: TestSuite(L).run()
 
             sage: L = LazyDirichletSeriesRing(QQ, 't')
             sage: TestSuite(L).run()
+
+        Options are remembered across doctests::
+
+            sage: LazyDirichletSeriesRing.options.halting_precision(None)
         """
         if base_ring.characteristic() > 0:
             raise ValueError("positive characteristic not allowed for Dirichlet series")

@@ -722,6 +722,35 @@ class LazyModuleElement(Element):
         """
         return infinity
 
+    def lift_to_precision(self, absprec=None):
+        """
+        Return another element of the same parent with absolute
+        precision at least ``absprec``, congruent to this element
+        modulo the precision of this element.
+
+        Since the precision of a lazy series is infinity, this method
+        returns the series itself, and the argument is ignored.
+
+        EXAMPLES::
+
+            sage: P.<t> = PowerSeriesRing(QQ, default_prec=2)
+            sage: R.<z> = LazyPowerSeriesRing(P)
+            sage: f = R(lambda n: 1/(1-t)^n)
+            sage: f
+            1 + ((1+t+O(t^2))*z) + ((1+2*t+O(t^2))*z^2)
+              + ((1+3*t+O(t^2))*z^3)
+              + ((1+4*t+O(t^2))*z^4)
+              + ((1+5*t+O(t^2))*z^5)
+              + ((1+6*t+O(t^2))*z^6) + O(z^7)
+            sage: f.lift_to_precision()
+            1 + ((1+t+O(t^2))*z) + ((1+2*t+O(t^2))*z^2)
+              + ((1+3*t+O(t^2))*z^3)
+              + ((1+4*t+O(t^2))*z^4)
+              + ((1+5*t+O(t^2))*z^5)
+              + ((1+6*t+O(t^2))*z^6) + O(z^7)
+        """
+        return self
+
     def _richcmp_(self, other, op):
         r"""
         Compare ``self`` with ``other`` with respect to the comparison

@@ -1728,15 +1728,16 @@ class GradedSymmetricFunctionsBases(Category_realization_of_parent):
 
             EXAMPLES::
 
-                sage: Sym = SymmetricFunctions(QQ)
-                sage: m = Sym.monomial()
-                sage: (2*m[2,1] + 3*m[[]]).is_unit()
+                sage: m = SymmetricFunctions(ZZ).monomial()
+                sage: (2*m[2,1] + m[[]]).is_unit()
                 False
 
+                sage: m = SymmetricFunctions(QQ).monomial()
                 sage: (3/2*m([])).is_unit()
                 True
             """
-            return self.coefficient([]).is_unit()
+            m = self.monomial_coefficients(copy=False)
+            return len(m) <= 1 and self.coefficient([]).is_unit()
 
 
 #SymmetricFunctionsBases.Filtered = FilteredSymmetricFunctionsBases

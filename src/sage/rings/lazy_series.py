@@ -3939,7 +3939,7 @@ class LazyPowerSeries(LazyCauchyProductSeries):
         """
         if self.is_zero(): # now 0 != 1
             return False
-        return not self.valuation() and self[0].is_unit()
+        return self[0].is_unit()
 
     def exponential(self):
         r"""
@@ -4776,7 +4776,7 @@ class LazySymmetricFunction(LazyCompletionGradedAlgebraElement):
         """
         if self.is_zero(): # now 0 != 1
             return False
-        return not self.valuation() and self[0].is_unit()
+        return self[0].is_unit()
 
     def __call__(self, *args, check=True):
         r"""
@@ -5664,7 +5664,7 @@ class LazyDirichletSeries(LazyModuleElement):
         """
         if self.is_zero(): # now 0 != 1
             return False
-        return not self.valuation() and self[0].is_unit()
+        return self[1].is_unit()
 
     def valuation(self):
         r"""

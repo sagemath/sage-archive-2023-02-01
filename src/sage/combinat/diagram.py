@@ -25,6 +25,7 @@ AUTHORS:
 # ****************************************************************************
 
 from sage.categories.sets_cat import Sets
+from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.combinat.composition import Composition
 from sage.combinat.partition import Partition
 from sage.combinat.permutation import Permutations
@@ -360,7 +361,7 @@ class Diagrams(UniqueRepresentation, Parent):
         Combinatorial diagrams
 
     """
-    def __init__(self):
+    def __init__(self, category=None):
         r"""
         EXAMPLES::
 
@@ -373,7 +374,38 @@ class Diagrams(UniqueRepresentation, Parent):
             sage: TestSuite(Dgms).run()
         """
 
-        Parent.__init__(self, category=Sets())
+        Parent.__init__(self, category=InfiniteEnumeratedSets().or_subcategory(category))
+
+    def __iter__(self):
+        r"""
+        EXAMPLES::
+
+            sage: from sage.combinat.diagram import Diagrams
+            sage: I = iter(Diagrams())
+            sage: for i in range(3):
+            ....:   print(next(I))
+            []
+            [(0, 0)]
+            [(0, 1)]
+            sage: next(I).parent()
+            Combinatorial diagrams
+
+            sage: del(I)
+            sage: D = Diagrams()
+            sage: for d in D:
+            ....:   if len(d) >= 3:
+            ....:       break
+            sage: d
+            [(0, 0), (0, 1), (0, 2)]
+        """
+        from sage.sets.non_negative_integers import NonNegativeIntegers
+        from sage.misc.mrange import cartesian_product_iterator
+        from sage.misc.misc import subsets
+        NN = NonNegativeIntegers()
+        P = cartesian_product_iterator([NN, NN])
+        X = subsets(P)
+        while True:
+            yield self.element_class(self, next(X))
 
     def _repr_(self):
         r"""

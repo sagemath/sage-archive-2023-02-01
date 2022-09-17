@@ -38,12 +38,6 @@ will not need to read them.
 Prerequisites
 -------------
 
-General requirements
-~~~~~~~~~~~~~~~~~~~~
-
-This section details the technical prerequisites needed on all platforms. See
-also the `System-specific requirements`_ below.
-
 Disk space and memory
 ^^^^^^^^^^^^^^^^^^^^^
 
@@ -51,60 +45,76 @@ Your computer comes with at least 6 GB of free disk space.
 It is recommended to have at least 2 GB of RAM, but you might get away
 with less (be sure to have some swap space in this case).
 
-Other notes
-^^^^^^^^^^^
+Software prerequisites and recommended packages
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-After extracting the Sage source tarball, the subdirectory :file:`upstream`
-contains the source distributions for everything on which Sage depends.
+Sage depends on `a large number of software packages
+<../reference/spkg/index.html>`_.  Sage provides its own software
+distribution providing most of these packages, so you do not have to
+worry about having to download and install these packages yourself.
 
-If cloned from a git repository, the upstream tarballs will be downloaded,
-verified, and cached as part of the Sage installation process.
-We emphasize that all of this software is included with Sage, so you do not
-have to worry about trying to download and install any one of these packages
-(such as Python, for example) yourself.
+If you extracted Sage from a source tarball, the subdirectory
+:file:`upstream` contains the source distributions for all standard
+packages on which Sage depends.  If cloned from a git repository, the
+upstream tarballs will be downloaded, verified, and cached as part of
+the Sage installation process.
 
-When the Sage installation program is run,
-it will check that you have each of the above-listed prerequisites,
-and inform you of any that are missing, or have unsuitable versions.
+However, there are minimal prerequisites for building Sage that
+already must be installed on your system:
 
-System-specific requirements
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+- `Fundamental system packages required for installing from source
+  <../reference/spkg/_prereq>`_
 
-On macOS, there are various developer tools needed which may require
-some registration on Apple's developer site; see
-:ref:`section_macprereqs`.
+- `C/C++ compilers <../reference/spkg/gcc>`_
 
-On Linux systems (e.g., Ubuntu, Redhat, etc),
-Assuming you have sufficient privileges, you can install the ``binutils`` and
-other necessary/standard components. The lists provided below are longer than
-the minimal prerequisites, which are basically ``binutils``, ``gcc``/``clang``, ``make``,
-``tar``, but there is no real need to build compilers and other standard tools
-and libraries on a modern Linux system, in order to be able to build Sage.
+If you have the sufficient privileges (for example, on Linux you can
+use ``sudo`` to become the ``root`` user), then you can install these packages
+using the commands for your platform indicated in the pages linked above.
 If you do not have the privileges to do this, ask your system administrator to
-do this, or build the components from source code.
-The method of installing additional software varies from distribution to
-distribution, but on a `Debian <https://www.debian.org/>`_ based system (e.g.
-`Ubuntu <https://www.ubuntu.com/>`_ or `Mint <https://www.linuxmint.com/>`_),
-you would use
-:wikipedia:`apt-get <Advanced_Packaging_Tool>`.
+do this for you.
 
-Installing prerequisites
-~~~~~~~~~~~~~~~~~~~~~~~~
+In addition to these minimal prerequisites, we strongly recommend to use system
+installations of the following:
+
+- `Fortran compiler <../reference/spkg/gfortran>`_
+
+- `Python <../reference/spkg/python3>`_
+
+Sage developers will also need the `system packages required for
+bootstrapping <../reference/spkg/_bootstrap>`_; they cannot be
+installed by Sage.
+
+When the ``./configure`` script runs, it will check for the presence of many
+packages (including the above) and inform you of any that are
+missing, or have unsuitable versions. **Please read the messages that
+``./configure`` prints:** It will inform you which additional system packages
+you can install to avoid having to build them from source. This can save a lot of
+time.
+
+The following sections provide the commands to install a large
+recommended set of packages on various systems, which will minimize
+the time it takes to build Sage. This is intended as a convenient
+shortcut, but of course you can choose to take a more fine-grained
+approach.
+
 
 .. _sec-installation-from-sources-linux-recommended-installation:
 
-Debian/Ubuntu prerequisite installation
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Debian/Ubuntu package installation
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-On Debian ("buster" or newer) or Ubuntu ("bionic" or newer):
+On Debian ("buster" or newer) or Ubuntu ("bionic" or newer), we recommend that you
+install:
 
 .. literalinclude:: debian.txt
 
-If you wish to do Sage development, additionally install the following:
+If you wish to do Sage development, we recommend that you additionally
+install the following:
 
 .. literalinclude:: debian-develop.txt
 
-For all users, we recommend the following:
+For all users, we recommend that you install the following system packages,
+which provide additional functionality and cannot be installed by Sage:
 
 .. literalinclude:: debian-recommended.txt
 
@@ -114,16 +124,20 @@ install:
 
 .. literalinclude:: debian-optional.txt
 
-Fedora/Redhat/CentOS prerequisite installation
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Fedora/Redhat/CentOS package installation
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+On Fedora/Redhat/CentOS, we recommend that you install:
 
 .. literalinclude:: fedora.txt
 
-If you wish to do Sage development, additionally install the following:
+If you wish to do Sage development, we recommend that you additionally
+install the following:
 
 .. literalinclude:: fedora-develop.txt
 
-For all users, we recommend the following:
+For all users, we recommend that you install the following system packages,
+which provide additional functionality and cannot be installed by Sage:
 
 .. literalinclude:: fedora-recommended.txt
 
@@ -133,16 +147,20 @@ install:
 
 .. literalinclude:: fedora-optional.txt
 
-Arch Linux prerequisite installation
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Arch Linux package installation
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+On ArchLinux, we recommend that you install:
 
 .. literalinclude:: arch.txt
 
-If you wish to do Sage development, additionally install the following:
+If you wish to do Sage development, we recommend that you additionally
+install the following:
 
 .. literalinclude:: arch-develop.txt
 
-For all users, we recommend the following:
+For all users, we recommend that you install the following system packages,
+which provide additional functionality and cannot be installed by Sage:
 
 .. literalinclude:: arch-recommended.txt
 
@@ -152,16 +170,20 @@ install:
 
 .. literalinclude:: arch-optional.txt
 
-OpenSUSE prerequisite installation
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+OpenSUSE package installation
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+On OpenSUSE, we recommend that you install:
 
 .. literalinclude:: opensuse.txt
 
-If you wish to do Sage development, additionally install the following:
+If you wish to do Sage development, we recommend that you additionally
+install the following:
 
 .. literalinclude:: opensuse-develop.txt
 
-For all users, we recommend the following:
+For all users, we recommend that you install the following system packages,
+which provide additional functionality and cannot be installed by Sage:
 
 .. literalinclude:: opensuse-recommended.txt
 
@@ -173,8 +195,8 @@ install:
 
 .. _section_macprereqs:
 
-macOS prerequisite installation
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+macOS prerequisites
+^^^^^^^^^^^^^^^^^^^
 
 On macOS systems, you need a recent version of
 `Command Line Tools <https://developer.apple.com/downloads/index.action?=command%20line%20tools>`_.
@@ -203,9 +225,8 @@ a registration.
   to Command Line Tools.
 
 
-
-macOS recommended installation
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+macOS package installation
+^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 If you use the `Homebrew package manager
 <https://brew.sh>`_, you can install the following:
@@ -222,11 +243,13 @@ Sage, run ::
 command like this to your shell profile if you want the settings to
 persist between shell sessions.
 
-If you wish to do Sage development, additionally install the following:
+If you wish to do Sage development, we recommend that you additionally
+install the following:
 
 .. literalinclude:: homebrew-develop.txt
 
-For all users, we recommend the following:
+For all users, we recommend that you install the following system packages,
+which provide additional functionality and cannot be installed by Sage:
 
 .. literalinclude:: homebrew-recommended.txt
 

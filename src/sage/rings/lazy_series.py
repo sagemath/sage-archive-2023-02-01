@@ -2845,7 +2845,7 @@ class LazyCauchyProductSeries(LazyModuleElement):
             sage: (x + y) / (1 - y)
             (x+y) + (x*y+y^2) + (x*y^2+y^3) + (x*y^3+y^4) + (x*y^4+y^5) + (x*y^5+y^6) + (x*y^6+y^7) + O(x,y)^8
 
-        TESTS:
+        TESTS::
 
             sage: L.<t> = LazyPowerSeriesRing(QQ)
             sage: t/L(1)
@@ -3000,7 +3000,7 @@ class LazyLaurentSeries(LazyCauchyProductSeries):
     """
     def _im_gens_(self, codomain, im_gens, base_map=None):
         """
-        Returns the image of ``self`` under the map that sends the
+        Return the image of ``self`` under the map that sends the
         generators of the parent of ``self`` to the elements of the
         tuple ``im_gens``.
 
@@ -3936,7 +3936,7 @@ class LazyPowerSeries(LazyCauchyProductSeries):
 
     def _im_gens_(self, codomain, im_gens, base_map=None):
         """
-        Returns the image of ``self`` under the map that sends the
+        Return the image of ``self`` under the map that sends the
         generators of the parent of ``self`` to the elements of the
         tuple ``im_gens``.
 
@@ -3955,6 +3955,7 @@ class LazyPowerSeries(LazyCauchyProductSeries):
             sage: f = 1/(1+x*q-t)
             sage: f._im_gens_(S, [s, x*s], base_map=cc)
             1 + 2*x*s + 4*x^2*s^2 + 8*x^3*s^3 + 16*x^4*s^4 + 32*x^5*s^5 + 64*x^6*s^6 + O(s^7)
+
         """
         if base_map is None:
             return codomain(self(*im_gens))

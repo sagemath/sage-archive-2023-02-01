@@ -1722,6 +1722,23 @@ class GradedSymmetricFunctionsBases(Category_realization_of_parent):
             """
             return self.coefficient([])
 
+        def is_unit(self):
+            """
+            Return whether this element is a unit in the ring.
+
+            EXAMPLES::
+
+                sage: Sym = SymmetricFunctions(QQ)
+                sage: m = Sym.monomial()
+                sage: (2*m[2,1] + 3*m[[]]).is_unit()
+                False
+
+                sage: (3/2*m([])).is_unit()
+                True
+            """
+            return self.coefficient([]).is_unit()
+
+
 #SymmetricFunctionsBases.Filtered = FilteredSymmetricFunctionsBases
 #SymmetricFunctionsBases.Graded = GradedSymmetricFunctionsBases
 

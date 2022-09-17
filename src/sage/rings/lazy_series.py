@@ -2998,6 +2998,27 @@ class LazyLaurentSeries(LazyCauchyProductSeries):
         sage: f = 1 / (1 - z - z^2)
         sage: TestSuite(f).run()
     """
+    def is_unit(self):
+        """
+        Return whether this element is a unit in the ring.
+
+        EXAMPLES::
+
+            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
+            sage: (2*z).is_unit()
+            False
+
+            sage: (1+2*z).is_unit()
+            True
+
+            sage: (1+2*z^-1).is_unit()
+            False
+        """
+        if self.is_zero(): # now 0 != 1
+            return False
+        a = self[self.valuation()]
+        return a.is_unit()
+
     def _im_gens_(self, codomain, im_gens, base_map=None):
         """
         Return the image of ``self`` under the map that sends the
@@ -3896,6 +3917,30 @@ class LazyPowerSeries(LazyCauchyProductSeries):
         sage: g == f
         True
     """
+    def is_unit(self):
+        """
+        Return whether this element is a unit in the ring.
+
+        EXAMPLES::
+
+            sage: L.<z> = LazyPowerSeriesRing(ZZ)
+            sage: (2*z).is_unit()
+            False
+
+            sage: (1+2*z).is_unit()
+            True
+
+            sage: (3+2*z).is_unit()
+            False
+
+            sage: L.<x,y> = LazyPowerSeriesRing(ZZ)
+            sage: (1+2*x+3*x*y).is_unit()
+            True
+        """
+        if self.is_zero(): # now 0 != 1
+            return False
+        return not self.valuation() and self[0].is_unit()
+
     def exponential(self):
         r"""
         Return the exponential series of ``self``.
@@ -4705,6 +4750,34 @@ class LazySymmetricFunction(LazyCompletionGradedAlgebraElement):
         sage: s = SymmetricFunctions(ZZ).s()
         sage: L = LazySymmetricFunctions(s)
     """
+    def is_unit(self):
+        """
+        Return whether this element is a unit in the ring.
+
+        EXAMPLES::
+
+            sage: m = SymmetricFunctions(ZZ).m()
+            sage: L = LazySymmetricFunctions(m)
+
+            sage: L(2*m[1]).is_unit()
+            False
+
+            sage: L(1+2*m[1]).is_unit()
+            True
+
+            sage: L(2+3*m[1]).is_unit()
+            False
+
+            sage: m = SymmetricFunctions(QQ).m()
+            sage: L = LazySymmetricFunctions(m)
+
+            sage: L(2+3*m[1]).is_unit()
+            True
+        """
+        if self.is_zero(): # now 0 != 1
+            return False
+        return not self.valuation() and self[0].is_unit()
+
     def __call__(self, *args, check=True):
         r"""
         Return the composition of ``self`` with ``g``.
@@ -5569,6 +5642,30 @@ class LazyDirichletSeries(LazyModuleElement):
         sage: g == f
         True
     """
+    def is_unit(self):
+        """
+        Return whether this element is a unit in the ring.
+
+        EXAMPLES::
+
+            sage: D = LazyDirichletSeriesRing(ZZ, "s")
+            sage: D([0,2]).is_unit()
+            False
+
+            sage: D([1,2]).is_unit()
+            True
+
+            sage: D([3,2]).is_unit()
+            False
+
+            sage: D = LazyDirichletSeriesRing(QQ, "s")
+            sage: D([3,2]).is_unit()
+            True
+        """
+        if self.is_zero(): # now 0 != 1
+            return False
+        return not self.valuation() and self[0].is_unit()
+
     def valuation(self):
         r"""
         Return the valuation of ``self``.

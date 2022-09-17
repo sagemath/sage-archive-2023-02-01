@@ -1575,9 +1575,10 @@ class Stream_dirichlet_invert(Stream_unary):
             sage: g = Stream_dirichlet_invert(f)
             Traceback (most recent call last):
             ...
-            AssertionError: the Dirichlet inverse only exists if the coefficient with index 1 is non-zero
+            ZeroDivisionError: the Dirichlet inverse only exists if the coefficient with index 1 is non-zero
         """
-        assert series[1], "the Dirichlet inverse only exists if the coefficient with index 1 is non-zero"
+        if not series[1]:
+            raise ZeroDivisionError("the Dirichlet inverse only exists if the coefficient with index 1 is non-zero")
         super().__init__(series, series._is_sparse, 1)
 
         self._ainv = ~series[1]

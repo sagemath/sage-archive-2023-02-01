@@ -773,11 +773,11 @@ class LazySeriesRing(UniqueRepresentation, Parent):
 
         elements = tester.some_elements()
         for x in elements:
-            try:
+            # because of lazyness, we cannot try to invert x, because
+            # this will always succeed, except if the series is
+            # 'exact'
+            if x.is_unit():
                 y = ~x
-            except (ZeroDivisionError, ValueError):
-                tester.assertFalse(x.is_unit())
-            else:
                 e = y * x
                 tester.assertFalse(x.is_zero())
                 tester.assertTrue(e.is_one())

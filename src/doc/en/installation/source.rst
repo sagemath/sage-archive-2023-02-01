@@ -1189,4 +1189,4 @@ a single copy of Sage in a multi-user computer network.
        $ sudo chown -R root SAGE_LOCAL
 
 
-**This page was last updated in May 2022 (Sage 9.7).**
+**This page was last updated in September 2022 (Sage 9.8).**

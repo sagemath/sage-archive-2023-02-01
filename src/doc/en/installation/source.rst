@@ -549,7 +549,7 @@ General procedure
    serious consequences if you are logged in as root.
 
    Typing ``make`` performs the usual steps for each Sage's dependency,
-   but installs all the resulting files into the local build tree.
+   but installs all the resulting files into the installation prefix.
    Depending on the age and the architecture of your system, it can take from
    a few tens of minutes to several hours to build Sage from source.
    On really slow hardware, it can even take a few days to build Sage.
@@ -714,9 +714,10 @@ General procedure
      Now typing ``sage`` within your terminal emulator should start Sage.
 
 #. Optional:
-   Install optional Sage packages and databases.
-   Type ``sage --optional`` to see a list of them (this requires an Internet
-   connection), or visit https://www.sagemath.org/packages/optional/.
+   Install optional Sage packages and databases. See `the list of optional packages
+   in the reference manual <../reference/spkg/index.html#optional-packages>`_ for
+   detailed information, or type ``sage --optional`` (this requires an Internet connection).
+
    Then type ``sage -i <package-name>`` to automatically download and install
    a given package.
 

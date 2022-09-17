@@ -37,3 +37,16 @@ programs are usually located in packages with their respective names.
 On Redhat-derived systems not all perl components are installed by
 default and you might have to install the ``perl-ExtUtils-MakeMaker``
 package.
+
+To check if you have the above prerequisites installed, for example ``perl``,
+type::
+
+    $ command -v perl
+
+or::
+
+    $ which perl
+
+on the command line. If it gives an error (or returns nothing), then
+either ``perl`` is not installed, or it is installed but not in your
+:wikipedia:`PATH <PATH_%28variable%29>`.

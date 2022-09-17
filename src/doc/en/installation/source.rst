@@ -91,19 +91,6 @@ you would use
 Installing prerequisites
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-To check if you have the above prerequisites installed, for example ``perl``,
-type::
-
-    $ command -v perl
-
-or::
-
-    $ which perl
-
-on the command line. If it gives an error (or returns nothing), then
-either ``perl`` is not installed, or it is installed but not in your
-:wikipedia:`PATH <PATH_%28variable%29>`.
-
 .. _sec-installation-from-sources-linux-recommended-installation:
 
 Debian/Ubuntu prerequisite installation

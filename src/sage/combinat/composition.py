@@ -110,7 +110,11 @@ class Composition(CombinatorialElement):
         sage: Composition(descents=({0,1,3},5))
         [1, 1, 2, 1]
 
-    Check :trac:`34527`::
+    An integer composition may be regarded as a sequence. Thus it is an
+    instance of the Python abstract base class ``Sequence`` allows us to check if objects
+    behave "like" sequences based on implemented methods. Note that
+    ``collections.abc.Sequence`` is not the same as
+    :class:`sage.structure.sequence.Sequence`::
 
         sage: import collections.abc
         sage: C = Composition([3,2,3])
@@ -118,13 +122,15 @@ class Composition(CombinatorialElement):
         True
         sage: issubclass(C.__class__, collections.abc.Sequence)
         True
+
+    Typically, instances of ``collections.abc.Sequence`` have a ``.count`` method.
+    This is *not* the case for ``Composition``s::
+
         sage: C.count
         Traceback (most recent call last):
         ...
         AttributeError: 'Compositions_all_with_category.element_class' object
          has no attribute 'count'
-        sage: type(reversed(C))
-        <class 'reversed'>
 
     EXAMPLES::
 

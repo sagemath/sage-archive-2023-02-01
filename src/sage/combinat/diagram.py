@@ -382,30 +382,64 @@ class Diagrams(UniqueRepresentation, Parent):
 
             sage: from sage.combinat.diagram import Diagrams
             sage: I = iter(Diagrams())
-            sage: for i in range(3):
+            sage: for i in range(10):
             ....:   print(next(I))
             []
             [(0, 0)]
+            [(1, 0)]
+            [(0, 0), (1, 0)]
             [(0, 1)]
+            [(0, 0), (0, 1)]
+            [(0, 1), (1, 0)]
+            [(0, 0), (0, 1), (1, 0)]
+            [(2, 0)]
+            [(0, 0), (2, 0)]
             sage: next(I).parent()
             Combinatorial diagrams
 
-            sage: del(I)
-            sage: D = Diagrams()
-            sage: for d in D:
-            ....:   if len(d) >= 3:
-            ....:       break
-            sage: d
-            [(0, 0), (0, 1), (0, 2)]
+            sage: from sage.combinat.diagram import NorthwestDiagrams
+            sage: I = iter(NorthwestDiagrams())
+            sage: for i in range(20):
+            ....:   print(next(I))
+            []
+            [(0, 0)]
+            [(1, 0)]
+            [(0, 0), (1, 0)]
+            [(0, 1)]
+            [(0, 0), (0, 1)]
+            [(0, 0), (0, 1), (1, 0)]
+            [(2, 0)]
+            [(0, 0), (2, 0)]
+            [(1, 0), (2, 0)]
+            [(0, 0), (1, 0), (2, 0)]
+            [(0, 0), (0, 1), (2, 0)]
+            [(0, 0), (0, 1), (1, 0), (2, 0)]
+            [(1, 1)]
+            [(0, 0), (1, 1)]
+            [(1, 0), (1, 1)]
+            [(0, 0), (1, 0), (1, 1)]
+            [(0, 1), (1, 1)]
+            [(0, 0), (0, 1), (1, 1)]
+            [(0, 0), (0, 1), (1, 0), (1, 1)]
         """
-        from sage.sets.non_negative_integers import NonNegativeIntegers
-        from sage.misc.mrange import cartesian_product_iterator
+        from sage.sets.positive_integers import PositiveIntegers
+        from sage.all import cartesian_product
         from sage.misc.misc import subsets
-        NN = NonNegativeIntegers()
-        P = cartesian_product_iterator([NN, NN])
+        # the product of positive integers automatically implements an
+        # an enumeration which allows us to get out of the first column
+        PP = PositiveIntegers()
+        P = cartesian_product([PP, PP])
         X = subsets(P)
         while True:
-            yield self.element_class(self, next(X))
+            # we want to allow cells in the index-0 row but we
+            # dont want all of them to be in the index-0 row
+            cells = next(X)
+            try:
+                yield self.element_class(self, tuple((i-1, j-1) for i,j in cells))
+            except ValueError:
+                # if cells causes the .check method of a
+                # subclass to fail, just go to the next one
+                pass
 
     def _repr_(self):
         r"""

@@ -3054,11 +3054,14 @@ class LazyLaurentSeries(LazyCauchyProductSeries):
             sage: (2*z).is_unit()
             False
 
-            sage: (1+2*z).is_unit()
+            sage: (1 + 2*z).is_unit()
             True
 
-            sage: (1+2*z^-1).is_unit()
+            sage: (1 + 2*z^-1).is_unit()
             False
+
+            sage: (z^3 + 4 - z^-2).is_unit()
+            True
         """
         if self.is_zero(): # now 0 != 1
             return False
@@ -3943,7 +3946,6 @@ class LazyLaurentSeries(LazyCauchyProductSeries):
             return strformat("O({})".format(formatter(z**m)))
         return formatter(poly) + strformat(" + O({})".format(formatter(z**m)))
 
-
 class LazyPowerSeries(LazyCauchyProductSeries):
     r"""
     A Taylor series where the coefficients are computed lazily.
@@ -3975,14 +3977,14 @@ class LazyPowerSeries(LazyCauchyProductSeries):
             sage: (2*z).is_unit()
             False
 
-            sage: (1+2*z).is_unit()
+            sage: (1 + 2*z).is_unit()
             True
 
-            sage: (3+2*z).is_unit()
+            sage: (3 + 2*z).is_unit()
             False
 
             sage: L.<x,y> = LazyPowerSeriesRing(ZZ)
-            sage: (1+2*x+3*x*y).is_unit()
+            sage: (-1 + 2*x + 3*x*y).is_unit()
             True
         """
         if self.is_zero(): # now 0 != 1
@@ -4710,6 +4712,123 @@ class LazyPowerSeries(LazyCauchyProductSeries):
             return R(self[0:m])
         return R.sum(self[0:m])
 
+class LazyPowerSeries_gcd(LazyPowerSeries):
+    """
+    A lazy power series that also implements the GCD algorithm.
+    """
+    def gcd(self, other):
+        r"""
+        Return the greatest common divisor of ``self`` and ``other``.
+
+        EXAMPLES::
+
+            sage: L.<x> = LazyPowerSeriesRing(QQ)
+            sage: a = 16*x^5 / (1 - 5*x)
+            sage: b = (22*x^2 + x^8) / (1 - 4*x^2)
+            sage: a.gcd(b)
+            x^2
+        """
+        P = self.parent()
+        if P._arity != 1:
+            raise NotImplementedError("only implemented for arity one")
+        if not self or not other:
+            return P.zero()
+        sv = self.valuation()
+        ov = other.valuation()
+        val = min(sv, ov)
+        assert val is not infinity
+        # This assumes the base ring is a field
+        return P.gen(0) ** val
+
+    def xgcd(self, f):
+        r"""
+        Return the extended gcd of ``self`` and ``f``.
+
+        OUTPUT:
+
+        A triple ``(g, s, t)`` such that ``g`` is the gcd of ``self``
+        and ``f``, and ``s`` and ``t`` are cofactors satisfying the
+        Bezout identity
+
+        .. MATH::
+
+            g = s \cdot \mathrm{self} + t \cdot f.
+
+        EXAMPLES::
+
+            sage: L.<x> = LazyPowerSeriesRing(QQ)
+            sage: a = 16*x^5 / (1 - 2*x)
+            sage: b = (22*x^3 + x^8) / (1 - 3*x^2)
+            sage: g, s, t = a.xgcd(b)
+            sage: g
+            x^3
+            sage: s
+            1/22 - 41/242*x^2 - 8/121*x^3 + 120/1331*x^4 + 1205/5324*x^5 + 316/14641*x^6 + O(x^7)
+            sage: t
+            1/22 - 41/242*x^2 - 8/121*x^3 + 120/1331*x^4 + 1205/5324*x^5 + 316/14641*x^6 + O(x^7)
+
+            sage: LazyPowerSeriesRing.options.halting_precision(20)  # verify up to degree 20
+
+            sage: g == s * a + t * b
+            True
+
+            sage: a = 16*x^5 / (1 - 2*x)
+            sage: b = (-16*x^5 + x^8) / (1 - 3*x^2)
+            sage: g, s, t = a.xgcd(b)
+            sage: g
+            x^5
+            sage: s
+            1/16 - 1/16*x - 3/16*x^2 + 1/8*x^3 - 17/256*x^4 + 9/128*x^5 + 1/128*x^6 + O(x^7)
+            sage: t
+            1/16*x - 1/16*x^2 - 3/16*x^3 + 1/8*x^4 - 17/256*x^5 + 9/128*x^6 + 1/128*x^7 + O(x^8)
+            sage: g == s * a + t * b
+            True
+
+            sage: L.<x> = LazyPowerSeriesRing(GF(2))
+            sage: a = L(lambda n: n % 2, valuation=3); a
+            x^3 + x^5 + x^7 + x^9 + O(x^10)
+            sage: b = L(lambda n: binomial(n,2) % 2, valuation=3); b
+            x^3 + x^6 + x^7 + O(x^10)
+            sage: g, s, t = a.xgcd(b)
+            sage: g
+            x^3
+            sage: s
+            1 + x + x^3 + x^4 + x^5 + O(x^7)
+            sage: t
+            x + x^2 + x^4 + x^5 + x^6 + O(x^8)
+            sage: g == s * a + t * b
+            True
+
+            sage: LazyPowerSeriesRing.options._reset()  # reset the options
+        """
+        P = self.parent()
+        if P._arity != 1:
+            raise NotImplementedError("only implemented for arity one")
+        # one of the elements is zero
+        if not self:
+            return (P.zero(), P.zero(), P.one())
+        if not f:
+            return (P.zero(), P.one(), P.zero())
+        # get the valuations
+        sv = self.valuation()
+        sc = self[sv]
+        fv = f.valuation()
+        fc = f[fv]
+        val = min(sv, fv)
+        assert val is not infinity
+        # This assumes the base ring is a field
+        x = P.gen(0)
+        unit = (self + f).shift(-val)
+        if not unit[0]:
+            # this only happens if they have the same valuation
+            # we multiply f by the generator to avoid any cancellations
+            unit = (self + f.shift(1)).shift(-val)
+            unit = ~unit
+            return (x**val,
+                    unit,
+                    unit * x)
+        unit = ~unit
+        return (x**val, unit, unit)
 
 class LazyCompletionGradedAlgebraElement(LazyCauchyProductSeries):
     """
@@ -4811,16 +4930,16 @@ class LazySymmetricFunction(LazyCompletionGradedAlgebraElement):
             sage: L(2*m[1]).is_unit()
             False
 
-            sage: L(1+2*m[1]).is_unit()
+            sage: L(-1 + 2*m[1]).is_unit()
             True
 
-            sage: L(2+3*m[1]).is_unit()
+            sage: L(2 + m[1]).is_unit()
             False
 
             sage: m = SymmetricFunctions(QQ).m()
             sage: L = LazySymmetricFunctions(m)
 
-            sage: L(2+3*m[1]).is_unit()
+            sage: L(2 + 3*m[1]).is_unit()
             True
         """
         if self.is_zero(): # now 0 != 1
@@ -5698,17 +5817,17 @@ class LazyDirichletSeries(LazyModuleElement):
         EXAMPLES::
 
             sage: D = LazyDirichletSeriesRing(ZZ, "s")
-            sage: D([0,2]).is_unit()
+            sage: D([0, 2]).is_unit()
             False
 
-            sage: D([1,2]).is_unit()
+            sage: D([-1, 2]).is_unit()
             True
 
-            sage: D([3,2]).is_unit()
+            sage: D([3, 2]).is_unit()
             False
 
             sage: D = LazyDirichletSeriesRing(QQ, "s")
-            sage: D([3,2]).is_unit()
+            sage: D([3, 2]).is_unit()
             True
         """
         if self.is_zero(): # now 0 != 1
@@ -5835,7 +5954,7 @@ class LazyDirichletSeries(LazyModuleElement):
             O(1/(8^z))
 
         Trying to invert a non-invertible 'exact' series raises a
-        ``ZeroDivisionError``:
+        ``ZeroDivisionError``::
 
             sage: _ = ~L([0,1], constant=1)
             Traceback (most recent call last):
@@ -5843,14 +5962,13 @@ class LazyDirichletSeries(LazyModuleElement):
             ZeroDivisionError: the Dirichlet inverse only exists if the coefficient with index 1 is non-zero
 
         If the series is not 'exact', we cannot do this without
-        actually computing a term.
+        actually computing a term::
 
             sage: f = ~L(lambda n: n-1)
             sage: f[1]
             Traceback (most recent call last):
             ...
             ZeroDivisionError: rational division by zero
-
         """
         P = self.parent()
         return P.element_class(P, Stream_dirichlet_invert(self._coeff_stream))

@@ -1118,12 +1118,27 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial):
             x^3 + 3*x^4 + 3*x^5 + 10*x^6 + 18*x^7 + 9*x^8 + 27*x^9 + 27*x^10 + 27*x^12
             sage: g^4
             x^-40 - 4*x^-29 + 6*x^-18 - 4*x^-7 + x^4
+
+            sage: R.<x> = LaurentPolynomialRing(Zmod(6))
+            sage: x^-2
+            x^-2
+            sage: (5*x^2)^-4
+            x^-8
+            sage: (5*x^-4)^-3
+            5*x^12
         """
         cdef LaurentPolynomial_univariate self = _self
         cdef long right = r
         if right != r:
             raise ValueError("exponent must be an integer")
-        return self._parent.element_class(self._parent, self.__u**right, self.__n*right)
+        try:
+            return self._parent.element_class(self._parent, self.__u**right, self.__n*right)
+        except TypeError as err:
+            # we need to handle the special case of negative powers and a unit
+            if not self.__u.is_constant() or not self.__u.leading_coefficient().is_unit():
+                raise
+            c = self._parent._R(self.__u.leading_coefficient() ** right)
+            return self._parent.element_class(self._parent, c, self.__n*right)
 
     cpdef _floordiv_(self, rhs):
         """

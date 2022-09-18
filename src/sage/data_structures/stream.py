@@ -1620,7 +1620,10 @@ class Stream_dirichlet_invert(Stream_unary):
             [0, 1/3, -2/9, -2/9, -2/27, -2/9, 2/27, -2/9]
         """
         if self._ainv is None:
-            self._ainv = ~self._series[1]
+            try:
+                self._ainv = ~self._series[1]
+            except TypeError:
+                self._ainv = self._series[1].inverse_of_unit()
         if n == 1:
             return self._ainv
         c = self._zero
@@ -2257,7 +2260,10 @@ class Stream_cauchy_invert(Stream_unary):
         """
         if approximate_order is None:
             v = series.order()
-            self._ainv = ~series[v]
+            try:
+                self._ainv = ~series[v]
+            except TypeError:
+                self._ainv = series[v].inverse_of_unit()
         else:
             v = approximate_order
             self._ainv = None
@@ -2285,7 +2291,10 @@ class Stream_cauchy_invert(Stream_unary):
         """
         if self._ainv is None:
             self._approximate_order = -self._series.order()
-            self._ainv = ~self._series[self._approximate_order]
+            try:
+                self._ainv = ~self._series[self._approximate_order]
+            except TypeError:
+                self._ainv = self._series[self._approximate_order].inverse_of_unit()
 
         # if self._ainv is not None, self._approximate_order is the
         # true order
@@ -2315,7 +2324,10 @@ class Stream_cauchy_invert(Stream_unary):
         """
         if self._ainv is None:
             self._approximate_order = -self._series.order()
-            self._ainv = ~self._series[self._approximate_order]
+            try:
+                self._ainv = ~self._series[self._approximate_order]
+            except TypeError:
+                self._ainv = self._series[self._approximate_order].inverse_of_unit()
 
         # if self._ainv is not None, self._approximate_order is the
         # true order

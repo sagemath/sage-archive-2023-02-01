@@ -763,7 +763,10 @@ class LazySeriesRing(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: Zp(3)._test_invert()
+            sage: LazyLaurentSeriesRing.options.halting_precision(5)
+            sage: L = LazyLaurentSeriesRing(QQ, 'z')
+            sage: L._test_invert()
+            sage: LazyLaurentSeriesRing.options._reset()
 
         .. SEEALSO::
 
@@ -782,6 +785,47 @@ class LazySeriesRing(UniqueRepresentation, Parent):
                 tester.assertFalse(x.is_zero())
                 tester.assertTrue(e.is_one())
                 tester.assertEqual(y.valuation(), -x.valuation())
+
+    def _test_revert(self, **options):
+        """
+        Test compositional inverse of elements of this ring.
+
+        INPUT:
+
+        - ``options`` -- any keyword arguments accepted by :meth:`_tester`
+
+        EXAMPLES::
+
+            sage: LazyLaurentSeriesRing.options.halting_precision(5)
+            sage: L = LazyLaurentSeriesRing(QQ, 'z')
+            sage: L._test_revert()
+            sage: LazyLaurentSeriesRing.options._reset()
+
+        .. SEEALSO::
+
+            :class:`TestSuite`
+        """
+        if not hasattr(self.element_class, "revert") or self._arity != 1:
+            return
+        tester = self._tester(**options)
+
+        elements = tester.some_elements()
+        count = 0
+        for x in elements:
+            vx = x.valuation()
+            try:
+                y = x.revert()
+                vy = y.valuation()
+            except ValueError:
+                tester.assertFalse(vx == 1)
+            else:
+                count += 1
+                e1 = y(x)
+                e2 = x(y)
+                tester.assertEqual(e1, e2, "y(x) and x(y) differ for x = %s and y = %s" %(x, y))
+                # tester.assertEqual(e1, self.gen())
+        # we want to test at least 2 elements
+        tester.assertGreater(count, 1, msg="only %s elements in %s.some_elements() have a compositional inverse" % (count, self))
 
 class LazyLaurentSeriesRing(LazySeriesRing):
     r"""
@@ -961,6 +1005,15 @@ class LazyLaurentSeriesRing(LazySeriesRing):
               (euclidean domains and infinite enumerated sets and metric spaces)
               and infinite sets)
 
+            sage: L = LazyLaurentSeriesRing(GF(5), 't')
+            sage: TestSuite(L).run()
+
+            sage: L = LazyLaurentSeriesRing(GF(5)['x'], 't')
+            sage: TestSuite(L).run()
+
+            sage: L = LazyLaurentSeriesRing(GF(5)['x, y'], 't')
+            sage: TestSuite(L).run()
+
             sage: E.<x,y> = ExteriorAlgebra(QQ)
             sage: L = LazyLaurentSeriesRing(E, 't')  # not tested
 
@@ -1090,7 +1143,7 @@ class LazyLaurentSeriesRing(LazySeriesRing):
         EXAMPLES::
 
             sage: L = LazyLaurentSeriesRing(ZZ, 'z')
-            sage: L.some_elements()
+            sage: L.some_elements()[:7]
             [0, 1, z,
              -3*z^-4 + z^-3 - 12*z^-2 - 2*z^-1 - 10 - 8*z + z^2 + z^3,
              z^-2 + 3*z^-1 + 2*z + z^2 + z^3 + z^4 + O(z^5),
@@ -1098,7 +1151,7 @@ class LazyLaurentSeriesRing(LazySeriesRing):
              4*z^-2 + z^-1 + z + 4*z^2 + 9*z^3 + 16*z^4 + O(z^5)]
 
             sage: L = LazyLaurentSeriesRing(GF(2), 'z')
-            sage: L.some_elements()
+            sage: L.some_elements()[:7]
             [0, 1, z,
              z^-4 + z^-3 + z^2 + z^3,
              z^-1 + z^2 + z^3 + z^4 + O(z^5),
@@ -1106,7 +1159,7 @@ class LazyLaurentSeriesRing(LazySeriesRing):
              z^-1 + z + z^3 + O(z^5)]
 
             sage: L = LazyLaurentSeriesRing(GF(3), 'z')
-            sage: L.some_elements()
+            sage: L.some_elements()[:7]
             [0, 1, z,
              z^-3 + z^-1 + 2 + z + z^2 + z^3,
              z^2 + z^3 + z^4 + O(z^5),
@@ -1115,7 +1168,10 @@ class LazyLaurentSeriesRing(LazySeriesRing):
         """
         z = self.gen()
         elts = [self.zero(), self.one(), z, (z-3)*(z**-2+2+z)**2, self.an_element(),
-                (1 - 2*z**-3)/(1 - z + 3*z**2), self(lambda n: n**2, valuation=-2)]
+                (1 - 2*z**-3)/(1 - z + 3*z**2),
+                self(lambda n: n**2, valuation=-2),
+                self(lambda n: n**2, valuation=1),
+                self([3, 2, 1], valuation=1, constant=1)]
         return elts
 
     def series(self, coefficient, valuation, degree=None, constant=None):
@@ -1290,6 +1346,12 @@ class LazyPowerSeriesRing(LazySeriesRing):
             sage: TestSuite(L).run()
 
             sage: L = LazyPowerSeriesRing(QQ, 's, t')
+            sage: TestSuite(L).run()
+
+            sage: L = LazyPowerSeriesRing(GF(5), 't')
+            sage: TestSuite(L).run()
+
+            sage: L = LazyPowerSeriesRing(GF(5), 's, t')
             sage: TestSuite(L).run()
 
         Options are remembered across doctests::
@@ -1711,21 +1773,21 @@ class LazyPowerSeriesRing(LazySeriesRing):
         EXAMPLES::
 
             sage: L = LazyPowerSeriesRing(ZZ, 'z')
-            sage: L.some_elements()
+            sage: L.some_elements()[:6]
             [0, 1, z,
              -12 - 8*z + z^2 + z^3,
              1 + z - 2*z^2 - 7*z^3 - z^4 + 20*z^5 + 23*z^6 + O(z^7),
              z + 4*z^2 + 9*z^3 + 16*z^4 + 25*z^5 + 36*z^6 + O(z^7)]
 
             sage: L = LazyPowerSeriesRing(GF(3)["q"], 'z')
-            sage: L.some_elements()
+            sage: L.some_elements()[:6]
             [0, 1, z,
              z + z^2 + z^3,
              1 + z + z^2 + 2*z^3 + 2*z^4 + 2*z^5 + O(z^6),
              z + z^2 + z^4 + z^5 + O(z^7)]
 
             sage: L = LazyPowerSeriesRing(GF(3), 'q, t')
-            sage: L.some_elements()
+            sage: L.some_elements()[:6]
             [0, 1, q,
              q + q^2 + q^3,
              1 + q + q^2 + (-q^3) + (-q^4) + (-q^5) + (-q^6) + O(q,t)^7,
@@ -1802,6 +1864,14 @@ class LazyCompletionGradedAlgebra(LazySeriesRing):
             sage: TestSuite(L).run()
 
             sage: s = SymmetricFunctions(QQ).s()
+            sage: L = LazySymmetricFunctions(s)
+            sage: TestSuite(L).run()
+
+            sage: s = SymmetricFunctions(QQ["q"]).s()
+            sage: L = LazySymmetricFunctions(s)
+            sage: TestSuite(L).run()
+
+            sage: s = SymmetricFunctions(GF(5)).s()
             sage: L = LazySymmetricFunctions(s)
             sage: TestSuite(L).run()
 
@@ -2104,7 +2174,7 @@ class LazyCompletionGradedAlgebra(LazySeriesRing):
             sage: m = SymmetricFunctions(GF(5)).m()
             sage: L = LazySymmetricFunctions(m)
             sage: L.some_elements()
-            [0, m[], 2*m[] + 2*m[1] + 3*m[2],
+            [0, m[], 2*m[] + 2*m[1] + 3*m[2], 2*m[1] + 3*m[2],
              3*m[] + 2*m[1] + (m[1,1]+m[2])
                    + (2*m[1,1,1]+m[3])
                    + (2*m[1,1,1,1]+4*m[2,1,1]+2*m[2,2])
@@ -2116,16 +2186,17 @@ class LazyCompletionGradedAlgebra(LazySeriesRing):
             sage: S = NCSF.Complete()
             sage: L = S.formal_series_ring()
             sage: L.some_elements()
-            [0, S[], 2*S[] + 2*S[1] + (3*S[1,1])]
+            [0, S[], 2*S[] + 2*S[1] + (3*S[1,1]), 2*S[1] + (3*S[1,1])]
 
         """
         elt = self.an_element()
         elts = [self.zero(), self.one(), elt]
+        elts.append(elt - elt[0])
         try:
             if elt.is_unit():
                 elts.append(~elt)
             else:
-                elts.append(~(1-elt[0]+elt))
+                elts.append(~(1 - elt[0] + elt))
         except NotImplementedError:
             pass
         return elts
@@ -2175,7 +2246,7 @@ class LazyDirichletSeriesRing(LazySeriesRing):
     Element = LazyDirichletSeries
 
     def __init__(self, base_ring, names, sparse=True, category=None):
-        """
+        r"""
         Initialize the ring.
 
         TESTS::
@@ -2206,6 +2277,7 @@ class LazyDirichletSeriesRing(LazySeriesRing):
             https://mathoverflow.net/questions/5522/dirichlet-series-with-integer-coefficients-as-a-ufd,
             the ring of formal Dirichlet series is actually a
             UniqueFactorizationDomain.
+
         """
         if base_ring.characteristic() > 0:
             raise ValueError("positive characteristic not allowed for Dirichlet series")

@@ -3651,6 +3651,8 @@ class LazyLaurentSeries(LazyCauchyProductSeries):
                 if coeff_stream.order() != 1:
                     raise ValueError("compositional inverse does not exist")
 
+        # TODO: coefficients should not be checked here, it prevents
+        # us from using self.define in some cases!
         if any(coeff_stream[i] for i in range(coeff_stream._approximate_order, -1)):
             raise ValueError("compositional inverse does not exist")
 
@@ -4463,6 +4465,8 @@ class LazyPowerSeries(LazyCauchyProductSeries):
                 if coeff_stream.order() != 1:
                     raise ValueError("compositional inverse does not exist")
 
+        # TODO: coefficients should not be checked here, it prevents
+        # us from using self.define in some cases!
         if not coeff_stream[1]:
             raise ValueError("compositional inverse does not exist")
 
@@ -5126,6 +5130,8 @@ class LazySymmetricFunction(LazyCompletionGradedAlgebraElement):
                                         order=0)
             return P.element_class(P, coeff_stream)
 
+        # TODO: coefficients should not be checked here, it prevents
+        # us from using self.define in some cases!
         if not coeff_stream[1]:
             raise ValueError("compositional inverse does not exist")
 
@@ -5134,8 +5140,9 @@ class LazySymmetricFunction(LazyCompletionGradedAlgebraElement):
 
         X = R(Partition([1]))
         b = coeff_stream[1][Partition([1])]
+        b_inv = R.base_ring()(~b)
         g = P.undefined(valuation=1)
-        g.define(~b * X - (self - b * X)(g))
+        g.define(b_inv * (X - (self - b * X)(g)))
         return g
 
     plethystic_inverse = revert

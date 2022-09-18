@@ -265,7 +265,7 @@ class ExponentialGeneratingSeriesRing(LazyPowerSeriesRing):
 
             sage: from sage.combinat.species.generating_series import ExponentialGeneratingSeriesRing
             sage: R = ExponentialGeneratingSeriesRing(QQ)
-            sage: TestSuite(R).run(skip=["_test_associativity", "_test_distributivity", "_test_elements""])
+            sage: TestSuite(R).run(skip=["_test_associativity", "_test_distributivity", "_test_elements"])
         """
         super().__init__(base_ring, names="z")
 

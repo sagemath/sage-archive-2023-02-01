@@ -2936,7 +2936,7 @@ class LazyLaurentSeries(LazyCauchyProductSeries):
     """
     def _im_gens_(self, codomain, im_gens, base_map=None):
         """
-        Returns the image of ``self`` under the map that sends the
+        Return the image of ``self`` under the map that sends the
         generators of the parent of ``self`` to the elements of the
         tuple ``im_gens``.
 
@@ -2949,12 +2949,13 @@ class LazyLaurentSeries(LazyCauchyProductSeries):
             sage: f
             -t^-2 - i*t^-1 + 1 + i*t - t^2 - i*t^3 + t^4 + O(t^5)
             sage: f._im_gens_(R, [t + t^2])
-            -t^-2 + (-i + 2)*t^-1 + (i - 2) + 4*t + (2*i - 6)*t^2 + (-2*i + 4)*t^3 + (-2*i - 7)*t^4 + O(t^5)
+            -t^-2 + (-i + 2)*t^-1 + (i - 2) + 4*t + (2*i - 6)*t^2
+             + (-2*i + 4)*t^3 + (-2*i - 7)*t^4 + O(t^5)
 
             sage: cc = K.hom([-i])
             sage: f._im_gens_(R, [t + t^2], base_map=cc)
-            -t^-2 + (i + 2)*t^-1 + (-i - 2) + 4*t + (-2*i - 6)*t^2 + (2*i + 4)*t^3 + (2*i - 7)*t^4 + O(t^5)
-
+            -t^-2 + (i + 2)*t^-1 + (-i - 2) + 4*t + (-2*i - 6)*t^2
+             + (2*i + 4)*t^3 + (2*i - 7)*t^4 + O(t^5)
         """
         if base_map is None:
             return codomain(self(im_gens[0]))

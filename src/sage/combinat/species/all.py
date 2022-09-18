@@ -44,5 +44,8 @@ Miscellaneous
 from sage.misc.namespace_package import install_doc
 install_doc(__package__, __doc__)
 
-from .recursive_species import CombinatorialSpecies
-from . import library as species
+from sage.misc.lazy_import import lazy_import
+lazy_import("sage.combinat.species.recursive_species", "CombinatorialSpecies")
+lazy_import("sage.combinat.species", "library", as_="species")
+del lazy_import
+

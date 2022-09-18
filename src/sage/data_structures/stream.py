@@ -521,6 +521,13 @@ class Stream_exact(Stream):
       of the first element which is known to be equal to ``constant``
     - ``constant`` -- integer (default: 0); the coefficient
       of every index larger than or equal to ``degree``
+
+    .. WARNING::
+
+        The convention for ``order`` is different to the one in
+        :class:`sage.rings.lazy_series_ring.LazySeriesRing`, where
+        the input is shifted to have the prescribed order.
+
     """
     def __init__(self, initial_coefficients, is_sparse, constant=None, degree=None, order=None):
         """
@@ -533,18 +540,44 @@ class Stream_exact(Stream):
             Traceback (most recent call last):
             ...
             AssertionError: Stream_exact should only be used for non-zero streams
+
+            sage: s = Stream_exact([0, 0, 1, 0, 0], False)
+            sage: s._initial_coefficients, s._true_order, s._degree
+            ((1,), 2, 3)
+
+            sage: s = Stream_exact([0, 0, 1, 0, 0], False, constant=0)
+            sage: s._initial_coefficients, s._true_order, s._degree
+            ((1,), 2, 3)
+
+            sage: s = Stream_exact([0, 0, 1, 0, 0], False, constant=0, degree=10)
+            sage: s._initial_coefficients, s._true_order, s._degree
+            ((1,), 2, 3)
+
+            sage: s = Stream_exact([0, 0, 1, 0, 0], False, constant=1)
+            sage: s._initial_coefficients, s._true_order, s._degree
+            ((1,), 2, 5)
+
+            sage: s = Stream_exact([0, 0, 1, 2, 1, 1], False, constant=1)
+            sage: s._initial_coefficients, s._true_order, s._degree
+            ((1, 2), 2, 4)
+
+            sage: s = Stream_exact([0, 0, 1, 2, 1, 1], False, constant=1, order=-2)
+            sage: s._initial_coefficients, s._true_order, s._degree
+            ((1, 2), 0, 2)
         """
         if constant is None:
             self._constant = ZZ.zero()
         else:
             self._constant = constant
+
         if order is None:
             order = 0
-        if degree is None:
+        if (degree is None
+            or (not self._constant
+                and degree > order + len(initial_coefficients))):
             self._degree = order + len(initial_coefficients)
         else:
             self._degree = degree
-
         assert order + len(initial_coefficients) <= self._degree
 
         # we remove leading and trailing zeros from
@@ -562,7 +595,7 @@ class Stream_exact(Stream):
                 initial_coefficients = initial_coefficients[i:]
                 if order + len(initial_coefficients) == self._degree:
                     for j, w in enumerate(reversed(initial_coefficients)):
-                        if w != constant:
+                        if w != self._constant:
                             break
                         initial_coefficients.pop()
                         self._degree -= 1

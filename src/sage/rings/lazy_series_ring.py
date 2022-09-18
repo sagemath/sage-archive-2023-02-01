@@ -1129,12 +1129,12 @@ class LazyLaurentSeriesRing(LazySeriesRing):
 
             sage: L = LazyLaurentSeriesRing(ZZ, 'z')
             sage: L.an_element()
-            z^-2 + 3*z^-1 + 2*z + z^2 + z^3 + z^4 + O(z^5)
+            z^-2 + z^3 + z^4 + z^5 + O(z^6)
         """
-        R = self.base_ring()
-        coeff_stream = Stream_exact([R.an_element(), 3, 0, 2*R.an_element(), 1],
-                                    self._sparse, order=-2, constant=R.one())
-        return self.element_class(self, coeff_stream)
+        return self(self._laurent_poly_ring.an_element(),
+                    valuation=-2,
+                    degree=3,
+                    constant=self.base_ring().an_element())
 
     def some_elements(self):
         """
@@ -1146,7 +1146,7 @@ class LazyLaurentSeriesRing(LazySeriesRing):
             sage: L.some_elements()[:7]
             [0, 1, z,
              -3*z^-4 + z^-3 - 12*z^-2 - 2*z^-1 - 10 - 8*z + z^2 + z^3,
-             z^-2 + 3*z^-1 + 2*z + z^2 + z^3 + z^4 + O(z^5),
+             z^-2 + z^3 + z^4 + z^5 + O(z^6),
              -2*z^-3 - 2*z^-2 + 4*z^-1 + 11 - z - 34*z^2 - 31*z^3 + O(z^4),
              4*z^-2 + z^-1 + z + 4*z^2 + 9*z^3 + 16*z^4 + O(z^5)]
 
@@ -1154,7 +1154,7 @@ class LazyLaurentSeriesRing(LazySeriesRing):
             sage: L.some_elements()[:7]
             [0, 1, z,
              z^-4 + z^-3 + z^2 + z^3,
-             z^-1 + z^2 + z^3 + z^4 + O(z^5),
+             z^-2,
              1 + z + z^3 + z^4 + z^6 + O(z^7),
              z^-1 + z + z^3 + O(z^5)]
 
@@ -1162,7 +1162,7 @@ class LazyLaurentSeriesRing(LazySeriesRing):
             sage: L.some_elements()[:7]
             [0, 1, z,
              z^-3 + z^-1 + 2 + z + z^2 + z^3,
-             z^2 + z^3 + z^4 + O(z^5),
+             z^-2,
              z^-3 + z^-2 + z^-1 + 2 + 2*z + 2*z^2 + O(z^3),
              z^-2 + z^-1 + z + z^2 + z^4 + O(z^5)]
         """
@@ -1724,12 +1724,15 @@ class LazyPowerSeriesRing(LazySeriesRing):
 
             sage: L = LazyPowerSeriesRing(ZZ, 'z')
             sage: L.an_element()
-            z
+            z + z^2 + z^3 + O(z^4)
 
             sage: L = LazyPowerSeriesRing(ZZ, 'x, y')
             sage: L.an_element()
             x
         """
+        if self._arity == 1:
+            return self(self._laurent_poly_ring.an_element(),
+                        constant=self.base_ring().an_element())
         return self(self._laurent_poly_ring.an_element())
 
     def uniformizer(self):
@@ -1774,14 +1777,14 @@ class LazyPowerSeriesRing(LazySeriesRing):
 
             sage: L = LazyPowerSeriesRing(ZZ, 'z')
             sage: L.some_elements()[:6]
-            [0, 1, z,
+            [0, 1, z + z^2 + z^3 + O(z^4),
              -12 - 8*z + z^2 + z^3,
              1 + z - 2*z^2 - 7*z^3 - z^4 + 20*z^5 + 23*z^6 + O(z^7),
              z + 4*z^2 + 9*z^3 + 16*z^4 + 25*z^5 + 36*z^6 + O(z^7)]
 
             sage: L = LazyPowerSeriesRing(GF(3)["q"], 'z')
             sage: L.some_elements()[:6]
-            [0, 1, z,
+            [0, 1, z + q*z^2 + q*z^3 + q*z^4 + O(z^5),
              z + z^2 + z^3,
              1 + z + z^2 + 2*z^3 + 2*z^4 + 2*z^5 + O(z^6),
              z + z^2 + z^4 + z^5 + O(z^7)]

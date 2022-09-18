@@ -124,7 +124,7 @@ class Composition(CombinatorialElement):
         True
 
     Typically, instances of ``collections.abc.Sequence`` have a ``.count`` method.
-    This is *not* the case for ``Composition``s::
+    This is *not* the case for a ``Composition``::
 
         sage: C.count
         Traceback (most recent call last):

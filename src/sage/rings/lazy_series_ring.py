@@ -1022,7 +1022,7 @@ class LazyLaurentSeriesRing(LazySeriesRing):
             sage: TestSuite(L).run()
 
             sage: L = LazyLaurentSeriesRing(Zmod(6), 't')
-            sage: TestSuite(L).run()
+            sage: TestSuite(L).run(skip=['_test_revert'])
             sage: L.category()
             Category of infinite commutative algebras over
              (finite commutative rings and subquotients of monoids
@@ -1364,9 +1364,9 @@ class LazyPowerSeriesRing(LazySeriesRing):
             sage: TestSuite(L).run()
 
             sage: L = LazyPowerSeriesRing(Zmod(6), 't')
-            sage: TestSuite(L).run()
+            sage: TestSuite(L).run(skip=['_test_revert'])
             sage: L = LazyPowerSeriesRing(Zmod(6), 's, t')
-            sage: TestSuite(L).run()
+            sage: TestSuite(L).run(skip=['_test_revert'])
 
             sage: L = LazyPowerSeriesRing(QQ['q'], 't')
             sage: TestSuite(L).run()

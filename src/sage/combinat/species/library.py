@@ -35,7 +35,7 @@ from sage.misc.cachefunc import cached_function
 @cached_function
 def SimpleGraphSpecies():
     """
-    Returns the species of simple graphs.
+    Return the species of simple graphs.
 
     EXAMPLES::
 
@@ -73,11 +73,10 @@ def SimpleGraphSpecies():
 @cached_function
 def BinaryTreeSpecies():
     r"""
-    Return the species of binary trees on n leaves.
+    Return the species of binary trees on `n` leaves.
 
-    The species of
-    binary trees B is defined by B = X + B\*B where X is the singleton
-    species.
+    The species of binary trees `B` is defined by `B = X + B \cdot B`,
+    where `X` is the singleton species.
 
     EXAMPLES::
 
@@ -111,8 +110,9 @@ def BinaryTreeSpecies():
 @cached_function
 def BinaryForestSpecies():
     """
-    Returns the species of binary forests. Binary forests are defined
-    as sets of binary trees.
+    Return the species of binary forests.
+
+    Binary forests are defined as sets of binary trees.
 
     EXAMPLES::
 
@@ -140,3 +140,6 @@ def BinaryForestSpecies():
     S = SetSpecies()
     F = S(B)
     return F
+
+del cached_function  # so it doesn't get picked up by tab completion
+

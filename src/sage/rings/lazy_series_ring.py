@@ -45,7 +45,9 @@ from sage.structure.element import parent
 from sage.categories.algebras import Algebras
 from sage.categories.graded_algebras_with_basis import GradedAlgebrasWithBasis
 from sage.categories.rings import Rings
+from sage.categories.unique_factorization_domains import UniqueFactorizationDomains
 from sage.categories.integral_domains import IntegralDomains
+from sage.categories.euclidean_domains import EuclideanDomains
 from sage.categories.fields import Fields
 from sage.categories.complete_discrete_valuation import (CompleteDiscreteValuationFields,
                                                          CompleteDiscreteValuationRings)
@@ -58,6 +60,7 @@ from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.lazy_series import (LazyModuleElement,
                                     LazyLaurentSeries,
                                     LazyPowerSeries,
+                                    LazyPowerSeries_gcd,
                                     LazyCompletionGradedAlgebraElement,
                                     LazySymmetricFunction,
                                     LazyDirichletSeries)
@@ -393,6 +396,7 @@ class LazySeriesRing(UniqueRepresentation, Parent):
         if coefficients is None:
             # Try to build stuff using the internal polynomial ring constructor
             R = self._internal_poly_ring
+
             try:
                 x = R(x)
             except (TypeError, ValueError):
@@ -776,15 +780,15 @@ class LazySeriesRing(UniqueRepresentation, Parent):
 
         elements = tester.some_elements()
         for x in elements:
-            # because of lazyness, we cannot try to invert x, because
-            # this will always succeed, except if the series is
-            # 'exact'
-            if x.is_unit():
-                y = ~x
-                e = y * x
-                tester.assertFalse(x.is_zero())
-                tester.assertTrue(e.is_one())
-                tester.assertEqual(y.valuation(), -x.valuation())
+            # because of laziness, we cannot try to invert x, because
+            # this will always succeed, except if the series is 'exact'
+            if not x.is_unit():
+                continue
+            y = ~x
+            e = y * x
+            tester.assertFalse(x.is_zero())
+            tester.assertTrue(e.is_one())
+            tester.assertEqual(y.valuation(), -x.valuation())
 
     def _test_revert(self, **options):
         """
@@ -1017,12 +1021,17 @@ class LazyLaurentSeriesRing(LazySeriesRing):
             sage: L = LazyLaurentSeriesRing(GF(5)['x, y'], 't')
             sage: TestSuite(L).run()
 
+            sage: L = LazyLaurentSeriesRing(Zmod(6), 't')
+            sage: TestSuite(L).run()
+            sage: L.category()
+            Category of infinite commutative algebras over
+             (finite commutative rings and subquotients of monoids
+              and quotients of semigroups and finite enumerated sets)
+
             sage: E.<x,y> = ExteriorAlgebra(QQ)
             sage: L = LazyLaurentSeriesRing(E, 't')  # not tested
 
-        Options are remembered across doctests::
-
-            sage: LazyLaurentSeriesRing.options.halting_precision(None)
+            sage: LazyLaurentSeriesRing.options._reset()  # reset the options
         """
         self._sparse = sparse
         if len(names) != 1:
@@ -1036,11 +1045,10 @@ class LazyLaurentSeriesRing(LazySeriesRing):
         category = Algebras(base_ring.category())
         if base_ring in Fields():
             category &= CompleteDiscreteValuationFields()
-        else:
-            if "Commutative" in base_ring.category().axioms():
-                category = category.Commutative()
-            if base_ring in IntegralDomains():
-                category &= IntegralDomains()
+        elif base_ring in IntegralDomains():
+            category &= IntegralDomains()
+        elif "Commutative" in base_ring.category().axioms():
+            category = category.Commutative()
 
         if base_ring.is_zero():
             category = category.Finite()
@@ -1337,17 +1345,15 @@ class LazyPowerSeriesRing(LazySeriesRing):
 
         TESTS::
 
-            sage: LazyLaurentSeriesRing.options.halting_precision(15)
+            sage: LazyPowerSeriesRing.options.halting_precision(15)
 
             sage: L = LazyPowerSeriesRing(ZZ, 't')
             sage: TestSuite(L).run()
-
             sage: L = LazyPowerSeriesRing(ZZ, 's, t')
             sage: TestSuite(L).run()
 
             sage: L = LazyPowerSeriesRing(QQ, 't')
             sage: TestSuite(L).run()
-
             sage: L = LazyPowerSeriesRing(QQ, 's, t')
             sage: TestSuite(L).run()
 
@@ -1357,9 +1363,22 @@ class LazyPowerSeriesRing(LazySeriesRing):
             sage: L = LazyPowerSeriesRing(GF(5), 's, t')
             sage: TestSuite(L).run()
 
-        Options are remembered across doctests::
+            sage: L = LazyPowerSeriesRing(Zmod(6), 't')
+            sage: TestSuite(L).run()
+            sage: L = LazyPowerSeriesRing(Zmod(6), 's, t')
+            sage: TestSuite(L).run()
 
-            sage: LazyLaurentSeriesRing.options.halting_precision(None)
+            sage: L = LazyPowerSeriesRing(QQ['q'], 't')
+            sage: TestSuite(L).run()
+            sage: L = LazyPowerSeriesRing(QQ['q'], 's, t')
+            sage: TestSuite(L).run()  # long time
+
+            sage: L = LazyPowerSeriesRing(ZZ['q'], 't')
+            sage: TestSuite(L).run()
+            sage: L = LazyPowerSeriesRing(ZZ['q'], 's, t')
+            sage: TestSuite(L).run()  # long time
+
+            sage: LazyPowerSeriesRing.options._reset()  # reset the options
 
         Check that :trac:`34470` is fixed::
 
@@ -1380,7 +1399,6 @@ class LazyPowerSeriesRing(LazySeriesRing):
             sage: L = LazyPowerSeriesRing(QQ, 's, t')
             sage: L in PrincipalIdealDomains
             False
-
         """
         from sage.structure.category_object import normalize_names
         names = normalize_names(-1, names)
@@ -1393,10 +1411,14 @@ class LazyPowerSeriesRing(LazySeriesRing):
         else:
             self._internal_poly_ring = PolynomialRing(self._laurent_poly_ring, "DUMMY_VARIABLE")
         category = Algebras(base_ring.category())
-        if self._arity == 1 and base_ring in Fields():
-            category &= CompleteDiscreteValuationRings()
-            self.uniformizer = lambda: self.gen()
-        elif base_ring in IntegralDomains():
+        if self._arity == 1:
+            if base_ring in Fields():
+                category &= CompleteDiscreteValuationRings()
+                self.Element = LazyPowerSeries_gcd
+        elif base_ring in Fields():
+            category &= UniqueFactorizationDomains()
+            self.Element = LazyPowerSeries_gcd
+        if base_ring in IntegralDomains():
             category &= IntegralDomains()
         elif base_ring in Rings().Commutative():
             category = category.Commutative()
@@ -1807,7 +1829,9 @@ class LazyPowerSeriesRing(LazySeriesRing):
         if self._arity == 1:
             elts.extend([(z-3)*(2+z)**2, (1 - 2*z**3)/(1 - z + 3*z**2), self(lambda n: n**2)])
         else:
-            elts.extend([(z-3)*(2+z)**2, (1 - 2*z**3)/(1 - z + 3*z**2), self(lambda n: sum(self.gens())**n)])
+            PR = self._laurent_poly_ring
+            sum_gens = PR.sum(PR.gens())
+            elts.extend([(z-3)*(2+z)**2, (1 - 2*z**3)/(1 - z + 3*z**2), self(lambda n: sum_gens**n)])
         return elts
 
 ######################################################################
@@ -2210,9 +2234,11 @@ class LazyCompletionGradedAlgebra(LazySeriesRing):
             pass
         # an element with no constant term and an invertible
         # coefficient of the linear term
-        if self._arity == 1:
-            x = list(self._laurent_poly_ring.basis(1))[0]
-            elts.append((1 - elt[0] + elt) * x)
+        it = iter(self._laurent_poly_ring.basis())
+        temp = self.sum(b for _ in range(4) if (b := next(it)).degree())
+        if temp:
+            elts.append(temp)
+
         return elts
 
 ######################################################################
@@ -2273,9 +2299,7 @@ class LazyDirichletSeriesRing(LazySeriesRing):
             sage: L = LazyDirichletSeriesRing(QQ, 't')
             sage: TestSuite(L).run()
 
-        Options are remembered across doctests::
-
-            sage: LazyDirichletSeriesRing.options.halting_precision(None)
+            sage: LazyDirichletSeriesRing.options._reset()  # reset the options
 
         The ideal generated by `2^-s` and `3^-s` is not principal::
 
@@ -2289,8 +2313,8 @@ class LazyDirichletSeriesRing(LazySeriesRing):
 
             According to the answers in
             https://mathoverflow.net/questions/5522/dirichlet-series-with-integer-coefficients-as-a-ufd,
-            the ring of formal Dirichlet series is actually a
-            UniqueFactorizationDomain.
+            in particular, see :arxiv:`math/0105219`, the ring of formal
+            Dirichlet series is actually in :class:`UniqueFactorizationDomains`.
 
         """
         if base_ring.characteristic() > 0:
@@ -2303,6 +2327,8 @@ class LazyDirichletSeriesRing(LazySeriesRing):
         self._internal_poly_ring = PolynomialRing(base_ring, names, sparse=True)
 
         category = Algebras(base_ring.category())
+        #if base_ring in Fields():
+        #    category &= UniqueFactorizationDomains()
         if base_ring in IntegralDomains():
             category &= IntegralDomains()
         elif base_ring in Rings().Commutative():

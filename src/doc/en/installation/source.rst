@@ -67,7 +67,7 @@ already must be installed on your system:
 
 - `C/C++ compilers <../reference/spkg/gcc>`_
 
-If you have the sufficient privileges (for example, on Linux you can
+If you have sufficient privileges (for example, on Linux you can
 use ``sudo`` to become the ``root`` user), then you can install these packages
 using the commands for your platform indicated in the pages linked above.
 If you do not have the privileges to do this, ask your system administrator to
@@ -86,7 +86,7 @@ installed by Sage.
 
 When the ``./configure`` script runs, it will check for the presence of many
 packages (including the above) and inform you of any that are
-missing, or have unsuitable versions. **Please read the messages that
+missing or have unsuitable versions. **Please read the messages that
 ``./configure`` prints:** It will inform you which additional system packages
 you can install to avoid having to build them from source. This can save a lot of
 time.

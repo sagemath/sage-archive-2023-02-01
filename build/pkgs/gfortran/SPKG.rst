@@ -25,7 +25,7 @@ Building Sage from source on Apple Silicon (M1/M2) requires the use of
 conda-forge, which package versions of GCC 12.x (including
 ``gfortran``) with the necessary changes for this platform.  These
 changes are not in a released upstream version of GCC, and hence
-also the ``gfortran`` SPKG is not suitable for the M1/M2.
+the ``gfortran`` SPKG is not suitable for the M1/M2.
 
 License
 -------

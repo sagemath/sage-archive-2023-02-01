@@ -23,7 +23,7 @@ computer:
 
 Other versions of these may work, but they are untested.
 
-On macOS, suitable versions of all of these tools are provided either
+On macOS, suitable versions of all of these tools are provided
 by the Xcode Command Line Tools.  To install them, open a terminal
 window and run ``xcode-select --install``; then click "Install" in the
 pop-up window.  If the Xcode Command Line Tools are already installed,

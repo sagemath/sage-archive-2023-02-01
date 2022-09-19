@@ -2554,9 +2554,27 @@ class RecurrenceParser():
             ....:                  ['M', 'm', 'll', 'uu', 'inhomogeneities'])
             sage: recurrence_rules = RR(M=3, m=0, ll=-14, uu=14,
             ....:                       inhomogeneities={0: S, 1: S})
-            sage: RP.shifted_inhomogeneities(recurrence_rules)
+            sage: SI = RP.shifted_inhomogeneities(recurrence_rules)
+            sage: SI
             {0: 2-regular sequence 4, 5, 7, 9, 11, 11, 11, 12, 13, 13, ...,
              1: 2-regular sequence 4, 5, 7, 9, 11, 11, 11, 12, 13, 13, ...}
+
+        The first blocks of the corresponding vector-valued sequence correspond
+        to the corresponding shifts of the inhomogeneity. In this particular
+        case, there are no other blocks::
+
+            sage: lower = -2
+            sage: upper = 3
+            sage: SI[0].dimension() == S.dimension() * (upper - lower + 1)
+            True
+            sage: all(
+            ....:     Seq2(
+            ....:         SI[0].mu,
+            ....:         vector((i - lower)*[0, 0] + list(S.left) + (upper - i)*[0, 0]),
+            ....:         SI[0].right)
+            ....:     == S.subsequence(1, i)
+            ....:     for i in range(lower, upper+1))
+            True
 
         TESTS::
 

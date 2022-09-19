@@ -124,13 +124,10 @@ class Composition(CombinatorialElement):
         True
 
     Typically, instances of ``collections.abc.Sequence`` have a ``.count`` method.
-    This is *not* the case for a ``Composition``::
+    ``Composition.count`` counts the number of parts of a specified size::
 
-        sage: C.count
-        Traceback (most recent call last):
-        ...
-        AttributeError: 'Compositions_all_with_category.element_class' object
-         has no attribute 'count'
+        sage: C.count(3)
+        2
 
     EXAMPLES::
 
@@ -1372,6 +1369,22 @@ class Composition(CombinatorialElement):
             elif co1[i] < co2[i]:
                 return False
         return False
+
+    def count(self, n):
+        r"""
+        Return the number of parts of size  ``n``.
+
+        EXAMPLES::
+
+            sage: C = Composition([3,2,3])
+            sage: C.count(3)
+            2
+            sage: C.count(2)
+            1
+            sage: C.count(1)
+            0
+        """
+        return sum(i == n for i in self)
 
 Sequence.register(Composition)
 ##############################################################

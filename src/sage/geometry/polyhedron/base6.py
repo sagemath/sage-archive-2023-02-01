@@ -48,7 +48,10 @@ class Polyhedron_base6(Polyhedron_base5):
         sage: P = polytopes.cube()
         sage: Polyhedron_base6.plot(P)
         Graphics3d Object
-        sage: Polyhedron_base6.tikz(P)
+        sage: print(Polyhedron_base6.tikz(P, output_type='TikzPicture'))
+        \RequirePackage{luatex85}
+        \documentclass[tikz]{standalone}
+        \begin{document}
         \begin{tikzpicture}%
             [x={(1.000000cm, 0.000000cm)},
             y={(-0.000000cm, 1.000000cm)},
@@ -125,6 +128,7 @@ class Polyhedron_base6(Polyhedron_base5):
         %%
         %%
         \end{tikzpicture}
+        \end{document}
 
         sage: Q = polytopes.hypercube(4)
         sage: Polyhedron_base6.show(Q)
@@ -473,9 +477,11 @@ class Polyhedron_base6(Polyhedron_base5):
 
     def tikz(self, view=[0, 0, 1], angle=0, scale=1,
              edge_color='blue!95!black', facet_color='blue!95!black',
-             opacity=0.8, vertex_color='green', axis=False):
+             opacity=0.8, vertex_color='green', axis=False,
+             output_type=None):
         r"""
-        Return a string ``tikz_pic`` consisting of a tikz picture of ``self``
+        Return a tikz picture of ``self`` as a string or as a
+        :class:`~sage.misc.latex_standalone.TikzPicture`
         according to a projection ``view`` and an angle ``angle``
         obtained via the threejs viewer. ``self`` must be bounded.
 
@@ -494,10 +500,15 @@ class Polyhedron_base6(Polyhedron_base5):
         - ``opacity`` - real number (default: 0.8) between 0 and 1 giving the opacity of
           the front facets.
         - ``axis`` - Boolean (default: False) draw the axes at the origin or not.
+        - ``output_type`` - string (default: ``None``), valid values
+          are ``None`` (deprecated), ``'LatexExpr'`` and ``'TikzPicture'``,
+          whether to return a LatexExpr object (which inherits from Python
+          str) or a ``TikzPicture`` object from module
+          :mod:`sage.misc.latex_standalone`
 
         OUTPUT:
 
-        - LatexExpr -- containing the TikZ picture.
+        - LatexExpr object or TikzPicture object
 
         .. NOTE::
 
@@ -535,18 +546,25 @@ class Polyhedron_base6(Polyhedron_base5):
         EXAMPLES::
 
             sage: co = polytopes.cuboctahedron()
-            sage: Img = co.tikz([0,0,1], 0)
-            sage: print('\n'.join(Img.splitlines()[:9]))
+            sage: Img = co.tikz([0,0,1], 0, output_type='TikzPicture')
+            sage: Img
+            \documentclass[tikz]{standalone}
+            \begin{document}
             \begin{tikzpicture}%
-                [x={(1.000000cm, 0.000000cm)},
-                y={(0.000000cm, 1.000000cm)},
-                z={(0.000000cm, 0.000000cm)},
-                scale=1.000000,
-                back/.style={loosely dotted, thin},
-                edge/.style={color=blue!95!black, thick},
-                facet/.style={fill=blue!95!black,fill opacity=0.800000},
-                vertex/.style={inner sep=1pt,circle,draw=green!25!black,fill=green!75!black,thick}]
-            sage: print('\n'.join(Img.splitlines()[12:21]))
+                    [x={(1.000000cm, 0.000000cm)},
+                    y={(0.000000cm, 1.000000cm)},
+                    z={(0.000000cm, 0.000000cm)},
+                    scale=1.000000,
+            ...
+            Use print to see the full content.
+            ...
+            \node[vertex] at (1.00000, 0.00000, 1.00000)     {};
+            \node[vertex] at (1.00000, 1.00000, 0.00000)     {};
+            %%
+            %%
+            \end{tikzpicture}
+            \end{document}
+            sage: print('\n'.join(Img.content().splitlines()[12:21]))
             %% with the command: ._tikz_3d_in_3d and parameters:
             %% view = [0, 0, 1]
             %% angle = 0
@@ -556,15 +574,40 @@ class Polyhedron_base6(Polyhedron_base5):
             %% opacity = 0.8
             %% vertex_color = green
             %% axis = False
-            sage: print('\n'.join(Img.splitlines()[22:26]))
+            sage: print('\n'.join(Img.content().splitlines()[22:26]))
             %% Coordinate of the vertices:
             %%
             \coordinate (-1.00000, -1.00000, 0.00000) at (-1.00000, -1.00000, 0.00000);
             \coordinate (-1.00000, 0.00000, -1.00000) at (-1.00000, 0.00000, -1.00000);
+
+        When output type is a :class:`sage.misc.latex_standalone.TikzPicture`::
+
+            sage: co = polytopes.cuboctahedron()
+            sage: t = co.tikz([674,108,-731], 112, output_type='TikzPicture')
+            sage: t
+            \documentclass[tikz]{standalone}
+            \begin{document}
+            \begin{tikzpicture}%
+                    [x={(0.249656cm, -0.577639cm)},
+                    y={(0.777700cm, -0.358578cm)},
+                    z={(-0.576936cm, -0.733318cm)},
+                    scale=1.000000,
+            ...
+            Use print to see the full content.
+            ...
+            \node[vertex] at (1.00000, 0.00000, 1.00000)     {};
+            \node[vertex] at (1.00000, 1.00000, 0.00000)     {};
+            %%
+            %%
+            \end{tikzpicture}
+            \end{document}
+            sage: path_to_file = t.pdf()     # not tested
+
         """
         return self.projection().tikz(view, angle, scale,
                                       edge_color, facet_color,
-                                      opacity, vertex_color, axis)
+                                      opacity, vertex_color, axis,
+                                      output_type=output_type)
 
     def _rich_repr_(self, display_manager, **kwds):
         r"""

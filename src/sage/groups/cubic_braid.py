@@ -963,6 +963,7 @@ class CubicBraidGroup(FinitelyPresentedGroup):
         - Construction of matrix group was faithful.
         - Coercion maps to and from matrix group exist and are
           inverse to each other.
+
         EXAMPLES::
 
             sage: CBG2 = CubicBraidGroup(2)

@@ -4794,7 +4794,7 @@ class LazyPowerSeries(LazyCauchyProductSeries):
                 left._approximate_order += 1
         return super()._floordiv_(other)
 
-class LazyPowerSeries_gcd(LazyPowerSeries):
+class LazyPowerSeries_gcd_mixin:
     """
     A lazy power series that also implements the GCD algorithm.
     """

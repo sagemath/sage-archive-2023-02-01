@@ -60,7 +60,7 @@ from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.lazy_series import (LazyModuleElement,
                                     LazyLaurentSeries,
                                     LazyPowerSeries,
-                                    LazyPowerSeries_gcd,
+                                    LazyPowerSeries_gcd_mixin,
                                     LazyCompletionGradedAlgebraElement,
                                     LazySymmetricFunction,
                                     LazyDirichletSeries)
@@ -871,7 +871,7 @@ class LazySeriesRing(UniqueRepresentation, Parent):
 
     def _test_invert(self, **options):
         """
-        Test multiplicative inversion of elements of this ring.
+        Test multiplicative inversion of elements of ``self``.
 
         INPUT:
 
@@ -879,8 +879,10 @@ class LazySeriesRing(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
+            sage: LazyLaurentSeriesRing.options.halting_precision(12)
             sage: L = LazyLaurentSeriesRing(QQ, 'z')
             sage: L._test_invert()
+            sage: LazyLaurentSeriesRing.options._reset()  # reset the options
 
         .. SEEALSO::
 
@@ -1468,17 +1470,25 @@ class LazyPowerSeriesRing(LazySeriesRing):
         else:
             self._internal_poly_ring = PolynomialRing(self._laurent_poly_ring, "DUMMY_VARIABLE")
         category = Algebras(base_ring.category())
+        mixin_gcd = False
         if self._arity == 1:
             if base_ring in Fields():
                 category &= CompleteDiscreteValuationRings()
-                self.Element = LazyPowerSeries_gcd
+                mixin_gcd = True
         elif base_ring in Fields():
             category &= UniqueFactorizationDomains()
-            self.Element = LazyPowerSeries_gcd
+            mixin_gcd = True
         if base_ring in IntegralDomains():
             category &= IntegralDomains()
         elif base_ring in Rings().Commutative():
             category = category.Commutative()
+
+        if mixin_gcd:
+            from sage.structure.dynamic_class import dynamic_class
+            self.Element = dynamic_class(
+                f"{self.Element.__name__}_gcd",
+                (self.Element, LazyPowerSeries_gcd_mixin),
+                doccls=self.Element)
 
         if base_ring.is_zero():
             category = category.Finite()

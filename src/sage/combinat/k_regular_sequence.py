@@ -2555,7 +2555,8 @@ class RecurrenceParser():
             sage: recurrence_rules = RR(M=3, m=0, ll=-14, uu=14,
             ....:                       inhomogeneities={0: S, 1: S})
             sage: RP.shifted_inhomogeneities(recurrence_rules)
-            {0: 2-regular sequence 4, 5, 7, 9, 11, 11, 11, 12, 13, 13, ...}
+            {0: 2-regular sequence 4, 5, 7, 9, 11, 11, 11, 12, 13, 13, ...,
+             1: 2-regular sequence 4, 5, 7, 9, 11, 11, 11, 12, 13, 13, ...}
 
         TESTS::
 

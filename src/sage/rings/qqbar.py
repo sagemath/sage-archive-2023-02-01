@@ -312,8 +312,8 @@ and we get a way to produce the number directly::
     True
     sage: sage_input(n)
     R.<y> = QQ[]
-    v = AA.polynomial_root(AA.common_polynomial(y^4 - 4*y^2 + 1), RIF(RR(0.51763809020504148), RR(0.51763809020504159)))
-    -109*v^3 - 89*v^2 + 327*v + 178
+    v = AA.polynomial_root(AA.common_polynomial(y^4 - 4*y^2 + 1), RIF(-RR(1.9318516525781366), -RR(1.9318516525781364)))
+    -109*v^3 + 89*v^2 + 327*v - 178
 
 We can also see that some computations (basically, those which are
 easy to perform exactly) are performed directly, instead of storing
@@ -362,7 +362,7 @@ algorithms in :trac:`10255`::
     # Verified
     R1.<x> = QQbar[]
     R2.<y> = QQ[]
-    v = AA.polynomial_root(AA.common_polynomial(y^4 - 4*y^2 + 1), RIF(RR(0.51763809020504148), RR(0.51763809020504159)))
+    v = AA.polynomial_root(AA.common_polynomial(y^4 - 4*y^2 + 1), RIF(-RR(1.9318516525781366), -RR(1.9318516525781364)))
     AA.polynomial_root(AA.common_polynomial(x^4 + QQbar(v^3 - 3*v - 1)*x^3 + QQbar(-v^3 + 3*v - 3)*x^2 + QQbar(-3*v^3 + 9*v + 3)*x + QQbar(3*v^3 - 9*v)), RIF(RR(0.99999999999999989), RR(1.0000000000000002)))
     sage: one
     1
@@ -2542,10 +2542,10 @@ def number_field_elements_from_algebraics(numbers, minimal=False, same_field=Fal
            Defn: a |--> 1.414213562373095?)
 
         sage: number_field_elements_from_algebraics((rt2,rt3))
-        (Number Field in a with defining polynomial y^4 - 4*y^2 + 1, [-a^3 + 3*a, -a^2 + 2], Ring morphism:
+        (Number Field in a with defining polynomial y^4 - 4*y^2 + 1, [-a^3 + 3*a, a^2 - 2], Ring morphism:
             From: Number Field in a with defining polynomial y^4 - 4*y^2 + 1
             To:   Algebraic Real Field
-            Defn: a |--> 0.5176380902050415?)
+            Defn: a |--> -1.931851652578137?)
 
     ``rt3a`` is a real number in ``QQbar``.  Ordinarily, we'd get a homomorphism
     to ``AA`` (because all elements are real), but if we specify ``same_field=True``,
@@ -2570,7 +2570,7 @@ def number_field_elements_from_algebraics(numbers, minimal=False, same_field=Fal
         (Number Field in a with defining polynomial y^4 - 4*y^2 + 1, -a^3 + 3*a, Ring morphism:
             From: Number Field in a with defining polynomial y^4 - 4*y^2 + 1
             To:   Algebraic Real Field
-            Defn: a |--> 0.5176380902050415?)
+            Defn: a |--> -1.931851652578137?)
 
     We can specify ``minimal=True`` if we want the smallest number field::
 
@@ -2618,7 +2618,7 @@ def number_field_elements_from_algebraics(numbers, minimal=False, same_field=Fal
         sage: nfI^2
         -1
         sage: sum = nfrt2 + nfrt3 + nfI + nfz3; sum
-        2*a^6 + a^5 - a^4 - a^3 - 2*a^2 - a
+        a^5 + a^4 - a^3 + 2*a^2 - a - 1
         sage: hom(sum)
         2.646264369941973? + 1.866025403784439?*I
         sage: hom(sum) == rt2 + rt3 + qqI + z3
@@ -2658,7 +2658,7 @@ def number_field_elements_from_algebraics(numbers, minimal=False, same_field=Fal
         sage: nf, nums, hom = number_field_elements_from_algebraics(elems, embedded=True)
         sage: nf
         Number Field in a with defining polynomial y^24 - 6*y^23 ...- 9*y^2 + 1
-          with a = 0.2598678911433438? + 0.0572892247058457?*I
+          with a = 0.2598679? + 0.0572892?*I
         sage: list(map(QQbar, nums)) == elems == list(map(hom, nums))
         True
 
@@ -2725,7 +2725,7 @@ def number_field_elements_from_algebraics(numbers, minimal=False, same_field=Fal
                          sqrt(2), AA.polynomial_root(x^3-3, RIF(0,3)), 11/9, 1]
         sage: res = number_field_elements_from_algebraics(my_nums, embedded=True)
         sage: res[0]
-        Number Field in a with defining polynomial y^24 - 107010*y^22 - 24*y^21 + ... + 250678447193040618624307096815048024318853254384 with a = -95.5053039433554?
+        Number Field in a with defining polynomial y^24 - 107010*y^22 - 24*y^21 + ... + 250678447193040618624307096815048024318853254384 with a = 93.32530798172420?
     """
     gen = qq_generator
 
@@ -3129,7 +3129,7 @@ class AlgebraicGenerator(SageObject):
             sage: root = ANRoot(x^2 - x - 1, RIF(1, 2))
             sage: gen = AlgebraicGenerator(nf, root)
             sage: gen.pari_field()
-             [y^2 - y - 1, [2, 0], ...]
+            [[y^2 - y - 1, [2, 0], ...]
         """
         if self.is_trivial():
             raise ValueError("No PARI field attached to trivial generator")
@@ -3213,7 +3213,7 @@ class AlgebraicGenerator(SageObject):
             sage: qq_generator.union(gen3) is gen3
             True
             sage: gen2.union(gen3)
-            Number Field in a with defining polynomial y^4 - 4*y^2 + 1 with a in 0.5176380902050415?
+            Number Field in a with defining polynomial y^4 - 4*y^2 + 1 with a in -1.931851652578137?
         """
         if self._trivial:
             return other
@@ -3306,13 +3306,13 @@ class AlgebraicGenerator(SageObject):
             Number Field in a with defining polynomial y^2 - 3 with a in 1.732050807568878?
             sage: gen2_3 = gen2.union(gen3)
             sage: gen2_3
-            Number Field in a with defining polynomial y^4 - 4*y^2 + 1 with a in 0.5176380902050415?
+            Number Field in a with defining polynomial y^4 - 4*y^2 + 1 with a in -1.931851652578137?
             sage: qq_generator.super_poly(gen2) is None
             True
             sage: gen2.super_poly(gen2_3)
             -a^3 + 3*a
             sage: gen3.super_poly(gen2_3)
-            -a^2 + 2
+            a^2 - 2
 
         """
         if checked is None:
@@ -3360,13 +3360,13 @@ class AlgebraicGenerator(SageObject):
             sage: sqrt3 = ANExtensionElement(gen3, nf3.gen())
             sage: gen2_3 = gen2.union(gen3)
             sage: gen2_3
-            Number Field in a with defining polynomial y^4 - 4*y^2 + 1 with a in 0.5176380902050415?
+            Number Field in a with defining polynomial y^4 - 4*y^2 + 1 with a in -1.931851652578137?
             sage: gen2_3(sqrt2)
             -a^3 + 3*a
             sage: gen2_3(ANRational(1/7))
             1/7
             sage: gen2_3(sqrt3)
-            -a^2 + 2
+            a^2 - 2
         """
         if self._trivial:
             return elt._value
@@ -4336,10 +4336,10 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             sage: rt3 = AA(sqrt(3))
             sage: rt3b = rt2 + rt3 - rt2
             sage: rt3b.as_number_field_element()
-            (Number Field in a with defining polynomial y^4 - 4*y^2 + 1, -a^2 + 2, Ring morphism:
+            (Number Field in a with defining polynomial y^4 - 4*y^2 + 1, a^2 - 2, Ring morphism:
                 From: Number Field in a with defining polynomial y^4 - 4*y^2 + 1
                 To:   Algebraic Real Field
-                Defn: a |--> 0.5176380902050415?)
+                Defn: a |--> -1.931851652578137?)
             sage: rt3b.as_number_field_element(minimal=True)
             (Number Field in a with defining polynomial y^2 - 3, a, Ring morphism:
                From: Number Field in a with defining polynomial y^2 - 3
@@ -4401,7 +4401,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             sage: rt2b = rt3 + rt2 - rt3
             sage: rt2b.exactify()
             sage: rt2b._exact_value()
-            a^3 - 3*a where a^4 - 4*a^2 + 1 = 0 and a in 1.931851652578137?
+            a^3 - 3*a where a^4 - 4*a^2 + 1 = 0 and a in -0.5176380902050415?
             sage: rt2b.simplify()
             sage: rt2b._exact_value()
             a where a^2 - 2 = 0 and a in 1.414213562373095?
@@ -4422,7 +4422,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             sage: QQbar(2)._exact_field()
             Trivial generator
             sage: (sqrt(QQbar(2)) + sqrt(QQbar(19)))._exact_field()
-            Number Field in a with defining polynomial y^4 - 20*y^2 + 81 with a in 2.375100220297941?
+            Number Field in a with defining polynomial y^4 - 20*y^2 + 81 with a in -3.789313782671036?
             sage: (QQbar(7)^(3/5))._exact_field()
             Number Field in a with defining polynomial y^5 - 2*y^4 - 18*y^3 + 38*y^2 + 82*y - 181 with a in 2.554256611698490?
         """
@@ -4442,7 +4442,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
             sage: QQbar(2)._exact_value()
             2
             sage: (sqrt(QQbar(2)) + sqrt(QQbar(19)))._exact_value()
-            -1/9*a^3 - a^2 + 11/9*a + 10 where a^4 - 20*a^2 + 81 = 0 and a in 2.375100220297941?
+            -1/9*a^3 + a^2 + 11/9*a - 10 where a^4 - 20*a^2 + 81 = 0 and a in -3.789313782671036?
             sage: (QQbar(7)^(3/5))._exact_value()
             2*a^4 + 2*a^3 - 34*a^2 - 17*a + 150 where a^5 - 2*a^4 - 18*a^3 + 38*a^2 + 82*a - 181 = 0 and a in 2.554256611698490?
         """
@@ -6885,7 +6885,7 @@ class AlgebraicPolynomialTracker(SageObject):
             sage: p = sqrt(AA(2)) * x^2 - sqrt(AA(3))
             sage: cp = AA.common_polynomial(p)
             sage: cp.generator()
-            Number Field in a with defining polynomial y^4 - 4*y^2 + 1 with a in 1.931851652578137?
+            Number Field in a with defining polynomial y^4 - 4*y^2 + 1 with a in -0.5176380902050415?
         """
         self.exactify()
         return self._gen
@@ -7734,7 +7734,7 @@ class ANExtensionElement(ANDescr):
 
             sage: rt2b.exactify()
             sage: rt2b._descr
-            a^3 - 3*a where a^4 - 4*a^2 + 1 = 0 and a in 1.931851652578137?
+            a^3 - 3*a where a^4 - 4*a^2 + 1 = 0 and a in -0.5176380902050415?
             sage: rt2b._descr.is_simple()
             False
         """
@@ -7819,7 +7819,7 @@ class ANExtensionElement(ANDescr):
             sage: rt2b = rt3 + rt2 - rt3
             sage: rt2b.exactify()
             sage: rt2b._descr
-            a^3 - 3*a where a^4 - 4*a^2 + 1 = 0 and a in 1.931851652578137?
+            a^3 - 3*a where a^4 - 4*a^2 + 1 = 0 and a in -0.5176380902050415?
             sage: rt2b._descr.simplify(rt2b)
             a where a^2 - 2 = 0 and a in 1.414213562373095?
         """
@@ -7858,9 +7858,9 @@ class ANExtensionElement(ANDescr):
             sage: type(b)
             <class 'sage.rings.qqbar.ANExtensionElement'>
             sage: b.neg(a)
-            1/3*a^3 - 2/3*a^2 + 4/3*a - 2 where a^4 - 2*a^3 + a^2 - 6*a + 9 = 0 and a in -0.7247448713915890? - 1.573132184970987?*I
+            -1/3*a^3 + 1/3*a^2 - a - 1 where a^4 - 2*a^3 + a^2 + 6*a + 3 = 0 and a in 1.724744871391589? + 1.573132184970987?*I
             sage: b.neg("ham spam and eggs")
-            1/3*a^3 - 2/3*a^2 + 4/3*a - 2 where a^4 - 2*a^3 + a^2 - 6*a + 9 = 0 and a in -0.7247448713915890? - 1.573132184970987?*I
+            -1/3*a^3 + 1/3*a^2 - a - 1 where a^4 - 2*a^3 + a^2 + 6*a + 3 = 0 and a in 1.724744871391589? + 1.573132184970987?*I
         """
         return ANExtensionElement(self._generator, -self._value)
 
@@ -7876,9 +7876,9 @@ class ANExtensionElement(ANDescr):
             sage: type(b)
             <class 'sage.rings.qqbar.ANExtensionElement'>
             sage: b.invert(a)
-            7/3*a^3 - 2/3*a^2 + 4/3*a - 12 where a^4 - 2*a^3 + a^2 - 6*a + 9 = 0 and a in -0.7247448713915890? - 1.573132184970987?*I
+            -7/3*a^3 + 19/3*a^2 - 7*a - 9 where a^4 - 2*a^3 + a^2 + 6*a + 3 = 0 and a in 1.724744871391589? + 1.573132184970987?*I
             sage: b.invert("ham spam and eggs")
-            7/3*a^3 - 2/3*a^2 + 4/3*a - 12 where a^4 - 2*a^3 + a^2 - 6*a + 9 = 0 and a in -0.7247448713915890? - 1.573132184970987?*I
+            -7/3*a^3 + 19/3*a^2 - 7*a - 9 where a^4 - 2*a^3 + a^2 + 6*a + 3 = 0 and a in 1.724744871391589? + 1.573132184970987?*I
         """
         return ANExtensionElement(self._generator, ~self._value)
 
@@ -7894,9 +7894,9 @@ class ANExtensionElement(ANDescr):
             sage: type(b)
             <class 'sage.rings.qqbar.ANExtensionElement'>
             sage: b.conjugate(a)
-            -1/3*a^3 + 2/3*a^2 - 4/3*a + 2 where a^4 - 2*a^3 + a^2 - 6*a + 9 = 0 and a in -0.7247448713915890? + 1.573132184970987?*I
+            1/3*a^3 - 1/3*a^2 + a + 1 where a^4 - 2*a^3 + a^2 + 6*a + 3 = 0 and a in 1.724744871391589? - 1.573132184970987?*I
             sage: b.conjugate("ham spam and eggs")
-            -1/3*a^3 + 2/3*a^2 - 4/3*a + 2 where a^4 - 2*a^3 + a^2 - 6*a + 9 = 0 and a in -0.7247448713915890? + 1.573132184970987?*I
+            1/3*a^3 - 1/3*a^2 + a + 1 where a^4 - 2*a^3 + a^2 + 6*a + 3 = 0 and a in 1.724744871391589? - 1.573132184970987?*I
         """
         if self._exactly_real:
             return self
@@ -8529,7 +8529,7 @@ def an_binop_expr(a, b, op):
         sage: x = an_binop_expr(a, b, operator.add); x
         <sage.rings.qqbar.ANBinaryExpr object at ...>
         sage: x.exactify()
-        -6/7*a^7 + 2/7*a^6 + 71/7*a^5 - 26/7*a^4 - 125/7*a^3 + 72/7*a^2 + 43/7*a - 47/7 where a^8 - 12*a^6 + 23*a^4 - 12*a^2 + 1 = 0 and a in 3.12580...?
+        6/7*a^7 - 2/7*a^6 - 71/7*a^5 + 26/7*a^4 + 125/7*a^3 - 72/7*a^2 - 43/7*a + 47/7 where a^8 - 12*a^6 + 23*a^4 - 12*a^2 + 1 = 0 and a in -0.3199179336182997?
 
         sage: a = QQbar(sqrt(2)) + QQbar(sqrt(3))
         sage: b = QQbar(sqrt(3)) + QQbar(sqrt(5))
@@ -8538,7 +8538,7 @@ def an_binop_expr(a, b, op):
         sage: x = an_binop_expr(a, b, operator.mul); x
         <sage.rings.qqbar.ANBinaryExpr object at ...>
         sage: x.exactify()
-        2*a^7 - a^6 - 24*a^5 + 12*a^4 + 46*a^3 - 22*a^2 - 22*a + 9 where a^8 - 12*a^6 + 23*a^4 - 12*a^2 + 1 = 0 and a in 3.1258...?
+        2*a^7 - a^6 - 24*a^5 + 12*a^4 + 46*a^3 - 22*a^2 - 22*a + 9 where a^8 - 12*a^6 + 23*a^4 - 12*a^2 + 1 = 0 and a in -0.3199179336182997?
     """
     return ANBinaryExpr(a, b, op)
 

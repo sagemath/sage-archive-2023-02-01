@@ -272,7 +272,7 @@ class NumberFieldFractionalIdeal_rel(NumberFieldFractionalIdeal):
             sage: L.<b> = K.extension(5*x^2 + 1)
             sage: P = L.primes_above(2)[0]
             sage: P.gens_reduced()
-            (2, 15*a*b + 3*a + 1)
+            (2, -15*a*b + 3*a + 1)
         """
         try:
             # Compute the single generator, if it exists
@@ -401,7 +401,7 @@ class NumberFieldFractionalIdeal_rel(NumberFieldFractionalIdeal):
             sage: L.<b> = K.extension(5*x^2 + 1)
             sage: P = L.primes_above(2)[0]
             sage: P.relative_norm()
-            Fractional ideal (-6*a + 2)
+            Fractional ideal (6*a + 2)
         """
         L = self.number_field()
         K = L.base_field()
@@ -518,7 +518,7 @@ class NumberFieldFractionalIdeal_rel(NumberFieldFractionalIdeal):
             sage: L.<b> = K.extension(5*x^2 + 1)
             sage: P = L.primes_above(2)[0]
             sage: P.ideal_below()
-            Fractional ideal (-6*a + 2)
+            Fractional ideal (6*a + 2)
         """
         L = self.number_field()
         K = L.base_field()

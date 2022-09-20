@@ -4446,7 +4446,7 @@ cdef class NumberFieldElement(FieldElement):
             sage: f = Qi.embeddings(K)[0]
             sage: a = f(2+3*i) * (2-zeta)^2
             sage: a.descend_mod_power(Qi,2)
-            [-3*i - 2, -2*i + 3]
+            [-2*i + 3, 3*i + 2]
 
         An absolute example::
 
@@ -5124,7 +5124,7 @@ cdef class NumberFieldElement_relative(NumberFieldElement):
         EXAMPLES::
 
             sage: K.<a, b, c> = NumberField([x^2 - 2, x^2 - 3, x^2 - 5])
-            sage: P = K.prime_factors(5)[0]
+            sage: P = K.prime_factors(5)[1]
             sage: (2*a + b - c).valuation(P)
             1
         """

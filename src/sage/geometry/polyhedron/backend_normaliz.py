@@ -45,7 +45,30 @@ from sage.matrix.constructor import vector
 
 from .base_QQ import Polyhedron_QQ
 from .base_ZZ import Polyhedron_ZZ
-from .base_number_field import Polyhedron_base_number_field
+
+
+def _number_field_elements_from_algebraics_list_of_lists_of_lists(listss, **kwds):
+    r"""
+    Like `number_field_elements_from_algebraics`, but for a list of lists of lists.
+
+    EXAMPLES::
+
+        sage: rt2 = AA(sqrt(2)); rt2      # optional - sage.rings.number_field
+        1.414213562373095?
+        sage: rt3 = AA(sqrt(3)); rt3      # optional - sage.rings.number_field
+        1.732050807568878?
+        sage: from sage.geometry.polyhedron.backend_normaliz import _number_field_elements_from_algebraics_list_of_lists_of_lists
+        sage: K, results, hom = _number_field_elements_from_algebraics_list_of_lists_of_lists([[[rt2], [1]], [[rt3]], [[1], []]]); results  # optional - sage.rings.number_field
+        [[[-a^3 + 3*a], [1]], [[a^2 - 2]], [[1], []]]
+    """
+    from sage.rings.qqbar import number_field_elements_from_algebraics
+    numbers = []
+    for lists in listss:
+        for list in lists:
+            numbers.extend(list)
+    K, K_numbers, hom = number_field_elements_from_algebraics(numbers, **kwds)
+    g = iter(K_numbers)
+    return K, [ [ [ next(g) for _ in list ] for list in lists ] for lists in listss ], hom
 
 
 def _format_function_call(fn_name, *v, **k):

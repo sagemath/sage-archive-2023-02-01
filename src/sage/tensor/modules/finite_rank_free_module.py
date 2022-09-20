@@ -38,10 +38,11 @@ module element has then various representations over the various bases.
 AUTHORS:
 
 - Eric Gourgoulhon, Michal Bejger (2014-2015): initial version
-- Travis Scrimshaw (2016): category set to Modules(ring).FiniteDimensional()
+- Travis Scrimshaw (2016): category set to ``Modules(ring).FiniteDimensional()``
   (:trac:`20770`)
 - Michael Jung (2019): improve treatment of the zero element
 - Eric Gourgoulhon (2021): unicode symbols for tensor and exterior products
+- Matthias Koeppe (2022): ``FiniteRankFreeModule_abstract``, symmetric powers
 
 REFERENCES:
 
@@ -519,16 +520,19 @@ The components on the basis are returned by the square bracket operator for
     [2, 0, -5]
 
 """
-#******************************************************************************
-#       Copyright (C) 2015-2021 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
-#       Copyright (C) 2015 Michal Bejger <bejger@camk.edu.pl>
-#       Copyright (C) 2016 Travis Scrimshaw <tscrimsh@umn.edu>
+# ******************************************************************************
+#       Copyright (C) 2014-2021 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
+#                     2014-2016 Travis Scrimshaw <tscrimsh@umn.edu>
+#                     2015      Michal Bejger <bejger@camk.edu.pl>
+#                     2016      Frédéric Chapoton
+#                     2020      Michael Jung
+#                     2020-2022 Matthias Koeppe
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
 #                  https://www.gnu.org/licenses/
-#******************************************************************************
+# ******************************************************************************
 from __future__ import annotations
 
 from typing import Generator, Optional
@@ -555,6 +559,7 @@ class FiniteRankFreeModule_abstract(UniqueRepresentation, Parent):
         name=None,
         latex_name=None,
         category=None,
+        ambient=None,
     ):
         r"""
         See :class:`FiniteRankFreeModule` for documentation and examples.
@@ -576,6 +581,10 @@ class FiniteRankFreeModule_abstract(UniqueRepresentation, Parent):
         category = Modules(ring).FiniteDimensional().or_subcategory(category)
         Parent.__init__(self, base=ring, category=category)
         self._ring = ring # same as self._base
+        if ambient is None:
+            self._ambient_module = self
+        else:
+            self._ambient_module = ambient
         self._rank = rank
         self._name = name
         # This duplicates the normalization done in __classcall_private__,
@@ -639,13 +648,72 @@ class FiniteRankFreeModule_abstract(UniqueRepresentation, Parent):
             sage: M.tensor_module(1,1).tensor_product(M.tensor_module(1,2))
             Free module of type-(2,3) tensors on the 2-dimensional vector space over the Rational Field
 
+            sage: Sym2M = M.tensor_module(2, 0, sym=range(2)); Sym2M
+            Free module of fully symmetric type-(2,0) tensors on the 2-dimensional vector space over the Rational Field
+            sage: Sym01x23M = Sym2M.tensor_product(Sym2M); Sym01x23M
+            Free module of type-(4,0) tensors on the 2-dimensional vector space over the Rational Field,
+             with symmetry on the index positions (0, 1), with symmetry on the index positions (2, 3)
+            sage: Sym01x23M._index_maps
+            ((0, 1), (2, 3))
+
+            sage: N = M.tensor_module(3, 3, sym=[1, 2], antisym=[3, 4]); N
+            Free module of type-(3,3) tensors on the 2-dimensional vector space over the Rational Field,
+             with symmetry on the index positions (1, 2),
+             with antisymmetry on the index positions (3, 4)
+            sage: NxN = N.tensor_product(N); NxN
+            Free module of type-(6,6) tensors on the 2-dimensional vector space over the Rational Field,
+             with symmetry on the index positions (1, 2), with symmetry on the index positions (4, 5),
+             with antisymmetry on the index positions (6, 7), with antisymmetry on the index positions (9, 10)
+            sage: NxN._index_maps
+            ((0, 1, 2, 6, 7, 8), (3, 4, 5, 9, 10, 11))
         """
         from sage.modules.free_module_element import vector
+        from .comp import CompFullySym, CompFullyAntiSym, CompWithSym
+
         base_module = self.base_module()
         if not all(module.base_module() == base_module for module in others):
             raise NotImplementedError('all factors must be tensor modules over the same base module')
-        tensor_type = sum(vector(module.tensor_type()) for module in [self] + list(others))
-        return base_module.tensor_module(*tensor_type)
+        factors = [self] + list(others)
+        result_tensor_type = sum(vector(factor.tensor_type()) for factor in factors)
+        result_sym = []
+        result_antisym = []
+        # Keep track of reordering of the contravariant and covariant indices
+        # (compatible with FreeModuleTensor.__mul__)
+        index_maps = []
+        running_indices = vector([0, result_tensor_type[0]])
+        for factor in factors:
+            tensor_type = factor.tensor_type()
+            index_map = tuple(i + running_indices[0] for i in range(tensor_type[0]))
+            index_map += tuple(i + running_indices[1] for i in range(tensor_type[1]))
+            index_maps.append(index_map)
+
+            if tensor_type[0] + tensor_type[1] > 1:
+                basis_sym = factor._basis_sym()
+                all_indices = tuple(range(tensor_type[0] + tensor_type[1]))
+                if isinstance(basis_sym, CompFullySym):
+                    sym = [all_indices]
+                    antisym = []
+                elif isinstance(basis_sym, CompFullyAntiSym):
+                    sym = []
+                    antisym = [all_indices]
+                elif isinstance(basis_sym, CompWithSym):
+                    sym = basis_sym._sym
+                    antisym = basis_sym._antisym
+                else:
+                    sym = antisym = []
+
+                def map_isym(isym):
+                    return tuple(index_map[i] for i in isym)
+
+                result_sym.extend(tuple(index_map[i] for i in isym) for isym in sym)
+                result_antisym.extend(tuple(index_map[i] for i in isym) for isym in antisym)
+
+            running_indices += vector(tensor_type)
+
+        result = base_module.tensor_module(*result_tensor_type,
+                                           sym=result_sym, antisym=result_antisym)
+        result._index_maps = tuple(index_maps)
+        return result
 
     def rank(self) -> int:
         r"""
@@ -726,6 +794,41 @@ class FiniteRankFreeModule_abstract(UniqueRepresentation, Parent):
         resu._is_zero = True # This element is certainly zero
         resu.set_immutable()
         return resu
+
+    def ambient_module(self): # compatible with sage.modules.free_module.FreeModule_generic
+        """
+        Return the ambient module associated to this module.
+
+        EXAMPLES::
+
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: M.ambient_module() is M
+            True
+
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: Sym0123x45M = M.tensor_module(6, 0, sym=((0, 1, 2, 3), (4, 5)))
+            sage: T60M = M.tensor_module(6, 0)
+            sage: Sym0123x45M.ambient_module() is T60M
+            True
+        """
+        return self._ambient_module
+
+    ambient = ambient_module # compatible with sage.modules.with_basis.subquotient.SubmoduleWithBasis
+
+    def is_submodule(self, other):
+        """
+        Return ``True`` if ``self`` is a submodule of ``other``.
+
+        EXAMPLES::
+
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: N = FiniteRankFreeModule(ZZ, 4, name='N')
+            sage: M.is_submodule(M)
+            True
+            sage: M.is_submodule(N)
+            False
+        """
+        return self == other or self.ambient_module() == other
 
 
 class FiniteRankFreeModule(FiniteRankFreeModule_abstract):
@@ -942,7 +1045,7 @@ class FiniteRankFreeModule(FiniteRankFreeModule_abstract):
 
     @staticmethod
     def __classcall_private__(cls, ring, rank, name=None, latex_name=None, start_index=0,
-                              output_formatter=None, category=None):
+                              output_formatter=None, category=None, ambient=None):
         r"""
         Normalize init arguments for ``UniqueRepresentation``
 
@@ -965,7 +1068,7 @@ class FiniteRankFreeModule(FiniteRankFreeModule_abstract):
         if latex_name is None:
             latex_name = name
         return super(FiniteRankFreeModule, cls).__classcall__(
-            cls, ring, rank, name, latex_name, start_index, output_formatter, category)
+            cls, ring, rank, name, latex_name, start_index, output_formatter, category, ambient)
 
     def __init__(
         self,
@@ -976,6 +1079,7 @@ class FiniteRankFreeModule(FiniteRankFreeModule_abstract):
         start_index: int = 0,
         output_formatter=None,
         category=None,
+        ambient=None,
     ):
         r"""
         See :class:`FiniteRankFreeModule` for documentation and examples.
@@ -991,7 +1095,7 @@ class FiniteRankFreeModule(FiniteRankFreeModule_abstract):
 
         """
         super().__init__(ring, rank, name=name, latex_name=latex_name,
-                         category=category)
+                         category=category, ambient=ambient)
         self._sindex = start_index
         self._output_formatter = output_formatter
         # Dictionary of the tensor modules built on self
@@ -1160,7 +1264,7 @@ class FiniteRankFreeModule(FiniteRankFreeModule_abstract):
         from .free_module_homset import FreeModuleHomset
         return FreeModuleHomset(self, other)
 
-    def tensor_module(self, k, l):
+    def tensor_module(self, k, l, *, sym=None, antisym=None):
         r"""
         Return the free module of all tensors of type `(k, l)` defined on
         ``self``.
@@ -1171,6 +1275,18 @@ class FiniteRankFreeModule(FiniteRankFreeModule_abstract):
           type being `(k, l)`
         - ``l`` -- non-negative integer; the covariant rank, the tensor type
           being `(k, l)`
+        - ``sym`` -- (default: ``None``) a symmetry or a list of symmetries
+          among the tensor arguments: each symmetry is described by a tuple
+          containing the positions of the involved arguments, with the
+          convention ``position = 0`` for the first argument. For instance:
+
+          * ``sym = (0,1)`` for a symmetry between the 1st and 2nd arguments
+          * ``sym = [(0,2), (1,3,4)]`` for a symmetry between the 1st and 3rd
+            arguments and a symmetry between the 2nd, 4th and 5th arguments.
+
+        - ``antisym`` -- (default: ``None``) antisymmetry or list of
+          antisymmetries among the arguments, with the same convention
+          as for ``sym``
 
         OUTPUT:
 
@@ -1205,22 +1321,118 @@ class FiniteRankFreeModule(FiniteRankFreeModule_abstract):
             sage: M.tensor_module(0, 1) is M.dual()
             True
 
+        By using the arguments ``sym`` and ``antisym``, submodules of a full tensor
+        module can be constructed::
+
+            sage: T = M.tensor_module(4, 4, sym=((0, 1)), antisym=((4, 5))); T
+            Free module of type-(4,4) tensors on the Rank-3 free module M over the Integer Ring,
+             with symmetry on the index positions (0, 1),
+             with antisymmetry on the index positions (4, 5)
+            sage: T._name
+            'T^{2,3}(M)⊗T^{6,7}(M*)⊗Sym^{0,1}(M)⊗ASym^{4,5}(M*)'
+            sage: latex(T)
+            T^{\{2,3\}}(M) \otimes T^{\{6,7\}}(M^*) \otimes \mathrm{Sym}^{\{0,1\}}(M) \otimes \mathrm{ASym}^{\{4,5\}}(M^*)
+
         See :class:`~sage.tensor.modules.tensor_free_module.TensorFreeModule`
+        and :class:`~sage.tensor.modules.tensor_free_module.TensorFreeSubmodule_sym`
         for more documentation.
 
+        TESTS::
+
+            sage: M = FiniteRankFreeModule(ZZ, 2)
+            sage: M.tensor_module(2, 0, sym=(0,1)) is M.symmetric_power(2)
+            True
         """
+        from .comp import CompWithSym
+
+        sym, antisym = CompWithSym._canonicalize_sym_antisym(k + l, sym, antisym)
+        if sym or antisym:
+            key = (k, l, sym, antisym)
+        else:
+            key = (k, l)
         try:
-            return self._tensor_modules[(k,l)]
+            return self._tensor_modules[key]
         except KeyError:
-            if (k, l) == (1, 0):
+            if key == (1, 0):
                 T = self
-            elif (k, l) == (0, 1):
+            elif key == (0, 1):
                 T = self.dual()
+            elif sym or antisym:
+                from sage.tensor.modules.tensor_free_submodule import TensorFreeSubmodule_sym
+                T = TensorFreeSubmodule_sym(self, (k, l), sym=sym, antisym=antisym)
             else:
                 from sage.tensor.modules.tensor_free_module import TensorFreeModule
-                T = TensorFreeModule(self, (k,l))
-            self._tensor_modules[(k,l)] = T
+                T = TensorFreeModule(self, (k, l))
+            self._tensor_modules[key] = T
             return T
+
+    def symmetric_power(self, p):
+        r"""
+        Return the `p`-th symmetric power of ``self``.
+
+        EXAMPLES:
+
+        Symmetric powers of a free `\ZZ`-module of rank 3::
+
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: e = M.basis('e')
+            sage: M.symmetric_power(0)
+            Free module of type-(0,0) tensors on the Rank-3 free module M over the Integer Ring
+            sage: M.symmetric_power(1)  # return the module itself
+            Rank-3 free module M over the Integer Ring
+            sage: M.symmetric_power(1) is M
+            True
+            sage: M.symmetric_power(2)
+            Free module of fully symmetric type-(2,0) tensors
+             on the Rank-3 free module M over the Integer Ring
+            sage: M.symmetric_power(2).an_element()
+            Type-(2,0) tensor on the Rank-3 free module M over the Integer Ring
+            sage: M.symmetric_power(2).an_element().display()
+            e_0⊗e_0
+            sage: M.symmetric_power(3)
+            Free module of fully symmetric type-(3,0) tensors
+             on the Rank-3 free module M over the Integer Ring
+            sage: M.symmetric_power(3).an_element()
+            Type-(3,0) tensor on the Rank-3 free module M over the Integer Ring
+            sage: M.symmetric_power(3).an_element().display()
+            e_0⊗e_0⊗e_0
+        """
+        if p <= 1:
+            return self.tensor_module(p, 0)
+        return self.tensor_module(p, 0, sym=(tuple(range(p)),))
+
+    def dual_symmetric_power(self, p):
+        r"""
+        Return the `p`-th symmetric power of the dual of ``self``.
+
+        EXAMPLES:
+
+        Symmetric powers of the dual of a free `\ZZ`-module of rank 3::
+
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: e = M.basis('e')
+            sage: M.dual_symmetric_power(0)
+            Free module of type-(0,0) tensors on the Rank-3 free module M over the Integer Ring
+            sage: M.dual_symmetric_power(1)  # return the dual module
+            Dual of the Rank-3 free module M over the Integer Ring
+            sage: M.dual_symmetric_power(2)
+            Free module of fully symmetric type-(0,2) tensors
+             on the Rank-3 free module M over the Integer Ring
+            sage: M.dual_symmetric_power(2).an_element()
+            Symmetric bilinear form  on the Rank-3 free module M over the Integer Ring
+            sage: M.dual_symmetric_power(2).an_element().display()
+            e^0⊗e^0
+            sage: M.dual_symmetric_power(3)
+            Free module of fully symmetric type-(0,3) tensors
+             on the Rank-3 free module M over the Integer Ring
+            sage: M.dual_symmetric_power(3).an_element()
+            Type-(0,3) tensor on the Rank-3 free module M over the Integer Ring
+            sage: M.dual_symmetric_power(3).an_element().display()
+            e^0⊗e^0⊗e^0
+        """
+        if p <= 1:
+            return self.tensor_module(0, p)
+        return self.tensor_module(0, p, sym=(tuple(range(p)),))
 
     def exterior_power(self, p):
         r"""
@@ -1253,7 +1465,7 @@ class FiniteRankFreeModule(FiniteRankFreeModule_abstract):
 
         EXAMPLES:
 
-        Exterior powers of the dual of a free `\ZZ`-module of rank 3::
+        Exterior powers of a free `\ZZ`-module of rank 3::
 
             sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
             sage: e = M.basis('e')
@@ -1602,6 +1814,69 @@ class FiniteRankFreeModule(FiniteRankFreeModule_abstract):
                 raise ValueError("the provided module elements are not "
                                  "linearly independent")
         return resu
+
+    def _test_basis(self, tester=None, **options):
+        r"""
+        Test that the ``basis`` method works correctly.
+
+        EXAMPLES::
+
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: M._test_basis(verbose=True)
+            <BLANKLINE>
+              Running the test suite of self.basis('test')
+              running ._test_an_element() . . . pass
+              running ._test_cardinality() . . . pass
+              running ._test_category() . . . pass
+              running ._test_construction() . . . pass
+              running ._test_elements() . . .
+              Running the test suite of self.an_element()
+                running ._test_category() . . . pass
+                running ._test_eq() . . . pass
+                running ._test_new() . . . pass
+                running ._test_nonzero_equal() . . . pass
+                running ._test_not_implemented_methods() . . . pass
+                running ._test_pickling() . . . pass
+                pass
+              running ._test_elements_eq_reflexive() . . . pass
+              running ._test_elements_eq_symmetric() . . . pass
+              running ._test_elements_eq_transitive() . . . pass
+              running ._test_elements_neq() . . . pass
+              running ._test_enumerated_set_contains() . . . pass
+              running ._test_enumerated_set_iter_cardinality() . . . pass
+              running ._test_enumerated_set_iter_list() . . . pass
+              running ._test_eq() . . . pass
+              running ._test_iter_len() . . . pass
+              running ._test_new() . . . pass
+              running ._test_not_implemented_methods() . . . pass
+              running ._test_pickling() . . . pass
+              running ._test_some_elements() . . . pass
+
+        """
+        from sage.misc.sage_unittest import TestSuite
+        # The intention is to raise an exception only if this is
+        # run as a sub-testsuite of a larger testsuite.
+        # (from _test_elements)
+        is_sub_testsuite = (tester is not None)
+        tester = self._tester(tester=tester, **options)
+        try:
+            b = self.basis('test')
+        except NotImplementedError:
+            return
+        # Test uniqueness
+        b_again = self.basis('test')
+        tester.assertTrue(b is b_again)
+        # Test rank
+        tester.assertEqual(len(b), self.rank())
+        indices = list(self.irange())
+        tester.assertEqual(len(b), len(indices))
+        # Test basis indexing
+        for index, element in zip(indices, b):
+            tester.assertTrue(element is b[index])
+        # Run test suite of the basis object (similar to _test_elements)
+        tester.info("\n  Running the test suite of self.basis('test')")
+        TestSuite(b).run(verbose=tester._verbose, prefix=tester._prefix + "  ",
+                         raise_on_failure=is_sub_testsuite)
 
     def tensor(self, tensor_type, name=None, latex_name=None, sym=None,
                antisym=None):
@@ -2684,7 +2959,7 @@ class FiniteRankFreeModule(FiniteRankFreeModule_abstract):
         return homset(matrix_rep, bases=bases, name=name,
                       latex_name=latex_name)
 
-    def isomorphism_with_fixed_basis(self, basis, codomain=None):
+    def isomorphism_with_fixed_basis(self, basis=None, codomain=None):
         r"""
         Construct the canonical isomorphism from the free module ``self``
         to a free module in which ``basis`` of ``self`` is mapped to the
@@ -2692,8 +2967,9 @@ class FiniteRankFreeModule(FiniteRankFreeModule_abstract):
 
         INPUT:
 
-        - ``basis`` -- the basis of ``self`` which should be mapped to the
-          distinguished basis on ``codomain``
+        - ``basis`` -- (default: ``None``) the basis of ``self`` which
+          should be mapped to the distinguished basis on ``codomain``;
+          if ``None``, the default basis is assumed.
         - ``codomain`` -- (default: ``None``) the codomain of the
           isomorphism represented by a free module within the category
           :class:`~sage.categories.modules_with_basis.ModulesWithBasis` with
@@ -2758,6 +3034,8 @@ class FiniteRankFreeModule(FiniteRankFreeModule_abstract):
             ValueError: domain and codomain must have the same base ring
         """
         base_ring = self.base_ring()
+        if basis is None:
+            basis = self.default_basis()
         if codomain is None:
             from sage.combinat.free_module import CombinatorialFreeModule
             if isinstance(basis._symbol, str):
@@ -2783,6 +3061,20 @@ class FiniteRankFreeModule(FiniteRankFreeModule_abstract):
                                 for i in self.irange())
 
         return self.module_morphism(function=_isomorphism, codomain=codomain)
+
+    def _test_isomorphism_with_fixed_basis(self, **options):
+        r"""
+        Test that the method ``isomorphism_with_fixed_basis`` works correctly.
+
+        EXAMPLES::
+
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: M._test_isomorphism_with_fixed_basis()
+        """
+        tester = self._tester(**options)
+        basis = self.basis('test')
+        morphism = self.isomorphism_with_fixed_basis(basis)
+        tester.assertEqual(morphism.codomain().rank(), self.rank())
 
     def endomorphism(self, matrix_rep, basis=None, name=None, latex_name=None):
         r"""

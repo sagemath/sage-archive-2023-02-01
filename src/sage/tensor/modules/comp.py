@@ -525,14 +525,47 @@ class Components(SageObject):
             sage: c._repr_()
             '2-indices components w.r.t. [1, 2, 3]'
 
+            sage: from sage.tensor.modules.comp import CompWithSym
+            sage: CompWithSym(ZZ, [1,2,3], 4, sym=(0,1))
+            4-indices components w.r.t. [1, 2, 3],
+             with symmetry on the index positions (0, 1)
+            sage: CompWithSym(ZZ, [1,2,3], 4, sym=(0,1), antisym=(2,3))
+            4-indices components w.r.t. [1, 2, 3],
+             with symmetry on the index positions (0, 1),
+             with antisymmetry on the index positions (2, 3)
+
+            sage: from sage.tensor.modules.comp import CompFullySym
+            sage: CompFullySym(ZZ, (1,2,3), 4)
+            Fully symmetric 4-indices components w.r.t. (1, 2, 3)
+
+            sage: from sage.tensor.modules.comp import CompFullyAntiSym
+            sage: CompFullyAntiSym(ZZ, (1,2,3), 4)
+            Fully antisymmetric 4-indices components w.r.t. (1, 2, 3)
         """
-        description = str(self._nid)
+        prefix, suffix = self._repr_symmetry()
+        description = prefix
+        description += str(self._nid)
         if self._nid == 1:
             description += "-index"
         else:
             description += "-indices"
         description += " components w.r.t. " + str(self._frame)
+        description += suffix
         return description
+
+    def _repr_symmetry(self):
+        r"""
+        Return a prefix and a suffix string describing the symmetry of ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.tensor.modules.comp import Components
+            sage: c = Components(ZZ, [1,2,3], 2)
+            sage: c._repr_symmetry()
+            ('', '')
+
+        """
+        return "", ""
 
     def _new_instance(self):
         r"""
@@ -3128,35 +3161,29 @@ class CompWithSym(Components):
                              "index position appears more than once")
         return result_sym, result_antisym
 
-    def _repr_(self):
+    def _repr_symmetry(self):
         r"""
-        Return a string representation of ``self``.
+        Return a prefix and a suffix string describing the symmetry of ``self``.
 
         EXAMPLES::
 
             sage: from sage.tensor.modules.comp import CompWithSym
-            sage: CompWithSym(ZZ, [1,2,3], 4, sym=(0,1))
-            4-indices components w.r.t. [1, 2, 3],
-             with symmetry on the index positions (0, 1)
-            sage: CompWithSym(ZZ, [1,2,3], 4, sym=(0,1), antisym=(2,3))
-            4-indices components w.r.t. [1, 2, 3],
-             with symmetry on the index positions (0, 1),
-             with antisymmetry on the index positions (2, 3)
-
+            sage: cp = CompWithSym(QQ, [1,2,3], 4, sym=(0,1))
+            sage: cp._repr_symmetry()
+            ('', ', with symmetry on the index positions (0, 1)')
+            sage: cp = CompWithSym(QQ, [1,2,3], 4, sym=((0,1),), antisym=((2,3),))
+            sage: cp._repr_symmetry()
+            ('',
+             ', with symmetry on the index positions (0, 1), with antisymmetry on the index positions (2, 3)')
         """
-        description = str(self._nid)
-        if self._nid == 1:
-            description += "-index"
-        else:
-            description += "-indices"
-        description += " components w.r.t. " + str(self._frame)
+        description = ""
         for isym in self._sym:
             description += ", with symmetry on the index positions " + \
                            str(tuple(isym))
         for isym in self._antisym:
             description += ", with antisymmetry on the index positions " + \
                            str(tuple(isym))
-        return description
+        return "", description
 
     def _new_instance(self):
         r"""
@@ -4824,19 +4851,19 @@ class CompFullySym(CompWithSym):
         CompWithSym.__init__(self, ring, frame, nb_indices, start_index,
                              output_formatter, sym=range(nb_indices))
 
-    def _repr_(self):
+    def _repr_symmetry(self):
         r"""
-        Return a string representation of ``self``.
+        Return a prefix and a suffix string describing the symmetry of ``self``.
 
         EXAMPLES::
 
             sage: from sage.tensor.modules.comp import CompFullySym
-            sage: CompFullySym(ZZ, (1,2,3), 4)
-            Fully symmetric 4-indices components w.r.t. (1, 2, 3)
+            sage: c = CompFullySym(ZZ, (1,2,3), 4)
+            sage: c._repr_symmetry()
+            ('Fully symmetric ', '')
 
         """
-        return "Fully symmetric " + str(self._nid) + "-indices" + \
-              " components w.r.t. " + str(self._frame)
+        return "Fully symmetric ", ""
 
     def _new_instance(self):
         r"""
@@ -5283,19 +5310,19 @@ class CompFullyAntiSym(CompWithSym):
         CompWithSym.__init__(self, ring, frame, nb_indices, start_index,
                              output_formatter, antisym=range(nb_indices))
 
-    def _repr_(self):
+    def _repr_symmetry(self):
         r"""
-        Return a string representation of ``self``.
+        Return a prefix and a suffix string describing the symmetry of ``self``.
 
         EXAMPLES::
 
             sage: from sage.tensor.modules.comp import CompFullyAntiSym
-            sage: CompFullyAntiSym(ZZ, (1,2,3), 4)
-            Fully antisymmetric 4-indices components w.r.t. (1, 2, 3)
+            sage: c = CompFullyAntiSym(ZZ, (1,2,3), 4)
+            sage: c._repr_symmetry()
+            ('Fully antisymmetric ', '')
 
         """
-        return "Fully antisymmetric " + str(self._nid) + "-indices" + \
-               " components w.r.t. " + str(self._frame)
+        return "Fully antisymmetric ", ""
 
     def _new_instance(self):
         r"""

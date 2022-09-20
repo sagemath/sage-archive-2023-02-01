@@ -47,7 +47,6 @@ from sage.categories.graded_algebras_with_basis import GradedAlgebrasWithBasis
 from sage.categories.rings import Rings
 from sage.categories.unique_factorization_domains import UniqueFactorizationDomains
 from sage.categories.integral_domains import IntegralDomains
-from sage.categories.euclidean_domains import EuclideanDomains
 from sage.categories.fields import Fields
 from sage.categories.complete_discrete_valuation import (CompleteDiscreteValuationFields,
                                                          CompleteDiscreteValuationRings)

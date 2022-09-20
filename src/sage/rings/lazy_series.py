@@ -4893,9 +4893,7 @@ class LazyPowerSeries_gcd_mixin:
             return (P.zero(), P.one(), P.zero())
         # get the valuations
         sv = self.valuation()
-        sc = self[sv]
         fv = f.valuation()
-        fc = f[fv]
         val = min(sv, fv)
         assert val is not infinity
         # This assumes the base ring is a field

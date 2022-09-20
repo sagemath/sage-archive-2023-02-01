@@ -25,6 +25,7 @@ from cpython.object cimport Py_NE, Py_EQ
 from sage.misc.repr import repr_lincomb
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
+from sage.misc.superseded import deprecation
 from sage.typeset.ascii_art import AsciiArt, empty_ascii_art, ascii_art
 from sage.typeset.unicode_art import UnicodeArt, empty_unicode_art, unicode_art
 from sage.categories.all import Category, Sets, ModulesWithBasis
@@ -32,6 +33,23 @@ from sage.data_structures.blas_dict cimport add, negate, scal, axpy
 
 
 cdef class IndexedFreeModuleElement(ModuleElement):
+    r"""
+    Element class for :class:`~sage.combinat.free_module.CombinatorialFreeModule`
+
+    TESTS::
+
+        sage: import collections.abc
+        sage: F = CombinatorialFreeModule(QQ, ['a','b','c'])
+        sage: B = F.basis()
+        sage: f = B['a'] + 3*B['c']; f
+        B['a'] + 3*B['c']
+        sage: isinstance(f, collections.abc.Sized)
+        True
+        sage: isinstance(f, collections.abc.Iterable)
+        True
+        sage: isinstance(f, collections.abc.Collection)  # known bug - will be fixed by removing __contains__
+        False
+    """
     def __init__(self, M, x):
         """
         Create a combinatorial module element.
@@ -80,6 +98,9 @@ cdef class IndexedFreeModuleElement(ModuleElement):
             sage: B = F.basis()
             sage: f = B['a'] + 3*B['c']
             sage: 'a' in f
+            doctest:warning...
+            DeprecationWarning: using 'index in vector' is deprecated; use 'index in vector.support()' instead
+            See https://trac.sagemath.org/34509 for details.
             True
             sage: 'b' in f
             False
@@ -91,7 +112,8 @@ cdef class IndexedFreeModuleElement(ModuleElement):
             sage: Partition([1,1,1]) in a
             False
         """
-        return x in self._monomial_coefficients and self._monomial_coefficients[x] != 0
+        deprecation(34509, "using 'index in vector' is deprecated; use 'index in vector.support()' instead")
+        return x in self.support()
 
     def __hash__(self):
         """

@@ -23,6 +23,8 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #****************************************************************************
 
+import collections.abc
+
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
@@ -126,7 +128,7 @@ class Subcrystal(UniqueRepresentation, Parent):
             sage: S1 is S2
             True
         """
-        if isinstance(contained, (list, tuple, set, frozenset)):
+        if isinstance(contained, (collections.abc.Sequence, collections.abc.Set)):
             contained = frozenset(contained)
         #elif contained in Sets():
 

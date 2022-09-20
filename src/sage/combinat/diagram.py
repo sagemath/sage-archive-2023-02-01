@@ -422,20 +422,18 @@ class Diagrams(UniqueRepresentation, Parent):
             [(0, 0), (0, 1), (1, 1)]
             [(0, 0), (0, 1), (1, 0), (1, 1)]
         """
-        from sage.sets.positive_integers import PositiveIntegers
-        from sage.all import cartesian_product
+        from sage.sets.non_negative_integers import NonNegativeIntegers
+        from sage.categories.cartesian_product import cartesian_product
         from sage.misc.misc import subsets
         # the product of positive integers automatically implements an
         # an enumeration which allows us to get out of the first column
-        PP = PositiveIntegers()
-        P = cartesian_product([PP, PP])
-        X = subsets(P)
+        N = NonNegativeIntegers()
+        NxN = cartesian_product([N, N])
+        X = subsets(NxN)
         while True:
-            # we want to allow cells in the index-0 row but we
-            # dont want all of them to be in the index-0 row
             cells = next(X)
             try:
-                yield self.element_class(self, tuple((i-1, j-1) for i,j in cells))
+                yield self.element_class(self, tuple((i, j) for i,j in cells))
             except ValueError:
                 # if cells causes the .check method of a
                 # subclass to fail, just go to the next one

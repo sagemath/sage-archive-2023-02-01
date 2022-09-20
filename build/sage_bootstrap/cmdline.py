@@ -4,6 +4,11 @@ View for the Commandline UI
 
 This module handles the main "sage-package" commandline utility, which
 is also exposed as "sage --package".
+
+AUTHORS:
+
+    - Volker Braun (2016): initial version
+    - Thierry Monteil (2022): clean option to remove outdated source tarballs
 """
 
 # ****************************************************************************
@@ -174,6 +179,16 @@ EXAMPLE:
     Creating new package "foo"
 """
 
+epilog_clean = \
+"""
+Remove outdated source tarballs from the upstream/ directory
+
+EXAMPLE:
+
+    $ sage --package clean
+    42 files were removed from the .../upstream directory
+"""
+
 
 def make_parser():
     """
@@ -316,6 +331,11 @@ def make_parser():
         '--pypi', action="store_true",
         help='Create a package for a Python package available on PyPI')
 
+    parser_clean = subparsers.add_parser(
+        'clean', epilog=epilog_clean,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        help='Remove outdated source tarballs from the upstream/ directory')
+
     return parser
 
 
@@ -356,6 +376,8 @@ def run():
         app.upload_cls(args.package_name)
     elif args.subcommand == 'fix-checksum':
         app.fix_checksum_cls(*args.package_class)
+    elif args.subcommand == 'clean':
+        app.clean()
     else:
         raise RuntimeError('unknown subcommand: {0}'.format(args))
 

@@ -8,7 +8,7 @@ AUTHORS:
 - Travis Scrimshaw (29-08-2022): Implemented ``copy`` as the identity map.
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2017, 2022 Travis Scrimshaw <tcscrims at gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
@@ -16,7 +16,7 @@ AUTHORS:
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#*****************************************************************************
+# ****************************************************************************
 
 from sage.structure.element cimport parent
 from sage.structure.richcmp cimport richcmp, rich_to_bool
@@ -30,12 +30,14 @@ from sage.typeset.unicode_art import UnicodeArt, empty_unicode_art, unicode_art
 from sage.categories.all import Category, Sets, ModulesWithBasis
 from sage.data_structures.blas_dict cimport add, negate, scal, axpy
 
+
 cdef class IndexedFreeModuleElement(ModuleElement):
     def __init__(self, M, x):
         """
-        Create a combinatorial module element. This should never be
-        called directly, but only through the parent combinatorial
-        free module's :meth:`__call__` method.
+        Create a combinatorial module element.
+
+        This should never be called directly, but only through the
+        parent combinatorial free module's :meth:`__call__` method.
 
         TESTS::
 
@@ -60,19 +62,17 @@ cdef class IndexedFreeModuleElement(ModuleElement):
             sage: [i for i in sorted(f)]
             [('a', 1), ('c', 3)]
 
-        ::
-
             sage: s = SymmetricFunctions(QQ).schur()
             sage: a = s([2,1]) + s([3])
             sage: [i for i in sorted(a)]
             [([2, 1], 1), ([3], 1)]
         """
-        return iter(self._monomial_coefficients.iteritems())
+        return iter(self._monomial_coefficients.items())
 
     def __contains__(self, x):
         """
-        Returns whether or not a combinatorial object x indexing a basis
-        element is in the support of self.
+        Return whether or not a combinatorial object ``x`` indexing a basis
+        element is in the support of ``self``.
 
         EXAMPLES::
 
@@ -83,8 +83,6 @@ cdef class IndexedFreeModuleElement(ModuleElement):
             True
             sage: 'b' in f
             False
-
-        ::
 
             sage: s = SymmetricFunctions(QQ).schur()
             sage: a = s([2,1]) + s([3])
@@ -129,7 +127,7 @@ cdef class IndexedFreeModuleElement(ModuleElement):
             hash value of the parent. See :trac:`15959`.
         """
         if not self._hash_set:
-            self._hash = hash(frozenset(self._monomial_coefficients.iteritems()))
+            self._hash = hash(frozenset(self._monomial_coefficients.items()))
             self._hash_set = True
         return self._hash
 
@@ -148,7 +146,8 @@ cdef class IndexedFreeModuleElement(ModuleElement):
     def __setstate__(self, state):
         r"""
         For unpickling old ``CombinatorialFreeModuleElement`` classes.
-        See :trac:`22632` and register_unpickle_override below.
+
+        See :trac:`22632` and ``register_unpickle_override`` below.
 
         EXAMPLES::
 
@@ -178,7 +177,7 @@ cdef class IndexedFreeModuleElement(ModuleElement):
             2*B['x'] + 2*B['y']
         """
         self._set_parent(state[0])
-        for k, v in state[1].iteritems():
+        for k, v in state[1].items():
             setattr(self, k, v)
 
     def __copy__(self):
@@ -257,7 +256,7 @@ cdef class IndexedFreeModuleElement(ModuleElement):
 
     def _sorted_items_for_printing(self):
         """
-        Returns the items (i.e terms) of ``self``, sorted for printing
+        Return the items (i.e. terms) of ``self``, sorted for printing.
 
         EXAMPLES::
 
@@ -274,7 +273,7 @@ cdef class IndexedFreeModuleElement(ModuleElement):
         .. SEEALSO:: :meth:`_repr_`, :meth:`_latex_`, :meth:`print_options`
         """
         print_options = self._parent.print_options()
-        v = list(self._monomial_coefficients.iteritems())
+        v = list(self._monomial_coefficients.items())
         try:
             v.sort(key=lambda monomial_coeff:
                         print_options['sorting_key'](monomial_coeff[0]),
@@ -361,7 +360,7 @@ cdef class IndexedFreeModuleElement(ModuleElement):
         except AttributeError:
             one_basis = None
 
-        for (monomial,c) in terms:
+        for monomial, c in terms:
             b = repr_monomial(monomial) # PCR
             if c != 0:
                 break_points = []
@@ -620,8 +619,8 @@ cdef class IndexedFreeModuleElement(ModuleElement):
         if op == Py_NE:
             return True
 
-        v = sorted(self._monomial_coefficients.iteritems())
-        w = sorted(elt._monomial_coefficients.iteritems())
+        v = sorted(self._monomial_coefficients.items())
+        w = sorted(elt._monomial_coefficients.items())
         return richcmp(v, w, op)
 
     cpdef _add_(self, other):
@@ -938,10 +937,11 @@ cdef class IndexedFreeModuleElement(ModuleElement):
         D = self._monomial_coefficients
         if not B.is_field():
             return type(self)(F, {k: c._divide_if_possible(x)
-                                  for k, c in D.iteritems()})
+                                  for k, c in D.items()})
 
         x_inv = B(x) ** -1
         return type(self)(F, scal(x_inv, D))
+
 
 def _unpickle_element(C, d):
     """

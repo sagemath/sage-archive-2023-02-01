@@ -1800,6 +1800,72 @@ class Module_free_ambient(Module):
         """
         return self.quotient(sub, check=True)
 
+    def free_resolution(self, *args, **kwds):
+        r"""
+        Return a free resolution of ``self``.
+
+        For input options, see
+        :class:`~sage.homology.free_resolution.FreeResolution`.
+
+        EXAMPLES::
+
+            sage: S.<x,y,z> = PolynomialRing(QQ)
+            sage: M = S**2
+            sage: N = M.submodule([vector([x - y, z]), vector([y * z, x * z])])
+            sage: res = N.free_resolution()
+            sage: res
+            S^2 <-- S^2 <-- 0
+            sage: ascii_art(res.chain_complex())
+                        [x - y   y*z]
+                        [    z   x*z]
+             0 <-- C_0 <-------------- C_1 <-- 0
+        """
+        from sage.rings.polynomial.multi_polynomial_libsingular import MPolynomialRing_libsingular
+        if isinstance(self.base_ring(), MPolynomialRing_libsingular):
+            from sage.homology.free_resolution import FiniteFreeResolution_singular
+            return FiniteFreeResolution_singular(self, *args, **kwds)
+
+        if isinstance(self, FreeModule_generic):
+            from sage.homology.free_resolution import FiniteFreeResolution_free_module
+            return FiniteFreeResolution_free_module(self, *args, **kwds)
+
+        raise NotImplementedError("the module must be a free module or "
+                                  "have the base ring be a polynomial ring using Singular")
+
+
+    def graded_free_resolution(self, *args, **kwds):
+        r"""
+        Return a graded free resolution of ``self``.
+
+        For input options, see
+        :class:`~sage.homology.graded_resolution.GradedFiniteFreeResolution`.
+
+        EXAMPLES::
+
+            sage: S.<x,y,z> = PolynomialRing(QQ)
+            sage: M = S**2
+            sage: N = M.submodule([vector([x - y, z]), vector([y * z, x * z])])
+            sage: N.graded_free_resolution(shifts=[1, -1])
+            S(-1)⊕S(1) <-- S(-2)⊕S(-3) <-- 0
+            sage: N.graded_free_resolution(shifts=[2, 3])
+            S(-2)⊕S(-3) <-- S(-3)⊕S(-4) <-- 0
+
+            sage: N = M.submodule([vector([x^3 - y^6, z^2]), vector([y * z, x])])
+            sage: N.graded_free_resolution(degrees=[2, 1, 3], shifts=[2, 3])
+            S(-2)⊕S(-3) <-- S(-6)⊕S(-8) <-- 0
+        """
+        from sage.rings.polynomial.multi_polynomial_libsingular import MPolynomialRing_libsingular
+        if isinstance(self.base_ring(), MPolynomialRing_libsingular):
+            from sage.homology.graded_resolution import GradedFiniteFreeResolution_singular
+            return GradedFiniteFreeResolution_singular(self, *args, **kwds)
+
+        if isinstance(self, FreeModule_generic):
+            from sage.homology.graded_resolution import GradedFiniteFreeResolution_free_module
+            return GradedFiniteFreeResolution_free_module(self, *args, **kwds)
+
+        raise NotImplementedError("the module must be a free module or "
+                                  "have the base ring be a polynomial ring using Singular")
+
 
 class FreeModule_generic(Module_free_ambient):
     """

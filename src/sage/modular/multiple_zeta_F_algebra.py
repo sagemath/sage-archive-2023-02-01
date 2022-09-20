@@ -35,14 +35,14 @@ from sage.misc.lazy_attribute import lazy_attribute
 from sage.sets.family import Family
 from sage.sets.integer_range import IntegerRange
 from sage.rings.integer_ring import ZZ
-from sage.rings.semirings.non_negative_integer_semiring import NN
+from sage.sets.non_negative_integers import NonNegativeIntegers
 from sage.rings.infinity import Infinity
 from sage.modules.free_module_element import vector
 
 
 # the indexing set: (integer power of f_2, word in 3, 5, 7,...)
 W_Odds = Words(IntegerRange(3, Infinity, 2), infinite=False)
-Indices = NN.cartesian_product(W_Odds)
+Indices = NonNegativeIntegers().cartesian_product(W_Odds)
 
 
 def str_to_index(x: str):
@@ -60,8 +60,8 @@ def str_to_index(x: str):
         sage: str_to_index("22357")
         (2, word: 357)
     """
-    p = NN(x.count("2"))
-    w = [NN(int(i)) for i in x if i != '2']
+    p = x.count("2")
+    w = [int(i) for i in x if i != '2']
     return Indices((p, w))
 
 

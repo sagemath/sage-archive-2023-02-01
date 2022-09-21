@@ -42,7 +42,6 @@ from sage.modules.free_module_element import vector
 
 # the indexing set: (integer power of f_2, word in 3, 5, 7,...)
 W_Odds = Words(IntegerRange(3, Infinity, 2), infinite=False)
-Indices = NonNegativeIntegers().cartesian_product(W_Odds)
 
 
 def str_to_index(x: str):
@@ -58,11 +57,11 @@ def str_to_index(x: str):
 
         sage: from sage.modular.multiple_zeta_F_algebra import str_to_index
         sage: str_to_index("22357")
-        (2, word: 357)
+        (2, [3, 5, 7])
     """
     p = x.count("2")
     w = [int(i) for i in x if i != '2']
-    return Indices((p, w))
+    return (p, w)
 
 
 def basis_f_odd_iterator(n):
@@ -280,7 +279,8 @@ class F_algebra(CombinatorialFreeModule):
         if R not in Rings():
             raise TypeError("argument R must be a ring")
         self.__ngens = Infinity
-        self._alphabet = Family({z: z for z in [3, 5, 7]})
+        Indices = NonNegativeIntegers().cartesian_product(W_Odds)
+        self._indices = Indices
         cat = BialgebrasWithBasis(R).Commutative().Graded()
         CombinatorialFreeModule.__init__(self, R, Indices,
                                          latex_prefix="", prefix='f',
@@ -389,7 +389,7 @@ class F_algebra(CombinatorialFreeModule):
         p1, w1 = pw1
         p2, w2 = pw2
         if not w1:
-            return self.monomial((p1 + p2, w2))
+            return self.monomial(self._indices((p1 + p2, w2)))
         letter = W_Odds([w1[0]], check=False)
         return self.sum_of_monomials((p1 + p2, letter + W_Odds(u, check=False))
                                      for u in w1[1:].shuffle(w2))
@@ -430,8 +430,8 @@ class F_algebra(CombinatorialFreeModule):
             f9
         """
         if i == 0:
-            return self.monomial(Indices((1, [])))
-        return self.monomial(Indices((0, [2 * i + 1])))
+            return self.monomial(self._indices((1, [])))
+        return self.monomial(self._indices((0, [2 * i + 1])))
 
     def custom_gen(self, i):
         r"""
@@ -569,7 +569,7 @@ class F_algebra(CombinatorialFreeModule):
             f2^2*f3f5
         """
         if isinstance(x, (str, FiniteWord_class)):
-            return self.monomial(str_to_index(x))
+            return self.monomial(self._indices(str_to_index(x)))
 
         P = x.parent()
         if isinstance(P, F_algebra):
@@ -687,7 +687,7 @@ class F_algebra(CombinatorialFreeModule):
             """
             if isinstance(w, str):
                 w = str_to_index(w)
-            w = Indices(w)
+            w = self.parent()._indices(w)
             return super().coefficient(w)
 
         def to_vector(self):
@@ -708,7 +708,7 @@ class F_algebra(CombinatorialFreeModule):
 
             EXAMPLES::
 
-                sage: from sage.modular.multiple_zeta_F_algebra import F_algebra, Indices
+                sage: from sage.modular.multiple_zeta_F_algebra import F_algebra
                 sage: F = F_algebra(QQ)
                 sage: f2 = F("2")
                 sage: x = f2**4 + 34 * F("233")
@@ -717,7 +717,9 @@ class F_algebra(CombinatorialFreeModule):
                 sage: x.coefficients()
                 [34, 1]
 
-                sage: x = F.monomial(Indices((0,[11]))); x
+            TESTS::
+
+                sage: x = F.monomial(F._indices((0,[11]))); x
                 f11
                 sage: x.to_vector()
                 (1, 0, 0, 0, 0, 0, 0, 0, 0)
@@ -737,7 +739,7 @@ class F_algebra(CombinatorialFreeModule):
 
             EXAMPLES::
 
-                sage: from sage.modular.multiple_zeta_F_algebra import F_algebra, Indices
+                sage: from sage.modular.multiple_zeta_F_algebra import F_algebra
                 sage: F = F_algebra(QQ)
                 sage: t = 4*F("35")+F("27")
                 sage: t.without_f2()

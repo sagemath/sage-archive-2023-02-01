@@ -711,9 +711,11 @@ class F_algebra(CombinatorialFreeModule):
                 sage: from sage.modular.multiple_zeta_F_algebra import F_algebra, Indices
                 sage: F = F_algebra(QQ)
                 sage: f2 = F("2")
-                sage: x = f2**4 + F("233")
+                sage: x = f2**4 + 34 * F("233")
                 sage: x.to_vector()
-                (0, 0, 1, 1)
+                (0, 0, 34, 1)
+                sage: x.coefficients()
+                [34, 1]
 
                 sage: x = F.monomial(Indices((0,[11]))); x
                 f11
@@ -728,8 +730,6 @@ class F_algebra(CombinatorialFreeModule):
             N = 2 * a + sum(int(x) for x in b)
             return vector(BR, [self.coefficient(b)
                                for b in basis_f_iterator(N)])
-
-        coefficients = to_vector
 
         def without_f2(self):
             """

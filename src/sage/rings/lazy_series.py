@@ -1154,6 +1154,17 @@ class LazyModuleElement(Element):
             sage: f
             1 + t - t^2 + 3*t^3 - 13*t^4 + 69*t^5 - 419*t^6 + O(t^7)
 
+            sage: L.<t> = LazyLaurentSeriesRing(QQ)
+            sage: f = L.undefined(valuation=0)
+            sage: f.define(1+(t*f).revert())
+            sage: f
+            1 + t - t^2 + 3*t^3 - 13*t^4 + 69*t^5 - 419*t^6 + O(t^7)
+
+            sage: s = SymmetricFunctions(QQ).s()
+            sage: L = LazySymmetricFunctions(s)
+            sage: f = L.undefined()
+            sage: f.define(1+(s[1]*f).revert())
+
         """
         if not isinstance(self._coeff_stream, Stream_uninitialized) or self._coeff_stream._target is not None:
             raise ValueError("series already defined")
@@ -5364,11 +5375,11 @@ class LazySymmetricFunction(LazyCompletionGradedAlgebraElement):
 
         # TODO: coefficients should not be checked here, it prevents
         # us from using self.define in some cases!
-        if not coeff_stream[1]:
-            raise ValueError("compositional inverse does not exist")
-
-        if coeff_stream[0]:
-            raise ValueError("cannot determine whether the compositional inverse exists")
+#        if not coeff_stream[1]:
+#            raise ValueError("compositional inverse does not exist")
+#
+#        if coeff_stream[0]:
+#            raise ValueError("cannot determine whether the compositional inverse exists")
 
         X = R(Partition([1]))
         b = coeff_stream[1][Partition([1])]

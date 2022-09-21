@@ -1842,7 +1842,6 @@ class Stream_cauchy_compose(Stream_binary):
         """
         fv = self._left._approximate_order
         gv = self._right._approximate_order
-        _ = self._approximate_order # this is only to trigger the initialization
         if n < 0:
             return sum(self._left[i] * self._neg_powers[-i][n]
                        for i in range(fv, n // gv + 1))

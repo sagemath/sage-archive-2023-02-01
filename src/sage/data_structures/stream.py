@@ -111,11 +111,29 @@ class Stream():
     INPUT:
 
     - ``sparse`` -- boolean; whether the implementation of the stream is sparse
-    - ``approximate_order`` -- integer; a lower bound for the order
-      of the stream
     - ``true_order`` -- boolean; if the approximate order is the actual order
+
+    .. NOTE::
+
+        An implementation of a stream class depending on other stream
+        classes must not access coefficients or the approximate order
+        of these, in order not to interfere with lazy definitions for
+        :class:`Stream_uninitialized`.
+
+        If an approximate order or even the true order is known, it
+        must be set after calling ``super().__init__``.
+
+        Otherwise, a lazy attribute `_approximate_order` has to be
+        defined.  Any initialization code depending on the
+        approximate orders of input streams can be put into this
+        definition.
+
+        However, keep in mind that (trivially) this initialization
+        code is not executed if `_approximate_order` is set to a
+        value before it is accessed.
+
     """
-    def __init__(self, sparse, approximate_order, true_order=False):
+    def __init__(self, sparse, true_order):
         """
         Initialize ``self``.
 
@@ -125,8 +143,11 @@ class Stream():
             sage: CS = Stream(True, 1)
         """
         self._is_sparse = sparse
-        self._approximate_order = approximate_order
         self._true_order = true_order
+
+    @lazy_attribute
+    def _approximate_order(self):
+        raise NotImplementedError
 
     def __ne__(self, other):
         """
@@ -162,6 +183,7 @@ class Stream():
         """
         return False
 
+
 class Stream_inexact(Stream):
     """
     An abstract base class for the stream when we do not know it is
@@ -182,7 +204,7 @@ class Stream_inexact(Stream):
         will allow shortcuts.
 
     """
-    def __init__(self, is_sparse, approximate_order):
+    def __init__(self, is_sparse, true_order):
         """
         Initialize the stream class for a stream whose
         coefficients are not necessarily eventally constant.
@@ -196,14 +218,19 @@ class Stream_inexact(Stream):
             True
 
         """
-        super().__init__(is_sparse, approximate_order)
-
+        super().__init__(is_sparse, true_order)
         if self._is_sparse:
             self._cache = dict()  # cache of known coefficients
         else:
             self._cache = list()
-            self._offset = approximate_order  # self[n] = self._cache[n-self._offset]
             self._iter = self.iterate_coefficients()
+
+    @lazy_attribute
+    def _offset(self):
+        # self[n] = self._cache[n-self._offset]
+        if self._is_sparse:
+            raise ValueError("_offset is only for sparse streams")
+        return self._approximate_order
 
     def is_nonzero(self):
         r"""
@@ -604,7 +631,6 @@ class Stream_exact(Stream):
         # insist that the last entry of initial_coefficients is
         # different from constant, because __eq__ below would become
         # complicated otherwise
-
         for i, v in enumerate(initial_coefficients):
             if v:
                 # We have found the first nonzero coefficient
@@ -630,7 +656,8 @@ class Stream_exact(Stream):
 
         assert self._initial_coefficients or self._constant, "Stream_exact should only be used for non-zero streams"
 
-        super().__init__(is_sparse, order, true_order=True)
+        super().__init__(is_sparse, True)
+        self._approximate_order = order
 
     def __getitem__(self, n):
         """
@@ -862,7 +889,7 @@ class Stream_iterator(Stream_inexact):
         [0, 0, 1, 2, 3, 4, 5, 6, 7, 8]
 
     """
-    def __init__(self, iter, approximate_order):
+    def __init__(self, iter, approximate_order, true_order=False):
         """
         Initialize.
 
@@ -873,7 +900,8 @@ class Stream_iterator(Stream_inexact):
             sage: TestSuite(f).run(skip="_test_pickling")
         """
         self.iterate_coefficients = lambda: iter
-        super().__init__(False, approximate_order)
+        super().__init__(False, true_order)
+        self._approximate_order = approximate_order
 
 
 class Stream_function(Stream_inexact):
@@ -906,7 +934,7 @@ class Stream_function(Stream_inexact):
         sage: f.get_coefficient(4)
         4
     """
-    def __init__(self, function, is_sparse, approximate_order):
+    def __init__(self, function, is_sparse, approximate_order, true_order=False):
         """
         Initialize.
 
@@ -917,7 +945,8 @@ class Stream_function(Stream_inexact):
             sage: TestSuite(f).run(skip="_test_pickling")
         """
         self.get_coefficient = function
-        super().__init__(is_sparse, approximate_order)
+        super().__init__(is_sparse, true_order)
+        self._approximate_order = approximate_order
 
 
 class Stream_uninitialized(Stream_inexact):
@@ -941,7 +970,7 @@ class Stream_uninitialized(Stream_inexact):
         sage: C.get_coefficient(4)
         0
     """
-    def __init__(self, is_sparse, approximate_order):
+    def __init__(self, is_sparse, approximate_order, true_order=False):
         """
         Initialize ``self``.
 
@@ -954,7 +983,8 @@ class Stream_uninitialized(Stream_inexact):
         self._target = None
         if approximate_order is None:
             raise ValueError("the valuation must be specified for undefined series")
-        super().__init__(is_sparse, approximate_order)
+        super().__init__(is_sparse, true_order)
+        self._approximate_order = approximate_order
 
     def get_coefficient(self, n):
         """
@@ -1019,7 +1049,7 @@ class Stream_unary(Stream_inexact):
         [0, 4, 8, 12, 16, 20, 24, 28, 32, 36]
     """
 
-    def __init__(self, series, *args, **kwargs):
+    def __init__(self, series, is_sparse):
         """
         Initialize ``self``.
 
@@ -1034,7 +1064,7 @@ class Stream_unary(Stream_inexact):
             sage: TestSuite(g).run()
         """
         self._series = series
-        super().__init__(*args, **kwargs)
+        super().__init__(is_sparse, False)
 
     def __hash__(self):
         """
@@ -1044,7 +1074,7 @@ class Stream_unary(Stream_inexact):
 
             sage: from sage.data_structures.stream import Stream_unary
             sage: from sage.data_structures.stream import Stream_function
-            sage: M = Stream_unary(Stream_function(lambda n: 1, False, 1), True, 0)
+            sage: M = Stream_unary(Stream_function(lambda n: 1, False, 1), True)
             sage: hash(M) == hash(M)
             True
         """
@@ -1097,7 +1127,7 @@ class Stream_binary(Stream_inexact):
         [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
     """
 
-    def __init__(self, left, right, *args, **kwargs):
+    def __init__(self, left, right, is_sparse):
         """
         Initialize ``self``.
 
@@ -1116,7 +1146,7 @@ class Stream_binary(Stream_inexact):
         """
         self._left = left
         self._right = right
-        super().__init__(*args, **kwargs)
+        super().__init__(is_sparse, False)
 
     def __hash__(self):
         """
@@ -1128,7 +1158,7 @@ class Stream_binary(Stream_inexact):
             sage: from sage.data_structures.stream import Stream_function
             sage: M = Stream_function(lambda n: n, True, 0)
             sage: N = Stream_function(lambda n: -2*n, True, 0)
-            sage: O = Stream_binary(M, N, True, 0)
+            sage: O = Stream_binary(M, N, True)
             sage: hash(O) == hash(O)
             True
         """
@@ -1244,17 +1274,22 @@ class Stream_zero(Stream):
         0
     """
 
-    def __init__(self, sparse):
-        """
-        Initialize ``self``.
+    def __init__(self, is_sparse):
+        """Initialize ``self``.
 
         TESTS::
 
             sage: from sage.data_structures.stream import Stream_zero
             sage: s = Stream_zero(False)
             sage: TestSuite(s).run()
+
+        .. TODO::
+
+             Having ``is_sparse`` as argument here does not really
+             make sense, since this stream does not cache values.
         """
-        return super().__init__(sparse, infinity, true_order=infinity)
+        super().__init__(is_sparse, True)
+        self._approximate_order = infinity
 
     def __getitem__(self, n):
         """
@@ -1356,9 +1391,12 @@ class Stream_add(Stream_binaryCommutative):
         """
         if left._is_sparse != right._is_sparse:
             raise NotImplementedError
+        super().__init__(left, right, left._is_sparse)
 
-        a = min(left._approximate_order, right._approximate_order)
-        super().__init__(left, right, left._is_sparse, a)
+    @lazy_attribute
+    def _approximate_order(self):
+        # this is not the true order, because we may have cancellation
+        return min(self._left._approximate_order, self._right._approximate_order)
 
     def get_coefficient(self, n):
         """
@@ -1403,7 +1441,6 @@ class Stream_sub(Stream_binary):
         sage: [u[i] for i in range(10)]
         [1, 0, -1, -2, -3, -4, -5, -6, -7, -8]
     """
-
     def __init__(self, left, right):
         """
         initialize ``self``.
@@ -1417,9 +1454,12 @@ class Stream_sub(Stream_binary):
         """
         if left._is_sparse != right._is_sparse:
             raise NotImplementedError
+        super().__init__(left, right, left._is_sparse)
 
-        a = min(left._approximate_order, right._approximate_order)
-        super().__init__(left, right, left._is_sparse, a)
+    @lazy_attribute
+    def _approximate_order(self):
+        # this is not the true order, because we may have cancellation
+        return min(self._left._approximate_order, self._right._approximate_order)
 
     def get_coefficient(self, n):
         """
@@ -1481,9 +1521,12 @@ class Stream_cauchy_mul(Stream_binary):
         """
         if left._is_sparse != right._is_sparse:
             raise NotImplementedError
+        super().__init__(left, right, left._is_sparse)
 
-        a = left._approximate_order + right._approximate_order
-        super().__init__(left, right, left._is_sparse, a)
+    @lazy_attribute
+    def _approximate_order(self):
+        # this is not the true order, unless we have an integral domain
+        return self._left._approximate_order + self._right._approximate_order
 
     def get_coefficient(self, n):
         """
@@ -1567,24 +1610,30 @@ class Stream_dirichlet_convolve(Stream_binary):
             sage: from sage.data_structures.stream import (Stream_dirichlet_convolve, Stream_function, Stream_exact)
             sage: f = Stream_function(lambda n: n, True, 1)
             sage: g = Stream_exact([1], True, constant=0)
-            sage: Stream_dirichlet_convolve(f, g)
+            sage: h = Stream_dirichlet_convolve(f, g)
+            sage: h[1]
             Traceback (most recent call last):
             ...
-            AssertionError: Dirichlet convolution is only defined for coefficient streams with minimal index of nonzero coefficient at least 1
-            sage: Stream_dirichlet_convolve(g, f)
+            ValueError: Dirichlet convolution is only defined for coefficient streams with minimal index of nonzero coefficient at least 1
+            sage: h = Stream_dirichlet_convolve(g, f)
+            sage: h[1]
             Traceback (most recent call last):
             ...
-            AssertionError: Dirichlet convolution is only defined for coefficient streams with minimal index of nonzero coefficient at least 1
+            ValueError: Dirichlet convolution is only defined for coefficient streams with minimal index of nonzero coefficient at least 1
         """
         if left._is_sparse != right._is_sparse:
             raise NotImplementedError
+        super().__init__(left, right, left._is_sparse)
 
-        assert left._approximate_order > 0 and right._approximate_order > 0, "Dirichlet convolution is only defined for coefficient streams with minimal index of nonzero coefficient at least 1"
-
-        vl = left._approximate_order
-        vr = right._approximate_order
-        a = vl * vr
-        super().__init__(left, right, left._is_sparse, a)
+    @lazy_attribute
+    def _approximate_order(self):
+        # this is not the true order, unless we have an integral domain
+        if (self._left._approximate_order <= 0
+            or self._right._approximate_order <= 0):
+            raise ValueError("Dirichlet convolution is only defined for "
+                             "coefficient streams with minimal index of "
+                             "nonzero coefficient at least 1")
+        return self._left._approximate_order * self._right._approximate_order
 
     def get_coefficient(self, n):
         """
@@ -1642,15 +1691,22 @@ class Stream_dirichlet_invert(Stream_unary):
             sage: from sage.data_structures.stream import (Stream_exact, Stream_dirichlet_invert)
             sage: f = Stream_exact([0, 0], True, constant=1)
             sage: g = Stream_dirichlet_invert(f)
+            sage: g[1]
             Traceback (most recent call last):
             ...
             ZeroDivisionError: the Dirichlet inverse only exists if the coefficient with index 1 is non-zero
         """
-        if series._approximate_order > 1:
-            raise ZeroDivisionError("the Dirichlet inverse only exists if the coefficient with index 1 is non-zero")
-
-        super().__init__(series, series._is_sparse, 1)
+        super().__init__(series, series._is_sparse)
         self._zero = ZZ.zero()
+
+    @lazy_attribute
+    def _approximate_order(self):
+        # this is the true order, but we want to check first
+        if self._series._approximate_order > 1:
+            raise ZeroDivisionError("the Dirichlet inverse only exists if the "
+                                    "coefficient with index 1 is non-zero")
+        self._true_order = True
+        return 1
 
     @lazy_attribute
     def _ainv(self):
@@ -1665,7 +1721,7 @@ class Stream_dirichlet_invert(Stream_unary):
             sage: g._ainv
             1/3
 
-            sage: f = Stream_exact([Zmod(6)(5)], False, constant=2)
+            sage: f = Stream_exact([Zmod(6)(5)], False, constant=2, order=1)
             sage: g = Stream_dirichlet_invert(f)
             sage: g._ainv
             5
@@ -1740,17 +1796,30 @@ class Stream_cauchy_compose(Stream_binary):
         """
         if g._true_order and g._approximate_order <= 0:
             raise ValueError("can only compose with a series of positive valuation")
-        if f._approximate_order < 0:
-            ginv = Stream_cauchy_invert(g)
+        super().__init__(f, g, f._is_sparse)
+
+    @lazy_attribute
+    def _approximate_order(self):
+        """
+        .. TODO::
+
+            check similarities with :class:`Stream_plethysm`
+        """
+        # this is very likely not the true order
+        if self._right._approximate_order <= 0:
+            raise ValueError("can only compose with a series of positive valuation")
+
+        if self._left._approximate_order < 0:
+            ginv = Stream_cauchy_invert(self._right)
             # The constant part makes no contribution to the negative.
             # We need this for the case so self._neg_powers[0][n] => 0.
-            self._neg_powers = [Stream_zero(f._is_sparse), ginv]
-            for i in range(1, -f._approximate_order):
+            self._neg_powers = [Stream_zero(self._left._is_sparse), ginv]
+            for i in range(1, -self._left._approximate_order):
                 self._neg_powers.append(Stream_cauchy_mul(self._neg_powers[-1], ginv))
         # placeholder None to make this 1-based.
-        self._pos_powers = [None, g]
-        val = f._approximate_order * g._approximate_order
-        super().__init__(f, g, f._is_sparse, val)
+        self._pos_powers = [None, self._right]
+
+        return self._left._approximate_order * self._right._approximate_order
 
     def get_coefficient(self, n):
         """
@@ -1773,6 +1842,7 @@ class Stream_cauchy_compose(Stream_binary):
         """
         fv = self._left._approximate_order
         gv = self._right._approximate_order
+        _ = self._approximate_order # this is only to trigger the initialization
         if n < 0:
             return sum(self._left[i] * self._neg_powers[-i][n]
                        for i in range(fv, n // gv + 1))
@@ -1889,10 +1959,10 @@ class Stream_plethysm(Stream_binary):
             self._degree_f = f._degree
         else:
             self._degree_f = None
+
         if g._true_order and g._approximate_order == 0 and self._degree_f is None:
             raise ValueError("can only compute plethysm with a series of valuation 0 for symmetric functions of finite support")
 
-        val = f._approximate_order * g._approximate_order
         if ring is None:
             self._basis = p
         else:
@@ -1910,7 +1980,17 @@ class Stream_plethysm(Stream_binary):
         else:
             self._tensor_power = None
             f = Stream_map_coefficients(f, lambda x: p(x))
-        super().__init__(f, g, f._is_sparse, val)
+        super().__init__(f, g, f._is_sparse)
+
+    @lazy_attribute
+    def _approximate_order(self):
+        # this is very likely not the true order
+#        if self._right._approximate_order == 0 and self._degree_f is None:
+#            raise ValueError("can only compute plethysm with a series of "
+#                             " valuation 0 for symmetric functions of finite "
+#                             " support")
+        return self._left._approximate_order * self._right._approximate_order
+
 
     def get_coefficient(self, n):
         r"""
@@ -2064,7 +2144,16 @@ class Stream_plethysm(Stream_binary):
 
 class Stream_scalar(Stream_inexact):
     """
-    Base class for operators multiplying a coefficient stream by a scalar.
+    Base class for operators multiplying a coefficient stream by a
+    scalar.
+
+    .. TODO::
+
+        This does not inherit from :class:`Stream_unary`, because of
+        the extra argument ``scalar``.  However, we could also
+        override :meth:`Stream_unary.hash`,
+        :meth:`Stream_unary.__eq__`.  Would this be any better?
+
     """
     def __init__(self, series, scalar):
         """
@@ -2079,7 +2168,12 @@ class Stream_scalar(Stream_inexact):
         self._series = series
         self._scalar = scalar
         assert scalar, "the scalar must not be equal to 0"
-        super().__init__(series._is_sparse, series._approximate_order)
+        super().__init__(series._is_sparse, series._true_order)
+
+    @lazy_attribute
+    def _approximate_order(self):
+        # this is not the true order, unless we have an integral domain
+        return self._series._approximate_order
 
     def __hash__(self):
         """
@@ -2253,7 +2347,13 @@ class Stream_neg(Stream_unary):
             sage: f = Stream_function(lambda n: -1, True, 0)
             sage: g = Stream_neg(f)
         """
-        super().__init__(series, series._is_sparse, series._approximate_order)
+        super().__init__(series, series._is_sparse)
+        self._true_order = self._series._true_order
+
+    @lazy_attribute
+    def _approximate_order(self):
+        # this is the true order
+        return self._series._approximate_order
 
     def get_coefficient(self, n):
         """
@@ -2305,7 +2405,7 @@ class Stream_cauchy_invert(Stream_unary):
 
     - ``series`` -- a :class:`Stream`
 
-    - ``approximate_order`` -- ``None``, or an upper (!) bound on the
+    - ``approximate_order_upper_bound`` -- ``None``, or an upper bound on the
       order of ``series``
 
     EXAMPLES::
@@ -2316,7 +2416,7 @@ class Stream_cauchy_invert(Stream_unary):
         sage: [g[i] for i in range(10)]
         [-1, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     """
-    def __init__(self, series, approximate_order=None):
+    def __init__(self, series, approximate_order_upper_bound=None):
         """
         Initialize ``self``.
 
@@ -2326,15 +2426,16 @@ class Stream_cauchy_invert(Stream_unary):
             sage: f = Stream_exact([1, -1], False)
             sage: g = Stream_cauchy_invert(f)
         """
-        if series._true_order:
-            v = -series._approximate_order
-            self._true_order = True
-        elif approximate_order is None:
-            v = -series._approximate_order
-        else:
-            v = -approximate_order
-        super().__init__(series, series._is_sparse, v)
+        self._approximate_order_upper_bound = approximate_order_upper_bound
+        super().__init__(series, series._is_sparse)
         self._zero = ZZ.zero()
+
+    @lazy_attribute
+    def _approximate_order(self):
+        if self._approximate_order_upper_bound is None:
+            return -self._series.order()
+        # this is not the true order
+        return -self._approximate_order_upper_bound
 
     @lazy_attribute
     def _ainv(self):
@@ -2354,9 +2455,7 @@ class Stream_cauchy_invert(Stream_unary):
             sage: g._ainv
             5
         """
-        v = -self._series.order()
-        self._approximate_order = v
-        self._true_order = True
+        v = self._series.order()
         try:
             return ~self._series[v]
         except TypeError:
@@ -2467,7 +2566,7 @@ class Stream_map_coefficients(Stream_inexact):
         [0, -1, -1, -1, -1, -1, -1, -1, -1, -1]
 
     """
-    def __init__(self, series, function):
+    def __init__(self, series, function, approximate_order=None, true_order=False):
         """
         Initialize ``self``.
 
@@ -2480,7 +2579,14 @@ class Stream_map_coefficients(Stream_inexact):
         """
         self._function = function
         self._series = series
-        super().__init__(series._is_sparse, series._approximate_order)
+        super().__init__(series._is_sparse, true_order)
+        if approximate_order is not None:
+            self._approximate_order = approximate_order
+
+    @lazy_attribute
+    def _approximate_order(self):
+        # this is not the true order
+        return self._series._approximate_order
 
     def get_coefficient(self, n):
         """
@@ -2572,7 +2678,12 @@ class Stream_shift(Stream_inexact):
         """
         self._series = series
         self._shift = shift
-        super().__init__(series._is_sparse, series._approximate_order + shift)
+        super().__init__(series._is_sparse, series._true_order)
+
+    @lazy_attribute
+    def _approximate_order(self):
+        # this is the true order
+        return self._series._approximate_order + self._shift
 
     def __getitem__(self, n):
         """
@@ -2669,11 +2780,15 @@ class Stream_derivative(Stream_inexact):
         """
         self._series = series
         self._shift = shift
-        if 0 <= series._approximate_order <= shift:
-            aorder = 0
-        else:
-            aorder = series._approximate_order - shift
-        super().__init__(series._is_sparse, aorder)
+        super().__init__(series._is_sparse, False)
+
+    @lazy_attribute
+    def _approximate_order(self):
+        # this is not the true order, unless multiplying by an
+        # integer cannot give 0
+        if 0 <= self._series._approximate_order <= self._shift:
+            return 0
+        return self._series._approximate_order - self._shift
 
     def __getitem__(self, n):
         """

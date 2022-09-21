@@ -932,6 +932,8 @@ class LazySeriesRing(UniqueRepresentation, Parent):
                 y = x.revert()
                 vy = y.valuation()
                 m = y[vy]
+            except NotImplementedError:
+                pass
             except (ValueError, TypeError):
                 tester.assertFalse(vx == 1 and x[vx].is_unit(),
                                    ("the series %s should be reversible "
@@ -2058,10 +2060,6 @@ class LazyCompletionGradedAlgebra(LazySeriesRing):
 
             sage: LazySymmetricFunctions.options.halting_precision(6)
 
-            sage: s = SymmetricFunctions(ZZ).s()
-            sage: L = LazySymmetricFunctions(s)
-            sage: TestSuite(L).run()
-
             sage: s = SymmetricFunctions(QQ).s()
             sage: L = LazySymmetricFunctions(s)
             sage: TestSuite(L).run()
@@ -2072,9 +2070,9 @@ class LazyCompletionGradedAlgebra(LazySeriesRing):
 
         Reversion will only work when the base ring is a field::
 
-            sage: TestSuite(L).run(skip=['_test_revert'])
             sage: s = SymmetricFunctions(ZZ).s()
             sage: L = LazySymmetricFunctions(s)
+            sage: TestSuite(L).run(skip=['_test_revert'])
 
             sage: s = SymmetricFunctions(QQ["q"]).s()
             sage: L = LazySymmetricFunctions(s)

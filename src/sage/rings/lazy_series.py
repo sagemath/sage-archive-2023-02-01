@@ -694,7 +694,9 @@ class LazyModuleElement(Element):
         P = self.parent()
         # If we shift it too much, then it needs to go into the fraction field
         # FIXME? This is different than the polynomial rings, which truncates the terms
-        if coeff_stream._true_order and coeff_stream._approximate_order < P._minimal_valuation:
+        if (coeff_stream._true_order
+            and P._minimal_valuation is not None
+            and coeff_stream._approximate_order < P._minimal_valuation):
             P = P.fraction_field()
         return P.element_class(P, coeff_stream)
 
@@ -1143,6 +1145,14 @@ class LazyModuleElement(Element):
 
             sage: oeis(f[:30])                                                  # optional, internet
             0: A122698: a(1)=a(2)=1 then a(n) = Sum_{d|n, 1<d<n} a(d)*a(n/d).
+
+        Check that reversion is lazy enough::
+
+            sage: L.<t> = LazyPowerSeriesRing(QQ)
+            sage: f = L.undefined()
+            sage: f.define(1+(t*f).revert())
+            sage: f
+            1 + t - t^2 + 3*t^3 - 13*t^4 + 69*t^5 - 419*t^6 + O(t^7)
 
         """
         if not isinstance(self._coeff_stream, Stream_uninitialized) or self._coeff_stream._target is not None:
@@ -2819,8 +2829,11 @@ class LazyCauchyProductSeries(LazyModuleElement):
         if isinstance(coeff_stream, Stream_cauchy_invert):
             return P.element_class(P, coeff_stream._series)
 
-        return P.element_class(P, Stream_cauchy_invert(coeff_stream,
-                                                       approximate_order=P._minimal_valuation))
+        # if P._minimal_valuation == 0, then this is the true order
+        # of coeff_stream, otherwise P._minimal_valuation is None
+        coeff_stream_inverse = Stream_cauchy_invert(coeff_stream,
+                                                    approximate_order_upper_bound=P._minimal_valuation)
+        return P.element_class(P, coeff_stream_inverse)
 
     def _div_(self, other):
         r"""
@@ -2979,6 +2992,10 @@ class LazyCauchyProductSeries(LazyModuleElement):
                                                        degree=v,
                                                        constant=constant))
 
+        # if P._minimal_valuation == 0, then this is the true order
+        # of coeff_stream, otherwise P._minimal_valuation is None
+        # right_inverse = Stream_cauchy_invert(right,
+        #                                     approximate_order=P._minimal_valuation)
         right_inverse = Stream_cauchy_invert(right)
         return P.element_class(P, Stream_cauchy_mul(left, right_inverse))
 
@@ -3717,9 +3734,9 @@ class LazyLaurentSeries(LazyCauchyProductSeries):
 
         z = P.gen()
         g = P.undefined(valuation=1)
-        # The following is mathematically equivalent to
-        #   z / ((self / z)(g))
-        # but more efficient and more lazy.
+        # the following is mathematically equivalent to
+        # z / ((self / z)(g))
+        # but more efficient and more lazy
         g.define((~self.shift(-1)(g)).shift(1))
         return g
 
@@ -4392,7 +4409,7 @@ class LazyPowerSeries(LazyCauchyProductSeries):
 
         - `val(f) = 1`, or
 
-        - `f = a + b z` with `a, b \neq 0`, or
+        - `f = a + b z` with `a, b \neq 0`
 
         EXAMPLES::
 
@@ -4516,16 +4533,17 @@ class LazyPowerSeries(LazyCauchyProductSeries):
 
         # TODO: coefficients should not be checked here, it prevents
         # us from using self.define in some cases!
-        if not coeff_stream[1]:
-            raise ValueError("compositional inverse does not exist")
-
-        if coeff_stream[0]:
-            raise ValueError("cannot determine whether the compositional inverse exists")
-
+#         if not coeff_stream[1]:
+#             raise ValueError("compositional inverse does not exist")
+#
+#         if coeff_stream[0]:
+#             raise ValueError("cannot determine whether the compositional inverse exists")
         z = P.gen()
         g = P.undefined(valuation=1)
-        # TODO: shift instead of (self / z) should be more efficient
-        g.define(z / ((self / z)(g)))
+        # the following is mathematically equivalent to
+        # z / ((self / z)(g))
+        # but more efficient and more lazy
+        g.define((~self.shift(-1)(g)).shift(1))
         return g
 
     compositional_inverse = revert
@@ -6057,13 +6075,11 @@ class LazyDirichletSeries(LazyModuleElement):
         Trying to invert a non-invertible 'exact' series raises a
         ``ZeroDivisionError``::
 
-            sage: _ = ~L([0,1], constant=1)
+            sage: f = ~L([0,1], constant=1)
+            sage: f[1]
             Traceback (most recent call last):
             ...
             ZeroDivisionError: the Dirichlet inverse only exists if the coefficient with index 1 is non-zero
-
-        If the series is not 'exact', we cannot do this without
-        actually computing a term::
 
             sage: f = ~L(lambda n: n-1)
             sage: f[1]

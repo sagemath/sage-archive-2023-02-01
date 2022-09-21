@@ -494,8 +494,7 @@ class MultizetaValues(UniqueRepresentation):
         if weight <= self.max_weight:
             index = pari.zetamultconvert(index, 2)
             return self._data[index - 1]
-        else:
-            return pari.zetamult(index, precision=self.prec)
+        return pari.zetamult(index, precision=self.prec)
 
     def __call__(self, index, prec=None, reverse=True):
         r"""
@@ -540,8 +539,7 @@ class MultizetaValues(UniqueRepresentation):
             index = pari.zetamultconvert(index, 2)
             value = self._data[index - 1]
             return value.sage().n(prec=prec)
-        else:
-            return pari.zetamult(index, precision=prec).sage().n(prec=prec)
+        return pari.zetamult(index, precision=prec).sage().n(prec=prec)
 
 
 Values = MultizetaValues()
@@ -937,7 +935,7 @@ class Multizetas(CombinatorialFreeModule):
             if isinstance(x, list):
                 x = tuple(x)
             return self._monomial(W(x, check=False))
-        elif isinstance(parent(x), Multizetas_iterated):
+        if isinstance(parent(x), Multizetas_iterated):
             return x.composition()
         raise TypeError('invalid input for building a multizeta value')
 
@@ -1042,7 +1040,7 @@ class Multizetas(CombinatorialFreeModule):
             raise ValueError('d must be a non-negative integer')
         if d == 0:
             return [self([])]
-        elif d == 1:
+        if d == 1:
             return []
 
         Values.reset(max_weight=d)
@@ -1376,8 +1374,7 @@ class Multizetas(CombinatorialFreeModule):
             if prec < Values.prec:
                 s = sum(cf * Values(tuple(w)) for w, cf in self.monomial_coefficients().items())
                 return s.n(prec=prec)
-            else:
-                return sum(cf * Values(tuple(w), prec=prec) for w, cf in self.monomial_coefficients().items())
+            return sum(cf * Values(tuple(w), prec=prec) for w, cf in self.monomial_coefficients().items())
 
 
 class Multizetas_iterated(CombinatorialFreeModule):
@@ -1885,8 +1882,7 @@ class Multizetas_iterated(CombinatorialFreeModule):
         x = R(x)
         if x == 0:
             return self.element_class(self, {})
-        else:
-            return self.from_base_ring_from_one_basis(x)
+        return self.from_base_ring_from_one_basis(x)
 
     class Element(CombinatorialFreeModule.Element):
         def simplify(self):

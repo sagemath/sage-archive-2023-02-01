@@ -2051,7 +2051,8 @@ class LazyCompletionGradedAlgebra(LazySeriesRing):
     Element = LazyCompletionGradedAlgebraElement
 
     def __init__(self, basis, sparse=True, category=None):
-        """Initialize ``self``.
+        """
+        Initialize ``self``.
 
         TESTS::
 

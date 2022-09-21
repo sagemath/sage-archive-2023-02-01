@@ -668,6 +668,11 @@ class LazyModuleElement(Element):
             sage: f.shift(5).shift(-5) - f
             0
 
+            sage: L.<x> = LazyPowerSeriesRing(QQ)
+            sage: f = x.shift(-3); f
+            x^-2
+            sage: f.parent()
+            Lazy Laurent Series Ring in x over Rational Field
         """
         if isinstance(self._coeff_stream, Stream_zero):
             return self
@@ -687,6 +692,10 @@ class LazyModuleElement(Element):
         else:
             coeff_stream = Stream_shift(self._coeff_stream, n)
         P = self.parent()
+        # If we shift it too much, then it needs to go into the fraction field
+        # FIXME? This is different than the polynomial rings, which truncates the terms
+        if coeff_stream._true_order and coeff_stream._approximate_order < P._minimal_valuation:
+            P = P.fraction_field()
         return P.element_class(P, coeff_stream)
 
     __lshift__ = shift
@@ -3697,16 +3706,21 @@ class LazyLaurentSeries(LazyCauchyProductSeries):
                 raise ValueError("compositional inverse does not exist")
             raise ValueError("cannot determine whether the compositional inverse exists")
 
-        if not coeff_stream[1]:
+        if coeff_stream._approximate_order > 1:
             raise ValueError("compositional inverse does not exist")
 
-        if coeff_stream[0]:
-            raise ValueError("cannot determine whether the compositional inverse exists")
+        #if not coeff_stream[1]:
+        #    raise ValueError("compositional inverse does not exist")
+
+        #if coeff_stream[0]:
+        #    raise ValueError("cannot determine whether the compositional inverse exists")
 
         z = P.gen()
         g = P.undefined(valuation=1)
-        # TODO: shift instead of (self / z) should be more efficient
-        g.define(z / ((self / z)(g)))
+        # The following is mathematically equivalent to
+        #   z / ((self / z)(g))
+        # but more efficient and more lazy.
+        g.define((~self.shift(-1)(g)).shift(1))
         return g
 
     compositional_inverse = revert

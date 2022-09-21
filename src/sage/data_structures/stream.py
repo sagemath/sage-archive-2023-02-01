@@ -98,6 +98,7 @@ from sage.rings.integer_ring import ZZ
 from sage.rings.infinity import infinity
 from sage.arith.misc import divisors
 from sage.misc.misc_c import prod
+from sage.misc.lazy_attribute import lazy_attribute
 from sage.combinat.integer_vector_weighted import iterator_fast as wt_int_vec_iter
 from sage.combinat.sf.sfa import _variables_recursive, _raise_variables
 from sage.categories.hopf_algebras_with_basis import HopfAlgebrasWithBasis
@@ -142,7 +143,6 @@ class Stream():
             False
             sage: CS != Stream(False, -2)
             False
-
         """
         return False
 
@@ -1650,8 +1650,30 @@ class Stream_dirichlet_invert(Stream_unary):
             raise ZeroDivisionError("the Dirichlet inverse only exists if the coefficient with index 1 is non-zero")
 
         super().__init__(series, series._is_sparse, 1)
-        self._ainv = None
         self._zero = ZZ.zero()
+
+    @lazy_attribute
+    def _ainv(self):
+        """
+        The inverse of the leading coefficient.
+
+        EXAMPLES::
+
+            sage: from sage.data_structures.stream import (Stream_exact, Stream_dirichlet_invert)
+            sage: f = Stream_exact([0, 3], True, constant=2)
+            sage: g = Stream_dirichlet_invert(f)
+            sage: g._ainv
+            1/3
+
+            sage: f = Stream_exact([Zmod(6)(5)], False, constant=2)
+            sage: g = Stream_dirichlet_invert(f)
+            sage: g._ainv
+            5
+        """
+        try:
+            return ~self._series[1]
+        except TypeError:
+            return self._series[1].inverse_of_unit()
 
     def get_coefficient(self, n):
         """
@@ -1671,11 +1693,6 @@ class Stream_dirichlet_invert(Stream_unary):
             sage: [g[i] for i in range(8)]
             [0, 1/3, -2/9, -2/9, -2/27, -2/9, 2/27, -2/9]
         """
-        if self._ainv is None:
-            try:
-                self._ainv = ~self._series[1]
-            except TypeError:
-                self._ainv = self._series[1].inverse_of_unit()
         if n == 1:
             return self._ainv
         c = self._zero
@@ -2298,7 +2315,6 @@ class Stream_cauchy_invert(Stream_unary):
         sage: g = Stream_cauchy_invert(f)
         sage: [g[i] for i in range(10)]
         [-1, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-
     """
     def __init__(self, series, approximate_order=None):
         """
@@ -2310,18 +2326,41 @@ class Stream_cauchy_invert(Stream_unary):
             sage: f = Stream_exact([1, -1], False)
             sage: g = Stream_cauchy_invert(f)
         """
-        if approximate_order is None:
-            v = series.order()
-            try:
-                self._ainv = ~series[v]
-            except TypeError:
-                self._ainv = series[v].inverse_of_unit()
+        if series._true_order:
+            v = -series._approximate_order
+            self._true_order = True
+        elif approximate_order is None:
+            v = -series._approximate_order
         else:
-            v = approximate_order
-            self._ainv = None
-
-        super().__init__(series, series._is_sparse, -v)
+            v = -approximate_order
+        super().__init__(series, series._is_sparse, v)
         self._zero = ZZ.zero()
+
+    @lazy_attribute
+    def _ainv(self):
+        r"""
+        The inverse of the leading coefficient.
+
+        EXAMPLES::
+
+            sage: from sage.data_structures.stream import (Stream_cauchy_invert, Stream_exact)
+            sage: f = Stream_exact([2, -3], False)
+            sage: g = Stream_cauchy_invert(f)
+            sage: g._ainv
+            1/2
+
+            sage: f = Stream_exact([Zmod(6)(5)], False, constant=2)
+            sage: g = Stream_cauchy_invert(f)
+            sage: g._ainv
+            5
+        """
+        v = -self._series.order()
+        self._approximate_order = v
+        self._true_order = True
+        try:
+            return ~self._series[v]
+        except TypeError:
+            return self._series[v].inverse_of_unit()
 
     def get_coefficient(self, n):
         """
@@ -2341,16 +2380,11 @@ class Stream_cauchy_invert(Stream_unary):
             sage: [g.get_coefficient(i) for i in range(10)]
             [-2, 1, 0, 0, 0, 0, 0, 0, 0, 0]
         """
-        if self._ainv is None:
-            self._approximate_order = -self._series.order()
-            try:
-                self._ainv = ~self._series[self._approximate_order]
-            except TypeError:
-                self._ainv = self._series[self._approximate_order].inverse_of_unit()
-
-        # if self._ainv is not None, self._approximate_order is the
-        # true order
+        if not self._series._true_order:
+            self._ainv  # this computes the true order of ``self``
         v = self._approximate_order
+        if n < v:
+            return ZZ.zero()
         if n == v:
             return self._ainv
 
@@ -2374,18 +2408,10 @@ class Stream_cauchy_invert(Stream_unary):
             sage: [next(n) for i in range(10)]
             [1, -4, 7, -8, 8, -8, 8, -8, 8, -8]
         """
-        if self._ainv is None:
-            self._approximate_order = -self._series.order()
-            try:
-                self._ainv = ~self._series[self._approximate_order]
-            except TypeError:
-                self._ainv = self._series[self._approximate_order].inverse_of_unit()
-
-        # if self._ainv is not None, self._approximate_order is the
-        # true order
+        yield self._ainv
+        # This is the true order, which is computed in self._ainv
         v = self._approximate_order
         n = 0  # Counts the number of places from v.
-        yield self._ainv
         # Note that the first entry of the cache will correspond to
         # z^v, when the stream corresponds to a Laurent series.
 

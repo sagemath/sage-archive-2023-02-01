@@ -117,7 +117,7 @@ def simon_two_descent(E, verbose=0, lim1=None, lim3=None, limtriv=None,
     # The block below mimics the defaults in Simon's scripts, and needs to be changed
     # when these are updated.
     if K is QQ:
-        cmd = 'ellrank(%s, %s);' % (list(E.ainvs()), [P.__pari__() for P in known_points])
+        cmd = 'ellQ_ellrank(%s, %s);' % (list(E.ainvs()), [P.__pari__() for P in known_points])
         if lim1 is None:
             lim1 = 5
         if lim3 is None:
@@ -144,7 +144,7 @@ def simon_two_descent(E, verbose=0, lim1=None, lim3=None, limtriv=None,
     if verbose > 0:
         print(s)
     v = gp.eval('ans')
-    if v=='ans': # then the call to ellrank() or bnfellrank() failed
+    if v=='ans': # then the call to ellQ_ellrank() or bnfellrank() failed
         raise RuntimeError("An error occurred while running Simon's 2-descent program")
     if verbose >= 2:
         print("v = %s" % v)

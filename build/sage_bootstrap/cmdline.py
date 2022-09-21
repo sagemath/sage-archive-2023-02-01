@@ -206,11 +206,11 @@ def make_parser():
     parser_list.add_argument(
         '--has-file', action='append', default=[], metavar='FILENAME', dest='has_files',
         help=('only include packages that have this file in their metadata directory '
-              '(examples: SPKG.rst, spkg-configure.m4, distros/debian.txt)'))
+              '(examples: SPKG.rst, spkg-configure.m4, distros/debian.txt, spkg-install|spkg-install.in)'))
     parser_list.add_argument(
         '--no-file', action='append', default=[], metavar='FILENAME', dest='no_files',
         help=('only include packages that do not have this file in their metadata directory '
-              '(examples: huge, patches)'))
+              '(examples: huge, patches, huge|has_nonfree_dependencies)'))
     parser_list.add_argument(
         '--exclude', action='append', default=[], metavar='PACKAGE_NAME',
         help='exclude package from list')

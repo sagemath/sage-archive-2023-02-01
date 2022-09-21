@@ -20,13 +20,6 @@ need to run::
 
     $ ./configure CC=clang CXX=clang++ FC=flang
 
-Building Sage from source on Apple Silicon (M1/M2) requires the use of
-​the `Homebrew package manager <https://brew.sh>`_ (recommended) or
-conda-forge, which package versions of GCC 12.x (including
-``gfortran``) with the necessary changes for this platform.  These
-changes are not in a released upstream version of GCC, and hence
-the ``gfortran`` SPKG is not suitable for the M1/M2.
-
 License
 -------
 

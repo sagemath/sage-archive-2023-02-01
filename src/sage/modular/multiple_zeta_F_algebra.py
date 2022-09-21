@@ -16,13 +16,14 @@ AUTHORS:
 - Frédéric Chapoton (2022-09): Initial version
 
 """
-
 # ****************************************************************************
 #  Copyright (C) 2022 Frédéric Chapoton <chapoton-unistra-fr>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
+from __future__ import annotations
+from typing import Iterator
 
 from sage.arith.misc import bernoulli
 from sage.categories.rings import Rings
@@ -32,7 +33,6 @@ from sage.combinat.words.words import Words
 from sage.combinat.words.finite_word import FiniteWord_class
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
-from sage.sets.family import Family
 from sage.sets.integer_range import IntegerRange
 from sage.rings.integer_ring import ZZ
 from sage.sets.non_negative_integers import NonNegativeIntegers
@@ -44,7 +44,7 @@ from sage.modules.free_module_element import vector
 W_Odds = Words(IntegerRange(3, Infinity, 2), infinite=False)
 
 
-def str_to_index(x: str):
+def str_to_index(x: str) -> tuple:
     """
     Convert a string to an index.
 
@@ -64,7 +64,7 @@ def str_to_index(x: str):
     return (p, w)
 
 
-def basis_f_odd_iterator(n):
+def basis_f_odd_iterator(n) -> Iterator[tuple]:
     """
     Return an iterator over compositions of ``n`` with parts in ``(3,5,7,...)``
 
@@ -102,7 +102,7 @@ def basis_f_odd_iterator(n):
             yield start + (k, )
 
 
-def basis_f_iterator(n):
+def basis_f_iterator(n) -> Iterator[tuple]:
     """
     Return an iterator over decompositions of ``n`` using ``2,3,5,7,9,...``.
 
@@ -152,38 +152,7 @@ def basis_f_iterator(n):
             yield (k, W_Odds(start, check=False))
 
 
-def vector_to_f(vec, N):
-    """
-    Convert back a vector to an element of the F-algebra.
-
-    INPUT:
-
-    - ``vec`` -- a vector with coefficients in some base ring
-
-    - ``N`` -- integer, the homogeneous weight
-
-    OUTPUT:
-
-    an homogeneous element of :func:`F_ring` over this base ring
-
-    .. SEEALSO:: :meth:`F_algebra.to_vector`
-
-    EXAMPLES::
-
-        sage: from sage.modular.multiple_zeta_F_algebra import vector_to_f
-        sage: vector_to_f((4,5),6)
-        4*f3f3 + 5*f2^3
-        sage: _.to_vector()
-        (4, 5)
-    """
-    if isinstance(vec, (list, tuple)):
-        vec = vector(vec)
-    F = F_algebra(vec.base_ring())
-    return sum(cf * F.monomial(bi)
-               for cf, bi in zip(vec, basis_f_iterator(N)))
-
-
-def morphism_constructor(data):
+def morphism_constructor(data: dict):
     """
     Build a morphism from the F-algebra to some codomain.
 
@@ -280,13 +249,12 @@ class F_algebra(CombinatorialFreeModule):
             raise TypeError("argument R must be a ring")
         self.__ngens = Infinity
         Indices = NonNegativeIntegers().cartesian_product(W_Odds)
-        self._indices = Indices
         cat = BialgebrasWithBasis(R).Commutative().Graded()
         CombinatorialFreeModule.__init__(self, R, Indices,
                                          latex_prefix="", prefix='f',
                                          category=cat)
 
-    def _repr_term(self, pw):
+    def _repr_term(self, pw) -> str:
         """
         Return the custom representation of terms.
 
@@ -316,7 +284,7 @@ class F_algebra(CombinatorialFreeModule):
             resu += "*"
         return resu + "".join(f"f{i}" for i in w)
 
-    def _repr_(self):
+    def _repr_(self) -> str:
         r"""
         Text representation of this algebra.
 
@@ -554,6 +522,36 @@ class F_algebra(CombinatorialFreeModule):
         p, w = pw
         return ZZ(p + sum(w))
 
+    def homogeneous_from_vector(self, vec, N):
+        """
+        Convert back a vector to an element of the F-algebra.
+
+        INPUT:
+
+        - ``vec`` -- a vector with coefficients in some base ring
+
+        - ``N`` -- integer, the homogeneous weight
+
+        OUTPUT:
+
+        an homogeneous element of :func:`F_ring` over this base ring
+
+        .. SEEALSO:: :meth:`F_algebra.homogeneous_to_vector`
+
+        EXAMPLES::
+
+            sage: from sage.modular.multiple_zeta_F_algebra import F_algebra
+            sage: F = F_algebra(QQ)
+            sage: F.homogeneous_from_vector((4,5),6)
+            4*f3f3 + 5*f2^3
+            sage: _.homogeneous_to_vector()
+            (4, 5)
+        """
+        if isinstance(vec, (list, tuple)):
+            vec = vector(vec)
+        return self.sum(cf * self.monomial(bi)
+                        for cf, bi in zip(vec, basis_f_iterator(N)))
+
     def _element_constructor_(self, x):
         r"""
         Convert ``x`` into ``self``.
@@ -691,7 +689,7 @@ class F_algebra(CombinatorialFreeModule):
             w = self.parent()._indices(w)
             return super().coefficient(w)
 
-        def to_vector(self):
+        def homogeneous_to_vector(self):
             """
             Convert an homogeneous element to a vector.
 
@@ -705,7 +703,7 @@ class F_algebra(CombinatorialFreeModule):
 
             a vector with coefficients in the base ring
 
-            .. SEEALSO:: :func:`vector_to_f`
+            .. SEEALSO:: :meth:`F_algebra.homogeneous_from_vector`
 
             EXAMPLES::
 
@@ -713,7 +711,7 @@ class F_algebra(CombinatorialFreeModule):
                 sage: F = F_algebra(QQ)
                 sage: f2 = F("2")
                 sage: x = f2**4 + 34 * F("233")
-                sage: x.to_vector()
+                sage: x.homogeneous_to_vector()
                 (0, 0, 34, 1)
                 sage: x.coefficients()
                 [34, 1]
@@ -722,7 +720,7 @@ class F_algebra(CombinatorialFreeModule):
 
                 sage: x = F.monomial(F._indices((0,[11]))); x
                 f11
-                sage: x.to_vector()
+                sage: x.homogeneous_to_vector()
                 (1, 0, 0, 0, 0, 0, 0, 0, 0)
             """
             F = self.parent()

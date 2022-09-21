@@ -1394,7 +1394,7 @@ class Multizetas(CombinatorialFreeModule):
             """
             if not self.is_homogeneous():
                 raise ValueError('only defined for homogeneous elements')
-            return self.parent().phi(self).to_vector()
+            return self.parent().phi(self).homogeneous_to_vector()
 
         def _numerical_approx_pari(self):
             r"""
@@ -2680,7 +2680,7 @@ def rho_matrix_inverse(n):
     resu = []
     for b in base:
         phi_b = phi_on_basis(b)
-        resu.append(phi_b.to_vector())
+        resu.append(phi_b.homogeneous_to_vector())
     dN = len(resu)
     return ~matrix(QQ, dN, dN, resu)
 
@@ -2721,6 +2721,6 @@ def rho_inverse(elt):
     p, w = pw
     N = 2 * p + sum(int(c) for c in w)
 
-    v = elt.to_vector()
+    v = elt.homogeneous_to_vector()
     w = v * rho_matrix_inverse(N)
     return sum(cf * b for cf, b in zip(w, M_BR.basis_data(BR, N)))

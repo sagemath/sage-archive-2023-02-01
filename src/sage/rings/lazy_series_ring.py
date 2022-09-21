@@ -878,7 +878,7 @@ class LazySeriesRing(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: LazyLaurentSeriesRing.options.halting_precision(12)
+            sage: LazyLaurentSeriesRing.options.halting_precision(5)
             sage: L = LazyLaurentSeriesRing(QQ, 'z')
             sage: L._test_invert()
             sage: LazyLaurentSeriesRing.options._reset()  # reset the options
@@ -900,6 +900,50 @@ class LazySeriesRing(UniqueRepresentation, Parent):
             tester.assertFalse(x.is_zero())
             tester.assertTrue(e.is_one())
             tester.assertEqual(y.valuation(), -x.valuation())
+
+    def _test_revert(self, **options):
+        """
+        Test compositional inverse of elements of this ring.
+
+        INPUT:
+
+        - ``options`` -- any keyword arguments accepted by :meth:`_tester`
+
+        EXAMPLES::
+
+            sage: LazyLaurentSeriesRing.options.halting_precision(5)
+            sage: L = LazyLaurentSeriesRing(QQ, 'z')
+            sage: L._test_revert()
+            sage: LazyLaurentSeriesRing.options._reset()
+
+        .. SEEALSO::
+
+            :class:`TestSuite`
+        """
+        if not hasattr(self.element_class, "revert") or self._arity != 1:
+            return
+        tester = self._tester(**options)
+
+        elements = tester.some_elements()
+        count = 0
+        for x in elements:
+            vx = x.valuation()
+            try:
+                y = x.revert()
+                vy = y.valuation()
+                m = y[vy]
+            except (ValueError, TypeError):
+                tester.assertFalse(vx == 1 and x[vx].is_unit(),
+                                   ("the series %s should be reversible "
+                                    "- its valuation is one and its leading coefficient is a unit") % x)
+            else:
+                count += 1
+                e1 = y(x)
+                e2 = x(y)
+                tester.assertEqual(e1, e2, "y(x) and x(y) differ for x = %s and y = %s" %(x, y))
+                # tester.assertEqual(e1, self.gen())
+        # we want to test at least 2 elements
+        tester.assertGreater(count, 1, msg="only %s elements in %s.some_elements() have a compositional inverse" % (count, self))
 
 class LazyLaurentSeriesRing(LazySeriesRing):
     r"""
@@ -1081,8 +1125,17 @@ class LazyLaurentSeriesRing(LazySeriesRing):
               (euclidean domains and infinite enumerated sets and metric spaces)
               and infinite sets)
 
-            sage: L = LazyLaurentSeriesRing(Zmod(6), 't')
+            sage: L = LazyLaurentSeriesRing(GF(5), 't')
             sage: TestSuite(L).run()
+
+            sage: L = LazyLaurentSeriesRing(GF(5)['x'], 't')
+            sage: TestSuite(L).run()
+
+            sage: L = LazyLaurentSeriesRing(GF(5)['x, y'], 't')
+            sage: TestSuite(L).run()
+
+            sage: L = LazyLaurentSeriesRing(Zmod(6), 't')
+            sage: TestSuite(L).run(skip=['_test_revert'])
             sage: L.category()
             Category of infinite commutative algebras over
              (finite commutative rings and subquotients of monoids
@@ -1200,18 +1253,12 @@ class LazyLaurentSeriesRing(LazySeriesRing):
 
             sage: L = LazyLaurentSeriesRing(ZZ, 'z')
             sage: L.an_element()
-            z^-2 + 3*z^-1 + 2*z + z^2 + z^3 + z^4 + O(z^5)
-
-            sage: L = LazyLaurentSeriesRing(GF(3), 'z')
-            sage: GF(3).an_element()
-            0
-            sage: L.an_element()
-            z^2 + z^3 + z^4 + O(z^5)
+            z^-2 + z^3 + z^4 + z^5 + O(z^6)
         """
-        R = self.base_ring()
-        coeff_stream = Stream_exact([R.an_element(), R(3), R.zero(), 2*R.an_element(), R.one()],
-                                    self._sparse, order=-2, constant=R.one())
-        return self.element_class(self, coeff_stream)
+        return self(self._laurent_poly_ring.an_element(),
+                    valuation=-2,
+                    degree=3,
+                    constant=self.base_ring().an_element())
 
     def some_elements(self):
         """
@@ -1220,32 +1267,35 @@ class LazyLaurentSeriesRing(LazySeriesRing):
         EXAMPLES::
 
             sage: L = LazyLaurentSeriesRing(ZZ, 'z')
-            sage: L.some_elements()
+            sage: L.some_elements()[:7]
             [0, 1, z,
              -3*z^-4 + z^-3 - 12*z^-2 - 2*z^-1 - 10 - 8*z + z^2 + z^3,
-             z^-2 + 3*z^-1 + 2*z + z^2 + z^3 + z^4 + O(z^5),
+             z^-2 + z^3 + z^4 + z^5 + O(z^6),
              -2*z^-3 - 2*z^-2 + 4*z^-1 + 11 - z - 34*z^2 - 31*z^3 + O(z^4),
              4*z^-2 + z^-1 + z + 4*z^2 + 9*z^3 + 16*z^4 + O(z^5)]
 
             sage: L = LazyLaurentSeriesRing(GF(2), 'z')
-            sage: L.some_elements()
+            sage: L.some_elements()[:7]
             [0, 1, z,
              z^-4 + z^-3 + z^2 + z^3,
-             z^-1 + z^2 + z^3 + z^4 + O(z^5),
+             z^-2,
              1 + z + z^3 + z^4 + z^6 + O(z^7),
              z^-1 + z + z^3 + O(z^5)]
 
             sage: L = LazyLaurentSeriesRing(GF(3), 'z')
-            sage: L.some_elements()
+            sage: L.some_elements()[:7]
             [0, 1, z,
              z^-3 + z^-1 + 2 + z + z^2 + z^3,
-             z^2 + z^3 + z^4 + O(z^5),
+             z^-2,
              z^-3 + z^-2 + z^-1 + 2 + 2*z + 2*z^2 + O(z^3),
              z^-2 + z^-1 + z + z^2 + z^4 + O(z^5)]
         """
         z = self.gen()
         elts = [self.zero(), self.one(), z, (z-3)*(z**-2+2+z)**2, self.an_element(),
-                (1 - 2*z**-3)/(1 - z + 3*z**2), self(lambda n: n**2, valuation=-2)]
+                (1 - 2*z**-3)/(1 - z + 3*z**2),
+                self(lambda n: n**2, valuation=-2),
+                self(lambda n: n**2, valuation=1),
+                self([3, 2, 1], valuation=1, constant=1)]
         return elts
 
     def series(self, coefficient, valuation, degree=None, constant=None):
@@ -1423,10 +1473,16 @@ class LazyPowerSeriesRing(LazySeriesRing):
             sage: L = LazyPowerSeriesRing(QQ, 's, t')
             sage: TestSuite(L).run(skip="_test_fraction_field")
 
+            sage: L = LazyPowerSeriesRing(GF(5), 't')
+            sage: TestSuite(L).run()
+
+            sage: L = LazyPowerSeriesRing(GF(5), 's, t')
+            sage: TestSuite(L).run()
+
             sage: L = LazyPowerSeriesRing(Zmod(6), 't')
-            sage: TestSuite(L).run()
+            sage: TestSuite(L).run(skip=['_test_revert'])
             sage: L = LazyPowerSeriesRing(Zmod(6), 's, t')
-            sage: TestSuite(L).run()
+            sage: TestSuite(L).run(skip=['_test_revert'])
 
             sage: L = LazyPowerSeriesRing(QQ['q'], 't')
             sage: TestSuite(L).run(skip="_test_fraction_field")
@@ -1838,12 +1894,15 @@ class LazyPowerSeriesRing(LazySeriesRing):
 
             sage: L = LazyPowerSeriesRing(ZZ, 'z')
             sage: L.an_element()
-            z
+            z + z^2 + z^3 + O(z^4)
 
             sage: L = LazyPowerSeriesRing(ZZ, 'x, y')
             sage: L.an_element()
             x
         """
+        if self._arity == 1:
+            return self(self._laurent_poly_ring.an_element(),
+                        constant=self.base_ring().an_element())
         return self(self._laurent_poly_ring.an_element())
 
     def uniformizer(self):
@@ -1911,21 +1970,21 @@ class LazyPowerSeriesRing(LazySeriesRing):
         EXAMPLES::
 
             sage: L = LazyPowerSeriesRing(ZZ, 'z')
-            sage: L.some_elements()
-            [0, 1, z,
+            sage: L.some_elements()[:6]
+            [0, 1, z + z^2 + z^3 + O(z^4),
              -12 - 8*z + z^2 + z^3,
              1 + z - 2*z^2 - 7*z^3 - z^4 + 20*z^5 + 23*z^6 + O(z^7),
              z + 4*z^2 + 9*z^3 + 16*z^4 + 25*z^5 + 36*z^6 + O(z^7)]
 
             sage: L = LazyPowerSeriesRing(GF(3)["q"], 'z')
-            sage: L.some_elements()
-            [0, 1, z,
+            sage: L.some_elements()[:6]
+            [0, 1, z + q*z^2 + q*z^3 + q*z^4 + O(z^5),
              z + z^2 + z^3,
              1 + z + z^2 + 2*z^3 + 2*z^4 + 2*z^5 + O(z^6),
              z + z^2 + z^4 + z^5 + O(z^7)]
 
             sage: L = LazyPowerSeriesRing(GF(3), 'q, t')
-            sage: L.some_elements()
+            sage: L.some_elements()[:6]
             [0, 1, q,
              q + q^2 + q^3,
              1 + q + q^2 + (-q^3) + (-q^4) + (-q^5) + (-q^6) + O(q,t)^7,
@@ -1992,8 +2051,7 @@ class LazyCompletionGradedAlgebra(LazySeriesRing):
     Element = LazyCompletionGradedAlgebraElement
 
     def __init__(self, basis, sparse=True, category=None):
-        """
-        Initialize ``self``.
+        """Initialize ``self``.
 
         TESTS::
 
@@ -2007,7 +2065,23 @@ class LazyCompletionGradedAlgebra(LazySeriesRing):
             sage: L = LazySymmetricFunctions(s)
             sage: TestSuite(L).run()
 
-            sage: LazySymmetricFunctions.options._reset()  # reset the options
+            sage: p = SymmetricFunctions(GF(5)).p()
+            sage: L = LazySymmetricFunctions(p)
+            sage: TestSuite(L).run()
+
+        Reversion will only work when the base ring is a field::
+
+            sage: TestSuite(L).run(skip=['_test_revert'])
+            sage: s = SymmetricFunctions(ZZ).s()
+            sage: L = LazySymmetricFunctions(s)
+
+            sage: s = SymmetricFunctions(QQ["q"]).s()
+            sage: L = LazySymmetricFunctions(s)
+            sage: TestSuite(L).run(skip=['_test_revert'])
+
+        Options are remembered across doctests::
+
+            sage: LazySymmetricFunctions.options._reset()
 
         Check that :trac:`34470` is fixed.  The ideal generated by
         `p[1]` and `p[2]` is not principal::
@@ -2303,9 +2377,8 @@ class LazyCompletionGradedAlgebra(LazySeriesRing):
 
             sage: m = SymmetricFunctions(GF(5)).m()
             sage: L = LazySymmetricFunctions(m)
-            sage: L.some_elements()
-            [0, m[], 2*m[] + 2*m[1] + 3*m[2],
-             m[1] + (m[1,1]+m[2]),
+            sage: L.some_elements()[:5]
+            [0, m[], 2*m[] + 2*m[1] + 3*m[2], 2*m[1] + 3*m[2],
              3*m[] + 2*m[1] + (m[1,1]+m[2])
                    + (2*m[1,1,1]+m[3])
                    + (2*m[1,1,1,1]+4*m[2,1,1]+2*m[2,2])
@@ -2316,22 +2389,29 @@ class LazyCompletionGradedAlgebra(LazySeriesRing):
             sage: NCSF = NonCommutativeSymmetricFunctions(QQ)
             sage: S = NCSF.Complete()
             sage: L = S.formal_series_ring()
-            sage: L.some_elements()
-            [0, S[], 2*S[] + 2*S[1] + (3*S[1,1]), S[1] + (S[1,1]+S[2])]
+            sage: L.some_elements()[:4]
+            [0, S[], 2*S[] + 2*S[1] + (3*S[1,1]), 2*S[1] + (3*S[1,1])]
+
         """
         elt = self.an_element()
         elts = [self.zero(), self.one(), elt]
-        it = iter(self._laurent_poly_ring.basis())
-        temp = self.sum(b for _ in range(4) if (b := next(it)).degree())
-        if temp:
-            elts.append(temp)
+        # an element with no constant term
+        elts.append(elt - elt[0])
+        # the inverse of an element
         try:
             if elt.is_unit():
                 elts.append(~elt)
             else:
-                elts.append(~(1-elt[0]+elt))
+                elts.append(~(1 - elt[0] + elt))
         except NotImplementedError:
             pass
+        # an element with no constant term and an invertible
+        # coefficient of the linear term
+        it = iter(self._laurent_poly_ring.basis())
+        temp = self.sum(b for _ in range(4) if (b := next(it)).degree())
+        if temp:
+            elts.append(temp)
+
         return elts
 
 ######################################################################
@@ -2429,7 +2509,7 @@ class LazyDirichletSeriesRing(LazySeriesRing):
     __classcall_private__ = LazySeriesRing.__classcall_private__
 
     def __init__(self, base_ring, names, sparse=True, category=None):
-        """
+        r"""
         Initialize the ring.
 
         TESTS::
@@ -2443,6 +2523,7 @@ class LazyDirichletSeriesRing(LazySeriesRing):
             sage: TestSuite(L).run()
 
             sage: LazyDirichletSeriesRing.options._reset()  # reset the options
+
         """
         if base_ring.characteristic() > 0:
             raise ValueError("positive characteristic not allowed for Dirichlet series")
@@ -2703,4 +2784,3 @@ def _skip_leading_zeros(iterator):
             yield c
             break
     yield from iterator
-

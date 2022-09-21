@@ -361,7 +361,8 @@ class F_algebra(CombinatorialFreeModule):
         """
         p1, w1 = pw1
         p2, w2 = pw2
-        return sum(self.basis()[(p1 + p2, u)] for u in w1.shuffle(w2))
+        return self.sum_of_monomials((p1 + p2, W_Odds(u, check=False))
+                                     for u in w1.shuffle(w2))
 
     def half_product_on_basis(self, pw1, pw2):
         r"""
@@ -389,7 +390,7 @@ class F_algebra(CombinatorialFreeModule):
         p1, w1 = pw1
         p2, w2 = pw2
         if not w1:
-            return self.monomial(self._indices((p1 + p2, w2)))
+            return self.basis()[(p1 + p2, w2)]
         letter = W_Odds([w1[0]], check=False)
         return self.sum_of_monomials((p1 + p2, letter + W_Odds(u, check=False))
                                      for u in w1[1:].shuffle(w2))

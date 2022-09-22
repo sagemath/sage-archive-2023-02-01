@@ -337,6 +337,7 @@ class Dokchitser(SageObject):
             # After init_coeffs is called, future calls to this method should
             # return the full output for further parsing
             raise RuntimeError("unable to create L-series, due to precision or other limits in PARI")
+        t = t.replace("  *** _^_: Warning: normalizing a series with 0 leading term.\n", "")
         return t
 
     def __check_init(self):

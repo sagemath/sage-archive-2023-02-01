@@ -1928,11 +1928,12 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
 
         ::
 
-            R.<x> = QQ[]
-            K.<v> = NumberField(x^5 + x^3 + 1)
-            P.<x,y,z> = ProjectiveSpace(K, 2)
-            L = P.points_of_bounded_height(bound=1.2)
-            0
+            sage: R.<x> = QQ[]
+            sage: K.<v> = NumberField(x^5 + x^3 + 1)
+            sage: P.<x,y,z> = ProjectiveSpace(K, 2)
+            sage: L = P.points_of_bounded_height(bound=1.2)
+            sage: len(list(L))
+            109
         """
         from sage.schemes.projective.proj_bdd_height import QQ_points_of_bounded_height, IQ_points_of_bounded_height, points_of_bounded_height
 

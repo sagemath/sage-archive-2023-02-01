@@ -4228,7 +4228,8 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             (y^2 + 6, Mod(1/6*y, y^2 + 6), Mod(6*y, y^2 + 1/6))
         """
         f = self.absolute_polynomial()._pari_with_name('y')
-        if f.pollead() == f.content().denominator() == 1:
+        f = f * f.content().denominator()
+        if f.pollead() == 1:
             g = f
             alpha = beta = g.variable().Mod(g)
         else:

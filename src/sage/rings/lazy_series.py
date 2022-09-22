@@ -68,7 +68,7 @@ eventually constant 'exact'.  In some cases, computations with such
 series are much faster.  Moreover, these are the series where
 equality can be decided.  For example::
 
-    sage: L.<z> = LazyTaylorSeriesRing(ZZ)
+    sage: L.<z> = LazyPowerSeriesRing(ZZ)
     sage: f = 1 + 2*z^2 / (1 - z)
     sage: f - 2 / (1 - z) + 1 + 2*z
     0
@@ -77,7 +77,7 @@ However, multivariate Taylor series are actually represented as
 streams of multivariate polynomials.  Therefore, the only exact
 series in this case are polynomials::
 
-    sage: L.<x,y> = LazyTaylorSeriesRing(ZZ)
+    sage: L.<x,y> = LazyPowerSeriesRing(ZZ)
     sage: 1 / (1-x)
     1 + x + x^2 + x^3 + x^4 + x^5 + x^6 + O(x,y)^7
 
@@ -100,7 +100,11 @@ We can change the base ring::
     sage: hinv.valuation()
     -1
 
-TESTS::
+TESTS:
+
+We check that -- at least for some simple cases -- division,
+composition and reversion do not raise exceptions for univariate lazy
+Laurent series, lazy power series and lazy symmetric functions::
 
     sage: def check(L, z, verbose=False):
     ....:     # division
@@ -139,11 +143,58 @@ TESTS::
 
     sage: L.<z> = LazyLaurentSeriesRing(QQ)
     sage: check(L, z)
-    sage: L.<z> = LazyTaylorSeriesRing(QQ)
+    sage: L.<z> = LazyPowerSeriesRing(QQ)
     sage: check(L, z)
     sage: p = SymmetricFunctions(QQ).p()
     sage: L = LazySymmetricFunctions(p)
     sage: check(L, L(p[1]))
+
+We check that the elements in the cache of the stream of homogeneous
+components are in the correct ring::
+
+    sage: def check(L, x, valuation, verbose=False):
+    ....:     f = L(x, valuation=valuation)
+    ....:     _ = f[2], f[5]
+    ....:     if callable(x):
+    ....:         assert len(f._coeff_stream._cache) == 2, "the cache is %s" % f._coeff_stream._cache
+    ....:     else:
+    ....:         m = 6 if valuation is None else 5 - valuation + 1
+    ....:         assert len(f._coeff_stream._cache) == m, "the cache is %s" % f._coeff_stream._cache
+    ....:     P = f._coeff_stream._cache[2].parent()
+    ....:     assert P is L._internal_poly_ring.base_ring(), "the cache is in %s" % P
+    ....:     if verbose:
+    ....:         print(P)
+
+    sage: def gen():
+    ....:     n = 0
+    ....:     while True:
+    ....:         yield n
+    ....:         n += 1
+
+    sage: L.<z> = LazyLaurentSeriesRing(GF(2))
+    sage: check(L, lambda n: n, valuation=-5)
+    sage: check(L, gen(), valuation=-5)
+
+    sage: L = LazyDirichletSeriesRing(QQbar, "s")
+    sage: check(L, lambda n: n, valuation=2)
+    sage: check(L, gen(), valuation=2)
+
+    sage: L.<z> = LazyPowerSeriesRing(GF(2))
+    sage: check(L, lambda n: n, valuation=0)
+    sage: check(L, gen(), valuation=0)
+
+    sage: L.<x,y> = LazyPowerSeriesRing(GF(2))
+    sage: check(L, lambda n: (x + y)^n, valuation=None)
+    sage: def gen():
+    ....:     n = 0
+    ....:     while True:
+    ....:         yield (x+y)^n
+    ....:         n += 1
+    sage: check(L, gen(), valuation=None)
+
+    sage: s = SymmetricFunctions(GF(2)).s()
+    sage: L = LazySymmetricFunctions(s)
+    sage: check(L, lambda n: sum(k*s(la) for k, la in enumerate(Partitions(n))), valuation=0)
 """
 
 # ****************************************************************************
@@ -162,9 +213,12 @@ from sage.structure.element import Element, parent
 from sage.structure.richcmp import op_EQ, op_NE
 from sage.functions.other import factorial
 from sage.arith.power import generic_power
+from sage.arith.functions import lcm
+from sage.arith.misc import divisors, moebius
+from sage.combinat.partition import Partition, Partitions
 from sage.misc.misc_c import prod
 from sage.misc.derivative import derivative_parse
-from sage.combinat.partition import Partition
+from sage.categories.integral_domains import IntegralDomains
 from sage.rings.infinity import infinity
 from sage.rings.integer_ring import ZZ
 from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
@@ -202,9 +256,9 @@ class LazyModuleElement(Element):
         sage: L.<z> = LazyLaurentSeriesRing(ZZ)
         sage: M = L(lambda n: n, valuation=0)
         sage: N = L(lambda n: 1, valuation=0)
-        sage: M[:10]
+        sage: M[0:10]
         [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-        sage: N[:10]
+        sage: N[0:10]
         [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
 
     Two sequences can be added::
@@ -216,19 +270,19 @@ class LazyModuleElement(Element):
     Two sequences can be subtracted::
 
         sage: P = M - N
-        sage: P[:10]
+        sage: P[0:10]
         [-1, 0, 1, 2, 3, 4, 5, 6, 7, 8]
 
     A sequence can be multiplied by a scalar::
 
         sage: Q = 2 * M
-        sage: Q[:10]
+        sage: Q[0:10]
         [0, 2, 4, 6, 8, 10, 12, 14, 16, 18]
 
     The negation of a sequence can also be found::
 
         sage: R = -M
-        sage: R[:10]
+        sage: R[0:10]
         [0, -1, -2, -3, -4, -5, -6, -7, -8, -9]
     """
     def __init__(self, parent, coeff_stream):
@@ -243,27 +297,41 @@ class LazyModuleElement(Element):
             sage: L = LazyDirichletSeriesRing(QQbar, 'z')
             sage: g = L(constant=1)
             sage: TestSuite(g).run()
-
         """
         Element.__init__(self, parent)
         self._coeff_stream = coeff_stream
 
     def __getitem__(self, n):
-        """
-        Return the coefficient of the term with exponent ``n`` of the series.
+        r"""
+        Return the homogeneous degree ``n`` part of the series.
 
         INPUT:
 
-        - ``n`` -- integer; the exponent
+        - ``n`` -- integer; the degree
+
+        For a series ``f``, the slice ``f[start:stop]`` produces the following:
+
+        - if ``start`` and ``stop`` are integers, return the list of
+          terms with given degrees
+
+        - if ``start`` is ``None``, return the list of terms
+          beginning with the valuation
+
+        - if ``stop`` is ``None``, return a
+          :class:`~sage.misc.lazy_list.lazy_list_generic` instead.
 
         EXAMPLES::
 
-            sage: L.<z> = LazyLaurentSeriesRing(ZZ, sparse=False)
+            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
             sage: f = z / (1 - 2*z^3)
             sage: [f[n] for n in range(20)]
             [0, 1, 0, 0, 2, 0, 0, 4, 0, 0, 8, 0, 0, 16, 0, 0, 32, 0, 0, 64]
             sage: f[0:20]
             [0, 1, 0, 0, 2, 0, 0, 4, 0, 0, 8, 0, 0, 16, 0, 0, 32, 0, 0, 64]
+            sage: f[:20]
+            [1, 0, 0, 2, 0, 0, 4, 0, 0, 8, 0, 0, 16, 0, 0, 32, 0, 0, 64]
+            sage: f[::3]
+            lazy list [1, 2, 4, ...]
 
             sage: M = L(lambda n: n, valuation=0)
             sage: [M[n] for n in range(20)]
@@ -274,38 +342,139 @@ class LazyModuleElement(Element):
             sage: [M[n] for n in range(20)]
             [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
 
+        Similarly for multivariate series::
+
+            sage: L.<x,y> = LazyPowerSeriesRing(QQ)
+            sage: sin(x*y)[:11]
+            [x*y, 0, 0, 0, -1/6*x^3*y^3, 0, 0, 0, 1/120*x^5*y^5]
+            sage: sin(x*y)[2::4]
+            lazy list [x*y, -1/6*x^3*y^3, 1/120*x^5*y^5, ...]
+
         Similarly for Dirichlet series::
 
             sage: L = LazyDirichletSeriesRing(ZZ, "z")
-            sage: f = L(lambda n: n)
-            sage: [f[n] for n in range(1, 11)]
-            [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-            sage: f[1:11]
+            sage: L(lambda n: n)[1:11]
             [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
-            sage: M = L(lambda n: n)
-            sage: [M[n] for n in range(1, 11)]
-            [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-            sage: L = LazyDirichletSeriesRing(ZZ, "z", sparse=True)
-            sage: M = L(lambda n: n)
-            sage: [M[n] for n in range(1, 11)]
-            [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+        TESTS:
 
+        Check that no more elements than necessary are computed::
+
+            sage: L = LazyDirichletSeriesRing(ZZ, "z")
+            sage: f = L(lambda n: 0 if n < 5 else n)
+            sage: f[:3]
+            []
+            sage: f._coeff_stream._cache
+            {1: 0, 2: 0}
         """
         R = self.parent()._internal_poly_ring.base_ring()
+        coeff_stream = self._coeff_stream
         if isinstance(n, slice):
-            if n.stop is None:
-                raise NotImplementedError("cannot list an infinite set")
-            start = n.start if n.start is not None else self._coeff_stream._approximate_order
+            if n.start is None:
+                # WARNING: for Dirichlet series, 'degree' and
+                # valuation are different
+                if n.stop is None:
+                    start = coeff_stream.order()
+                else:
+                    start = coeff_stream._approximate_order
+                    while start < n.stop and not coeff_stream[start]:
+                        start += 1
+                        coeff_stream._approximate_order = start
+            else:
+                start = n.start
             step = n.step if n.step is not None else 1
+            if n.stop is None:
+                from sage.misc.lazy_list import lazy_list
+                return lazy_list(lambda k: R(self._coeff_stream[start + k * step]))
+
             return [R(self._coeff_stream[k]) for k in range(start, n.stop, step)]
+
         return R(self._coeff_stream[n])
 
     coefficient = __getitem__
 
-    def map_coefficients(self, func, ring=None):
+    def coefficients(self, n=None):
         r"""
-        Return the series with ``func`` applied to each nonzero
+        Return the first `n` non-zero coefficients of ``self``.
+
+        INPUT:
+
+        - ``n`` -- (optional) the number of non-zero coefficients to return
+
+        If the series has fewer than `n` non-zero coefficients, only
+        these are returned.
+
+        If ``n`` is ``None``, a
+        :class:`~sage.misc.lazy_list.lazy_list_generic` with all
+        non-zero coefficients is returned instead.
+
+        .. WARNING::
+
+            If there are fewer than `n` non-zero coefficients, but
+            this cannot be detected, this method will not return.
+
+        EXAMPLES::
+
+            sage: L.<x> = LazyPowerSeriesRing(QQ)
+            sage: f = L([1,2,3])
+            sage: f.coefficients(5)
+            doctest:...: DeprecationWarning: the method coefficients now only returns the non-zero coefficients. Use __getitem__ instead.
+            See https://trac.sagemath.org/32367 for details.
+            [1, 2, 3]
+
+            sage: f = sin(x)
+            sage: f.coefficients(5)
+            [1, -1/6, 1/120, -1/5040, 1/362880]
+
+            sage: L.<x, y> = LazyPowerSeriesRing(QQ)
+            sage: f = sin(x^2+y^2)
+            sage: f.coefficients(5)
+            [1, 1, -1/6, -1/2, -1/2]
+
+            sage: f.coefficients()
+            lazy list [1, 1, -1/6, ...]
+
+            sage: L.<x> = LazyPowerSeriesRing(GF(2))
+            sage: f = L(lambda n: n)
+            sage: f.coefficients(5)
+            [1, 1, 1, 1, 1]
+        """
+        coeff_stream = self._coeff_stream
+        if isinstance(coeff_stream, Stream_zero):
+            return []
+        from itertools import repeat, chain, islice
+        from sage.misc.lazy_list import lazy_list
+        # prepare a generator of the non-zero coefficients
+        P = self.parent()
+        if isinstance(coeff_stream, Stream_exact):
+            if coeff_stream._constant:
+                coeffs = chain((c for c in coeff_stream._initial_coefficients if c),
+                               repeat(coeff_stream._constant))
+            else:
+                coeffs = (c for c in coeff_stream._initial_coefficients if c)
+        else:
+            coeffs = filter(bool, coeff_stream.iterate_coefficients())
+
+        if n is None:
+            if P._internal_poly_ring.base_ring() is not P._laurent_poly_ring:
+                return lazy_list(coeffs)
+
+            # flatten out the generator in the multivariate case
+            return lazy_list(chain.from_iterable(map(lambda coeff: coeff.coefficients(), coeffs)))
+
+        if isinstance(self, LazyPowerSeries) and self.parent()._arity == 1:
+            from sage.misc.superseded import deprecation
+            deprecation(32367, 'the method coefficients now only returns the non-zero coefficients. Use __getitem__ instead.')
+
+        if P._internal_poly_ring.base_ring() is not P._laurent_poly_ring:
+            return list(islice(coeffs, n))
+
+        # flatten out the generator in the multivariate case
+        return list(islice(chain.from_iterable(map(lambda coeff: coeff.coefficients(), coeffs)), n))
+
+    def map_coefficients(self, f):
+        r"""
+        Return the series with ``f`` applied to each nonzero
         coefficient of ``self``.
 
         INPUT:
@@ -313,9 +482,52 @@ class LazyModuleElement(Element):
         - ``func`` -- function that takes in a coefficient and returns
           a new coefficient
 
-        EXAMPLES:
+        EXAMPLES::
 
-        Dense Implementation::
+            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
+            sage: m = L(lambda n: n, valuation=0); m
+            z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + O(z^7)
+            sage: m.map_coefficients(lambda c: c + 1)
+            2*z + 3*z^2 + 4*z^3 + 5*z^4 + 6*z^5 + 7*z^6 + O(z^7)
+
+        Similarly for Dirichlet series::
+
+            sage: L = LazyDirichletSeriesRing(ZZ, "z")
+            sage: s = L(lambda n: n-1); s
+            1/(2^z) + 2/3^z + 3/4^z + 4/5^z + 5/6^z + 6/7^z + O(1/(8^z))
+            sage: s.map_coefficients(lambda c: c + 1)
+            2/2^z + 3/3^z + 4/4^z + 5/5^z + 6/6^z + 7/7^z + O(1/(8^z))
+
+        Similarly for multivariate power series::
+
+            sage: L.<x, y> = LazyPowerSeriesRing(QQ)
+            sage: f = 1/(1-(x+y)); f
+            1 + (x+y) + (x^2+2*x*y+y^2) + (x^3+3*x^2*y+3*x*y^2+y^3)
+             + (x^4+4*x^3*y+6*x^2*y^2+4*x*y^3+y^4)
+             + (x^5+5*x^4*y+10*x^3*y^2+10*x^2*y^3+5*x*y^4+y^5)
+             + (x^6+6*x^5*y+15*x^4*y^2+20*x^3*y^3+15*x^2*y^4+6*x*y^5+y^6)
+             + O(x,y)^7
+            sage: f.map_coefficients(lambda c: c^2)
+            1 + (x+y) + (x^2+4*x*y+y^2) + (x^3+9*x^2*y+9*x*y^2+y^3)
+             + (x^4+16*x^3*y+36*x^2*y^2+16*x*y^3+y^4)
+             + (x^5+25*x^4*y+100*x^3*y^2+100*x^2*y^3+25*x*y^4+y^5)
+             + (x^6+36*x^5*y+225*x^4*y^2+400*x^3*y^3+225*x^2*y^4+36*x*y^5+y^6)
+             + O(x,y)^7
+
+        Similarly for lazy symmetric functions::
+
+            sage: p = SymmetricFunctions(QQ).p()
+            sage: L = LazySymmetricFunctions(p)
+            sage: f = 1/(1-2*L(p[1])); f
+            p[] + 2*p[1] + (4*p[1,1]) + (8*p[1,1,1]) + (16*p[1,1,1,1])
+             + (32*p[1,1,1,1,1]) + (64*p[1,1,1,1,1,1]) + O^7
+            sage: f.map_coefficients(lambda c: log(c, 2))
+            p[1] + (2*p[1,1]) + (3*p[1,1,1]) + (4*p[1,1,1,1])
+             + (5*p[1,1,1,1,1]) + (6*p[1,1,1,1,1,1]) + O^7
+
+        TESTS:
+
+        Dense implementation::
 
             sage: L.<z> = LazyLaurentSeriesRing(ZZ, sparse=False)
             sage: s = z/(1 - 2*z^2)
@@ -329,29 +541,7 @@ class LazyModuleElement(Element):
             sage: m.map_coefficients(lambda c: c + 1)
             2*z + 3*z^2 + 4*z^3 + 5*z^4 + 6*z^5 + 7*z^6 + O(z^7)
 
-        Sparse Implementation::
-
-            sage: L.<z> = LazyLaurentSeriesRing(ZZ, sparse=True)
-            sage: m = L(lambda n: n, valuation=0); m
-            z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + O(z^7)
-            sage: m.map_coefficients(lambda c: c + 1)
-            2*z + 3*z^2 + 4*z^3 + 5*z^4 + 6*z^5 + 7*z^6 + O(z^7)
-
-        An example where the series is known to be exact::
-
-            sage: f = z + z^2 + z^3
-            sage: f.map_coefficients(lambda c: c + 1)
-            2*z + 2*z^2 + 2*z^3
-
-        Similarly for Dirichlet series::
-
-            sage: L = LazyDirichletSeriesRing(ZZ, "z")
-            sage: s = L(lambda n: n-1); s
-            1/(2^z) + 2/3^z + 3/4^z + 4/5^z + 5/6^z + 6/7^z + O(1/(8^z))
-            sage: s.map_coefficients(lambda c: c + 1)
-            2/2^z + 3/3^z + 4/4^z + 5/5^z + 6/6^z + 7/7^z + O(1/(8^z))
-
-        TESTS::
+        Test the zero series::
 
             sage: from sage.data_structures.stream import Stream_zero
             sage: L.<z> = LazyLaurentSeriesRing(ZZ)
@@ -360,12 +550,22 @@ class LazyModuleElement(Element):
             sage: isinstance(s._coeff_stream, Stream_zero)
             True
 
+        An example where the series is known to be exact::
+
+            sage: f = z + z^2 + z^3
+            sage: f.map_coefficients(lambda c: c + 1)
+            2*z + 2*z^2 + 2*z^3
+
         """
         P = self.parent()
         coeff_stream = self._coeff_stream
         if isinstance(coeff_stream, Stream_zero):
             return self
-        BR = P.base_ring()
+        R = P._internal_poly_ring.base_ring()
+        if R is P._laurent_poly_ring:
+            func = lambda c: R(c).map_coefficients(f)
+        else:
+            func = f
         if isinstance(coeff_stream, Stream_exact):
             initial_coefficients = [func(i) if i else 0
                                     for i in coeff_stream._initial_coefficients]
@@ -376,10 +576,9 @@ class LazyModuleElement(Element):
                                         self._coeff_stream._is_sparse,
                                         order=coeff_stream._approximate_order,
                                         degree=coeff_stream._degree,
-                                        constant=BR(c))
+                                        constant=P.base_ring()(c))
             return P.element_class(P, coeff_stream)
-        R = P._internal_poly_ring.base_ring()
-        coeff_stream = Stream_map_coefficients(self._coeff_stream, func, R)
+        coeff_stream = Stream_map_coefficients(self._coeff_stream, func)
         return P.element_class(P, coeff_stream)
 
     def truncate(self, d):
@@ -392,7 +591,7 @@ class LazyModuleElement(Element):
 
         EXAMPLES:
 
-        Dense Implementation::
+        Dense implementation::
 
             sage: L.<z> = LazyLaurentSeriesRing(ZZ, sparse=False)
             sage: alpha = 1/(1-z)
@@ -524,6 +723,35 @@ class LazyModuleElement(Element):
         """
         return infinity
 
+    def lift_to_precision(self, absprec=None):
+        """
+        Return another element of the same parent with absolute
+        precision at least ``absprec``, congruent to this element
+        modulo the precision of this element.
+
+        Since the precision of a lazy series is infinity, this method
+        returns the series itself, and the argument is ignored.
+
+        EXAMPLES::
+
+            sage: P.<t> = PowerSeriesRing(QQ, default_prec=2)
+            sage: R.<z> = LazyPowerSeriesRing(P)
+            sage: f = R(lambda n: 1/(1-t)^n)
+            sage: f
+            1 + ((1+t+O(t^2))*z) + ((1+2*t+O(t^2))*z^2)
+              + ((1+3*t+O(t^2))*z^3)
+              + ((1+4*t+O(t^2))*z^4)
+              + ((1+5*t+O(t^2))*z^5)
+              + ((1+6*t+O(t^2))*z^6) + O(z^7)
+            sage: f.lift_to_precision()
+            1 + ((1+t+O(t^2))*z) + ((1+2*t+O(t^2))*z^2)
+              + ((1+3*t+O(t^2))*z^3)
+              + ((1+4*t+O(t^2))*z^4)
+              + ((1+5*t+O(t^2))*z^5)
+              + ((1+6*t+O(t^2))*z^6) + O(z^7)
+        """
+        return self
+
     def _richcmp_(self, other, op):
         r"""
         Compare ``self`` with ``other`` with respect to the comparison
@@ -562,35 +790,50 @@ class LazyModuleElement(Element):
             Traceback (most recent call last):
             ...
             ValueError: undecidable
+
+        TESTS::
+
+            sage: L.<z> = LazyLaurentSeriesRing(QQ)
+            sage: f = L([0,0,1,0,1,0,0,1], constant=1)
+            sage: g = L([0,0,1,0,1,0,0], degree=7, constant=1)
+            sage: f == g
+            True
+
         """
         if op is op_EQ:
-            if isinstance(self._coeff_stream, Stream_zero):  # self == 0
+            if isinstance(self._coeff_stream, Stream_zero):
                 if isinstance(other._coeff_stream, Stream_zero):
                     return True
                 if other._coeff_stream.is_nonzero():
                     return False
-            # other == 0 but self likely != 0
-            elif (isinstance(other._coeff_stream, Stream_zero)
-                  and self._coeff_stream.is_nonzero()):
-                return False
-
-            if (not isinstance(self._coeff_stream, Stream_exact)
-                or not isinstance(other._coeff_stream, Stream_exact)):
-                # One of the lazy laurent series is not known to eventually be constant
-                # Implement the checking of the caches here.
-                n = min(self._coeff_stream._approximate_order, other._coeff_stream._approximate_order)
-                m = max(self._coeff_stream._approximate_order, other._coeff_stream._approximate_order)
-                for i in range(n, m):
-                    if self[i] != other[i]:
-                        return False
-                if self._coeff_stream == other._coeff_stream:
-                    return True
+            elif isinstance(other._coeff_stream, Stream_zero):
+                if self._coeff_stream.is_nonzero():
+                    return False
+            elif isinstance(self._coeff_stream, Stream_exact):
+                if isinstance(other._coeff_stream, Stream_exact):
+                    return self._coeff_stream == other._coeff_stream
                 if self._coeff_stream != other._coeff_stream:
                     return False
-                raise ValueError("undecidable")
+            elif isinstance(other._coeff_stream, Stream_exact):
+                if other._coeff_stream != self._coeff_stream:
+                    return False
+            else:
+                # both streams are inexact, perhaps they are equal by
+                # construction
+                if self._coeff_stream == other._coeff_stream:
+                    return True
+                # perhaps their caches are different
+                if self._coeff_stream != other._coeff_stream:
+                    return False
 
-            # Both are Stream_exact, which implements a full check
-            return self._coeff_stream == other._coeff_stream
+            # undecidable otherwise
+            prec = self.parent().options.halting_precision
+            if prec == None:
+                raise ValueError("undecidable")
+            # at least one of the approximate orders is not infinity
+            m = min(self._coeff_stream._approximate_order,
+                    other._coeff_stream._approximate_order)
+            return all(self[i] == other[i] for i in range(m, m + prec))
 
         if op is op_NE:
             return not (self == other)
@@ -658,21 +901,21 @@ class LazyModuleElement(Element):
 
         Uninitialized series::
 
-            sage: g = L(None, valuation=0)
+            sage: g = L.undefined(valuation=0)
             sage: bool(g)
             True
             sage: g.define(0)
             sage: bool(g)
             False
 
-            sage: g = L(None, valuation=0)
+            sage: g = L.undefined(valuation=0)
             sage: bool(g)
             True
             sage: g.define(1 + z)
             sage: bool(g)
             True
 
-            sage: g = L(None, valuation=0)
+            sage: g = L.undefined(valuation=0)
             sage: bool(g)
             True
             sage: g.define(1 + z*g)
@@ -697,13 +940,18 @@ class LazyModuleElement(Element):
         else:
             if any(a for a in self._coeff_stream._cache):
                 return True
-        if self[self._coeff_stream._approximate_order]:
+
+        v = self._coeff_stream._approximate_order
+        if self[v]:
             return True
-        raise ValueError("undecidable as lazy Laurent series")
+
+        prec = self.parent().options.halting_precision
+        if prec == None:
+            raise ValueError("undecidable as lazy Laurent series")
+        return any(self[i] for i in range(v, v + prec))
 
     def define(self, s):
-        r"""
-        Define an equation by ``self = s``.
+        r"""Define an equation by ``self = s``.
 
         INPUT:
 
@@ -713,36 +961,36 @@ class LazyModuleElement(Element):
 
         We begin by constructing the Catalan numbers::
 
-            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
-            sage: C = L(None, valuation=0)
+            sage: L.<z> = LazyPowerSeriesRing(ZZ)
+            sage: C = L.undefined()
             sage: C.define(1 + z*C^2)
             sage: C
             1 + z + 2*z^2 + 5*z^3 + 14*z^4 + 42*z^5 + 132*z^6 + O(z^7)
 
         The Catalan numbers but with a valuation 1::
 
-            sage: B = L(None, valuation=1)
+            sage: B = L.undefined(valuation=1)
             sage: B.define(z + B^2)
             sage: B
             z + z^2 + 2*z^3 + 5*z^4 + 14*z^5 + 42*z^6 + 132*z^7 + O(z^8)
 
         We can define multiple series that are linked::
 
-            sage: s = L(None, valuation=0)
-            sage: t = L(None, valuation=0)
+            sage: s = L.undefined()
+            sage: t = L.undefined()
             sage: s.define(1 + z*t^3)
             sage: t.define(1 + z*s^2)
-            sage: s[:9]
+            sage: s[0:9]
             [1, 1, 3, 9, 34, 132, 546, 2327, 10191]
-            sage: t[:9]
+            sage: t[0:9]
             [1, 1, 2, 7, 24, 95, 386, 1641, 7150]
 
         A bigger example::
 
-            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
-            sage: A = L(None, valuation=5)
-            sage: B = L(None, valuation=0)
-            sage: C = L(None, valuation=2)
+            sage: L.<z> = LazyPowerSeriesRing(ZZ)
+            sage: A = L.undefined(valuation=5)
+            sage: B = L.undefined()
+            sage: C = L.undefined(valuation=2)
             sage: A.define(z^5 + B^2)
             sage: B.define(z^5 + C^2)
             sage: C.define(z^2 + C^2 + A^2)
@@ -755,17 +1003,17 @@ class LazyModuleElement(Element):
 
         Counting binary trees::
 
-            sage: L.<z> = LazyLaurentSeriesRing(QQ)
-            sage: s = L(None, valuation=1)
+            sage: L.<z> = LazyPowerSeriesRing(QQ)
+            sage: s = L.undefined(valuation=1)
             sage: s.define(z + (s^2+s(z^2))/2)
-            sage: [s[i] for i in range(9)]
+            sage: s[0:9]
             [0, 1, 1, 1, 2, 3, 6, 11, 23]
 
         The `q`-Catalan numbers::
 
             sage: R.<q> = ZZ[]
             sage: L.<z> = LazyLaurentSeriesRing(R)
-            sage: s = L(None, valuation=0)
+            sage: s = L.undefined(valuation=0)
             sage: s.define(1+z*s*s(q*z))
             sage: s
             1 + z + (q + 1)*z^2 + (q^3 + q^2 + 2*q + 1)*z^3
@@ -778,29 +1026,31 @@ class LazyModuleElement(Element):
         and number of internal nodes::
 
             sage: R.<q> = QQ[]
-            sage: Q.<z> = LazyLaurentSeriesRing(R)
+            sage: Q.<z> = LazyPowerSeriesRing(R)
             sage: leaf = z
             sage: internal_node = q * z
             sage: L = Q(constant=1, degree=1)
-            sage: T = Q(None, valuation=1)
+            sage: T = Q.undefined(valuation=1)
             sage: T.define(leaf + internal_node * L(T))
-            sage: [T[i] for i in range(6)]
+            sage: T[0:6]
             [0, 1, q, q^2 + q, q^3 + 3*q^2 + q, q^4 + 6*q^3 + 6*q^2 + q]
 
         Similarly for Dirichlet series::
 
             sage: L = LazyDirichletSeriesRing(ZZ, "z")
             sage: g = L(constant=1, valuation=2)
-            sage: F = L(None); F.define(1 + g*F)
-            sage: [F[i] for i in range(1, 16)]
+            sage: F = L.undefined()
+            sage: F.define(1 + g*F)
+            sage: F[:16]
             [1, 1, 1, 2, 1, 3, 1, 4, 2, 3, 1, 8, 1, 3, 3]
             sage: oeis(_)                                                       # optional, internet
             0: A002033: Number of perfect partitions of n.
             1: A074206: Kalmár's [Kalmar's] problem: number of ordered factorizations of n.
             ...
 
-            sage: F = L(None); F.define(1 + g*F*F)
-            sage: [F[i] for i in range(1, 16)]
+            sage: F = L.undefined()
+            sage: F.define(1 + g*F*F)
+            sage: F[:16]
             [1, 1, 1, 3, 1, 5, 1, 10, 3, 5, 1, 24, 1, 5, 5]
 
         We can compute the Frobenius character of unlabeled trees::
@@ -810,10 +1060,10 @@ class LazyModuleElement(Element):
             sage: L = LazySymmetricFunctions(m)
             sage: E = L(lambda n: s[n], valuation=0)
             sage: X = L(s[1])
-            sage: A = L(None); A.define(X*E(A, check=False))
+            sage: A = L.undefined()
+            sage: A.define(X*E(A, check=False))
             sage: A[:6]
-            [0,
-             m[1],
+            [m[1],
              2*m[1, 1] + m[2],
              9*m[1, 1, 1] + 5*m[2, 1] + 2*m[3],
              64*m[1, 1, 1, 1] + 34*m[2, 1, 1] + 18*m[2, 2] + 13*m[3, 1] + 4*m[4],
@@ -822,12 +1072,12 @@ class LazyModuleElement(Element):
         TESTS::
 
             sage: L.<z> = LazyLaurentSeriesRing(ZZ, sparse=True)
-            sage: s = L(None, valuation=0)
-            sage: s.define(1 + z*s^3)
-            sage: s[:10]
+            sage: s = L.undefined(valuation=-1)
+            sage: s.define(z^-1 + z^3*s^3)
+            sage: s[-1:9]
             [1, 1, 3, 12, 55, 273, 1428, 7752, 43263, 246675]
 
-            sage: e = L(None, valuation=0)
+            sage: e = L.undefined(valuation=0)
             sage: e.define(1 + z*e)
             sage: e.define(1 + z*e)
             Traceback (most recent call last):
@@ -838,12 +1088,12 @@ class LazyModuleElement(Element):
             ...
             ValueError: series already defined
 
-            sage: e = L(None, valuation=0)
+            sage: e = L.undefined(valuation=0)
             sage: e.define(1)
             sage: e
             1
 
-            sage: e = L(None, valuation=0)
+            sage: e = L.undefined(valuation=0)
             sage: e.define((1 + z).polynomial())
             sage: e
             1 + z
@@ -851,11 +1101,40 @@ class LazyModuleElement(Element):
             sage: D = LazyDirichletSeriesRing(QQ, "s")
             sage: L.<z> = LazyLaurentSeriesRing(QQ)
             sage: e = L(lambda n: 1/factorial(n), 0)
-            sage: g = D(None, valuation=2)
+            sage: g = D.undefined(valuation=2)
             sage: o = D(constant=1, valuation=2)
             sage: g.define(o * e(g))
             sage: g
             1/(2^s) + 1/(3^s) + 2/4^s + 1/(5^s) + 3/6^s + 1/(7^s) + 9/2/8^s + O(1/(9^s))
+
+        For Laurent series there is no minimal valuation, so it has
+        to be specified::
+
+            sage: L.<z> = LazyLaurentSeriesRing(QQ)
+            sage: L.undefined()
+            Traceback (most recent call last):
+            ...
+            ValueError: the valuation must be specified for undefined series
+
+        For power series and Dirichlet series there is a minimal
+        valuation, which is why the following work::
+
+            sage: P.<x> = LazyPowerSeriesRing(QQ)
+            sage: f = P.undefined()
+            sage: f.define(1 - ~f*x)
+            sage: f
+            1 - x - x^2 - 2*x^3 - 5*x^4 - 14*x^5 - 42*x^6 + O(x^7)
+
+            sage: D = LazyDirichletSeriesRing(QQ, "s")
+            sage: g = D([0, 1])
+            sage: f = D.undefined()
+            sage: f.define(1 + ~f*g)
+            sage: f
+            1 + 1/(2^s) - 1/(4^s) + O(1/(8^s))
+
+            sage: oeis(f[:30])                                                  # optional, internet
+            0: A122698: a(1)=a(2)=1 then a(n) = Sum_{d|n, 1<d<n} a(d)*a(n/d).
+
         """
         if not isinstance(self._coeff_stream, Stream_uninitialized) or self._coeff_stream._target is not None:
             raise ValueError("series already defined")
@@ -901,7 +1180,7 @@ class LazyModuleElement(Element):
             sage: L(lambda x: x if x > 0 else 0, valuation=-10)
             O(z^-3)
 
-            sage: L(None, valuation=0)
+            sage: L.undefined(valuation=0)
             Uninitialized Lazy Laurent Series
             sage: L(0)
             0
@@ -948,7 +1227,7 @@ class LazyModuleElement(Element):
             sage: latex(L(lambda x: x if x > 0 else 0, valuation=-10))
             O(\frac{1}{z^{3}})
 
-            sage: latex(L(None, valuation=0))
+            sage: latex(L.undefined(valuation=0))
             \text{\texttt{Undef}}
             sage: latex(L(0))
             0
@@ -1059,7 +1338,7 @@ class LazyModuleElement(Element):
 
         A Taylor series example::
 
-            sage: L.<z> = LazyTaylorSeriesRing(ZZ)
+            sage: L.<z> = LazyPowerSeriesRing(ZZ)
             sage: s = 2 + z
             sage: t = s.change_ring(QQ)
             sage: t^-1
@@ -1068,10 +1347,10 @@ class LazyModuleElement(Element):
             Lazy Taylor Series Ring in z over Rational Field
         """
         P = self.parent()
-        if P._names is not None:
-            Q = type(P)(ring, names=P.variable_names(), sparse=P._sparse)
-        else:
+        if P._names is None:
             Q = type(P)(ring, sparse=P._sparse)
+        else:
+            Q = type(P)(ring, names=P.variable_names(), sparse=P._sparse)
         return Q.element_class(Q, self._coeff_stream)
 
     # === module structure ===
@@ -1472,7 +1751,7 @@ class LazyModuleElement(Element):
             ...
             ValueError: can only compose with a positive valuation series
 
-            sage: L.<x,y> = LazyTaylorSeriesRing(QQ)
+            sage: L.<x,y> = LazyPowerSeriesRing(QQ)
             sage: exp(x+y)[4].factor()
             (1/24) * (x + y)^4
             sage: exp(x/(1-y)).polynomial(3)
@@ -1483,10 +1762,17 @@ class LazyModuleElement(Element):
             sage: L.<z> = LazyLaurentSeriesRing(QQ); x = var("x")
             sage: exp(z)[0:6] == exp(x).series(x, 6).coefficients(sparse=False)
             True
+
+        Check the exponential when the base ring is a lazy ring::
+
+            sage: L.<t> = LazyPowerSeriesRing(QQ)
+            sage: M.<x> = LazyPowerSeriesRing(L)
+            sage: exp(x)
+            1 + x + 1/2*x^2 + 1/6*x^3 + 1/24*x^4 + 1/120*x^5 + 1/720*x^6 + O(x^7)
         """
         from .lazy_series_ring import LazyLaurentSeriesRing
         P = LazyLaurentSeriesRing(self.base_ring(), "z", sparse=self.parent()._sparse)
-        f = P(lambda n: 1/factorial(ZZ(n)), valuation=0)
+        f = P(coefficients=lambda n: 1/factorial(ZZ(n)), valuation=0)
         return f(self)
 
     def log(self):
@@ -1499,7 +1785,7 @@ class LazyModuleElement(Element):
             sage: log(1/(1-z))
             z + 1/2*z^2 + 1/3*z^3 + 1/4*z^4 + 1/5*z^5 + 1/6*z^6 + 1/7*z^7 + O(z^8)
 
-            sage: L.<x, y> = LazyTaylorSeriesRing(QQ)
+            sage: L.<x, y> = LazyPowerSeriesRing(QQ)
             sage: log((1 + x/(1-y))).polynomial(3)
             1/3*x^3 - x^2*y + x*y^2 - 1/2*x^2 + x*y + x
 
@@ -1516,7 +1802,7 @@ class LazyModuleElement(Element):
         """
         from .lazy_series_ring import LazyLaurentSeriesRing
         P = LazyLaurentSeriesRing(self.base_ring(), "z", sparse=self.parent()._sparse)
-        f = P(lambda n: ((-1) ** (n + 1))/ZZ(n), valuation=1)
+        f = P(coefficients=lambda n: ((-1) ** (n + 1))/ZZ(n), valuation=1)
         return f(self-1)
 
     # trigonometric functions
@@ -1536,7 +1822,7 @@ class LazyModuleElement(Element):
             ...
             ValueError: can only compose with a positive valuation series
 
-            sage: L.<x,y> = LazyTaylorSeriesRing(QQ)
+            sage: L.<x,y> = LazyPowerSeriesRing(QQ)
             sage: sin(x/(1-y)).polynomial(3)
             -1/6*x^3 + x*y^2 + x*y + x
 
@@ -1548,8 +1834,8 @@ class LazyModuleElement(Element):
         """
         from .lazy_series_ring import LazyLaurentSeriesRing
         P = LazyLaurentSeriesRing(self.base_ring(), "z", sparse=self.parent()._sparse)
-        f = P(lambda n: (n % 2)/factorial(ZZ(n)) if n % 4 == 1 else -(n % 2)/factorial(ZZ(n)),
-              valuation=1)
+        c = lambda n: (n % 2)/factorial(ZZ(n)) if n % 4 == 1 else -(n % 2)/factorial(ZZ(n))
+        f = P(coefficients=c, valuation=1)
         return f(self)
 
     def cos(self):
@@ -1562,7 +1848,7 @@ class LazyModuleElement(Element):
             sage: cos(z)
             1 - 1/2*z^2 + 1/24*z^4 - 1/720*z^6 + O(z^7)
 
-            sage: L.<x,y> = LazyTaylorSeriesRing(QQ)
+            sage: L.<x,y> = LazyPowerSeriesRing(QQ)
             sage: cos(x/(1-y)).polynomial(4)
             1/24*x^4 - 3/2*x^2*y^2 - x^2*y - 1/2*x^2 + 1
 
@@ -1574,8 +1860,8 @@ class LazyModuleElement(Element):
         """
         from .lazy_series_ring import LazyLaurentSeriesRing
         P = LazyLaurentSeriesRing(self.base_ring(), "z", sparse=self.parent()._sparse)
-        f = P(lambda n: 1/factorial(ZZ(n)) if n % 4 == 0 else (n % 2 - 1)/factorial(ZZ(n)),
-              valuation=0)
+        c = lambda n: 1/factorial(ZZ(n)) if n % 4 == 0 else (n % 2 - 1)/factorial(ZZ(n))
+        f = P(coefficients=c, valuation=0)
         return f(self)
 
     def tan(self):
@@ -1588,7 +1874,7 @@ class LazyModuleElement(Element):
             sage: tan(z)
             z + 1/3*z^3 + 2/15*z^5 + 17/315*z^7 + O(z^8)
 
-            sage: L.<x,y> = LazyTaylorSeriesRing(QQ)
+            sage: L.<x,y> = LazyPowerSeriesRing(QQ)
             sage: tan(x/(1-y)).polynomial(5)
             2/15*x^5 + 2*x^3*y^2 + x*y^4 + x^3*y + x*y^3 + 1/3*x^3 + x*y^2 + x*y + x
 
@@ -1654,7 +1940,7 @@ class LazyModuleElement(Element):
             sage: sec(z)
             1 + 1/2*z^2 + 5/24*z^4 + 61/720*z^6 + O(z^7)
 
-            sage: L.<x,y> = LazyTaylorSeriesRing(QQ)
+            sage: L.<x,y> = LazyPowerSeriesRing(QQ)
             sage: sec(x/(1-y)).polynomial(4)
             5/24*x^4 + 3/2*x^2*y^2 + x^2*y + 1/2*x^2 + 1
 
@@ -1678,7 +1964,7 @@ class LazyModuleElement(Element):
             sage: arcsin(z)
             z + 1/6*z^3 + 3/40*z^5 + 5/112*z^7 + O(z^8)
 
-            sage: L.<x,y> = LazyTaylorSeriesRing(QQ)
+            sage: L.<x,y> = LazyPowerSeriesRing(QQ)
             sage: asin(x/(1-y))
             x + x*y + (1/6*x^3+x*y^2) + (1/2*x^3*y+x*y^3)
              + (3/40*x^5+x^3*y^2+x*y^4) + (3/8*x^5*y+5/3*x^3*y^3+x*y^5)
@@ -1716,7 +2002,7 @@ class LazyModuleElement(Element):
             sage: arccos(z/(1-z))
             1/2*pi - z - z^2 - 7/6*z^3 - 3/2*z^4 - 83/40*z^5 - 73/24*z^6 + O(z^7)
 
-            sage: L.<x,y> = LazyTaylorSeriesRing(SR)
+            sage: L.<x,y> = LazyPowerSeriesRing(SR)
             sage: arccos(x/(1-y))
             1/2*pi + (-x) + (-x*y) + ((-1/6)*x^3-x*y^2) + ((-1/2)*x^3*y-x*y^3)
              + ((-3/40)*x^5-x^3*y^2-x*y^4) + ((-3/8)*x^5*y+(-5/3)*x^3*y^3-x*y^5) + O(x,y)^7
@@ -1740,7 +2026,7 @@ class LazyModuleElement(Element):
             sage: arctan(z)
             z - 1/3*z^3 + 1/5*z^5 - 1/7*z^7 + O(z^8)
 
-            sage: L.<x,y> = LazyTaylorSeriesRing(QQ)
+            sage: L.<x,y> = LazyPowerSeriesRing(QQ)
             sage: atan(x/(1-y))
             x + x*y + (-1/3*x^3+x*y^2) + (-x^3*y+x*y^3) + (1/5*x^5-2*x^3*y^2+x*y^4)
              + (x^5*y-10/3*x^3*y^3+x*y^5) + (-1/7*x^7+3*x^5*y^2-5*x^3*y^4+x*y^6) + O(x,y)^8
@@ -1779,7 +2065,7 @@ class LazyModuleElement(Element):
             sage: arccot(z/(1-z))
             1/2*pi - z - z^2 - 2/3*z^3 + 4/5*z^5 + 4/3*z^6 + O(z^7)
 
-            sage: L.<x,y> = LazyTaylorSeriesRing(SR)
+            sage: L.<x,y> = LazyPowerSeriesRing(SR)
             sage: acot(x/(1-y))
             1/2*pi + (-x) + (-x*y) + (1/3*x^3-x*y^2) + (x^3*y-x*y^3)
              + ((-1/5)*x^5+2*x^3*y^2-x*y^4) + (-x^5*y+10/3*x^3*y^3-x*y^5) + O(x,y)^7
@@ -1805,7 +2091,7 @@ class LazyModuleElement(Element):
             sage: sinh(z)
             z + 1/6*z^3 + 1/120*z^5 + 1/5040*z^7 + O(z^8)
 
-            sage: L.<x,y> = LazyTaylorSeriesRing(QQ)
+            sage: L.<x,y> = LazyPowerSeriesRing(QQ)
             sage: sinh(x/(1-y))
             x + x*y + (1/6*x^3+x*y^2) + (1/2*x^3*y+x*y^3)
              + (1/120*x^5+x^3*y^2+x*y^4) + (1/24*x^5*y+5/3*x^3*y^3+x*y^5)
@@ -1819,7 +2105,7 @@ class LazyModuleElement(Element):
         """
         from .lazy_series_ring import LazyLaurentSeriesRing
         P = LazyLaurentSeriesRing(self.base_ring(), "z", sparse=self.parent()._sparse)
-        f = P(lambda n: 1/factorial(ZZ(n)) if n % 2 else ZZ.zero(),
+        f = P(coefficients=lambda n: 1/factorial(ZZ(n)) if n % 2 else ZZ.zero(),
               valuation=1)
         return f(self)
 
@@ -1833,7 +2119,7 @@ class LazyModuleElement(Element):
             sage: cosh(z)
             1 + 1/2*z^2 + 1/24*z^4 + 1/720*z^6 + O(z^7)
 
-            sage: L.<x,y> = LazyTaylorSeriesRing(QQ)
+            sage: L.<x,y> = LazyPowerSeriesRing(QQ)
             sage: cosh(x/(1-y))
             1 + 1/2*x^2 + x^2*y + (1/24*x^4+3/2*x^2*y^2) + (1/6*x^4*y+2*x^2*y^3)
              + (1/720*x^6+5/12*x^4*y^2+5/2*x^2*y^4) + O(x,y)^7
@@ -1846,7 +2132,7 @@ class LazyModuleElement(Element):
         """
         from .lazy_series_ring import LazyLaurentSeriesRing
         P = LazyLaurentSeriesRing(self.base_ring(), "z", sparse=self.parent()._sparse)
-        f = P(lambda n: ZZ.zero() if n % 2 else 1/factorial(ZZ(n)),
+        f = P(coefficients=lambda n: ZZ.zero() if n % 2 else 1/factorial(ZZ(n)),
               valuation=0)
         return f(self)
 
@@ -1860,7 +2146,7 @@ class LazyModuleElement(Element):
             sage: tanh(z)
             z - 1/3*z^3 + 2/15*z^5 - 17/315*z^7 + O(z^8)
 
-            sage: L.<x,y> = LazyTaylorSeriesRing(QQ)
+            sage: L.<x,y> = LazyPowerSeriesRing(QQ)
             sage: tanh(x/(1-y))
             x + x*y + (-1/3*x^3+x*y^2) + (-x^3*y+x*y^3) + (2/15*x^5-2*x^3*y^2+x*y^4)
              + (2/3*x^5*y-10/3*x^3*y^3+x*y^5) + (-17/315*x^7+2*x^5*y^2-5*x^3*y^4+x*y^6) + O(x,y)^8
@@ -1923,7 +2209,7 @@ class LazyModuleElement(Element):
             sage: sech(z)
             1 - 1/2*z^2 + 5/24*z^4 - 61/720*z^6 + O(z^7)
 
-            sage: L.<x, y> = LazyTaylorSeriesRing(QQ)
+            sage: L.<x, y> = LazyPowerSeriesRing(QQ)
             sage: sech(x/(1-y))
             1 + (-1/2*x^2) + (-x^2*y) + (5/24*x^4-3/2*x^2*y^2) + (5/6*x^4*y-2*x^2*y^3)
              + (-61/720*x^6+25/12*x^4*y^2-5/2*x^2*y^4) + O(x,y)^7
@@ -1993,7 +2279,7 @@ class LazyModuleElement(Element):
             sage: arcsinh(z)
             z - 1/6*z^3 + 3/40*z^5 - 5/112*z^7 + O(z^8)
 
-            sage: L.<x,y> = LazyTaylorSeriesRing(QQ)
+            sage: L.<x,y> = LazyPowerSeriesRing(QQ)
             sage: asinh(x/(1-y))
             x + x*y + (-1/6*x^3+x*y^2) + (-1/2*x^3*y+x*y^3) + (3/40*x^5-x^3*y^2+x*y^4)
              + (3/8*x^5*y-5/3*x^3*y^3+x*y^5) + (-5/112*x^7+9/8*x^5*y^2-5/2*x^3*y^4+x*y^6) + O(x,y)^8
@@ -2031,7 +2317,7 @@ class LazyModuleElement(Element):
             sage: arctanh(z)
             z + 1/3*z^3 + 1/5*z^5 + 1/7*z^7 + O(z^8)
 
-            sage: L.<x, y> = LazyTaylorSeriesRing(QQ)
+            sage: L.<x, y> = LazyPowerSeriesRing(QQ)
             sage: atanh(x/(1-y))
             x + x*y + (1/3*x^3+x*y^2) + (x^3*y+x*y^3) + (1/5*x^5+2*x^3*y^2+x*y^4)
              + (x^5*y+10/3*x^3*y^3+x*y^5) + (1/7*x^7+3*x^5*y^2+5*x^3*y^4+x*y^6) + O(x,y)^8
@@ -2045,7 +2331,7 @@ class LazyModuleElement(Element):
         """
         from .lazy_series_ring import LazyLaurentSeriesRing
         P = LazyLaurentSeriesRing(self.base_ring(), "z", sparse=self.parent()._sparse)
-        f = P(lambda n: 1/ZZ(n) if n % 2 else ZZ.zero(), valuation=1)
+        f = P(coefficients=lambda n: 1/ZZ(n) if n % 2 else ZZ.zero(), valuation=1)
         return f(self)
 
     def hypergeometric(self, a, b):
@@ -2066,7 +2352,7 @@ class LazyModuleElement(Element):
             sage: z.hypergeometric([], []) - exp(z)
             O(z^7)
 
-            sage: L.<x,y> = LazyTaylorSeriesRing(QQ)
+            sage: L.<x,y> = LazyPowerSeriesRing(QQ)
             sage: (x+y).hypergeometric([1, 1], [1]).polynomial(4)
             x^4 + 4*x^3*y + 6*x^2*y^2 + 4*x*y^3 + y^4 + x^3 + 3*x^2*y
              + 3*x*y^2 + y^3 + x^2 + 2*x*y + y^2 + x + y + 1
@@ -2087,7 +2373,7 @@ class LazyModuleElement(Element):
             for term in range(len(c)):
                 num *= rising_factorial(c[term], n)
             return num
-        f = P(lambda n: coeff(n, a) / (coeff(n, b) * factorial(ZZ(n))),
+        f = P(coefficients=lambda n: coeff(n, a) / (coeff(n, b) * factorial(ZZ(n))),
               valuation=0)
         return f(self)
 
@@ -2120,7 +2406,7 @@ class LazyModuleElement(Element):
 
         from .lazy_series_ring import LazyLaurentSeriesRing
         P = LazyLaurentSeriesRing(self.base_ring(), "z", sparse=self.parent()._sparse)
-        exp = P(lambda k: 1/factorial(ZZ(k)), valuation=0)
+        exp = P(coefficients=lambda k: 1/factorial(ZZ(k)), valuation=0)
         return exp(self.log() * n)
 
     def sqrt(self):
@@ -2133,7 +2419,7 @@ class LazyModuleElement(Element):
             sage: sqrt(1+z)
             1 + 1/2*z - 1/8*z^2 + 1/16*z^3 - 5/128*z^4 + 7/256*z^5 - 21/1024*z^6 + O(z^7)
 
-            sage: L.<x,y> = LazyTaylorSeriesRing(QQ)
+            sage: L.<x,y> = LazyPowerSeriesRing(QQ)
             sage: sqrt(1+x/(1-y))
             1 + 1/2*x + (-1/8*x^2+1/2*x*y) + (1/16*x^3-1/4*x^2*y+1/2*x*y^2)
              + (-5/128*x^4+3/16*x^3*y-3/8*x^2*y^2+1/2*x*y^3)
@@ -2271,6 +2557,9 @@ class LazyCauchyProductSeries(LazyModuleElement):
 
             sage: L([1], constant=3)^2
             1 + 6*z + 15*z^2 + 24*z^3 + 33*z^4 + 42*z^5 + 51*z^6 + O(z^7)
+
+            sage: (1+z) * L([1,0,1], constant=1)
+            1 + z + z^2 + 2*z^3 + 2*z^4 + 2*z^5 + O(z^6)
         """
         P = self.parent()
         left = self._coeff_stream
@@ -2289,11 +2578,11 @@ class LazyCauchyProductSeries(LazyModuleElement):
             and right.order() == 0
             and not right._constant):
             return self  # right == 1
-
         # The product is exact if and only if both factors are exact
         # and one of the factors has eventually 0 coefficients:
         # (p + a x^d/(1-x))(q + b x^e/(1-x))
         # = p q + (a x^d q + b x^e p)/(1-x) + a b x^(d+e)/(1-x)^2
+        # TODO: this is not true in characteristic 2
         if (isinstance(left, Stream_exact)
             and isinstance(right, Stream_exact)
             and not (left._constant and right._constant)):
@@ -2312,6 +2601,7 @@ class LazyCauchyProductSeries(LazyModuleElement):
             if right._constant:
                 d = right._degree
                 c = left._constant  # this is zero
+                initial_coefficients.extend([c]*(d - rv - len(ir)))
                 # left._constant must be 0 and thus len(il) >= 1
                 for k in range(len(il)-1):
                     c += il[k] * right._constant
@@ -2320,6 +2610,7 @@ class LazyCauchyProductSeries(LazyModuleElement):
             elif left._constant:
                 d = left._degree
                 c = right._constant  # this is zero
+                initial_coefficients.extend([c]*(d - lv - len(il)))
                 # left._constant must be 0 and thus len(il) >= 1
                 for k in range(len(ir)-1):
                     c += left._constant * ir[k]
@@ -2448,17 +2739,38 @@ class LazyCauchyProductSeries(LazyModuleElement):
             sage: ~z
             z^-1
 
+        We can also compute the multiplicative inverse of a symmetric
+        function::
+
+            sage: h = SymmetricFunctions(QQ).h()
+            sage: p = SymmetricFunctions(QQ).p()
+            sage: L = LazySymmetricFunctions(p)
+            sage: E = L(lambda n: h[n])
+            sage: (~E)[:4]
+            [p[], -p[1], 1/2*p[1, 1] - 1/2*p[2], -1/6*p[1, 1, 1] + 1/2*p[2, 1] - 1/3*p[3]]
+
+            sage: (E * ~E)[:6]
+            [p[], 0, 0, 0, 0, 0]
+
         TESTS::
 
             sage: L.<x> = LazyLaurentSeriesRing(QQ)
             sage: g = L([2], valuation=-1, constant=1); g
             2*x^-1 + 1 + x + x^2 + O(x^3)
-            sage: g*g^-1
+            sage: g * g^-1
             1 + O(x^7)
 
+            sage: L.<x> = LazyPowerSeriesRing(QQ)
+            sage: ~(x + x^2)
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: cannot divide by a series of positive valuation
         """
         P = self.parent()
         coeff_stream = self._coeff_stream
+        if P._minimal_valuation is not None and coeff_stream._approximate_order > 0:
+            raise ZeroDivisionError("cannot divide by a series of positive valuation")
+
         # the inverse is exact if and only if coeff_stream corresponds to one of
         # cx^d/(1-x) ... (c, ...)
         # cx^d       ... (c, 0, ...)
@@ -2497,7 +2809,9 @@ class LazyCauchyProductSeries(LazyModuleElement):
         # (f^-1)^-1 = f
         if isinstance(coeff_stream, Stream_cauchy_invert):
             return P.element_class(P, coeff_stream._series)
-        return P.element_class(P, Stream_cauchy_invert(coeff_stream))
+
+        return P.element_class(P, Stream_cauchy_invert(coeff_stream,
+                                                       approximate_order=P._minimal_valuation))
 
     def _div_(self, other):
         r"""
@@ -2556,13 +2870,27 @@ class LazyCauchyProductSeries(LazyModuleElement):
 
         Examples for multivariate Taylor series::
 
-            sage: L.<x, y> = LazyTaylorSeriesRing(QQ)
+            sage: L.<x, y> = LazyPowerSeriesRing(QQ)
             sage: 1 / (1 - y)
             1 + y + y^2 + y^3 + y^4 + y^5 + y^6 + O(x,y)^7
 
             sage: (x + y) / (1 - y)
             (x+y) + (x*y+y^2) + (x*y^2+y^3) + (x*y^3+y^4) + (x*y^4+y^5) + (x*y^5+y^6) + (x*y^6+y^7) + O(x,y)^8
 
+        TESTS::
+
+            sage: L.<t> = LazyPowerSeriesRing(QQ)
+            sage: t / L(1)
+            t
+
+            sage: t^3 * (1+2*t+3*t^2+4*t^3) / (t-t^2)
+            t^2 + 3*t^3 + 6*t^4 + 10*t^5 + 10*t^6 + 10*t^7 + O(t^8)
+
+            sage: t^3 * ((1+2*t+3*t^2+4*t^3) / (t-t^2))
+            t^2 + 3*t^3 + 6*t^4 + 10*t^5 + 10*t^6 + 10*t^7 + O(t^8)
+
+            sage: L(lambda n: n) / (t + t^2)
+            1 + t + 2*t^2 + 2*t^3 + 3*t^4 + 3*t^5 + O(t^6)
         """
         if isinstance(other._coeff_stream, Stream_zero):
             raise ZeroDivisionError("cannot divide by 0")
@@ -2572,6 +2900,14 @@ class LazyCauchyProductSeries(LazyModuleElement):
         if isinstance(left, Stream_zero):
             return P.zero()
         right = other._coeff_stream
+        if (P._minimal_valuation is not None
+            and left._true_order
+            and left._approximate_order < right._approximate_order):
+            F = P.fraction_field()
+            num = F.element_class(F, left)
+            den = F.element_class(F, right)
+            return num / den
+
         R = P._internal_poly_ring
         if (isinstance(left, Stream_exact)
             and isinstance(right, Stream_exact)
@@ -2592,9 +2928,11 @@ class LazyCauchyProductSeries(LazyModuleElement):
             den = den // g
             exponents = den.exponents()
             if len(exponents) == 1:
+                # dividing by z^k
                 d = den[exponents[0]]
-                initial_coefficients = [c / d for c in num]
-                order = num.valuation() - den.valuation()
+                v = num.valuation()
+                initial_coefficients = [num[i] / d for i in range(v, num.degree() + 1)]
+                order = v - den.valuation()
                 return P.element_class(P, Stream_exact(initial_coefficients,
                                                        P._sparse,
                                                        order=order,
@@ -2603,6 +2941,7 @@ class LazyCauchyProductSeries(LazyModuleElement):
             if (len(exponents) == 2
                 and exponents[0] + 1 == exponents[1]
                 and den[exponents[0]] == -den[exponents[1]]):
+                # dividing by z^k (1-z)
                 quo, rem = num.quo_rem(den)
                 # rem is a unit, i.e., in the Laurent case c*z^v
                 v_rem = rem.exponents()[0]
@@ -2619,7 +2958,8 @@ class LazyCauchyProductSeries(LazyModuleElement):
                         order = quo.valuation()
                     else:
                         order = 0
-                    return P.element_class(P, Stream_exact(list(quo),
+                    initial_coefficients = [quo[i] for i in range(order, quo.degree() + 1)]
+                    return P.element_class(P, Stream_exact(initial_coefficients,
                                                            P._sparse,
                                                            order=order,
                                                            degree=v,
@@ -2630,8 +2970,40 @@ class LazyCauchyProductSeries(LazyModuleElement):
                                                        degree=v,
                                                        constant=constant))
 
-        return P.element_class(P, Stream_cauchy_mul(left, Stream_cauchy_invert(right)))
+        right_inverse = Stream_cauchy_invert(right)
+        return P.element_class(P, Stream_cauchy_mul(left, right_inverse))
 
+
+    def _floordiv_(self, other):
+        r"""
+        Return ``self`` floor divided by ``other``.
+
+        INPUT:
+
+        - ``other`` -- nonzero series
+
+        EXAMPLES::
+
+            sage: L.<x> = LazyLaurentSeriesRing(QQ)
+            sage: g = (x + 2*x^2) / (1 - x - x^2)
+            sage: x // g
+            1 - 3*x + 5*x^2 - 10*x^3 + 20*x^4 - 40*x^5 + 80*x^6 + O(x^7)
+            sage: 1 // g
+            x^-1 - 3 + 5*x - 10*x^2 + 20*x^3 - 40*x^4 + 80*x^5 + O(x^6)
+            sage: x^-3 // g
+                x^-4 - 3*x^-3 + 5*x^-2 - 10*x^-1 + 20 - 40*x + 80*x^2 + O(x^3)
+            sage: f = (x + x^2) / (1 - x)
+            sage: f // g
+            1 - x + x^2 - 4*x^3 + 6*x^4 - 14*x^5 + 26*x^6 + O(x^7)
+            sage: g // f
+            1 + x + 3*x^3 + x^4 + 6*x^5 + 5*x^6 + O(x^7)
+        """
+        if isinstance(other._coeff_stream, Stream_zero):
+            raise ZeroDivisionError("cannot divide by 0")
+        P = self.parent()
+        if P not in IntegralDomains():
+            raise TypeError("must be an integral domain")
+        return P(self / other)
 
 class LazyLaurentSeries(LazyCauchyProductSeries):
     r"""
@@ -2704,6 +3076,57 @@ class LazyLaurentSeries(LazyCauchyProductSeries):
         sage: f = 1 / (1 - z - z^2)
         sage: TestSuite(f).run()
     """
+    def is_unit(self):
+        """
+        Return whether this element is a unit in the ring.
+
+        EXAMPLES::
+
+            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
+            sage: (2*z).is_unit()
+            False
+
+            sage: (1 + 2*z).is_unit()
+            True
+
+            sage: (1 + 2*z^-1).is_unit()
+            False
+
+            sage: (z^3 + 4 - z^-2).is_unit()
+            True
+        """
+        if self.is_zero(): # now 0 != 1
+            return False
+        a = self[self.valuation()]
+        return a.is_unit()
+
+    def _im_gens_(self, codomain, im_gens, base_map=None):
+        """
+        Return the image of ``self`` under the map that sends the
+        generators of the parent of ``self`` to the elements of the
+        tuple ``im_gens``.
+
+        EXAMPLES::
+
+            sage: Z.<x> = ZZ[]
+            sage: K.<i> = NumberField(x^2 + 1)
+            sage: R.<t> = LazyLaurentSeriesRing(K)
+            sage: f = R(lambda n: i^n, valuation=-2)
+            sage: f
+            -t^-2 - i*t^-1 + 1 + i*t - t^2 - i*t^3 + t^4 + O(t^5)
+            sage: f._im_gens_(R, [t + t^2])
+            -t^-2 + (-i + 2)*t^-1 + (i - 2) + 4*t + (2*i - 6)*t^2
+             + (-2*i + 4)*t^3 + (-2*i - 7)*t^4 + O(t^5)
+
+            sage: cc = K.hom([-i])
+            sage: f._im_gens_(R, [t + t^2], base_map=cc)
+            -t^-2 + (i + 2)*t^-1 + (-i - 2) + 4*t + (-2*i - 6)*t^2
+             + (2*i + 4)*t^3 + (2*i - 7)*t^4 + O(t^5)
+        """
+        if base_map is None:
+            return codomain(self(im_gens[0]))
+
+        return codomain(self.map_coefficients(base_map)(im_gens[0]))
 
     def __call__(self, g, *, check=True):
         r"""
@@ -2985,7 +3408,7 @@ class LazyLaurentSeries(LazyCauchyProductSeries):
 
             sage: L.<z> = LazyLaurentSeriesRing(QQ)
             sage: f = 1 + z
-            sage: g = L(None, valuation=0)
+            sage: g = L.undefined(valuation=0)
             sage: f(g) == f.polynomial()(g)
             True
         """
@@ -3101,7 +3524,7 @@ class LazyLaurentSeries(LazyCauchyProductSeries):
             def coefficient(n):
                 return sum(self[i] * (g**i)[n] for i in range(n+1))
             R = P._internal_poly_ring.base_ring()
-            coeff_stream = Stream_function(coefficient, R, P._sparse, 1)
+            coeff_stream = Stream_function(coefficient, P._sparse, 1)
             return P.element_class(P, coeff_stream)
 
         coeff_stream = Stream_cauchy_compose(self._coeff_stream, g._coeff_stream)
@@ -3218,7 +3641,7 @@ class LazyLaurentSeries(LazyCauchyProductSeries):
 
             sage: f = L([-1, -1], valuation=1, constant=-1)
             sage: f.revert()
-            -z - z^2 - z^3 - z^4 - z^5 + O(z^6)
+            -z - z^2 - z^3 + O(z^4)
 
             sage: f = L([-1, 0, -1], valuation=1, constant=-1)
             sage: f.revert()
@@ -3279,7 +3702,8 @@ class LazyLaurentSeries(LazyCauchyProductSeries):
             raise ValueError("cannot determine whether the compositional inverse exists")
 
         z = P.gen()
-        g = P(None, valuation=1)
+        g = P.undefined(valuation=1)
+        # TODO: shift instead of (self / z) should be more efficient
         g.define(z / ((self / z)(g)))
         return g
 
@@ -3380,8 +3804,7 @@ class LazyLaurentSeries(LazyCauchyProductSeries):
         coeff_stream = Stream_derivative(self._coeff_stream, order)
         if vars:
             coeff_stream = Stream_map_coefficients(coeff_stream,
-                                                   lambda c: c.derivative(vars),
-                                                   R)
+                                                   lambda c: c.derivative(vars))
         return P.element_class(P, coeff_stream)
 
     def approximate_series(self, prec, name=None):
@@ -3555,14 +3978,13 @@ class LazyLaurentSeries(LazyCauchyProductSeries):
             return strformat("O({})".format(formatter(z**m)))
         return formatter(poly) + strformat(" + O({})".format(formatter(z**m)))
 
-
-class LazyTaylorSeries(LazyCauchyProductSeries):
+class LazyPowerSeries(LazyCauchyProductSeries):
     r"""
     A Taylor series where the coefficients are computed lazily.
 
     EXAMPLES::
 
-        sage: L.<x, y> = LazyTaylorSeriesRing(ZZ)
+        sage: L.<x, y> = LazyPowerSeriesRing(ZZ)
         sage: f = 1 / (1 - x^2 + y^3); f
         1 + x^2 + (-y^3) + x^4 + (-2*x^2*y^3) + (x^6+y^6) + O(x,y)^7
         sage: P.<x, y> = PowerSeriesRing(ZZ, default_prec=101)
@@ -3577,6 +3999,96 @@ class LazyTaylorSeries(LazyCauchyProductSeries):
         sage: g == f
         True
     """
+    def is_unit(self):
+        """
+        Return whether this element is a unit in the ring.
+
+        EXAMPLES::
+
+            sage: L.<z> = LazyPowerSeriesRing(ZZ)
+            sage: (2*z).is_unit()
+            False
+
+            sage: (1 + 2*z).is_unit()
+            True
+
+            sage: (3 + 2*z).is_unit()
+            False
+
+            sage: L.<x,y> = LazyPowerSeriesRing(ZZ)
+            sage: (-1 + 2*x + 3*x*y).is_unit()
+            True
+        """
+        if self.is_zero(): # now 0 != 1
+            return False
+        return self[0].is_unit()
+
+    def exponential(self):
+        r"""
+        Return the exponential series of ``self``.
+
+        This method is deprecated, use :meth:`exp` instead.
+
+        TESTS::
+
+            sage: L.<x> = LazyPowerSeriesRing(QQ)
+            sage: lazy_exp = x.exponential(); lazy_exp
+            doctest:...: DeprecationWarning: the method exponential is deprecated. Use exp instead.
+            See https://trac.sagemath.org/32367 for details.
+            1 + x + 1/2*x^2 + 1/6*x^3 + 1/24*x^4 + 1/120*x^5 + 1/720*x^6 + O(x^7)
+        """
+        from sage.misc.superseded import deprecation
+        deprecation(32367, 'the method exponential is deprecated. Use exp instead.')
+        return self.exp()
+
+    def compute_coefficients(self, i):
+        r"""
+        Computes all the coefficients of self up to i.
+
+        This method is deprecated, it has no effect anymore.
+
+        TESTS::
+
+            sage: L.<z> = LazyPowerSeriesRing(QQ)
+            sage: a = L([1,2,3], constant=3)
+            sage: a.compute_coefficients(5)
+            doctest:...: DeprecationWarning: the method compute_coefficients obsolete and has no effect.
+            See https://trac.sagemath.org/32367 for details.
+            sage: a
+            1 + 2*z + 3*z^2 + 3*z^3 + 3*z^4 + O(z^5)
+        """
+        from sage.misc.superseded import deprecation
+        deprecation(32367, "the method compute_coefficients obsolete and has no effect.")
+        return
+
+    def _im_gens_(self, codomain, im_gens, base_map=None):
+        """
+        Return the image of ``self`` under the map that sends the
+        generators of the parent of ``self`` to the elements of the
+        tuple ``im_gens``.
+
+        EXAMPLES::
+
+            sage: Z.<x> = QQ[]
+            sage: R.<q, t> = LazyPowerSeriesRing(Z)
+            sage: f = 1/(1-q-t)
+            sage: f
+            1 + (q+t) + (q^2+2*q*t+t^2) + (q^3+3*q^2*t+3*q*t^2+t^3) + (q^4+4*q^3*t+6*q^2*t^2+4*q*t^3+t^4) + (q^5+5*q^4*t+10*q^3*t^2+10*q^2*t^3+5*q*t^4+t^5) + (q^6+6*q^5*t+15*q^4*t^2+20*q^3*t^3+15*q^2*t^4+6*q*t^5+t^6) + O(q,t)^7
+            sage: S.<s> = LazyPowerSeriesRing(Z)
+            sage: f._im_gens_(S, [s, x*s])
+            1 + ((x+1)*s) + ((x^2+2*x+1)*s^2) + ((x^3+3*x^2+3*x+1)*s^3) + ((x^4+4*x^3+6*x^2+4*x+1)*s^4) + ((x^5+5*x^4+10*x^3+10*x^2+5*x+1)*s^5) + ((x^6+6*x^5+15*x^4+20*x^3+15*x^2+6*x+1)*s^6) + O(s^7)
+
+            sage: cc = Z.hom([-x])
+            sage: f = 1/(1+x*q-t)
+            sage: f._im_gens_(S, [s, x*s], base_map=cc)
+            1 + 2*x*s + 4*x^2*s^2 + 8*x^3*s^3 + 16*x^4*s^4 + 32*x^5*s^5 + 64*x^6*s^6 + O(s^7)
+
+        """
+        if base_map is None:
+            return codomain(self(*im_gens))
+
+        return codomain(self.map_coefficients(base_map)(*im_gens))
+
     def __call__(self, *g, check=True):
         r"""
         Return the composition of ``self`` with ``g``.
@@ -3606,8 +4118,8 @@ class LazyTaylorSeries(LazyCauchyProductSeries):
 
         EXAMPLES::
 
-            sage: L.<x, y, z> = LazyTaylorSeriesRing(QQ)
-            sage: M.<a, b> = LazyTaylorSeriesRing(ZZ)
+            sage: L.<x, y, z> = LazyPowerSeriesRing(QQ)
+            sage: M.<a, b> = LazyPowerSeriesRing(ZZ)
             sage: g1 = 1 / (1 - x)
             sage: g2 = x + y^2
             sage: p = a^2 + b + 1
@@ -3617,7 +4129,7 @@ class LazyTaylorSeries(LazyCauchyProductSeries):
         The number of mappings from a set with `m` elements to a set
         with `n` elements::
 
-            sage: M.<a> = LazyTaylorSeriesRing(QQ)
+            sage: M.<a> = LazyPowerSeriesRing(QQ)
             sage: Ea = M(lambda n: 1/factorial(n))
             sage: Ex = L(lambda n: 1/factorial(n)*x^n)
             sage: Ea(Ex*y)[5]
@@ -3661,7 +4173,7 @@ class LazyTaylorSeries(LazyCauchyProductSeries):
         of `f` and the parent of `g` or extended to the corresponding
         lazy series::
 
-            sage: T.<x,y> = LazyTaylorSeriesRing(QQ)
+            sage: T.<x,y> = LazyPowerSeriesRing(QQ)
             sage: R.<a,b,c> = ZZ[]
             sage: S.<v> = R[]
             sage: L.<z> = LaurentPolynomialRing(ZZ)
@@ -3690,7 +4202,7 @@ class LazyTaylorSeries(LazyCauchyProductSeries):
 
         TESTS::
 
-            sage: L.<x,y> = LazyTaylorSeriesRing(ZZ)
+            sage: L.<x,y> = LazyPowerSeriesRing(ZZ)
             sage: f = 1 / (1 - x - y)
             sage: f(f)
             Traceback (most recent call last):
@@ -3713,25 +4225,25 @@ class LazyTaylorSeries(LazyCauchyProductSeries):
         Consistency check when `g` is an uninitialized series between a
         polynomial `f` as both a polynomial and a lazy series::
 
-            sage: L.<z> = LazyTaylorSeriesRing(QQ)
+            sage: L.<z> = LazyPowerSeriesRing(QQ)
             sage: f = 1 - z
-            sage: g = L(None, valuation=1)
+            sage: g = L.undefined(valuation=1)
             sage: f(g) == f.polynomial()(g)
             True
 
-            sage: g = L(None, valuation=1)
+            sage: g = L.undefined(valuation=1)
             sage: g.define(z / (1 - g))
             sage: g
             z + z^2 + 2*z^3 + 5*z^4 + 14*z^5 + 42*z^6 + 132*z^7 + O(z^8)
-            sage: gp = L(None, valuation=1)
+            sage: gp = L.undefined(valuation=1)
             sage: gp.define(z / f(gp))
             sage: gp
             z + z^2 + 2*z^3 + 5*z^4 + 14*z^5 + 42*z^6 + 132*z^7 + O(z^8)
 
         Check that composing the zero series with anything yields zero::
 
-            sage: T.<x,y> = LazyTaylorSeriesRing(QQ)
-            sage: M.<a, b> = LazyTaylorSeriesRing(QQ)
+            sage: T.<x,y> = LazyPowerSeriesRing(QQ)
+            sage: M.<a, b> = LazyPowerSeriesRing(QQ)
             sage: T(0)(1/(1-a), a+b)
             0
 
@@ -3793,13 +4305,13 @@ class LazyTaylorSeries(LazyCauchyProductSeries):
                 S = fP._laurent_poly_ring
                 P = fP
             if isinstance(P, (PolynomialRing_general, MPolynomialRing_base)):
-                from sage.rings.lazy_series_ring import LazyTaylorSeriesRing
+                from sage.rings.lazy_series_ring import LazyPowerSeriesRing
                 S = P
                 try:
                     sparse = S.is_sparse()
                 except AttributeError:
                     sparse = fP.is_sparse()
-                P = LazyTaylorSeriesRing(S.base_ring(), S.variable_names(), sparse)
+                P = LazyPowerSeriesRing(S.base_ring(), S.variable_names(), sparse)
             elif isinstance(P, LaurentPolynomialRing_univariate):
                 from sage.rings.lazy_series_ring import LazyLaurentSeriesRing
                 S = P
@@ -3832,7 +4344,7 @@ class LazyTaylorSeries(LazyCauchyProductSeries):
                 # we assume that the valuation of self[i](g) is at least i
                 def coefficient(n):
                     return sum(self[i] * (g0**i)[n] for i in range(n+1))
-                coeff_stream = Stream_function(coefficient, R, P._sparse, 1)
+                coeff_stream = Stream_function(coefficient, P._sparse, 1)
                 return P.element_class(P, coeff_stream)
 
             coeff_stream = Stream_cauchy_compose(self._coeff_stream, g0._coeff_stream)
@@ -3847,7 +4359,7 @@ class LazyTaylorSeries(LazyCauchyProductSeries):
                 # Make sure the element returned from the composition is in P
                 r += P(self[i](g))[n]
             return r
-        coeff_stream = Stream_function(coefficient, R, P._sparse, sorder * gv)
+        coeff_stream = Stream_function(coefficient, P._sparse, sorder * gv)
         return P.element_class(P, coeff_stream)
 
     compose = __call__
@@ -3868,7 +4380,7 @@ class LazyTaylorSeries(LazyCauchyProductSeries):
 
         EXAMPLES::
 
-            sage: L.<z> = LazyTaylorSeriesRing(QQ)
+            sage: L.<z> = LazyPowerSeriesRing(QQ)
             sage: (2*z).revert()
             1/2*z
             sage: (z-z^2).revert()
@@ -3884,7 +4396,7 @@ class LazyTaylorSeries(LazyCauchyProductSeries):
 
         TESTS::
 
-            sage: L.<z> = LazyTaylorSeriesRing(QQ)
+            sage: L.<z> = LazyPowerSeriesRing(QQ)
             sage: s = L(lambda n: 2 if n == 1 else 0, valuation=1); s
             2*z + O(z^8)
             sage: s.revert()
@@ -3901,7 +4413,7 @@ class LazyTaylorSeries(LazyCauchyProductSeries):
             ValueError: cannot determine whether the compositional inverse exists
 
             sage: R.<q,t> = QQ[]
-            sage: L.<z> = LazyTaylorSeriesRing(R.fraction_field())
+            sage: L.<z> = LazyPowerSeriesRing(R.fraction_field())
             sage: s = L([q], valuation=0, constant=t); s
             q + t*z + t*z^2 + t*z^3 + O(z^4)
             sage: s.revert()
@@ -3944,7 +4456,7 @@ class LazyTaylorSeries(LazyCauchyProductSeries):
 
             sage: f = L([-1, -1], valuation=1, constant=-1)
             sage: f.revert()
-            (-z) + (-z^2) + (-z^3) + (-z^4) + (-z^5) + O(z^6)
+            (-z) + (-z^2) + (-z^3) + O(z^4)
 
             sage: f = L([-1, 0, -1], valuation=1, constant=-1)
             sage: f.revert()
@@ -3993,7 +4505,8 @@ class LazyTaylorSeries(LazyCauchyProductSeries):
             raise ValueError("cannot determine whether the compositional inverse exists")
 
         z = P.gen()
-        g = P(None, valuation=1)
+        g = P.undefined(valuation=1)
+        # TODO: shift instead of (self / z) should be more efficient
         g.define(z / ((self / z)(g)))
         return g
 
@@ -4010,7 +4523,7 @@ class LazyTaylorSeries(LazyCauchyProductSeries):
 
         EXAMPLES::
 
-            sage: T.<z> = LazyTaylorSeriesRing(ZZ)
+            sage: T.<z> = LazyPowerSeriesRing(ZZ)
             sage: z.derivative()
             1
             sage: (1+z+z^2).derivative(3)
@@ -4019,11 +4532,20 @@ class LazyTaylorSeries(LazyCauchyProductSeries):
             1 + 2*z + 3*z^2 + 4*z^3 + 5*z^4 + 6*z^5 + 7*z^6 + O(z^7)
 
             sage: R.<q> = QQ[]
-            sage: L.<x, y> = LazyTaylorSeriesRing(R)
+            sage: L.<x, y> = LazyPowerSeriesRing(R)
             sage: f = 1/(1-q*x+y); f
-            1 + (q*x-y) + (q^2*x^2+(-2*q)*x*y+y^2) + (q^3*x^3+(-3*q^2)*x^2*y+3*q*x*y^2-y^3) + (q^4*x^4+(-4*q^3)*x^3*y+6*q^2*x^2*y^2+(-4*q)*x*y^3+y^4) + (q^5*x^5+(-5*q^4)*x^4*y+10*q^3*x^3*y^2+(-10*q^2)*x^2*y^3+5*q*x*y^4-y^5) + (q^6*x^6+(-6*q^5)*x^5*y+15*q^4*x^4*y^2+(-20*q^3)*x^3*y^3+15*q^2*x^2*y^4+(-6*q)*x*y^5+y^6) + O(x,y)^7
+            1 + (q*x-y) + (q^2*x^2+(-2*q)*x*y+y^2)
+             + (q^3*x^3+(-3*q^2)*x^2*y+3*q*x*y^2-y^3)
+             + (q^4*x^4+(-4*q^3)*x^3*y+6*q^2*x^2*y^2+(-4*q)*x*y^3+y^4)
+             + (q^5*x^5+(-5*q^4)*x^4*y+10*q^3*x^3*y^2+(-10*q^2)*x^2*y^3+5*q*x*y^4-y^5)
+             + (q^6*x^6+(-6*q^5)*x^5*y+15*q^4*x^4*y^2+(-20*q^3)*x^3*y^3+15*q^2*x^2*y^4+(-6*q)*x*y^5+y^6)
+             + O(x,y)^7
             sage: f.derivative(q)
-            x + (2*q*x^2+(-2)*x*y) + (3*q^2*x^3+(-6*q)*x^2*y+3*x*y^2) + (4*q^3*x^4+(-12*q^2)*x^3*y+12*q*x^2*y^2+(-4)*x*y^3) + (5*q^4*x^5+(-20*q^3)*x^4*y+30*q^2*x^3*y^2+(-20*q)*x^2*y^3+5*x*y^4) + (6*q^5*x^6+(-30*q^4)*x^5*y+60*q^3*x^4*y^2+(-60*q^2)*x^3*y^3+30*q*x^2*y^4+(-6)*x*y^5) + O(x,y)^7
+            x + (2*q*x^2+(-2)*x*y) + (3*q^2*x^3+(-6*q)*x^2*y+3*x*y^2)
+             + (4*q^3*x^4+(-12*q^2)*x^3*y+12*q*x^2*y^2+(-4)*x*y^3)
+             + (5*q^4*x^5+(-20*q^3)*x^4*y+30*q^2*x^3*y^2+(-20*q)*x^2*y^3+5*x*y^4)
+             + (6*q^5*x^6+(-30*q^4)*x^5*y+60*q^3*x^4*y^2+(-60*q^2)*x^3*y^3+30*q*x^2*y^4+(-6)*x*y^5)
+             + O(x,y)^7
 
         """
         P = self.parent()
@@ -4050,10 +4572,11 @@ class LazyTaylorSeries(LazyCauchyProductSeries):
             return self
 
         if P._arity > 1:
-            coeff_stream = Stream_shift(Stream_map_coefficients(coeff_stream,
-                                                                lambda c: c.derivative(gen_vars + vars),
-                                                                P._laurent_poly_ring),
-                                        -len(gen_vars))
+            v = gen_vars + vars
+            d = -len(gen_vars)
+            coeff_stream = Stream_map_coefficients(coeff_stream,
+                                                   lambda c: R(c).derivative(v))
+            coeff_stream = Stream_shift(coeff_stream, d)
             return P.element_class(P, coeff_stream)
 
         if (isinstance(coeff_stream, Stream_exact)
@@ -4077,8 +4600,7 @@ class LazyTaylorSeries(LazyCauchyProductSeries):
         coeff_stream = Stream_derivative(self._coeff_stream, order)
         if vars:
             coeff_stream = Stream_map_coefficients(coeff_stream,
-                                                   lambda c: c.derivative(vars),
-                                                   R)
+                                                   lambda c: c.derivative(vars))
         return P.element_class(P, coeff_stream)
 
     def _format_series(self, formatter, format_strings=False):
@@ -4087,10 +4609,12 @@ class LazyTaylorSeries(LazyCauchyProductSeries):
 
         TESTS::
 
-            sage: L.<x,y> = LazyTaylorSeriesRing(QQ)
+            sage: L.<x,y> = LazyPowerSeriesRing(QQ)
             sage: f = 1 / (2 - x^2 + y)
             sage: f._format_series(repr)
-            '1/2 + (-1/4*y) + (1/4*x^2+1/8*y^2) + (-1/4*x^2*y-1/16*y^3) + (1/8*x^4+3/16*x^2*y^2+1/32*y^4) + (-3/16*x^4*y-1/8*x^2*y^3-1/64*y^5) + (1/16*x^6+3/16*x^4*y^2+5/64*x^2*y^4+1/128*y^6) + O(x,y)^7'
+            '1/2 + (-1/4*y) + (1/4*x^2+1/8*y^2) + (-1/4*x^2*y-1/16*y^3)
+             + (1/8*x^4+3/16*x^2*y^2+1/32*y^4) + (-3/16*x^4*y-1/8*x^2*y^3-1/64*y^5)
+             + (1/16*x^6+3/16*x^4*y^2+5/64*x^2*y^4+1/128*y^6) + O(x,y)^7'
 
             sage: f = (2 - x^2 + y)
             sage: f._format_series(repr)
@@ -4169,7 +4693,7 @@ class LazyTaylorSeries(LazyCauchyProductSeries):
 
         EXAMPLES::
 
-            sage: L.<x,y> = LazyTaylorSeriesRing(ZZ)
+            sage: L.<x,y> = LazyPowerSeriesRing(ZZ)
             sage: f = x^2 + y*x - x + 2; f
             2 + (-x) + (x^2+x*y)
             sage: f.polynomial()
@@ -4193,11 +4717,10 @@ class LazyTaylorSeries(LazyCauchyProductSeries):
             sage: g3.polynomial(0)
             1
 
-            sage: L.<z> = LazyTaylorSeriesRing(ZZ)
+            sage: L.<z> = LazyPowerSeriesRing(ZZ)
             sage: f = z-z^2
             sage: f.polynomial()
             -z^2 + z
-
         """
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
         S = self.parent()
@@ -4220,6 +4743,172 @@ class LazyTaylorSeries(LazyCauchyProductSeries):
             return R(self[0:m])
         return R.sum(self[0:m])
 
+    def _floordiv_(self, other):
+        r"""
+        Return ``self`` floor divided by ``other``.
+
+        INPUT:
+
+        - ``other`` -- nonzero series
+
+        EXAMPLES::
+
+            sage: L.<x,y> = LazyPowerSeriesRing(ZZ)
+            sage: g = x^2 + y*x
+            sage: x // g
+            0
+            sage: g = (x^2 + y*x) / (1 - x + x*y)
+            sage: x // g
+            0
+            sage: f = (x + y) / (1 - x - y + x*y)
+            sage: f // g
+            0
+
+            sage: L.<x> = LazyPowerSeriesRing(QQ)
+            sage: g = (x + 2*x^2) / (1 - x - x^2)
+            sage: 3 // g
+            0
+            sage: x // g
+            1 - 3*x + 5*x^2 - 10*x^3 + 20*x^4 - 40*x^5 + 80*x^6 + O(x^7)
+            sage: x^2 // g
+            x - 3*x^2 + 5*x^3 - 10*x^4 + 20*x^5 - 40*x^6 + 80*x^7 + O(x^8)
+            sage: f = (x + x^2) / (1 - x)
+            sage: f // g
+            1 - x + x^2 - 4*x^3 + 6*x^4 - 14*x^5 + 26*x^6 + O(x^7)
+        """
+        if isinstance(other._coeff_stream, Stream_zero):
+            raise ZeroDivisionError("cannot divide by 0")
+        P = self.parent()
+        if P not in IntegralDomains():
+            raise TypeError("must be an integral domain")
+        left = self._coeff_stream
+        right_order = other._coeff_stream._approximate_order
+        if left._approximate_order < right_order:
+            if left._true_order:
+                return P.zero()
+            while left._approximate_order < right_order:
+                # TODO: Implement a bound on computing the order of a Stream
+                if left[left._approximate_order]:
+                    left._true_order = True
+                    return P.zero()
+                left._approximate_order += 1
+        return super()._floordiv_(other)
+
+class LazyPowerSeries_gcd_mixin:
+    """
+    A lazy power series that also implements the GCD algorithm.
+    """
+    def gcd(self, other):
+        r"""
+        Return the greatest common divisor of ``self`` and ``other``.
+
+        EXAMPLES::
+
+            sage: L.<x> = LazyPowerSeriesRing(QQ)
+            sage: a = 16*x^5 / (1 - 5*x)
+            sage: b = (22*x^2 + x^8) / (1 - 4*x^2)
+            sage: a.gcd(b)
+            x^2
+        """
+        P = self.parent()
+        if P._arity != 1:
+            raise NotImplementedError("only implemented for arity one")
+        if not self or not other:
+            return P.zero()
+        sv = self.valuation()
+        ov = other.valuation()
+        val = min(sv, ov)
+        assert val is not infinity
+        # This assumes the base ring is a field
+        return P.gen(0) ** val
+
+    def xgcd(self, f):
+        r"""
+        Return the extended gcd of ``self`` and ``f``.
+
+        OUTPUT:
+
+        A triple ``(g, s, t)`` such that ``g`` is the gcd of ``self``
+        and ``f``, and ``s`` and ``t`` are cofactors satisfying the
+        Bezout identity
+
+        .. MATH::
+
+            g = s \cdot \mathrm{self} + t \cdot f.
+
+        EXAMPLES::
+
+            sage: L.<x> = LazyPowerSeriesRing(QQ)
+            sage: a = 16*x^5 / (1 - 2*x)
+            sage: b = (22*x^3 + x^8) / (1 - 3*x^2)
+            sage: g, s, t = a.xgcd(b)
+            sage: g
+            x^3
+            sage: s
+            1/22 - 41/242*x^2 - 8/121*x^3 + 120/1331*x^4 + 1205/5324*x^5 + 316/14641*x^6 + O(x^7)
+            sage: t
+            1/22 - 41/242*x^2 - 8/121*x^3 + 120/1331*x^4 + 1205/5324*x^5 + 316/14641*x^6 + O(x^7)
+
+            sage: LazyPowerSeriesRing.options.halting_precision(20)  # verify up to degree 20
+
+            sage: g == s * a + t * b
+            True
+
+            sage: a = 16*x^5 / (1 - 2*x)
+            sage: b = (-16*x^5 + x^8) / (1 - 3*x^2)
+            sage: g, s, t = a.xgcd(b)
+            sage: g
+            x^5
+            sage: s
+            1/16 - 1/16*x - 3/16*x^2 + 1/8*x^3 - 17/256*x^4 + 9/128*x^5 + 1/128*x^6 + O(x^7)
+            sage: t
+            1/16*x - 1/16*x^2 - 3/16*x^3 + 1/8*x^4 - 17/256*x^5 + 9/128*x^6 + 1/128*x^7 + O(x^8)
+            sage: g == s * a + t * b
+            True
+
+            sage: L.<x> = LazyPowerSeriesRing(GF(2))
+            sage: a = L(lambda n: n % 2, valuation=3); a
+            x^3 + x^5 + x^7 + x^9 + O(x^10)
+            sage: b = L(lambda n: binomial(n,2) % 2, valuation=3); b
+            x^3 + x^6 + x^7 + O(x^10)
+            sage: g, s, t = a.xgcd(b)
+            sage: g
+            x^3
+            sage: s
+            1 + x + x^3 + x^4 + x^5 + O(x^7)
+            sage: t
+            x + x^2 + x^4 + x^5 + x^6 + O(x^8)
+            sage: g == s * a + t * b
+            True
+
+            sage: LazyPowerSeriesRing.options._reset()  # reset the options
+        """
+        P = self.parent()
+        if P._arity != 1:
+            raise NotImplementedError("only implemented for arity one")
+        # one of the elements is zero
+        if not self:
+            return (P.zero(), P.zero(), P.one())
+        if not f:
+            return (P.zero(), P.one(), P.zero())
+        # get the valuations
+        sv = self.valuation()
+        fv = f.valuation()
+        val = min(sv, fv)
+        assert val is not infinity
+        # This assumes the base ring is a field
+        x = P.gen(0)
+        unit = (self + f).shift(-val)
+        if not unit[0]:
+            # this only happens if they have the same valuation
+            # we multiply f by the generator to avoid any cancellations
+            unit = (self + f.shift(1)).shift(-val)
+            unit = ~unit
+            return (x**val,
+                    unit,
+                    unit * x)
+        unit = ~unit
+        return (x**val, unit, unit)
 
 class LazyCompletionGradedAlgebraElement(LazyCauchyProductSeries):
     """
@@ -4309,7 +4998,35 @@ class LazySymmetricFunction(LazyCompletionGradedAlgebraElement):
         sage: s = SymmetricFunctions(ZZ).s()
         sage: L = LazySymmetricFunctions(s)
     """
-    def __call__(self, *g, check=True):
+    def is_unit(self):
+        """
+        Return whether this element is a unit in the ring.
+
+        EXAMPLES::
+
+            sage: m = SymmetricFunctions(ZZ).m()
+            sage: L = LazySymmetricFunctions(m)
+
+            sage: L(2*m[1]).is_unit()
+            False
+
+            sage: L(-1 + 2*m[1]).is_unit()
+            True
+
+            sage: L(2 + m[1]).is_unit()
+            False
+
+            sage: m = SymmetricFunctions(QQ).m()
+            sage: L = LazySymmetricFunctions(m)
+
+            sage: L(2 + 3*m[1]).is_unit()
+            True
+        """
+        if self.is_zero(): # now 0 != 1
+            return False
+        return self[0].is_unit()
+
+    def __call__(self, *args, check=True):
         r"""
         Return the composition of ``self`` with ``g``.
 
@@ -4341,7 +5058,7 @@ class LazySymmetricFunction(LazyCompletionGradedAlgebraElement):
 
         .. TODO::
 
-            allow specification of degree one elements
+            Allow specification of degree one elements.
 
         EXAMPLES::
 
@@ -4374,7 +5091,7 @@ class LazySymmetricFunction(LazyCompletionGradedAlgebraElement):
             sage: E1 = S(lambda n: s[n], valuation=1)
             sage: E = 1 + E1
             sage: P = E(E1)
-            sage: [s(x) for x in P[:5]]
+            sage: P[:5]
             [s[], s[1], 2*s[2], s[2, 1] + 3*s[3], 2*s[2, 2] + 2*s[3, 1] + 5*s[4]]
 
         The plethysm with a tensor product is also implemented::
@@ -4391,9 +5108,15 @@ class LazySymmetricFunction(LazyCompletionGradedAlgebraElement):
 
             sage: H = S(lambda n: s[n])
             sage: H(S2(X*Y))
-            (s[]#s[]) + (s[1]#s[1]) + (s[1,1]#s[1,1]+s[2]#s[2]) + (s[1,1,1]#s[1,1,1]+s[2,1]#s[2,1]+s[3]#s[3]) + O^7
+            (s[]#s[]) + (s[1]#s[1]) + (s[1,1]#s[1,1]+s[2]#s[2])
+             + (s[1,1,1]#s[1,1,1]+s[2,1]#s[2,1]+s[3]#s[3]) + O^7
             sage: H(S2(X+Y))
-            (s[]#s[]) + (s[]#s[1]+s[1]#s[]) + (s[]#s[2]+s[1]#s[1]+s[2]#s[]) + (s[]#s[3]+s[1]#s[2]+s[2]#s[1]+s[3]#s[]) + (s[]#s[4]+s[1]#s[3]+s[2]#s[2]+s[3]#s[1]+s[4]#s[]) + (s[]#s[5]+s[1]#s[4]+s[2]#s[3]+s[3]#s[2]+s[4]#s[1]+s[5]#s[]) + (s[]#s[6]+s[1]#s[5]+s[2]#s[4]+s[3]#s[3]+s[4]#s[2]+s[5]#s[1]+s[6]#s[]) + O^7
+            (s[]#s[]) + (s[]#s[1]+s[1]#s[]) + (s[]#s[2]+s[1]#s[1]+s[2]#s[])
+             + (s[]#s[3]+s[1]#s[2]+s[2]#s[1]+s[3]#s[])
+             + (s[]#s[4]+s[1]#s[3]+s[2]#s[2]+s[3]#s[1]+s[4]#s[])
+             + (s[]#s[5]+s[1]#s[4]+s[2]#s[3]+s[3]#s[2]+s[4]#s[1]+s[5]#s[])
+             + (s[]#s[6]+s[1]#s[5]+s[2]#s[4]+s[3]#s[3]+s[4]#s[2]+s[5]#s[1]+s[6]#s[])
+             + O^7
 
         TESTS::
 
@@ -4441,13 +5164,13 @@ class LazySymmetricFunction(LazyCompletionGradedAlgebraElement):
             3
         """
         fP = parent(self)
-        if len(g) != fP._arity:
+        if len(args) != fP._arity:
             raise ValueError("arity must be equal to the number of arguments provided")
 
         # Find a good parent for the result
         from sage.structure.element import get_coercion_model
         cm = get_coercion_model()
-        P = cm.common_parent(self.base_ring(), *[parent(h) for h in g])
+        P = cm.common_parent(self.base_ring(), *[parent(h) for h in args])
 
         # f = 0
         if isinstance(self._coeff_stream, Stream_zero):
@@ -4457,15 +5180,15 @@ class LazySymmetricFunction(LazyCompletionGradedAlgebraElement):
         if all((not isinstance(h, LazyModuleElement) and not h)
                or (isinstance(h, LazyModuleElement)
                    and isinstance(h._coeff_stream, Stream_zero))
-               for h in g):
+               for h in args):
             f = self[0]
             # FIXME: TypeError: unable to convert 0 to a rational
             if f:
                 return P(f.leading_coefficient())
             return P.zero()
 
-        if len(g) == 1:
-            g = g[0]
+        if len(args) == 1:
+            g = args[0]
             if (isinstance(self._coeff_stream, Stream_exact)
                 and not self._coeff_stream._constant):
 
@@ -4495,14 +5218,15 @@ class LazySymmetricFunction(LazyCompletionGradedAlgebraElement):
                     g._coeff_stream._approximate_order = 1
 
             if P._arity == 1:
-                ps = P._laurent_poly_ring.realization_of().p()
+                ps = R.realization_of().p()
             else:
-                ps = tensor([P._laurent_poly_ring._sets[0].realization_of().p()]*P._arity)
-            coeff_stream = Stream_plethysm(self._coeff_stream, g._coeff_stream, ps)
+                ps = tensor([R._sets[0].realization_of().p()]*P._arity)
+            coeff_stream = Stream_plethysm(self._coeff_stream, g._coeff_stream,
+                                           ps, R)
+            return P.element_class(P, coeff_stream)
+
         else:
             raise NotImplementedError("only implemented for arity 1")
-
-        return P.element_class(P, coeff_stream)
 
     plethysm = __call__
 
@@ -4550,7 +5274,12 @@ class LazySymmetricFunction(LazyCompletionGradedAlgebraElement):
 
             sage: f = L(2*p[1] + p[2] + p[1,1])
             sage: f.revert()
-            1/2*p[1] + (-1/4*p[1,1]-1/2*p[2]) + (1/4*p[1,1,1]+1/2*p[2,1]) + (-5/16*p[1,1,1,1]-3/4*p[2,1,1]+1/2*p[4]) + (7/16*p[1,1,1,1,1]+5/4*p[2,1,1,1]+1/2*p[2,2,1]-1/2*p[4,1]) + (-21/32*p[1,1,1,1,1,1]-35/16*p[2,1,1,1,1]-3/2*p[2,2,1,1]-1/4*p[2,2,2]+3/4*p[4,1,1]) + (33/32*p[1,1,1,1,1,1,1]+63/16*p[2,1,1,1,1,1]+15/4*p[2,2,1,1,1]+3/4*p[2,2,2,1]-5/4*p[4,1,1,1]-p[4,2,1]) + O^8
+            1/2*p[1] + (-1/4*p[1,1]-1/2*p[2]) + (1/4*p[1,1,1]+1/2*p[2,1])
+             + (-5/16*p[1,1,1,1]-3/4*p[2,1,1]+1/2*p[4])
+             + (7/16*p[1,1,1,1,1]+5/4*p[2,1,1,1]+1/2*p[2,2,1]-1/2*p[4,1])
+             + (-21/32*p[1,1,1,1,1,1]-35/16*p[2,1,1,1,1]-3/2*p[2,2,1,1]-1/4*p[2,2,2]+3/4*p[4,1,1])
+             + (33/32*p[1,1,1,1,1,1,1]+63/16*p[2,1,1,1,1,1]+15/4*p[2,2,1,1,1]+3/4*p[2,2,2,1]-5/4*p[4,1,1,1]-p[4,2,1])
+             + O^8
 
         ALGORITHM:
 
@@ -4605,7 +5334,7 @@ class LazySymmetricFunction(LazyCompletionGradedAlgebraElement):
 
         X = R(Partition([1]))
         b = coeff_stream[1][Partition([1])]
-        g = P(None, valuation=1)
+        g = P.undefined(valuation=1)
         g.define(~b * X - (self - b * X)(g))
         return g
 
@@ -4665,11 +5394,413 @@ class LazySymmetricFunction(LazyCompletionGradedAlgebraElement):
         if P._arity != 1:
             raise ValueError("arity must be equal to 1")
 
-        coeff_stream = Stream_shift(Stream_map_coefficients(self._coeff_stream,
-                                                            lambda c: c.derivative_with_respect_to_p1(n),
-                                                            P._laurent_poly_ring),
-                                    -n)
+        coeff_stream = Stream_map_coefficients(self._coeff_stream,
+                                               lambda c: c.derivative_with_respect_to_p1(n))
+        coeff_stream = Stream_shift(coeff_stream, -n)
         return P.element_class(P, coeff_stream)
+
+    def functorial_composition(self, *args):
+        r"""
+        Return the functorial composition of ``self`` and ``g``.
+
+        Let `X` be a finite set of cardinality `m`.  For a group
+        action of the symmetric group `g: S_n \to S_X` and a
+        (possibly virtual) representation of the symmetric group on
+        `X`, `f: S_X \to GL(V)`, the functorial composition is the
+        (virtual) representation of the symmetric group `f \Box g:
+        S_n \to GL(V)` given by `\sigma \mapsto f(g(\sigma))`.
+
+        This is more naturally phrased in the language of
+        combinatorial species.  Let `F` and `G` be species, then
+        their functorial composition is the species `F \Box G` with
+        `(F \Box G) [A] = F[ G[A] ]`.  In other words, an `(F \Box
+        G)`-structure on a set `A` of labels is an `F`-structure
+        whose labels are the set of all `G`-structures on `A`.
+
+        The Frobenius character (or cycle index series) of `F \Box G`
+        can be computed as follows, see section 2.2 of [BLL]_):
+
+        .. MATH::
+
+            \sum_{n \geq 0} \frac{1}{n!} \sum_{\sigma \in
+            \mathfrak{S}_{n}} \operatorname{fix} F[ (G[\sigma])_{1},
+            (G[\sigma])_{2}, \ldots ] \, p_{1}^{\sigma_{1}}
+            p_{2}^{\sigma_{2}} \cdots.
+
+        .. WARNING::
+
+            The operation `f \Box g` only makes sense when `g`
+            corresponds to a permutation representation, i.e., a
+            group action.
+
+        EXAMPLES:
+
+        The species `G` of simple graphs can be expressed in terms of
+        a functorial composition: `G = \mathfrak{p} \Box
+        \mathfrak{p}_{2}`, where `\mathfrak{p}` is the
+        :class:`~sage.combinat.species.subset_species.SubsetSpecies`.::
+
+            sage: R.<q> = QQ[]
+            sage: h = SymmetricFunctions(R).h()
+            sage: m = SymmetricFunctions(R).m()
+            sage: L = LazySymmetricFunctions(m)
+            sage: P = L(lambda n: sum(q^k*h[n-k]*h[k] for k in range(n+1)))
+            sage: P2 = L(lambda n: h[2]*h[n-2], valuation=2)
+            sage: P.functorial_composition(P2)[:4]
+            [m[],
+             m[1],
+             (q+1)*m[1, 1] + (q+1)*m[2],
+             (q^3+3*q^2+3*q+1)*m[1, 1, 1] + (q^3+2*q^2+2*q+1)*m[2, 1] + (q^3+q^2+q+1)*m[3]]
+
+        For example, there are::
+
+            sage: P.functorial_composition(P2)[4].coefficient([4])[3]
+            3
+
+        unlabelled graphs on 4 vertices and 3 edges, and::
+
+            sage: P.functorial_composition(P2)[4].coefficient([2,2])[3]
+            8
+
+        labellings of their vertices with two 1's and two 2's.
+
+        The symmetric function `h_1 \sum_n h_n` is the neutral
+        element with respect to functorial composition::
+
+            sage: p = SymmetricFunctions(QQ).p()
+            sage: h = SymmetricFunctions(QQ).h()
+            sage: e = SymmetricFunctions(QQ).e()
+            sage: L = LazySymmetricFunctions(h)
+            sage: E = L(lambda n: h[n])
+            sage: Ep = p[1]*E.derivative_with_respect_to_p1(); Ep
+            h[1] + (h[1,1]) + (h[2,1]) + (h[3,1]) + (h[4,1]) + (h[5,1]) + O^7
+            sage: f = L(lambda n: h[n-n//2, n//2])
+            sage: f - Ep.functorial_composition(f)
+            O^7
+
+        The functorial composition distributes over the sum::
+
+            sage: F1 = L(lambda n: h[n])
+            sage: F2 = L(lambda n: e[n])
+            sage: f1 = F1.functorial_composition(f)
+            sage: f2 = F2.functorial_composition(f)
+            sage: (F1 + F2).functorial_composition(f) - f1 - f2  # long time
+            O^7
+
+        TESTS:
+
+        Check a corner case::
+
+            sage: h = SymmetricFunctions(QQ).h()
+            sage: L = LazySymmetricFunctions(h)
+            sage: L(h[2,1]).functorial_composition(3*h[0])
+            3*h[] + O^7
+
+        Check an instance of a non-group action::
+
+            sage: s = SymmetricFunctions(QQ).s()
+            sage: p = SymmetricFunctions(QQ).p()
+            sage: L = LazySymmetricFunctions(p)
+            sage: f = L(lambda n: s[n])
+            sage: g = 2*s[2, 1, 1] + s[2, 2] + 3*s[4]
+            sage: r = f.functorial_composition(g); r[4]
+            Traceback (most recent call last):
+            ...
+            ValueError: the argument is not the Frobenius character of a permutation representation
+
+        """
+        if len(args) != self.parent()._arity:
+            raise ValueError("arity must be equal to the number of arguments provided")
+        from sage.combinat.sf.sfa import is_SymmetricFunction
+        if not all(isinstance(g, LazySymmetricFunction)
+                   or is_SymmetricFunction(g)
+                   or not g for g in args):
+            raise ValueError("all arguments must be (possibly lazy) symmetric functions")
+
+        if len(args) == 1:
+            g = args[0]
+            P = g.parent()
+            if isinstance(g, LazySymmetricFunction):
+                R = P._laurent_poly_ring
+            else:
+                from sage.rings.lazy_series_ring import LazySymmetricFunctions
+                R = g.parent()
+                P = LazySymmetricFunctions(R)
+                g = P(g)
+
+            p = R.realization_of().p()
+            # TODO: does the following introduce a memory leak?
+            g = Stream_map_coefficients(g._coeff_stream, p)
+            f = Stream_map_coefficients(self._coeff_stream, p)
+
+            def g_cycle_type(s, n):
+                # the cycle type of G[sigma] of any permutation sigma
+                # with cycle type s, which is a partition of n
+                if not n:
+                    if g[0]:
+                        return Partition([1]*ZZ(g[0].coefficient([])))
+                    return Partition([])
+                res = []
+                # in the species case, k is at most
+                # factorial(n) * g[n].coefficient([1]*n)
+                for k in range(1, lcm(s) + 1):
+                    e = 0
+                    for d in divisors(k):
+                        m = moebius(d)
+                        if not m:
+                            continue
+                        u = s.power(k // d)
+                        # it could be, that we never need to compute
+                        # g[n], so we only do this here
+                        g_u = g[n]
+                        if g_u:
+                            e += m * u.aut() * g_u.coefficient(u)
+                    # e / k might not be an integer if g is not a
+                    # group action, so it is good to check
+                    res.extend([k] * ZZ(e / k))
+                res.reverse()
+                return Partition(res)
+
+            def coefficient(n):
+                terms = {}
+                t_size = None
+                for s in Partitions(n):
+                    t = g_cycle_type(s, n)
+                    if t_size is None:
+                        t_size = sum(t)
+                        f_t = f[t_size]
+                        if not f_t:
+                            break
+                    elif t_size != sum(t):
+                        raise ValueError("the argument is not the Frobenius character of a permutation representation")
+
+                    terms[s] = t.aut() * f_t.coefficient(t) / s.aut()
+                return R(p.element_class(p, terms))
+
+            coeff_stream = Stream_function(coefficient, P._sparse, 0)
+            return P.element_class(P, coeff_stream)
+        else:
+            raise NotImplementedError("only implemented for arity 1")
+
+    def arithmetic_product(self, *args, check=True):
+        r"""
+        Return the arithmetic product of ``self`` with ``g``.
+
+        The arithmetic product is a binary operation `\boxdot` on the
+        ring of symmetric functions which is bilinear in its two
+        arguments and satisfies
+
+        .. MATH::
+
+            p_{\lambda} \boxdot p_{\mu} = \prod\limits_{i \geq 1, j \geq 1}
+            p_{\mathrm{lcm}(\lambda_i, \mu_j)}^{\mathrm{gcd}(\lambda_i, \mu_j)}
+
+        for any two partitions `\lambda = (\lambda_1, \lambda_2, \lambda_3,
+        \dots )` and `\mu = (\mu_1, \mu_2, \mu_3, \dots )` (where `p_{\nu}`
+        denotes the power-sum symmetric function indexed by the partition
+        `\nu`, and `p_i` denotes the `i`-th power-sum symmetric function).
+        This is enough to define the arithmetic product if the base ring
+        is torsion-free as a `\ZZ`-module; for all other cases the
+        arithmetic product is uniquely determined by requiring it to be
+        functorial in the base ring. See
+        http://mathoverflow.net/questions/138148/ for a discussion of
+        this arithmetic product.
+
+        .. WARNING::
+
+            The operation `f \boxdot g` was originally defined only
+            for symmetric functions `f` and `g` without constant
+            term.  We extend this definition using the convention
+            that the least common multiple of any integer with `0` is
+            `0`.
+
+        If `f` and `g` are two symmetric functions which are homogeneous
+        of degrees `a` and `b`, respectively, then `f \boxdot g` is
+        homogeneous of degree `ab`.
+
+        The arithmetic product is commutative and associative and has
+        unity `e_1 = p_1 = h_1`.
+
+        For species `M` and `N` such that `M[\varnothing] =
+        N[\varnothing] = \varnothing`, their arithmetic product is
+        the species `M \boxdot N` of "`M`-assemblies of cloned
+        `N`-structures".  This operation is defined and several
+        examples are given in [MM2008]_.
+
+        INPUT:
+
+        - ``g`` -- a cycle index series having the same parent as ``self``
+
+        - ``check`` -- (default: ``True``) a Boolean which, when set
+          to ``False``, will cause input checks to be skipped
+
+        OUTPUT:
+
+        The arithmetic product of ``self`` with ``g``.
+
+        .. SEEALSO::
+
+          :meth:`sage.combinat.sf.sfa.SymmetricFunctionAlgebra_generic_Element.arithmetic_product`
+
+        EXAMPLES:
+
+        For `C` the species of (oriented) cycles and `L_{+}` the
+        species of nonempty linear orders, `C \boxdot L_{+}`
+        corresponds to the species of "regular octopuses"; a `(C
+        \boxdot L_{+})`-structure is a cycle of some length, each of
+        whose elements is an ordered list of a length which is
+        consistent for all the lists in the structure. ::
+
+            sage: R.<q> = QQ[]
+            sage: p = SymmetricFunctions(R).p()
+            sage: m = SymmetricFunctions(R).m()
+            sage: L = LazySymmetricFunctions(m)
+
+            sage: C = species.CycleSpecies().cycle_index_series()
+            sage: c = L(lambda n: C[n])
+            sage: Lplus = L(lambda n: p([1]*n), valuation=1)
+            sage: r = c.arithmetic_product(Lplus); r
+            m[1] + (3*m[1,1]+2*m[2])
+             + (8*m[1,1,1]+4*m[2,1]+2*m[3])
+             + (42*m[1,1,1,1]+21*m[2,1,1]+12*m[2,2]+7*m[3,1]+3*m[4])
+             + (144*m[1,1,1,1,1]+72*m[2,1,1,1]+36*m[2,2,1]+24*m[3,1,1]+12*m[3,2]+6*m[4,1]+2*m[5])
+             + ...
+             + O^7
+
+        In particular, the number of regular octopuses is::
+
+            sage: [r[n].coefficient([1]*n) for n in range(8)]
+            [0, 1, 3, 8, 42, 144, 1440, 5760]
+
+        It is shown in [MM2008]_ that the exponential generating
+        function for regular octopuses satisfies `(C \boxdot L_{+})
+        (x) = \sum_{n \geq 1} \sigma (n) (n - 1)! \frac{x^{n}}{n!}`
+        (where `\sigma (n)` is the sum of the divisors of `n`). ::
+
+            sage: [sum(divisors(i))*factorial(i-1) for i in range(1,8)]
+            [1, 3, 8, 42, 144, 1440, 5760]
+
+        AUTHORS:
+
+        - Andrew Gainer-Dewar (2013)
+
+        REFERENCES:
+
+        - [MM2008]_
+
+        TESTS:
+
+        Check that the product with zero works::
+
+            sage: s = SymmetricFunctions(QQ).s()
+            sage: L = LazySymmetricFunctions(s)
+            sage: L(0).arithmetic_product(s[2])
+            0
+            sage: L(s[2]).arithmetic_product(0)
+            0
+
+        Check that the arithmetic product of symmetric functions of
+        finite support works::
+
+            sage: L(s([2])).arithmetic_product(s([1,1,1]))
+            s[2, 2, 1, 1] + s[3, 1, 1, 1] + s[3, 2, 1] + s[3, 3] + 2*s[4, 1, 1]
+
+            sage: f = 1/(1-L(s[1]))
+            sage: f.arithmetic_product(s[1]) - f
+            O^7
+
+        Check that the arithmetic product of symmetric functions with
+        constant a term works as advertised::
+
+            sage: p = SymmetricFunctions(QQ).p()
+            sage: L = LazySymmetricFunctions(p)
+            sage: L(5).arithmetic_product(3*p[2,1])
+            15*p[]
+
+        Check the arithmetic product of symmetric functions over a
+        finite field works::
+
+            sage: s = SymmetricFunctions(FiniteField(2)).s()
+            sage: L = LazySymmetricFunctions(s)
+            sage: L(s([2])).arithmetic_product(s([1,1,1]))
+            s[2, 2, 1, 1] + s[3, 1, 1, 1] + s[3, 2, 1] + s[3, 3]
+
+        """
+        if len(args) != self.parent()._arity:
+            raise ValueError("arity must be equal to the number of arguments provided")
+        from sage.combinat.sf.sfa import is_SymmetricFunction
+        if not all(isinstance(g, LazySymmetricFunction)
+                   or is_SymmetricFunction(g)
+                   or not g for g in args):
+            raise ValueError("all arguments must be (possibly lazy) symmetric functions")
+
+        if len(args) == 1:
+            g = args[0]
+            P = g.parent()
+
+            # f = 0 or g = (0, ..., 0)
+            if (isinstance(self._coeff_stream, Stream_zero)
+                or (not isinstance(g, LazyModuleElement) and not g)
+                or (isinstance(g, LazyModuleElement)
+                    and isinstance(g._coeff_stream, Stream_zero))):
+                return P.zero()
+
+            if (isinstance(self._coeff_stream, Stream_exact)
+                and not self._coeff_stream._constant):
+
+                if not isinstance(g, LazySymmetricFunction):
+                    f = self.symmetric_function()
+                    return f.arithmetic_product(g)
+
+                if (isinstance(g._coeff_stream, Stream_exact)
+                    and not g._coeff_stream._constant):
+                    f = self.symmetric_function()
+                    gs = g.symmetric_function()
+                    return P(f.arithmetic_product(gs))
+
+            if isinstance(g, LazySymmetricFunction):
+                R = P._laurent_poly_ring
+            else:
+                from sage.rings.lazy_series_ring import LazySymmetricFunctions
+                R = g.parent()
+                P = LazySymmetricFunctions(R)
+                g = P(g)
+
+            # compute the constant term in the case where not both f
+            # and g have finite support
+            # TODO: this should be done lazily if possible
+            c = R.zero()
+            if self[0]:
+                if (isinstance(g._coeff_stream, Stream_exact)
+                    and not g._coeff_stream._constant):
+                    gs = g.symmetric_function()
+                    c += self[0].arithmetic_product(gs)
+                elif check:
+                    raise ValueError("can only take the arithmetic product with a positive valuation series")
+            if g[0]:
+                if (isinstance(self._coeff_stream, Stream_exact)
+                    and not self._coeff_stream._constant):
+                    fs = self.symmetric_function()
+                    c += fs.arithmetic_product(g[0])
+                elif check:
+                    raise ValueError("can only take the arithmetic product with a positive valuation series")
+
+            p = R.realization_of().p()
+            # TODO: does the following introduce a memory leak?
+            g = Stream_map_coefficients(g._coeff_stream, p)
+            f = Stream_map_coefficients(self._coeff_stream, p)
+
+            def coefficient(n):
+                if not n:
+                    return c
+                index_set = ((d, n // d) for d in divisors(n))
+                return sum(f[i].arithmetic_product(g[j])
+                           for i, j in index_set if f[i] and g[j])
+
+            coeff_stream = Stream_function(coefficient, P._sparse, 0)
+            return P.element_class(P, coeff_stream)
+        else:
+            raise NotImplementedError("only implemented for arity 1")
 
     def symmetric_function(self, degree=None):
         r"""
@@ -4759,6 +5890,30 @@ class LazyDirichletSeries(LazyModuleElement):
         sage: g == f
         True
     """
+    def is_unit(self):
+        """
+        Return whether this element is a unit in the ring.
+
+        EXAMPLES::
+
+            sage: D = LazyDirichletSeriesRing(ZZ, "s")
+            sage: D([0, 2]).is_unit()
+            False
+
+            sage: D([-1, 2]).is_unit()
+            True
+
+            sage: D([3, 2]).is_unit()
+            False
+
+            sage: D = LazyDirichletSeriesRing(QQ, "s")
+            sage: D([3, 2]).is_unit()
+            True
+        """
+        if self.is_zero(): # now 0 != 1
+            return False
+        return self[1].is_unit()
+
     def valuation(self):
         r"""
         Return the valuation of ``self``.
@@ -4878,6 +6033,22 @@ class LazyDirichletSeries(LazyModuleElement):
             sage: ~L(constant=1) - L(moebius)
             O(1/(8^z))
 
+        Trying to invert a non-invertible 'exact' series raises a
+        ``ZeroDivisionError``::
+
+            sage: _ = ~L([0,1], constant=1)
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: the Dirichlet inverse only exists if the coefficient with index 1 is non-zero
+
+        If the series is not 'exact', we cannot do this without
+        actually computing a term::
+
+            sage: f = ~L(lambda n: n-1)
+            sage: f[1]
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: rational division by zero
         """
         P = self.parent()
         return P.element_class(P, Stream_dirichlet_invert(self._coeff_stream))
@@ -4982,7 +6153,7 @@ class LazyDirichletSeries(LazyModuleElement):
             except ValueError:
                 return ZZ.zero()
         R = P._internal_poly_ring.base_ring()
-        return P.element_class(P, Stream_function(coefficient, R, P._sparse, 1))
+        return P.element_class(P, Stream_function(coefficient, P._sparse, 1))
 
     def _format_series(self, formatter, format_strings=False):
         """

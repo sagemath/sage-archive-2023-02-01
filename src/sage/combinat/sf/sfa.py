@@ -3137,7 +3137,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             sage: T = tensor([X,Y])
             sage: s = SymmetricFunctions(T).s()
             sage: s(2*T.one())
-            (2*B[word:]#B[word:])*s[]
+            (2*B[]#B[])*s[]
 
         .. TODO::
 

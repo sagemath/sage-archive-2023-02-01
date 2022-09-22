@@ -580,7 +580,7 @@ class DiffFormFreeModule(ExtPowerDualFreeModule):
         is not parallelizable, the class :class:`DiffFormModule` must be used
         instead.
 
-    For the special case of `-forms, use the class :class:`VectorFieldDualFreeModule`.
+    For the special case of 1-forms, use the class :class:`VectorFieldDualFreeModule`.
 
     INPUT:
 

@@ -1173,35 +1173,44 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
         EXAMPLES::
 
-            sage: P.<x,y> = ProjectiveSpace(QQ,1)
-            sage: f = DynamicalSystem_projective([x^2+4*y^2, y^2])
-            sage: g = DynamicalSystem_projective([x^2,y^2])
+            sage: K.<k> = CyclotomicField(3)
+            sage: P.<x,y> = ProjectiveSpace(K, 1)
+            sage: f = DynamicalSystem_projective([x^2 + (2*k + 2)*y^2, y^2])
+            sage: g = DynamicalSystem_projective([x^2, y^2])
+            sage: pairingval = f.arakelov_zhang_pairing(g, n=5); pairingval
+            0.409598197761958
+
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: f = DynamicalSystem_projective([x^2 + 4*y^2, y^2])
+            sage: g = DynamicalSystem_projective([x^2, y^2])
             sage: pairingval = f.arakelov_zhang_pairing(g, n=6); pairingval
             0.750178391443644
             sage: # Compare to the exact value:
-            sage: dynheight = f.canonical_height(P(0,1)); dynheight
+            sage: dynheight = f.canonical_height(P(0, 1)); dynheight
             0.75017839144364417318023000563
             sage: dynheight - pairingval
             0.000000000000000
 
         Notice that if we set the noise_multiplier to 0, the accuracy is diminished::
 
-            sage: P.<x,y> = ProjectiveSpace(QQ,1)
-            sage: f = DynamicalSystem_projective([x^2+4*y^2, y^2])
-            sage: g = DynamicalSystem_projective([x^2,y^2])
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: f = DynamicalSystem_projective([x^2 + 4*y^2, y^2])
+            sage: g = DynamicalSystem_projective([x^2, y^2])
             sage: pairingval = f.arakelov_zhang_pairing(g, n=6, noise_multiplier=0)
             sage: pairingval
             0.650660018921632
-            sage: dynheight = f.canonical_height(P(0,1)); dynheight
+            sage: dynheight = f.canonical_height(P(0, 1)); dynheight
             0.75017839144364417318023000563
             sage: pairingval - dynheight
             -0.0995183725220122
 
         We compute the example of Prop. 18(d) from Petsche, Szpiro and Tucker::
 
-            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
             sage: f = DynamicalSystem_projective([y^2 - (y - x)^2, y^2])
-            sage: g = DynamicalSystem_projective([x^2,y^2])
+            sage: g = DynamicalSystem_projective([x^2, y^2])
             sage: f.arakelov_zhang_pairing(g)
             0.326954667248466
             sage: # Correct value should be = 0.323067...
@@ -1215,14 +1224,14 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: R.<z> = PolynomialRing(ZZ)
             sage: K.<b> = NumberField(z^3 - 11)
             sage: P.<x,y> = ProjectiveSpace(K,1)
-            sage: a = 7/(b-1)
+            sage: a = 7/(b - 1)
             sage: f = DynamicalSystem_projective([a*y^2 - (a*y - x)^2, y^2])
-            sage: g = DynamicalSystem_projective([x^2,y^2])
+            sage: g = DynamicalSystem_projective([x^2, y^2])
             sage: # If all archimedean absolute values of a have modulus > 2, then the pairing should be h(a).
             sage: f.arakelov_zhang_pairing(g, n=6)
-            1.93846423207664
+            3.46979800225000
             sage: _ - a.global_height()
-            -0.00744591697867292
+            1.52388785319469
         """
         n = kwds.pop('n', 5)
         f_starting_point = kwds.pop('f_starting_point', None)
@@ -1349,12 +1358,12 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                 if abs(temp) > noise_multiplier * Real(f_deg).log() / Real(f_deg):
                     AZ_pairing += temp
             else:
-                temp = (ZZ(1)/d) * (ZZ(1)/2) * (Real(K(f_disc).abs().norm()).log()) / (f_deg**2)
+                temp = (ZZ(1)/d) * (ZZ(1)/2) * (Real(K(f_disc).norm()).abs().log()) / (f_deg**2)
                 if abs(temp) > noise_multiplier * Real(f_deg).log() / Real(f_deg):
                     AZ_pairing += temp
 
             if g_disc.is_rational():
-                g_disc = QQ(g_disc)  # TODO newly add, maybe delete
+                g_disc = QQ(g_disc)
                 temp = (ZZ(1)/2) * (Real(g_disc).abs().log()) / (g_deg**2)
                 if abs(temp) > noise_multiplier * Real(g_deg).log() / Real(g_deg):
                     AZ_pairing += temp

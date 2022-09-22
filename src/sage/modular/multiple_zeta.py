@@ -2614,7 +2614,6 @@ def rho_inverse(elt):
         sage: from sage.modular.multiple_zeta_F_algebra import F_algebra
         sage: A = F_algebra(QQ)
         sage: f = A.custom_gen
-        sage: W = A.basis().keys()
         sage: rho_inverse(f(3))
         ζ(3)
         sage: rho_inverse(f(9))

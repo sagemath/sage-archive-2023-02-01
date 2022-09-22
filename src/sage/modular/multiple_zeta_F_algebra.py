@@ -312,11 +312,11 @@ class F_algebra(CombinatorialFreeModule):
 
     def product_on_basis(self, pw1, pw2):
         r"""
-        Return the product of basis elements ``w1`` and ``w2``.
+        Return the product of basis elements ``pw1`` and ``pw2``.
 
         INPUT:
 
-        - ``w1``, ``w2`` -- basis elements
+        - ``pw1``, ``pw2`` -- basis elements
 
         EXAMPLES::
 
@@ -333,13 +333,13 @@ class F_algebra(CombinatorialFreeModule):
 
     def half_product_on_basis(self, pw1, pw2):
         r"""
-        Return the half product of basis elements ``w1`` and ``w2``.
+        Return the half product of basis elements ``pw1`` and ``pw2``.
 
         This is an extension of the zinbiel product of the shuffle algebra.
 
         INPUT:
 
-        - ``w1``, ``w2`` -- Basis elements
+        - ``pw1``, ``pw2`` -- Basis elements
 
         EXAMPLES::
 
@@ -408,7 +408,7 @@ class F_algebra(CombinatorialFreeModule):
 
         INPUT:
 
-        - ``i`` -- a nonnegative integer
+        - ``i`` -- a nonnegative integer (at least 2)
 
         If ``i`` is odd, this returns a single generator `f_i` of the free
         shuffle algebra.
@@ -463,7 +463,7 @@ class F_algebra(CombinatorialFreeModule):
 
     def coproduct_on_basis(self, pw):
         r"""
-        Return the coproduct of the basis element indexed by the word ``w``.
+        Return the coproduct of the basis element indexed by the pair ``pw``.
 
         The coproduct is given by deconcatenation on the shuffle part,
         and extended by the value
@@ -474,7 +474,7 @@ class F_algebra(CombinatorialFreeModule):
 
         INPUT:
 
-        - ``w`` -- a word
+        - ``pw`` -- an index
 
         EXAMPLES::
 
@@ -694,10 +694,6 @@ class F_algebra(CombinatorialFreeModule):
             Convert an homogeneous element to a vector.
 
             This is using a fixed enumeration of the basis.
-
-            INPUT:
-
-            an homogeneous element of :func:`F_ring` over some base ring
 
             OUTPUT:
 

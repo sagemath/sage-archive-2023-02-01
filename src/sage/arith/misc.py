@@ -3307,13 +3307,15 @@ def CRT_list(values, moduli):
         raise ValueError("arguments to CRT_list should be lists of the same length")
     if not values:
         return ZZ.zero()
+    if len(values) == 1:
+        return moduli[0].parent()(values[0])
 
     # The result is computed using a binary tree. In typical cases,
     # this scales much better than folding the list from one side.
     from sage.arith.functions import lcm
     while len(values) > 1:
         vs, ms = values[::2], moduli[::2]
-        for i,(v,m) in enumerate(zip(values[1::2], moduli[1::2])):
+        for i, (v, m) in enumerate(zip(values[1::2], moduli[1::2])):
             vs[i] = CRT(vs[i], v, ms[i], m)
             ms[i] = lcm(ms[i], m)
         values, moduli = vs, ms

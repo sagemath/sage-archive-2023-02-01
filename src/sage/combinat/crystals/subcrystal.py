@@ -161,11 +161,11 @@ class Subcrystal(UniqueRepresentation, Parent):
                                   generators, cartan_type, index_set, category)
 
         # We need to give these as optional arguments so it unpickles correctly
-        return super(Subcrystal, cls).__classcall__(cls, ambient, contained,
-                                                    tuple(generators),
-                                                    cartan_type=cartan_type,
-                                                    index_set=tuple(index_set),
-                                                    category=category)
+        return super().__classcall__(cls, ambient, contained,
+                                     tuple(generators),
+                                     cartan_type=cartan_type,
+                                     index_set=tuple(index_set),
+                                     category=category)
 
     def __init__(self, ambient, contained, generators, cartan_type, index_set, category):
         """
@@ -293,7 +293,7 @@ class Subcrystal(UniqueRepresentation, Parent):
             if self in FiniteCrystals():
                 return Integer(len(self.list()))
             try:
-                card = super(Subcrystal, self).cardinality()
+                card = super().cardinality()
             except AttributeError:
                 raise NotImplementedError("unknown cardinality")
             if card == infinity:

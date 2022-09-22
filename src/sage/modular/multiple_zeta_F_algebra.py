@@ -247,7 +247,6 @@ class F_algebra(CombinatorialFreeModule):
         """
         if R not in Rings():
             raise TypeError("argument R must be a ring")
-        self.__ngens = Infinity
         Indices = NonNegativeIntegers().cartesian_product(W_Odds)
         cat = BialgebrasWithBasis(R).Commutative().Graded()
         CombinatorialFreeModule.__init__(self, R, Indices,
@@ -295,7 +294,7 @@ class F_algebra(CombinatorialFreeModule):
             sage: F  # indirect doctest
             F-ring over Integer Ring
         """
-        return "F-ring over %s" % (self.base_ring())
+        return f"F-ring over {self.base_ring()}"
 
     @cached_method
     def one_basis(self):
@@ -575,7 +574,7 @@ class F_algebra(CombinatorialFreeModule):
         if isinstance(P, F_algebra):
             if P is self:
                 return x
-            if not (P is self.base_ring()):
+            if P is not self.base_ring():
                 return self.element_class(self, x.monomial_coefficients())
 
         R = self.base_ring()

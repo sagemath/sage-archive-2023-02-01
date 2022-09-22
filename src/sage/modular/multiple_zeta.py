@@ -187,7 +187,7 @@ from sage.matrix.constructor import matrix
 from sage.misc.cachefunc import cached_function, cached_method
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.misc_c import prod
-from sage.modular.multiple_zeta_F_algebra import F_algebra, W_Odds
+from sage.modular.multiple_zeta_F_algebra import F_algebra
 from sage.modules.free_module import VectorSpace
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
@@ -436,7 +436,7 @@ class MultizetaValues(UniqueRepresentation):
             sage: MultizetaValues()
             Cached multiple zeta values at precision 1024 up to weight 8
         """
-        return "Cached multiple zeta values at precision %d up to weight %d" % (self.prec, self.max_weight)
+        return f"Cached multiple zeta values at precision {self.prec} up to weight {self.max_weight}"
 
     def reset(self, max_weight=8, prec=1024):
         r"""
@@ -1062,9 +1062,8 @@ class Multizetas(CombinatorialFreeModule):
                 v = self(c).phi_as_vector()
                 if v in U:
                     continue
-                else:
-                    U = V.subspace(U.basis() + [v])
-                    basis.append(c)
+                U = V.subspace(U.basis() + [v])
+                basis.append(c)
             k += 1
         return [self(c) for c in basis]
 
@@ -1113,7 +1112,7 @@ class Multizetas(CombinatorialFreeModule):
             phi_im = self.phi()
             zin = phi_im.parent()
             phi_no_f2 = phi_im.without_f2()
-            sv = zin.sum_of_terms(((0, W_Odds(w, check=False)), cf)
+            sv = zin.sum_of_terms(((0, w), cf)
                                   for (a, b), cf in phi_no_f2.coproduct()
                                   for w in shuffle(a[1], b[1].reversal(), False))
             return rho_inverse(sv)
@@ -1242,7 +1241,7 @@ class Multizetas(CombinatorialFreeModule):
                 sage: (0*M()) == 0
                 True
             """
-            if op != op_EQ and op != op_NE:
+            if op not in [op_EQ, op_NE]:
                 raise TypeError('invalid comparison for multizetas')
             return self.iterated()._richcmp_(other.iterated(), op)
 
@@ -1424,9 +1423,10 @@ class Multizetas_iterated(CombinatorialFreeModule):
 
             sage: from sage.modular.multiple_zeta import Multizetas_iterated
             sage: M = Multizetas_iterated(QQ); M
-            Algebra of motivic multiple zeta values as convergent iterated integrals over Rational Field
+            Algebra of motivic multiple zeta values
+             as convergent iterated integrals over Rational Field
         """
-        return "Algebra of motivic multiple zeta values as convergent iterated integrals over {}".format(self.base_ring())
+        return f"Algebra of motivic multiple zeta values as convergent iterated integrals over {self.base_ring()}"
 
     def _repr_term(self, m):
         """
@@ -1555,12 +1555,11 @@ class Multizetas_iterated(CombinatorialFreeModule):
                 w = Word(seq[indices[i]:indices[i + 1] + 1])
                 if len(w) == 2:  # this factor is one
                     continue
-                elif len(w) <= 4 or len(w) == 6 or w[0] == w[-1]:
+                if len(w) <= 4 or len(w) == 6 or w[0] == w[-1]:
                     # vanishing factors
                     return self.zero()
-                else:
-                    value = M_all(w)
-                    L *= value.regularise().simplify()
+                value = M_all(w)
+                L *= value.regularise().simplify()
             return L
 
         resu = self.tensor_square().zero()
@@ -2028,7 +2027,7 @@ class Multizetas_iterated(CombinatorialFreeModule):
                 sage: a.iterated() == b.iterated() # not tested, long time 20s
                 True
             """
-            if op != op_EQ and op != op_NE:
+            if op not in [op_EQ, op_NE]:
                 raise TypeError('invalid comparison for multizetas')
             return (self - other).is_zero() == (op == op_EQ)
 

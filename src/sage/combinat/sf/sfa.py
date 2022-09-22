@@ -3165,11 +3165,12 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
         """
         from sage.structure.element import parent as get_parent
         Px = get_parent(x)
-        if not self:
-            return Px(0)
-
         parent = self.parent()
         R = parent.base_ring()
+
+        if not self:
+            return R(0)
+
         tHA = HopfAlgebrasWithBasis(R).TensorProducts()
         tensorflag = Px in tHA
         if not is_SymmetricFunction(x):

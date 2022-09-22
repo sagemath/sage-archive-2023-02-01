@@ -1863,7 +1863,7 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
 
         kwds:
 
-        - ``bound`` - an integer
+        - ``bound`` - a real number
 
         - ``precision`` - (default: 53) a positive integer
 
@@ -1925,6 +1925,14 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
             sage: P.<x,y> = ProjectiveSpace(K, 1)
             sage: len(list(P.points_of_bounded_height(bound=2)))
             108
+
+        ::
+
+            R.<x> = QQ[]
+            K.<v> = NumberField(x^5 + x^3 + 1)
+            P.<x,y,z> = ProjectiveSpace(K, 2)
+            L = P.points_of_bounded_height(bound=1.2)
+            0
         """
         from sage.schemes.projective.proj_bdd_height import QQ_points_of_bounded_height, IQ_points_of_bounded_height, points_of_bounded_height
 

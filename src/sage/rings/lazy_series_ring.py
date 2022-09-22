@@ -65,6 +65,7 @@ from sage.data_structures.stream import (
     Stream_uninitialized
 )
 
+
 class LazySeriesRing(UniqueRepresentation, Parent):
     """
     Abstract base class for lazy series.
@@ -690,6 +691,7 @@ class LazySeriesRing(UniqueRepresentation, Parent):
         """
         return self.base_ring().is_exact()
 
+
 class LazyLaurentSeriesRing(LazySeriesRing):
     """
     The ring of lazy Laurent series.
@@ -806,11 +808,11 @@ class LazyLaurentSeriesRing(LazySeriesRing):
         sage: s
         1 + z + 2*z^2 + 5*z^3 + 14*z^4 + 42*z^5 + 132*z^6 + O(z^7)
 
-    If we do not explcitly know the exact value of every coefficient,
-    then equality checking will depend on the computed coefficients.
-    If at a certain point we cannot prove two series are different
-    (which involves the coefficients we have computed), then we will
-    raise an error::
+    If we do not explicitly know the exact value of every
+    coefficient, then equality checking will depend on the computed
+    coefficients.  If at a certain point we cannot prove two series
+    are different (which involves the coefficients we have computed),
+    then we will raise an error::
 
         sage: f = 1 / (z + z^2); f
         z^-1 - 1 + z - z^2 + z^3 - z^4 + z^5 + O(z^6)
@@ -1116,6 +1118,7 @@ class LazyLaurentSeriesRing(LazySeriesRing):
 
 ######################################################################
 
+
 class LazyTaylorSeriesRing(LazySeriesRing):
     """
     The ring of (possibly multivariate) lazy Taylor series.
@@ -1149,7 +1152,8 @@ class LazyTaylorSeriesRing(LazySeriesRing):
         names = normalize_names(-1, names)
         self._sparse = sparse
         self._laurent_poly_ring = PolynomialRing(base_ring, names)
-        if len(names) == 1:
+        self._arity = len(names)
+        if self._arity == 1:
             self._internal_poly_ring = self._laurent_poly_ring
         else:
             coeff_ring = PolynomialRing(base_ring, names)
@@ -1478,8 +1482,8 @@ class LazyTaylorSeriesRing(LazySeriesRing):
         coeff_stream = Stream_exact([R.one()], self._sparse, order=1, constant=c)
         return self.element_class(self, coeff_stream)
 
-
 ######################################################################
+
 
 class LazyCompletionGradedAlgebra(LazySeriesRing):
     r"""
@@ -1712,7 +1716,7 @@ class LazyCompletionGradedAlgebra(LazySeriesRing):
                             d = f.degree()
                         except (TypeError, ValueError, AttributeError):
                             # FIXME: Fallback for symmetric functions in multiple variables
-                            d = sum(p.size() for p in f.support())
+                            d = sum(sum(mu.size() for mu in p) for p in f.support())
                         p_dict[d] = p_dict.get(d, 0) + f
                 v = min(p_dict)
                 d = max(p_dict)
@@ -2065,4 +2069,3 @@ class LazyDirichletSeriesRing(LazySeriesRing):
             return L(c) * L(n) ** -L(self.variable_name())
         except (ValueError, TypeError):
             return '({})/{}^{}'.format(self.base_ring()(c), n, self.variable_name())
-

@@ -1995,9 +1995,8 @@ class LazyModuleElement(Element):
 
         INPUT:
 
-        - ``n`` -- the power to which to raise the series. This may be an
-          integer, a rational number, an element of the base ring, or an other
-          series.
+        - ``n`` -- the power to which to raise the series; this may be a
+          rational number, an element of the base ring, or an other series
 
         EXAMPLES::
 
@@ -2015,7 +2014,7 @@ class LazyModuleElement(Element):
 
             sage: L.<z> = LazyLaurentSeriesRing(QQ)
             sage: f = 1 + z
-            sage: f ^ (1 / 2)
+            sage: f^(1 / 2)
             1 + 1/2*z - 1/8*z^2 + 1/16*z^3 - 5/128*z^4 + 7/256*z^5 - 21/1024*z^6 + O(z^7)
 
             sage: f^f
@@ -2025,7 +2024,11 @@ class LazyModuleElement(Element):
             sage: L.<z> = LazyLaurentSeriesRing(q.parent())
             sage: f = (1 - z)^q
             sage: f
-            1 - q*z + ((q^2 - q)/2)*z^2 + ((-q^3 + 3*q^2 - 2*q)/6)*z^3 + ((q^4 - 6*q^3 + 11*q^2 - 6*q)/24)*z^4 + ((-q^5 + 10*q^4 - 35*q^3 + 50*q^2 - 24*q)/120)*z^5 + ((q^6 - 15*q^5 + 85*q^4 - 225*q^3 + 274*q^2 - 120*q)/720)*z^6 + O(z^7)
+            1 - q*z + ((q^2 - q)/2)*z^2 + ((-q^3 + 3*q^2 - 2*q)/6)*z^3
+             + ((q^4 - 6*q^3 + 11*q^2 - 6*q)/24)*z^4
+             + ((-q^5 + 10*q^4 - 35*q^3 + 50*q^2 - 24*q)/120)*z^5
+             + ((q^6 - 15*q^5 + 85*q^4 - 225*q^3 + 274*q^2 - 120*q)/720)*z^6
+             + O(z^7)
         """
         if n in ZZ:
             return generic_power(self, n)
@@ -2068,7 +2071,7 @@ class LazyModuleElement(Element):
             sage: f*f - Z
             O(1/(8^s))
         """
-        return self ** QQ((1, 2)) # == 1/2
+        return self ** QQ((1, 2))  # == 1/2
 
 
 class LazyCauchyProductSeries(LazyModuleElement):

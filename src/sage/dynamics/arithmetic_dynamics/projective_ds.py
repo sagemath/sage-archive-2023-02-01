@@ -1227,7 +1227,8 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: a = 7/(b - 1)
             sage: f = DynamicalSystem_projective([a*y^2 - (a*y - x)^2, y^2])
             sage: g = DynamicalSystem_projective([x^2, y^2])
-            sage: # If all archimedean absolute values of a have modulus > 2, then the pairing should be h(a).
+            sage: # If all archimedean absolute values of a have modulus > 2,
+            sage: # then the pairing should be h(a).
             sage: f.arakelov_zhang_pairing(g, n=6)
             3.46979800225000
             sage: _ - a.global_height()
@@ -1287,7 +1288,8 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
         if f_poly.degree() <= 2 or g_poly.degree() <= 2:
             # f_point or g_point is exceptional
-            raise ValueError("One of the starting points is exceptional. Please specify a non-exceptional initial point.")
+            raise ValueError("One of the starting points is exceptional. \
+                              Please specify a non-exceptional initial point.")
 
         if gcd(f_poly, g_poly).degree() > 0:
             if f_poly.degree() > g_poly.degree():
@@ -1296,7 +1298,10 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                 g_poly = g_poly.quo_rem(gcd(f_poly, g_poly))[0]
 
             if f_poly.degree() <= 2 or g_poly.degree() <= 2:
-                raise ValueError("After removing common factors, the n-th iterates of 'self' and 'g' have too many roots in common. Try another 'n' or starting values.")
+                raise ValueError("After removing common factors, the n-th \
+                                  iterates of 'self' and 'g' have too many \
+                                  roots in common. Try another 'n' or starting \
+                                  values.")
 
         # We want higher precision here temporarily, since resultants are
         # usually very large. This is not to say that the computation is
@@ -1308,8 +1313,9 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         elif prec < 512:
             prec = 512
             Real = RealField(prec)
-    
-        bad_primes = list(set(self.primes_of_bad_reduction(check=check_primes_of_bad_reduction)).union(g.primes_of_bad_reduction(check=check_primes_of_bad_reduction)))
+
+        bad_primes = list(set(self.primes_of_bad_reduction(check=check_primes_of_bad_reduction))
+                    .union(g.primes_of_bad_reduction(check=check_primes_of_bad_reduction)))
 
         f_deg = f_poly.degree()
         g_deg = g_poly.degree()
@@ -1350,7 +1356,9 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
             for v in bad_primes:
                 Nv = v.absolute_ramification_index() * v.residue_class_degree() / d
-                AZ_pairing += Nv * ((ZZ(1)/2) * K(f_disc).abs_non_arch(v, prec=prec).log() / (f_deg**2) + (ZZ(1)/2) * K(g_disc).abs_non_arch(v, prec=prec).log() / (g_deg**2))- K(res).abs_non_arch(v, prec=prec).log() / (f_deg * g_deg)
+                AZ_pairing += Nv * ((ZZ(1)/2) * K(f_disc).abs_non_arch(v, prec=prec).log() /
+                (f_deg**2) + (ZZ(1)/2) * K(g_disc).abs_non_arch(v, prec=prec).log() /
+                (g_deg**2))- K(res).abs_non_arch(v, prec=prec).log() / (f_deg * g_deg)
 
             if f_disc.is_rational():
                 f_disc = QQ(f_disc)

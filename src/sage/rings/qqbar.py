@@ -2310,7 +2310,7 @@ def do_polred(poly, threshold=32):
     cost = 2 * bitsize.nbits() + 5 * poly.degree().nbits()
     if cost > threshold:
         return parent.gen(), parent.gen(), poly
-    new_poly, elt_back = poly.__pari__().polredbest(flag=1)
+    new_poly, elt_back = poly.numerator().__pari__().polredbest(flag=1)
     elt_fwd = elt_back.modreverse()
     return parent(elt_fwd.lift()), parent(elt_back.lift()), parent(new_poly)
 

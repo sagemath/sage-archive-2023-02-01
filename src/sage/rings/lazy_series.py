@@ -2858,8 +2858,7 @@ class LazyCauchyProductSeries(LazyModuleElement):
         return P.element_class(P, coeff_stream_inverse)
 
     def _div_(self, other):
-        r"""
-        Return ``self`` divided by ``other``.
+        r"""Return ``self`` divided by ``other``.
 
         INPUT:
 
@@ -2935,15 +2934,41 @@ class LazyCauchyProductSeries(LazyModuleElement):
 
             sage: L(lambda n: n) / (t + t^2)
             1 + t + 2*t^2 + 2*t^3 + 3*t^4 + 3*t^5 + O(t^6)
+
+        Check that division by one does nothing, and division by
+        itself gives one::
+
+            sage: s = SymmetricFunctions(ZZ).s()
+            sage: S = LazySymmetricFunctions(s)
+            sage: f = S(lambda n: s(Partitions(n).random_element()))
+            sage: f / S.one() is f
+            True
+
+            sage: f / f
+            s[]
+
         """
         if isinstance(other._coeff_stream, Stream_zero):
             raise ZeroDivisionError("cannot divide by 0")
 
         P = self.parent()
         left = self._coeff_stream
+        # self == 0
         if isinstance(left, Stream_zero):
             return P.zero()
         right = other._coeff_stream
+
+        # right == 1
+        if (isinstance(right, Stream_exact)
+            and right._initial_coefficients == (P._internal_poly_ring.base_ring().one(),)
+            and right.order() == 0
+            and not right._constant):
+            return self
+
+        # self is right
+        if left is right:
+            return P.one()
+
         if (P._minimal_valuation is not None
             and left._true_order
             and left._approximate_order < right._approximate_order):

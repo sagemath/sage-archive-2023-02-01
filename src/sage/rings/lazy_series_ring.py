@@ -891,8 +891,8 @@ class LazySeriesRing(UniqueRepresentation, Parent):
 
         elements = tester.some_elements()
         for x in elements:
-            # because of laziness, we cannot try to invert x, because
-            # this will always succeed, except if the series is 'exact'
+            # because of laziness, creating the inverse of x should
+            # always succeed except if the series is 'exact'
             if not x.is_unit():
                 continue
             y = ~x
@@ -925,25 +925,20 @@ class LazySeriesRing(UniqueRepresentation, Parent):
 
         elements = list(tester.some_elements())
         for x, y in some_tuples(elements, 2, tester._max_runs):
+            # because of laziness, creating the inverse of x should
+            # always succeed except if the series is 'exact'
+            if not y.is_unit():
+                continue
+            z = x / y
+            xx = z * y
             try:
-                z = x / y
-            except (ZeroDivisionError, ValueError):
-                tester.assertFalse(y.is_unit(), "it should be possible to divide an element (%s) by a unit (%s)" % (x, y))
+                v_z = z.valuation()
             except Exception as error:
-                raise ValueError("could not compute (%s)/(%s): %s" % (x, y, error))
+                raise ValueError("could not compute the valuation of the quotient (%s)/(%s): %s" % (x, y, error))
             else:
-                xx = z * y
-                tester.assertFalse(y.is_zero(), "it should not be possible to divide by zero")
-                if not x.is_zero():
-                    try:
-                        v_z = z.valuation()
-                    except Exception as error:
-                        raise ValueError("could not compute the valuation of the quotient (%s)/(%s): %s" % (x, y, error))
-                    else:
-                        v_x = x.valuation()
-                        v_y = y.valuation()
-                        tester.assertEqual(v_z, v_x - v_y, "the valuation of the quotient should be the difference of the valuations of the elements (%s and %s)" % (x, y))
-
+                v_x = x.valuation()
+                v_y = y.valuation()
+                tester.assertEqual(v_z, v_x - v_y, "the valuation of the quotient should be the difference of the valuations of the elements (%s and %s)" % (x, y))
                 tester.assertEqual(xx, x, "the element (%s) should be the quotient times the divisor (%s)" % (x, y))
 
     def _test_revert(self, **options):
@@ -972,9 +967,24 @@ class LazySeriesRing(UniqueRepresentation, Parent):
         elements = tester.some_elements()
         count = 0
         for x in elements:
+            # because of laziness, creating the compositional inverse
+            # of x should always succeed, except if the series is
+            # 'exact' or if it has negative valuation
             vx = x.valuation()
+            if (vx != 1
+                and not (isinstance(x._coeff_stream, Stream_exact)
+                         and ((vx == 0
+                               and x._coeff_stream._degree == 2
+                               and not x._coeff_stream._constant)
+                              or (vx == -1
+                                  and x._coeff_stream._degree == 0
+                                  and not x._coeff_stream._constant)))):
+                continue
             try:
                 y = x.revert()
+            except Exception as error:
+                raise AssertionError("compositional inverse of %s should exist: %s" % (x, error))
+            try:
                 vy = y.valuation()
                 m = y[vy]
             except NotImplementedError:
@@ -1524,7 +1534,7 @@ class LazyPowerSeriesRing(LazySeriesRing):
             sage: TestSuite(L).run()
 
             sage: L = LazyPowerSeriesRing(GF(5), 's, t')
-            sage: TestSuite(L).run()
+            sage: TestSuite(L).run(skip=['_test_fraction_field'])
 
             sage: L = LazyPowerSeriesRing(Zmod(6), 't')
             sage: TestSuite(L).run(skip=['_test_revert'])

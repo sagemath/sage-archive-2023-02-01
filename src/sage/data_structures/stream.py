@@ -1836,9 +1836,9 @@ class Stream_cauchy_compose(Stream_binary):
             sage: f = Stream_function(lambda n: n, True, 1)
             sage: g = Stream_function(lambda n: n^2, True, 1)
             sage: h = Stream_cauchy_compose(f, g)
-            sage: h.get_coefficient(5)
+            sage: h[5] # indirect doctest
             527
-            sage: [h.get_coefficient(i) for i in range(10)]
+            sage: [h[i] for i in range(10)] # indirect doctest
             [0, 1, 6, 28, 124, 527, 2172, 8755, 34704, 135772]
         """
         fv = self._left._approximate_order

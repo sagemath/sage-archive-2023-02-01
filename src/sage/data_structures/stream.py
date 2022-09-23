@@ -1275,7 +1275,8 @@ class Stream_zero(Stream):
     """
 
     def __init__(self, is_sparse):
-        """Initialize ``self``.
+        """
+        Initialize ``self``.
 
         TESTS::
 

@@ -962,7 +962,8 @@ class LazyModuleElement(Element):
         return any(self[i] for i in range(v, v + prec))
 
     def define(self, s):
-        r"""Define an equation by ``self = s``.
+        r"""
+        Define an equation by ``self = s``.
 
         INPUT:
 
@@ -1164,6 +1165,16 @@ class LazyModuleElement(Element):
             sage: L = LazySymmetricFunctions(s)
             sage: f = L.undefined()
             sage: f.define(1+(s[1]*f).revert())
+            sage: f
+            s[] + s[1] + (-s[1,1]-s[2])
+                + (3*s[1,1,1]+6*s[2,1]+3*s[3])
+                + (-13*s[1,1,1,1]-39*s[2,1,1]-26*s[2,2]-39*s[3,1]-13*s[4])
+                + (69*s[1,1,1,1,1]+276*s[2,1,1,1]+345*s[2,2,1]+414*s[3,1,1]+345*s[3,2]+276*s[4,1]+69*s[5])
+                + (-419*s[1,1,1,1,1,1]-2095*s[2,1,1,1,1]-3771*s[2,2,1,1]-2095*s[2,2,2]-4190*s[3,1,1,1]-6704*s[3,2,1]-2095*s[3,3]-4190*s[4,1,1]-3771*s[4,2]-2095*s[5,1]-419*s[6])
+                + O^7
+
+            sage: (f*s[1]).revert() + 1 - f
+            O^7
 
         """
         if not isinstance(self._coeff_stream, Stream_uninitialized) or self._coeff_stream._target is not None:
@@ -3682,11 +3693,11 @@ class LazyLaurentSeries(LazyCauchyProductSeries):
 
             sage: f = L([-1, 0, -1], valuation=1, constant=-1)
             sage: f.revert()
-            -z + z^3 - z^4 - 2*z^5 + 6*z^6 + z^7 + O(z^8)
+            (1/(-1))*z + z^3 - z^4 - 2*z^5 + 6*z^6 + z^7 + O(z^8)
 
             sage: f = L([-1], valuation=1, degree=3, constant=-1)
             sage: f.revert()
-            -z + z^3 - z^4 - 2*z^5 + 6*z^6 + z^7 + O(z^8)
+            (1/(-1))*z + z^3 - z^4 - 2*z^5 + 6*z^6 + z^7 + O(z^8)
         """
         P = self.parent()
         coeff_stream = self._coeff_stream
@@ -5381,9 +5392,11 @@ class LazySymmetricFunction(LazyCompletionGradedAlgebraElement):
 #        if coeff_stream[0]:
 #            raise ValueError("cannot determine whether the compositional inverse exists")
 
-        X = R(Partition([1]))
-        b = coeff_stream[1][Partition([1])]
-        b_inv = R.base_ring()(~b)
+        # TODO: we assume that not coeff_stream[0], can we test it?
+        la = Partition([1])
+        X = R(la)
+        b = P(lambda n: 0 if n else coeff_stream[1][la])  # TODO: we want a lazy version of Stream_exact
+        b_inv = P(lambda n: 0 if n else ~coeff_stream[1][la])  # TODO: we want a lazy version of Stream_exact
         g = P.undefined(valuation=1)
         g.define(b_inv * (X - (self - b * X)(g)))
         return g

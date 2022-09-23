@@ -91,9 +91,9 @@ implemented here.
 
 .. WARNING::
 
-    SciPy's versions are poorly documented and seem less
-    accurate than the Maxima and PARI versions; typically they are limited
-    by hardware floats precision.
+    SciPy's versions are poorly documented and seem less accurate than the
+    Maxima and PARI versions. Typically they are limited by hardware floats
+    precision.
 
 REFERENCES:
 
@@ -116,14 +116,12 @@ AUTHORS:
 - William Stein (2008-02): Impose some sanity checks.
 
 - David Joyner (2008-02-16): optional calls to scipy and replace all ``#random`` by ``...``
-  (both at the request of William Stein)
 
 - David Joyner (2008-04-23): addition of elliptic integrals
 
 - Eviatar Bach (2013): making elliptic integrals symbolic
 
 - Eric Gourgoulhon (2022): add Condon-Shortley phase to spherical harmonics
-
 """
 
 # ****************************************************************************

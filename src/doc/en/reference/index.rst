@@ -1,14 +1,13 @@
 .. _reference-manual:
 
-*********************
-Sage Reference Manual
-*********************
+*************************************
+Welcome to the Sage Reference Manual!
+*************************************
 
-Welcome to the Sage reference manual. Here you find documentation for all of
-`Sage <http://www.sagemath.org/>`_'s features, illustrated with lots of examples.
-A thematic index follows.
+Here you find documentation for all of `Sage <http://www.sagemath.org/>`_'s
+features, illustrated with lots of examples.  A thematic index follows.
 
-This documentation is licensed under the `Creative Commons Attribution-Share Alike 3.0 License`__:math:`.`
+This documentation is licensed under the `Creative Commons Attribution-Share Alike 3.0 License`__.
 
 __ http://creativecommons.org/licenses/by-sa/3.0/
 
@@ -98,11 +97,17 @@ Geometry and Topology
 
 * :doc:`Euclidean Spaces and Vector Calculus <euclidean_spaces/index>`
 * :doc:`Combinatorial and Discrete Geometry <discrete_geometry/index>`
-* :doc:`Cell Complexes and their Homology <homology/index>`
+* :doc:`Cell Complexes, Simplicial Complexes, and Simplicial Sets <topology/index>`
 * :doc:`Manifolds and Differential Geometry <manifolds/index>`
 * :doc:`Hyperbolic Geometry <hyperbolic_geometry/index>`
 * :doc:`Parametrized Surfaces <riemannian_geometry/index>`
 * :doc:`Knot Theory <knots/index>`
+
+Homological Algebra
+-------------------
+
+* :doc:`Chain Complexes and their Homology <homology/index>`
+* :doc:`Resolutions <resolutions/index>`
 
 Number Fields, Function Fields, and Valuations
 ----------------------------------------------
@@ -156,6 +161,11 @@ Interfaces
 * :doc:`C/C++ Library Interfaces <libs/index>`
 * :doc:`Python Technicalities <cpython/index>`
 
+Documentation System
+--------------------
+
+* :doc:`Documentation System <documentation/index>`
+
 General Information
 ===================
 
@@ -169,3 +179,10 @@ Indices and Tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
+
+..
+  comment: the following math environment forces Sphinx to load MathJax
+  in the index.rst pages. Do not delete it!
+
+.. math::
+   :nowrap:

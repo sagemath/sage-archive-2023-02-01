@@ -34,7 +34,8 @@ from sage.combinat.posets.posets import Poset
 from sage.rings.integer import Integer
 from sage.misc.misc_c import prod
 from sage.combinat.tableau import Tableau
-from sage.plot.plot3d.platonic import cube
+from sage.misc.lazy_import import lazy_import
+lazy_import("sage.plot.plot3d.platonic", "cube")
 
 
 class PlanePartition(ClonableArray,
@@ -139,7 +140,7 @@ class PlanePartition(ClonableArray,
             sage: PP.to_tableau()
             [[4, 3, 3, 1], [2, 1, 1], [1, 1]]
         """
-        return Tableau(self)  # type: ignore
+        return Tableau(self)  # type:ignore
 
     def z_tableau(self):
         r"""
@@ -186,7 +187,7 @@ class PlanePartition(ClonableArray,
             X[C[1]][C[2]] += 1
         return X
 
-    def cells(self) -> list:
+    def cells(self) -> list[list[int]]:
         r"""
         Return the list of cells inside ``self``.
 
@@ -805,7 +806,7 @@ class PlanePartitions(UniqueRepresentation, Parent):
             sage: P1 is P2
             True
         """
-        return super(PlanePartitions, cls).__classcall__(cls, tuple(box_size))
+        return super().__classcall__(cls, tuple(box_size))
 
     def __init__(self, box_size):
         r"""

@@ -1044,11 +1044,11 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             sage: g(x)
             Traceback (most recent call last):
             ...
-            ValueError: Must be in the domain or a list, tuple or string.
+            ValueError: must be in the domain or a list, tuple or string
             sage: g(3/2)
             Traceback (most recent call last):
             ...
-            ValueError: Must be in the domain or a list, tuple or string.
+            ValueError: must be in the domain or a list, tuple or string
         """
         to_gap = self._parent._domain_to_gap
         from_gap = self._parent._domain_from_gap
@@ -1066,7 +1066,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
 
 
             if not isinstance(i,(list,tuple,str)):
-                raise ValueError("Must be in the domain or a list, tuple or string.")
+                raise ValueError("must be in the domain or a list, tuple or string")
 
             permuted = [i[self.perm[j]] for j from 0 <= j < self.n]
             if isinstance(i, tuple):
@@ -1175,7 +1175,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
         return result
 
     cpdef _act_on_(self, x, bint self_on_left):
-        """
+        r"""
         Return the result of the action of ``self`` on ``x``.
 
         For example, if ``x=f(z)`` is a polynomial, then this function returns
@@ -1557,7 +1557,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             sage: prod(primes(150))
             1492182350939279320058875736615841068547583863326864530410
             sage: L = [tuple(range(sum(primes(p))+1, sum(primes(p))+1+p)) for p in primes(150)]
-            sage: t=PermutationGroupElement(L).multiplicative_order(); t
+            sage: t = PermutationGroupElement(L).multiplicative_order(); t
             1492182350939279320058875736615841068547583863326864530410
             sage: type(t)
             <class 'sage.rings.integer.Integer'>
@@ -1619,7 +1619,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
         return ~self
 
     def sign(self):
-        """
+        r"""
         Returns the sign of self, which is `(-1)^{s}`, where
         `s` is the number of swaps.
 
@@ -1804,9 +1804,10 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             '(1,3)(2)'
         """
         cycles = self.cycle_tuples(singletons)
-        if len(cycles) == 0:
+        if not cycles:
             return '()'
-        return ''.join([repr(c) for c in cycles]).replace(', ',',').replace(',)',')')
+        text = ''.join(repr(c) for c in cycles)
+        return text.replace(', ', ',').replace(',)', ')')
 
     def cycle_type(self, singletons=True, as_list=False):
         r"""
@@ -1856,12 +1857,12 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             return _Partitions(cycle_type)
 
     def has_descent(self, i, side = "right", positive = False):
-        """
+        r"""
         INPUT:
 
-         - ``i``: an element of the index set
-         - ``side``: "left" or "right" (default: "right")
-         - ``positive``: a boolean (default: False)
+        - ``i`` -- an element of the index set
+        - ``side`` -- "left" or "right" (default: "right")
+        - ``positive`` -- a boolean (default: False)
 
         Returns whether ``self`` has a left (resp. right) descent at
         position ``i``. If ``positive`` is True, then test for a non

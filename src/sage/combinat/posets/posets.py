@@ -594,7 +594,7 @@ def Poset(data=None, element_labels=None, cover_relations=False, linear_extensio
         :class:`int`'s if they are :class:`Integer`'s::
 
             sage: G = DiGraph({0:[2,3], 1:[3,4], 2:[5], 3:[5], 4:[5]})
-            sage: type(G.vertices()[0])
+            sage: type(G.vertices(sort=True)[0])
             <class 'int'>
 
         This is worked around by systematically converting back the
@@ -1000,10 +1000,10 @@ class FinitePoset(UniqueRepresentation, Parent):
         if category is not None and category.is_subcategory(Sets().Facade()):
             category = category._without_axiom("Facade")
         category = Category.join([FinitePosets().or_subcategory(category), FiniteEnumeratedSets()])
-        return super(FinitePoset, cls).__classcall__(cls, hasse_diagram=hasse_diagram,
-                                                     elements=elements,
-                                                     category=category, facade=facade,
-                                                     key=key)
+        return super().__classcall__(cls, hasse_diagram=hasse_diagram,
+                                     elements=elements,
+                                     category=category, facade=facade,
+                                     key=key)
 
     def __init__(self, hasse_diagram, elements, category, facade, key):
         r"""
@@ -1333,7 +1333,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             Digraph on 6 vertices
             sage: P.cover_relations()
             [[1, 2], [1, 3], [2, 4], [2, 6], [3, 6], [4, 12], [6, 12]]
-            sage: H.edges(labels=False)
+            sage: H.edges(sort=True, labels=False)
             [(1, 2), (1, 3), (2, 4), (2, 6), (3, 6), (4, 12), (6, 12)]
 
         TESTS::
@@ -1343,9 +1343,9 @@ class FinitePoset(UniqueRepresentation, Parent):
 
             sage: P = Poset((divisors(15), attrcall("divides")), facade=True)
             sage: H = P.hasse_diagram()
-            sage: H.vertices()
+            sage: H.vertices(sort=True)
             [1, 3, 5, 15]
-            sage: H.edges()
+            sage: H.edges(sort=True)
             [(1, 3, None), (1, 5, None), (3, 15, None), (5, 15, None)]
             sage: H.set_latex_options(format="dot2tex")
             sage: view(H)  # optional - dot2tex, not tested (opens external window)
@@ -2050,7 +2050,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         if cover_labels is not None:
             if callable(cover_labels):
-                for (v, w) in graph.edges(labels=False):
+                for (v, w) in graph.edges(sort=True, labels=False):
                     graph.set_edge_label(v, w, cover_labels(v, w))
             elif isinstance(cover_labels, dict):
                 for (v, w) in cover_labels:
@@ -2783,20 +2783,20 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: Q.is_incomparable_chain_free(2, pi)
             Traceback (most recent call last):
             ...
-            TypeError: 2 and pi must be integers.
+            TypeError: 2 and pi must be integers
             sage: Q.is_incomparable_chain_free(2, -1)
             Traceback (most recent call last):
             ...
-            ValueError: 2 and -1 must be positive integers.
+            ValueError: 2 and -1 must be positive integers
             sage: P = Poset(((0, 1, 2, 3, 4), ((0, 1), (1, 2), (0, 3), (4, 2))))
             sage: P.is_incomparable_chain_free((3, 1))
             Traceback (most recent call last):
             ...
-            TypeError: (3, 1) is not a tuple of tuples.
+            TypeError: (3, 1) is not a tuple of tuples
             sage: P.is_incomparable_chain_free([3, 1], [2, 2])
             Traceback (most recent call last):
             ...
-            TypeError: [3, 1] and [2, 2] must be integers.
+            TypeError: [3, 1] and [2, 2] must be integers
             sage: P.is_incomparable_chain_free([[3, 1], [2, 2]])
             True
             sage: P.is_incomparable_chain_free(([3, 1], [2, 2]))
@@ -2804,11 +2804,11 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P.is_incomparable_chain_free([3, 1], 2)
             Traceback (most recent call last):
             ...
-            TypeError: [3, 1] and 2 must be integers.
+            TypeError: [3, 1] and 2 must be integers
             sage: P.is_incomparable_chain_free(([3, 1], [2, 2, 2]))
             Traceback (most recent call last):
             ...
-            ValueError: '([3, 1], [2, 2, 2])' is not a tuple of length-2 tuples.
+            ValueError: '([3, 1], [2, 2, 2])' is not a tuple of length-2 tuples
 
         AUTHOR:
 
@@ -2818,9 +2818,9 @@ class FinitePoset(UniqueRepresentation, Parent):
             try:
                 chain_pairs = [tuple(chain_pair) for chain_pair in m]
             except TypeError:
-                raise TypeError("%s is not a tuple of tuples." % str(tuple(m)))
+                raise TypeError("%s is not a tuple of tuples" % str(tuple(m)))
             if not all(len(chain_pair) == 2 for chain_pair in chain_pairs):
-                raise ValueError("%r is not a tuple of length-2 tuples." % str(tuple(m)))
+                raise ValueError("%r is not a tuple of length-2 tuples" % str(tuple(m)))
             chain_pairs = sorted(chain_pairs, key=min)
         else:
             chain_pairs = [(m, n)]
@@ -2831,9 +2831,9 @@ class FinitePoset(UniqueRepresentation, Parent):
             try:
                 m, n = Integer(m), Integer(n)
             except TypeError:
-                raise TypeError("%s and %s must be integers." % (m, n))
+                raise TypeError("%s and %s must be integers" % (m, n))
             if m < 1 or n < 1:
-                raise ValueError("%s and %s must be positive integers." % (m, n))
+                raise ValueError("%s and %s must be positive integers" % (m, n))
             twochains = digraphs.TransitiveTournament(m) + digraphs.TransitiveTournament(n)
             if closure.subgraph_search(twochains, induced=True) is not None:
                 return False
@@ -3570,12 +3570,12 @@ class FinitePoset(UniqueRepresentation, Parent):
         the graph is planar::
 
             sage: G = graphs.CompleteGraph(4)
-            sage: P = Poset(DiGraph({(u,v):[u,v] for u,v,_ in G.edges()}))
+            sage: P = Poset(DiGraph({(u,v):[u,v] for u,v,_ in G.edges(sort=True)}))
             sage: P.dimension()
             3
 
             sage: G = graphs.CompleteBipartiteGraph(3,3)
-            sage: P = Poset(DiGraph({(u,v):[u,v] for u,v,_ in G.edges()}))
+            sage: P = Poset(DiGraph({(u,v):[u,v] for u,v,_ in G.edges(sort=True)}))
             sage: P.dimension() # not tested - around 4s with CPLEX
             4
 
@@ -3614,7 +3614,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         P = Poset(self._hasse_diagram)  # work on an int-labelled poset
         hasse_diagram = P.hasse_diagram()
         inc_graph = P.incomparability_graph()
-        inc_P = inc_graph.edges(labels=False)
+        inc_P = inc_graph.edges(sort=True, labels=False)
 
         # cycles is the list of all cycles found during the execution of the
         # algorithm
@@ -4651,7 +4651,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         """
         if not hasattr(other, 'hasse_diagram'):
             raise TypeError("'other' is not a finite poset")
-        return (self.subposet([self._list[i] for i in x]) for x in self._hasse_diagram.transitive_closure().subgraph_search_iterator(other.hasse_diagram().transitive_closure(), induced=True))
+        return (self.subposet([self._list[i] for i in x]) for x in self._hasse_diagram.transitive_closure().subgraph_search_iterator(other.hasse_diagram().transitive_closure(), induced=True, return_graphs=False))
 
     def isomorphic_subposets(self, other):
         """
@@ -4686,7 +4686,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         """
         if not hasattr(other, 'hasse_diagram'):
             raise TypeError("'other' is not a finite poset")
-        L = self._hasse_diagram.transitive_closure().subgraph_search_iterator(other._hasse_diagram.transitive_closure(), induced=True)
+        L = self._hasse_diagram.transitive_closure().subgraph_search_iterator(other._hasse_diagram.transitive_closure(), induced=True, return_graphs=False)
         # Since subgraph_search_iterator returns labelled copies, we
         # remove duplicates.
         return [self.subposet([self._list[i] for i in x]) for x in sorted(set(frozenset(y) for y in L))]
@@ -5052,7 +5052,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         H = self._hasse_diagram
         cut_points = [-1]
         in_degrees = H.in_degree()
-        lower = set([])
+        lower = set()
         upper = set(H.sources())
 
         for e in range(n):
@@ -7149,7 +7149,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         """
         from sage.geometry.polyhedron.constructor import Polyhedron
         ineqs = [[0] + [ZZ(j == v) - ZZ(j == u) for j in self]
-                 for u, v, w in self.hasse_diagram().edges()]
+                 for u, v, w in self.hasse_diagram().edges(sort=True)]
         for i in self.maximal_elements():
             ineqs += [[1] + [-ZZ(j == i) for j in self]]
         for i in self.minimal_elements():
@@ -7886,7 +7886,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         interval contains three or four elements, as defined in
         [Stan2009]_. (This notion of "slender" is unrelated to
         the eponymous notion defined by Graetzer and Kelly in
-        "The Free $\mathfrak{m}$-Lattice on the Poset $H$",
+        "The Free `\mathfrak{m}`-Lattice on the Poset `H`",
         Order 1 (1984), 47--65.)
 
         This function *does not* check if the poset is graded or not.
@@ -8988,9 +8988,9 @@ def _ford_fulkerson_chronicle(G, s, t, a):
         sage: G = DiGraph({1: [3,6,7], 2: [4], 3: [7], 4: [], 6: [7,8], 7: [9], 8: [9,12], 9: [], 10: [], 12: []})
         sage: s = 1
         sage: t = 9
-        sage: (1, 6, None) in G.edges()
+        sage: (1, 6, None) in G.edges(sort=False)
         True
-        sage: (1, 6) in G.edges()
+        sage: (1, 6) in G.edges(sort=False)
         False
         sage: a = {(1, 6): 4, (2, 4): 0, (1, 3): 4, (1, 7): 1, (3, 7): 6, (7, 9): 1, (6, 7): 3, (6, 8): 1, (8, 9): 0, (8, 12): 2}
         sage: ffc = _ford_fulkerson_chronicle(G, s, t, a)
@@ -9044,7 +9044,7 @@ def _ford_fulkerson_chronicle(G, s, t, a):
 
         # Gprime: directed graph G' from Britz-Fomin, Section 7.
         Gprime = DiGraph()
-        Gprime.add_vertices(G.vertices())
+        Gprime.add_vertices(G.vertices(sort=False))
         for (u, v, l) in G.edge_iterator():
             if pi[v] - pi[u] == a[(u, v)]:
                 if f[(u, v)] < capacity[(u, v)]:

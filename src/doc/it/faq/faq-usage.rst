@@ -303,7 +303,7 @@ anziché Integer di Sage. Ad esempio::
 
     sage: RealNumber = float; Integer = int
     sage: from scipy import stats
-    sage: stats.ttest_ind(list([1,2,3,4,5]),list([2,3,4,5,.6]))
+    sage: stats.ttest_ind([1,2,3,4,5], [2,3,4,5,.6])
     Ttest_indResult(statistic=0.0767529..., pvalue=0.940704...)
     sage: stats.uniform(0,15).ppf([0.5,0.7])
     array([  7.5,  10.5])
@@ -590,8 +590,7 @@ Tuttavia, nota che il metodo più diretto::
 produce il grafico corretto solo per valori di `x` positivi. La
 *ragione* per cui ciò avviene è che Sage restituisce dei numeri
 complessi per le radici dispari di numeri negativi, quando queste sono
-approssimate, il che è una `convenzione standard
-<https://en.wikipedia.org/wiki/Cube_root#Complex_numbers>`_::
+approssimate, il che è una :wikipedia:`convenzione standard <Cube_root#Complex_numbers>`::
 
     sage: numerical_approx( (-1)^(1/3) )
     0.500000000000000 + 0.866025403784439*I

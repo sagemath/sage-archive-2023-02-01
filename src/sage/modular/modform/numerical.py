@@ -12,7 +12,7 @@ Numerical computation of newforms
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.arith.all              import prime_range
+from sage.rings.fast_arith       import prime_range
 from sage.matrix.constructor     import matrix
 from sage.misc.verbose           import verbose
 from sage.misc.cachefunc         import cached_method
@@ -20,7 +20,9 @@ from sage.misc.prandom           import randint
 from sage.modular.arithgroup.all import Gamma0
 from sage.modular.modsym.all     import ModularSymbols
 from sage.modules.all            import vector
-from sage.rings.all              import CDF, Integer, QQ
+from sage.rings.complex_double   import CDF
+from sage.rings.integer          import Integer
+from sage.rings.rational_field   import QQ
 from sage.structure.richcmp      import richcmp_method, richcmp
 from sage.structure.sage_object  import SageObject
 from sage.structure.sequence     import Sequence
@@ -53,7 +55,7 @@ class NumericalEigenforms(SageObject):
 
     A numerical eigenforms object, with the following useful methods:
 
-    - :meth:`ap` - return all eigenvalues of $T_p$
+    - :meth:`ap` - return all eigenvalues of `T_p`
 
     - :meth:`eigenvalues` - list of eigenvalues corresponding
       to the given list of primes, e.g.,::
@@ -334,6 +336,7 @@ class NumericalEigenforms(SageObject):
         x = self._easy_vector()
 
         B = self._eigenvectors()
+
         def phi(y):
             """
             Take coefficients and a basis, and return that
@@ -416,6 +419,7 @@ class NumericalEigenforms(SageObject):
                 raise ValueError('each element of primes must be prime.')
         phi_x, phi_x_inv, nzp, x_nzp = self._eigendata()
         B = self._eigenvectors()
+
         def phi(y):
             """
             Take coefficients and a basis, and return that
@@ -444,7 +448,7 @@ class NumericalEigenforms(SageObject):
 
         EXAMPLES::
 
-            sage: numerical_eigenforms(61).systems_of_eigenvalues(10)  # rel tol 1e-11
+            sage: numerical_eigenforms(61).systems_of_eigenvalues(10)  # rel tol 1e-9
             [
             [-1.4811943040920152, 0.8060634335253695, 3.1563251746586642, 0.6751308705666477],
             [-1.0, -2.0000000000000027, -3.000000000000003, 1.0000000000000044],
@@ -471,7 +475,7 @@ class NumericalEigenforms(SageObject):
 
         EXAMPLES::
 
-            sage: numerical_eigenforms(61).systems_of_abs(10)  # rel tol 1e-11
+            sage: numerical_eigenforms(61).systems_of_abs(10)  # rel tol 1e-9
             [
             [0.3111078174659775, 2.903211925911551, 2.525427560843529, 3.214319743377552],
             [1.0, 2.0000000000000027, 3.000000000000003, 1.0000000000000044],

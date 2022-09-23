@@ -28,7 +28,8 @@ the full Hecke algebra, only with the anemic algebra.
 
 import sage.rings.infinity
 from sage.matrix.constructor import matrix
-from sage.arith.all import lcm, gcd
+from sage.arith.functions import lcm
+from sage.arith.misc import gcd
 from sage.misc.latex import latex
 from sage.matrix.matrix_space import MatrixSpace
 from sage.rings.ring import CommutativeAlgebra
@@ -151,7 +152,6 @@ class HeckeAlgebra_base(CachedRepresentation, CommutativeAlgebra):
             Hecke operator on Modular Forms subspace of dimension 2 of ... defined by:
             [-3  0]
             [ 0  1]
-
         """
         if isinstance(M, tuple):
             M = M[0]
@@ -160,7 +160,7 @@ class HeckeAlgebra_base(CachedRepresentation, CommutativeAlgebra):
         except AttributeError:
             # The AttributeError occurs if M is not a free module; then it might not have a basis_matrix method
             pass
-        return super(HeckeAlgebra_base, cls).__classcall__(cls, M)
+        return super().__classcall__(cls, M)
 
     def __init__(self, M):
         """
@@ -171,7 +171,6 @@ class HeckeAlgebra_base(CachedRepresentation, CommutativeAlgebra):
             sage: from sage.modular.hecke.algebra import HeckeAlgebra_base
             sage: type(HeckeAlgebra_base(CuspForms(1, 12)))
             <class 'sage.modular.hecke.algebra.HeckeAlgebra_base_with_category'>
-
         """
         if isinstance(M, tuple):
             M = M[0]
@@ -208,9 +207,9 @@ class HeckeAlgebra_base(CachedRepresentation, CommutativeAlgebra):
         - something that can be converted into an element of the
           underlying matrix space.
 
-        In the last case, the parameter ``check'' controls whether or
+        In the last case, the parameter ``check`` controls whether or
         not to check that this element really does lie in the
-        appropriate algebra. At present, setting ``check=True'' raises
+        appropriate algebra. At present, setting ``check=True`` raises
         a NotImplementedError unless x is a scalar (or a diagonal
         matrix).
 
@@ -293,9 +292,7 @@ class HeckeAlgebra_base(CachedRepresentation, CommutativeAlgebra):
         """
         if x.parent() == self or (not self.is_anemic() and x.parent() == self.anemic_subalgebra()):
             return self(x)
-        else:
-            return self(self.matrix_space()(1) * self.base_ring().coerce(x))
-        # return self._coerce_try(x, self.matrix_space())
+        return self(self.matrix_space()(1) * self.base_ring().coerce(x))
 
     def gen(self, n):
         """

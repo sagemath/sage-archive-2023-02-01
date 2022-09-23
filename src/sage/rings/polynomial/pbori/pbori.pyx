@@ -182,7 +182,6 @@ and naturally the second option is faster.
 from cpython.object cimport Py_EQ, Py_NE
 from cython.operator cimport dereference as deref
 from cysignals.memory cimport sig_malloc, sig_free
-from cysignals.signals cimport sig_on, sig_off
 from sage.ext.cplusplus cimport ccrepr
 
 import operator
@@ -412,7 +411,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_base):
             pbnames = tuple(names)
             names = [name.replace('(', '').replace(')', '') for name in pbnames]
 
-        MPolynomialRing_base.__init__(self, GF(2), n, names, order)
+        MPolynomialRing_base.__init__(self, GF((2,1)), n, names, order)
 
         counter = 0
         for i in range(len(order.blocks()) - 1):
@@ -1851,7 +1850,7 @@ def get_var_mapping(ring, other):
     """
     my_names = list(ring._names)  # we need .index(.)
     if isinstance(other, (Parent, BooleanMonomialMonoid)):
-        indices = list(range(other.ngens()))
+        indices = range(other.ngens())
         ovar_names = other._names
     else:
         ovar_names = other.parent().variable_names()
@@ -1862,7 +1861,7 @@ def get_var_mapping(ring, other):
         else:
             t = other.variables()
             ovar_names = list(ovar_names)
-            indices = [ovar_names.index(str(var)) for var in t]
+            indices = (ovar_names.index(str(var)) for var in t)
 
     var_mapping = [None] * len(ovar_names)
     for idx in indices:
@@ -1929,7 +1928,7 @@ class BooleanMonomialMonoid(UniqueRepresentation, Monoid_class):
         cdef BooleanMonomial m
         self._ring = polring
         from sage.categories.monoids import Monoids
-        Parent.__init__(self, GF(2), names=polring._names, category=Monoids().Commutative())
+        Parent.__init__(self, GF((2,1)), names=polring._names, category=Monoids().Commutative())
 
         m = new_BM(self, polring)
         m._pbmonom = PBMonom(polring._pbring)
@@ -2731,7 +2730,7 @@ cdef class BooleanMonomial(MonoidElement):
             raise TypeError("BooleanMonomial.__add__ called with not supported types %s and %s" % (type(right), type(left)))
 
         res = new_BP_from_PBMonom(monom._ring, monom._pbmonom)
-        res += monom._ring._coerce_c(other)
+        res += monom._ring.coerce(other)
         return res
 
     def __floordiv__(BooleanMonomial left, right):
@@ -3522,7 +3521,7 @@ cdef class BooleanPolynomial(MPolynomial):
         """
         return self._pbpoly.isZero()
 
-    def __nonzero__(self):
+    def __bool__(self):
         r"""
         Check if ``self`` is not zero.
 
@@ -3858,7 +3857,7 @@ cdef class BooleanPolynomial(MPolynomial):
         """
         cdef BooleanPolynomialRing B = <BooleanPolynomialRing>self._parent
         k = B._base
-        mon = B._coerce_c(mon)
+        mon = B.coerce(mon)
         if mon in set(self.set()):
             return k._one_element
         else:
@@ -5037,9 +5036,7 @@ class BooleanPolynomialIdeal(MPolynomialIdeal):
         else:
             if "redsb" not in kwds:
                 kwds["redsb"]=True
-            sig_on()
             gb = self._groebner_basis(**kwds)
-            sig_off()
 
         if kwds.get("deg_bound", False) is False:
             g = GroebnerStrategy(gb[0].ring())
@@ -6247,7 +6244,7 @@ cdef class ReductionStrategy:
             sage: B.<x,y,z> = BooleanPolynomialRing()
             sage: red = ReductionStrategy(B)
             sage: red.add_generator(x)
-            sage: list([f.p for f in red])
+            sage: [f.p for f in red]
             [x]
 
         TESTS:
@@ -8161,11 +8158,11 @@ cdef class PolynomialFactory:
             elif isinstance(arg, BooleSet):
                 return (<BooleSet>arg)._ring._element_constructor_(arg)
             elif isinstance(arg, BooleanMonomial):
-                return (<BooleanMonomial>arg)._ring._coerce_(arg)
+                return (<BooleanMonomial>arg)._ring.coerce(arg)
             elif isinstance(ring, BooleanPolynomialRing):
-                return (<BooleanPolynomialRing>ring)._coerce_(arg)
+                return (<BooleanPolynomialRing>ring).coerce(arg)
         else:
-            if isinstance(arg, int) or isinstance(arg, Integer):
+            if isinstance(arg, (int, Integer)):
                 return new_BP_from_PBPoly(self._ring,
                                           self._factory(<long>arg))
 

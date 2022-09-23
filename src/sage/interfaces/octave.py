@@ -145,7 +145,7 @@ import os
 from .expect import Expect, ExpectElement
 import pexpect
 from sage.misc.verbose import verbose
-from sage.docs.instancedoc import instancedoc
+from sage.misc.instancedoc import instancedoc
 from sage.cpython.string import bytes_to_str
 
 
@@ -187,18 +187,18 @@ class Octave(Expect):
         if server is None:
             server = os.getenv('SAGE_OCTAVE_SERVER') or None
         Expect.__init__(self,
-                        name = 'octave',
+                        name='octave',
                         # We want the prompt sequence to be unique to avoid confusion with syntax error messages containing >>>
-                        prompt = r'octave\:\d+> ',
+                        prompt=r'octave\:\d+> ',
                         # We don't want any pagination of output
-                        command = command + " --no-line-editing --silent --eval 'PS2(PS1());more off' --persist",
-                        maxread = maxread,
-                        server = server,
-                        server_tmpdir = server_tmpdir,
-                        script_subdirectory = script_subdirectory,
-                        restart_on_ctrlc = False,
-                        verbose_start = False,
-                        logfile = logfile,
+                        command=command + " --no-line-editing --silent --eval 'PS2(PS1());more off' --persist",
+                        maxread=maxread,
+                        server=server,
+                        server_tmpdir=server_tmpdir,
+                        script_subdirectory=script_subdirectory,
+                        restart_on_ctrlc=False,
+                        verbose_start=False,
+                        logfile=logfile,
                         eval_using_file_cutoff=100)
         self._seed = seed
 
@@ -659,7 +659,7 @@ class OctaveElement(ExpectElement):
         """
         return str(self) != ' [](0x0)' and any(x != '0' for x in str(self).split())
 
-    __nonzero__ = __bool__
+    
 
     def _matrix_(self, R=None):
         r"""

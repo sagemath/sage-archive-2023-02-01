@@ -94,20 +94,20 @@ class CompositionTableau(CombinatorialElement, metaclass=ClasscallMetaclass):
         # CombinatorialObject verifies that t is a list
         # We must verify t is a list of lists
         if not all(isinstance(row, list) for row in t):
-            raise ValueError("A composition tableau must be a list of lists.")
+            raise ValueError("a composition tableau must be a list of lists")
 
         if not [len(r) for r in t] in Compositions():
-            raise ValueError("A composition tableau must be a list of non-empty lists.")
+            raise ValueError("a composition tableau must be a list of non-empty lists")
 
         # Verify rows weakly decrease from left to right
         for row in t:
             if any(row[i] < row[i+1] for i in range(len(row)-1)):
-                raise ValueError("Rows must weakly decrease from left to right.")
+                raise ValueError("rows must weakly decrease from left to right")
 
         # Verify leftmost column strictly increases from top to bottom
         first_col = [row[0] for row in t if t!=[[]]]
         if any(first_col[i] >= first_col[i+1] for i in range(len(t)-1)):
-            raise ValueError("Leftmost column must strictly increase from top to bottom.")
+            raise ValueError("leftmost column must strictly increase from top to bottom")
 
         # Verify triple condition
         l = len(t)
@@ -117,7 +117,7 @@ class CompositionTableau(CombinatorialElement, metaclass=ClasscallMetaclass):
             for j in range(i+1,l):
                 for k in range(1,m):
                     if TT[j][k] and TT[i][k] <= TT[j][k] <= TT[i][k-1]:
-                        raise ValueError("Triple condition must be satisfied.")
+                        raise ValueError("triple condition must be satisfied")
 
         CombinatorialElement.__init__(self, parent, t)
 
@@ -150,7 +150,7 @@ class CompositionTableau(CombinatorialElement, metaclass=ClasscallMetaclass):
             sage: t(2,2)
             Traceback (most recent call last):
             ...
-            IndexError: The cell (2,2) is not contained in [[1], [3, 2], [4, 4]]
+            IndexError: the cell (2,2) is not contained in [[1], [3, 2], [4, 4]]
         """
         try:
             i, j = cell
@@ -160,7 +160,7 @@ class CompositionTableau(CombinatorialElement, metaclass=ClasscallMetaclass):
         try:
             return self[i][j]
         except IndexError:
-            raise IndexError("The cell (%d,%d) is not contained in %s"%(i,j,self))
+            raise IndexError("the cell (%d,%d) is not contained in %s" % (i, j, self))
 
     def pp(self):
         r"""
@@ -448,7 +448,7 @@ class CompositionTableaux(UniqueRepresentation, Parent):
             kwds.pop('max_entry')
         else:
             self.max_entry = None
-        super(CompositionTableaux, self).__init__(**kwds)
+        super().__init__(**kwds)
 
     Element = CompositionTableau
 
@@ -473,10 +473,10 @@ class CompositionTableaux(UniqueRepresentation, Parent):
             sage: CT([[1],[1,2]])
             Traceback (most recent call last):
             ...
-            ValueError: [[1], [1, 2]] is not an element of Composition Tableaux of size 3 and maximum entry 3.
+            ValueError: [[1], [1, 2]] is not an element of Composition Tableaux of size 3 and maximum entry 3
         """
         if t not in self:
-            raise ValueError("%s is not an element of %s." % (t, self))
+            raise ValueError("%s is not an element of %s" % (t, self))
 
         return self.element_class(self, t)
 
@@ -588,11 +588,11 @@ class CompositionTableaux_size(CompositionTableaux):
         """
         if max_entry is None:
             max_entry = n
-        super(CompositionTableaux_size, self).__init__(max_entry=max_entry,
-                category=FiniteEnumeratedSets())
+        super().__init__(max_entry=max_entry,
+                         category=FiniteEnumeratedSets())
         self.size = n
 
-    def __contains__(self,x):
+    def __contains__(self, x):
         r"""
         TESTS::
 
@@ -642,7 +642,7 @@ class CompositionTableaux_size(CompositionTableaux):
             sage: CompositionTableaux(3)
             Composition Tableaux of size 3 and maximum entry 3
         """
-        return "Composition Tableaux of size %s and maximum entry %s"%(str(self.size), str(self.max_entry))
+        return "Composition Tableaux of size %s and maximum entry %s" % (str(self.size), str(self.max_entry))
 
     def _an_element_(self):
         r"""
@@ -677,7 +677,7 @@ class CompositionTableaux_shape(CompositionTableaux):
     """
     def  __init__(self, comp, max_entry=None):
         """
-        Initialize ``sefl``.
+        Initialize ``self``.
 
         TESTS::
 
@@ -689,8 +689,8 @@ class CompositionTableaux_shape(CompositionTableaux):
         """
         if max_entry is None:
             max_entry = sum(comp)
-        super(CompositionTableaux_shape, self).__init__(max_entry = max_entry,
-              category = FiniteEnumeratedSets())
+        super().__init__(max_entry=max_entry,
+                         category=FiniteEnumeratedSets())
         self.shape = comp
 
     def __iter__(self):
@@ -817,7 +817,7 @@ class CompositionTableauxBacktracker(GenericBacktracker):
 
         # Get the next state
         new_state = self.get_next_pos(i, j)
-        yld = True if new_state is None else False
+        yld = bool(new_state is None)
 
         for k in range(1,self.max_entry +1):
             #We check to make sure that k does not violate the rule weak decrease in rows
@@ -859,4 +859,3 @@ class CompositionTableauxBacktracker(GenericBacktracker):
                 return ii, j
 
         return ii+1, 0
-

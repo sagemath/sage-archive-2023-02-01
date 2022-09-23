@@ -67,7 +67,7 @@ cdef class SymbolicRing(sage.rings.abc.SymbolicRing):
     """
     Symbolic Ring, parent object for all symbolic expressions.
     """
-    def __init__(self, base_ring = None):
+    def __init__(self, base_ring=None):
         """
         Initialize the Symbolic Ring.
 
@@ -96,7 +96,7 @@ cdef class SymbolicRing(sage.rings.abc.SymbolicRing):
            sage: loads(dumps(SR)) == SR           # indirect doctest
            True
         """
-        return the_SymbolicRing, tuple([])
+        return the_SymbolicRing, tuple()
 
     def _repr_(self):
         """
@@ -110,7 +110,7 @@ cdef class SymbolicRing(sage.rings.abc.SymbolicRing):
         return "Symbolic Ring"
 
     def _latex_(self):
-        """
+        r"""
         Return latex representation of the symbolic ring.
 
         EXAMPLES::
@@ -192,8 +192,8 @@ cdef class SymbolicRing(sage.rings.abc.SymbolicRing):
             if is_numpy_type(R):
                 import numpy
                 if (issubclass(R, numpy.integer) or
-                    issubclass(R, numpy.floating) or
-                    issubclass(R, numpy.complexfloating)):
+                        issubclass(R, numpy.floating) or
+                        issubclass(R, numpy.complexfloating)):
                     return NumpyToSRMorphism(R)
                 else:
                     return None
@@ -214,11 +214,9 @@ cdef class SymbolicRing(sage.rings.abc.SymbolicRing):
             from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
             from sage.rings.polynomial.multi_polynomial_ring import is_MPolynomialRing
             from sage.rings.polynomial.laurent_polynomial_ring import is_LaurentPolynomialRing
-
-            from sage.rings.all import (ComplexField,
-                                        RLF, CLF,
-                                        InfinityRing,
-                                        UnsignedInfinityRing)
+            from sage.rings.complex_mpfr import ComplexField
+            from sage.rings.infinity import InfinityRing, UnsignedInfinityRing
+            from sage.rings.real_lazy import RLF, CLF
             from sage.rings.finite_rings.finite_field_base import is_FiniteField
 
             from sage.interfaces.maxima import Maxima
@@ -257,7 +255,7 @@ cdef class SymbolicRing(sage.rings.abc.SymbolicRing):
             sage: K.<a> = QuadraticField(-3)
             sage: a + sin(x)
             I*sqrt(3) + sin(x)
-            sage: x=var('x'); y0,y1=PolynomialRing(ZZ,2,'y').gens()
+            sage: x = var('x'); y0,y1 = PolynomialRing(ZZ,2,'y').gens()
             sage: x+y0/y1
             x + y0/y1
             sage: x.subs(x=y0/y1)
@@ -291,18 +289,18 @@ cdef class SymbolicRing(sage.rings.abc.SymbolicRing):
 
         TESTS::
 
-            sage: SR._coerce_(int(5))
+            sage: SR.coerce(int(5))
             5
-            sage: SR._coerce_(5)
+            sage: SR.coerce(5)
             5
-            sage: SR._coerce_(float(5))
+            sage: SR.coerce(float(5))
             5.0
-            sage: SR._coerce_(5.0)
+            sage: SR.coerce(5.0)
             5.00000000000000
 
         An interval arithmetic number::
 
-            sage: SR._coerce_(RIF(pi))
+            sage: SR.coerce(RIF(pi))
             3.141592653589794?
 
         The complex number `I`::
@@ -544,7 +542,7 @@ cdef class SymbolicRing(sage.rings.abc.SymbolicRing):
         """
         return self.symbol('some_variable')
 
-    def is_field(self, proof = True):
+    def is_field(self, proof=True):
         """
         Returns True, since the symbolic expression ring is (for the most
         part) a field.
@@ -717,11 +715,11 @@ cdef class SymbolicRing(sage.rings.abc.SymbolicRing):
             False
             sage: bool(x.parent()(x._maxima_()) == x)
             True
-
         """
-        if (n == None):
+        if n is None:
             return self.symbol(None, domain=domain)
-        return TemporaryVariables([self.temp_var(domain=domain) for i in range(n)])
+        return TemporaryVariables([self.temp_var(domain=domain)
+                                   for i in range(n)])
 
     def cleanup_var(self, symbol):
         """
@@ -745,7 +743,7 @@ cdef class SymbolicRing(sage.rings.abc.SymbolicRing):
             True
         """
         from sage.symbolic.assumptions import assumptions
-        if isinstance(symbol,list) or isinstance(symbol,tuple):
+        if isinstance(symbol, (list, tuple)):
             for s in symbol:
                 self.cleanup_var(s)
         else:
@@ -759,7 +757,7 @@ cdef class SymbolicRing(sage.rings.abc.SymbolicRing):
                     asm.forget()
 
     def var(self, name, latex_name=None, n=None, domain=None):
-        """
+        r"""
         Return a symbolic variable as an element of the symbolic ring.
 
         INPUT:
@@ -1225,7 +1223,7 @@ cdef class NumpyToSRMorphism(Morphism):
             from sage.rings.real_double import RDF
             self._intermediate_ring = RDF
         elif issubclass(numpy_type, numpy.complexfloating):
-            from sage.rings.all import CDF
+            from sage.rings.complex_double import CDF
             self._intermediate_ring = CDF
         else:
             raise TypeError("{} is not a numpy number type".format(numpy_type))
@@ -1309,6 +1307,7 @@ def the_SymbolicRing():
     """
     return SR
 
+
 def is_SymbolicExpressionRing(R):
     """
     Return True if ``R`` is the symbolic expression ring.
@@ -1334,6 +1333,7 @@ def is_SymbolicExpressionRing(R):
     from sage.misc.superseded import deprecation
     deprecation(32665, 'is_SymbolicExpressionRing is deprecated; use "... is SR" or isinstance(..., sage.rings.abc.SymbolicRing instead')
     return R is SR
+
 
 def var(name, **kwds):
     """
@@ -1409,6 +1409,7 @@ def isidentifier(x):
     if x in KEYWORDS:
         return False
     return x.isidentifier()
+
 
 class TemporaryVariables(tuple):
     """

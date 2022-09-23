@@ -8,28 +8,29 @@ the face lattice of a polyhedron.
 
 Terminology in this module:
 
-- Vrep                  -- ``[vertices, rays, lines]`` of the polyhedron.
-- Hrep                  -- inequalities and equations of the polyhedron.
-- Facets                -- facets of the polyhedron.
-- Coatoms               -- the faces from which all others are constructed in
-                           the face iterator. This will be facets or Vrep.
-                           In non-dual mode, faces are constructed as
-                           intersections of the facets. In dual mode, the are
-                           constructed theoretically as joins of vertices.
-                           The coatoms are repsented as incidences with the
-                           atoms they contain.
-- Atoms                 -- facets or Vrep depending on application of algorithm.
-                           Atoms are repsented as incidences of coatoms they
-                           are contained in.
+- Vrep -- ``[vertices, rays, lines]`` of the polyhedron.
 
-- Vrepresentation       -- represents a face by a list of Vrep it contains.
-- Hrepresentation       -- represents a face by a list of Hrep it is contained in.
-- bit representation    -- represents incidences as ``uint64_t``-array, where
-                           each Bit represents one incidences. There might
-                           be trailing zeros, to fit alignment-requirements.
-                           In most instances, faces are represented by the
-                           Bit-representation, where each bit corresponds to
-                           an atom.
+- Hrep -- inequalities and equations of the polyhedron.
+
+- Facets -- facets of the polyhedron.
+
+- Coatoms -- the faces from which all others are constructed in the face
+  iterator. This will be facets or Vrep.  In non-dual mode, faces are
+  constructed as intersections of the facets. In dual mode, the are constructed
+  theoretically as joins of vertices.  The coatoms are repsented as incidences
+  with the atoms they contain.
+
+- Atoms -- facets or Vrep depending on application of algorithm.  Atoms are
+  repsented as incidences of coatoms they are contained in.
+
+- Vrepresentation -- represents a face by a list of Vrep it contains.
+
+- Hrepresentation -- represents a face by a list of Hrep it is contained in.
+
+- bit representation -- represents incidences as ``uint64_t``-array, where each
+  bit represents one incidence. There might be trailing zeros, to fit alignment
+  requirements.  In most instances, faces are represented by the bit
+  representation, where each bit corresponds to an atom.
 
 EXAMPLES::
 
@@ -271,7 +272,7 @@ cdef class PolyhedronFaceLattice:
             sage: P = polytopes.hypercube(4)
             sage: C = CombinatorialPolyhedron(P)
             sage: F = PolyhedronFaceLattice(C)
-            sage: it = C.face_iter()
+            sage: it = C.face_generator()
             sage: face = next(it)
             sage: F._find_face_from_combinatorial_face(face)
             Traceback (most recent call last):
@@ -299,7 +300,7 @@ cdef class PolyhedronFaceLattice:
             sage: P = polytopes.permutahedron(4)
             sage: C = CombinatorialPolyhedron(P)
             sage: F = PolyhedronFaceLattice(C)
-            sage: it = C.face_iter(dimension=1)
+            sage: it = C.face_generator(dimension=1)
             sage: S = set(F._find_face_from_combinatorial_face(f) for f in it)
             sage: S == set(range(36))
             True
@@ -332,7 +333,7 @@ cdef class PolyhedronFaceLattice:
             sage: P = polytopes.permutahedron(4)
             sage: C = CombinatorialPolyhedron(P)
             sage: F = PolyhedronFaceLattice(C)
-            sage: it = C.face_iter(dimension=1)
+            sage: it = C.face_generator(dimension=1)
             sage: face = next(it)
             sage: index = F._find_face_from_combinatorial_face(face)
             sage: F.get_face(face.dimension(), index).ambient_Vrepresentation()
@@ -347,7 +348,7 @@ cdef class PolyhedronFaceLattice:
             sage: P = polytopes.twenty_four_cell()
             sage: C = CombinatorialPolyhedron(P)
             sage: F = PolyhedronFaceLattice(C)
-            sage: it = C.face_iter()
+            sage: it = C.face_generator()
             sage: face = next(it)
             sage: while (face.dimension() == 3): face = next(it)
             sage: index = F._find_face_from_combinatorial_face(face)

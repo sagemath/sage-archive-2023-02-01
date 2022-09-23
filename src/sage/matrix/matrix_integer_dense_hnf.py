@@ -617,7 +617,7 @@ def hnf_square(A, proof):
             # weird cases where the det is large.
             # E.g., matrix all of whose rows but 1 are multiplied by some
             # fixed scalar n.
-            raise NotImplementedError("fallback to PARI!")
+            raise NotImplementedError("fallback to PARI")
             # H = W.hermite_form(algorithm='pari')
     else:
         H = W._hnf_mod(2 * g)
@@ -1103,13 +1103,18 @@ def hnf(A, include_zero_rows=True, proof=True):
             return H.matrix_from_rows(range(len(pivots))), pivots
 
     while True:
-        H, pivots = probable_hnf(A, include_zero_rows=include_zero_rows,
+        try:
+            H, pivots = probable_hnf(A, include_zero_rows=include_zero_rows,
                                  proof=True)
+        except ValueError:
+            verbose("The attempt failed since the pivots must have been wrong. We try again.")
+            continue
+
         if is_in_hnf_form(H, pivots):
             if not include_zero_rows and len(pivots) > H.nrows():
                 H = H.matrix_from_rows(range(len(pivots)))
             return H, pivots
-        verbose("After attempt the return matrix is not in HNF form since pivots must have been wrong.  We try again.")
+        verbose("After attempt the return matrix is not in HNF form since pivots must have been wrong. We try again.")
 
 
 def hnf_with_transformation(A, proof=True):

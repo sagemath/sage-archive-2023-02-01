@@ -1,8 +1,7 @@
 r"""
-Base class for polyhedra, part 5
+Base class for polyhedra: Methods for constructing new polyhedra
 
-Define methods constructing new polyhedra
-except for affine hull and affine hull projection.
+Except for affine hull and affine hull projection.
 """
 
 # ****************************************************************************
@@ -332,7 +331,7 @@ class Polyhedron_base5(Polyhedron_base4):
 
         def check_pyramid_certificate(P, cert):
             others = set(v for v in P.vertices() if not v == cert)
-            if len(others):
+            if others:
                 tester.assertTrue(any(set(f.ambient_Vrepresentation()) == others for f in P.facets()))
 
         if self.is_compact():
@@ -679,14 +678,14 @@ class Polyhedron_base5(Polyhedron_base4):
         .. MATH::
 
             X \oplus Y =
-            \cup_{y\in Y} (X+y) =
-            \cup_{x\in X, y\in Y} (x+y)
+            \bigcup_{y\in Y} (X+y) =
+            \bigcup_{x\in X, y\in Y} (x+y)
 
         See :meth:`minkowski_difference` for a partial inverse operation.
 
         INPUT:
 
-        - ``other`` -- a :class:`Polyhedron_base`
+        - ``other`` -- a :class:`~sage.geometry.polyhedron.base.Polyhedron_base`
 
         OUTPUT:
 
@@ -737,7 +736,7 @@ class Polyhedron_base5(Polyhedron_base4):
 
             X \ominus Y =
             (X^c \oplus Y)^c =
-            \cap_{y\in Y} (X-y)
+            \bigcap_{y\in Y} (X-y)
 
         where superscript-"c" means the complement in the ambient
         vector space. The Minkowski difference of convex sets is
@@ -754,7 +753,7 @@ class Polyhedron_base5(Polyhedron_base4):
 
         INPUT:
 
-        - ``other`` -- a :class:`Polyhedron_base`
+        - ``other`` -- a :class:`~sage.geometry.polyhedron.base.Polyhedron_base`
 
         OUTPUT:
 
@@ -885,7 +884,7 @@ class Polyhedron_base5(Polyhedron_base4):
 
         INPUT:
 
-        - ``other`` -- a :class:`Polyhedron_base`
+        - ``other`` -- a :class:`~sage.geometry.polyhedron.base.Polyhedron_base`
 
         OUTPUT:
 
@@ -977,7 +976,6 @@ class Polyhedron_base5(Polyhedron_base4):
 
             sage: polytopes.cross_polytope(3)._test_product()
         """
-        from sage.rings.qqbar import AA
         from sage.rings.real_double import RDF
         from .library import polytopes
 
@@ -992,20 +990,29 @@ class Polyhedron_base5(Polyhedron_base4):
             tester.assertEqual((self*Q).backend(), self.backend())
 
             # And that it changes the backend correctly where necessary.
-            if self.base_ring() is not AA and AA.has_coerce_map_from(self.base_ring()):
-                R = self*polytopes.regular_polygon(5, exact=True)
-                assert R
-            if RDF.has_coerce_map_from(self.base_ring()):
-                R = self*polytopes.regular_polygon(5, exact=False)
-                assert R
+            try:
+                from sage.rings.qqbar import AA
+            except ImportError:
+                pass
+            else:
+                if self.base_ring() is not AA and AA.has_coerce_map_from(self.base_ring()):
+                    R = self*polytopes.regular_polygon(5, exact=True)
+                    assert R
+                if RDF.has_coerce_map_from(self.base_ring()):
+                    R = self*polytopes.regular_polygon(5, exact=False)
+                    assert R
 
         if self.base_ring() in (ZZ, QQ):
             # Check that the double description is set up correctly.
             self_field = self.base_extend(self.base_ring(), backend='field')
-            P = polytopes.permutahedron(4, backend='field').base_extend(QQ)
+            try:
+                P = polytopes.permutahedron(4, backend='field').base_extend(QQ)
+            except ImportError:
+                pass
+            else:
+                (self_field * P)._test_basic_properties(tester)
             from .constructor import Polyhedron
             Q = Polyhedron(rays=[[1,0,0,0],[0,1,1,0]], lines=[[0,1,0,1]], backend='field')
-            (self_field * P)._test_basic_properties(tester)
             (self_field * Q)._test_basic_properties(tester)
 
     def join(self, other):
@@ -1052,6 +1059,23 @@ class Polyhedron_base5(Polyhedron_base4):
             'cdd'
             sage: Q.join(P).backend()
             'ppl'
+
+        Check that the double description is set up correctly::
+
+            sage: P = polytopes.cross_polytope(4)
+            sage: P1 = polytopes.cross_polytope(4, backend='field')
+            sage: P.join(P) == P1.join(P1)
+            True
+
+            sage: P = 4*polytopes.hypercube(4)
+            sage: P1 = 4*polytopes.hypercube(4, backend='field')
+            sage: P.join(P) == P1.join(P1)
+            True
+
+            sage: P = polytopes.permutahedron(4)
+            sage: P1 = polytopes.permutahedron(4, backend='field')
+            sage: P.join(P) == P1.join(P1)
+            True
         """
         try:
             new_ring = self.parent()._coerce_base_ring(other)
@@ -1059,24 +1083,59 @@ class Polyhedron_base5(Polyhedron_base4):
             raise TypeError("no common canonical parent for objects with parents: " + str(self.parent())
                      + " and " + str(other.parent()))
 
+        from itertools import chain
+
         dim_self = self.ambient_dim()
         dim_other = other.ambient_dim()
-
-        new_vertices = [list(x)+[0]*dim_other+[0] for x in self.vertex_generator()] + \
-                       [[0]*dim_self+list(x)+[1] for x in other.vertex_generator()]
-        new_rays = []
-        new_rays.extend( [ r+[0]*dim_other+[0]
-                           for r in self.ray_generator() ] )
-        new_rays.extend( [ [0]*dim_self+r+[1]
-                           for r in other.ray_generator() ] )
-        new_lines = []
-        new_lines.extend( [ l+[0]*dim_other+[0]
-                            for l in self.line_generator() ] )
-        new_lines.extend( [ [0]*dim_self+l+[1]
-                            for l in other.line_generator() ] )
-
         parent = self.parent().change_ring(new_ring, ambient_dim=self.ambient_dim() + other.ambient_dim() + 1)
-        return parent.element_class(parent, [new_vertices, new_rays, new_lines], None)
+
+        new_vertices1 = (list(x) + [0]*dim_other + [0] for x in self.vertex_generator())
+        new_vertices2 = ([0]*dim_self + list(x) + [1] for x in other.vertex_generator())
+        new_vertices = chain(new_vertices1, new_vertices2)
+
+        new_rays1 = (list(r) + [0]*dim_other + [0] for r in self.ray_generator())
+        new_rays2 = ([0]*dim_self + list(r) + [1] for r in other.ray_generator())
+        new_rays = chain(new_rays1, new_rays2)
+
+        new_lines1 = (list(l) + [0]*dim_other + [0] for l in self.line_generator())
+        new_lines2 = ([0]*dim_self + list(l) + [1] for l in other.line_generator())
+        new_lines = chain(new_lines1, new_lines2)
+
+        if not self.is_compact() or not other.is_compact() or self.n_vertices() <= 1 or other.n_vertices() <= 1:
+            # Cases for which the below double description does not work.
+            return parent.element_class(parent, [new_vertices, new_rays, new_lines], None)
+
+        # Facet defining inequalities that contain the corresponding vertices from ``new_vertices1``
+        # and all vertices from ``new_vertices2``.
+        new_inequalities1 = ([i[0]] + list(i[1:]) + [0]*dim_other + [-i[0]] for i in self.inequality_generator())
+
+        # Facet defining inequalities that contain the corresponding vertices from ``new_vertices2``
+        # and all vertices from ``new_vertices1``.
+        new_inequalities2 = ([0] + [0]*dim_self + list(i[1:]) + [i[0]] for i in other.inequality_generator())
+
+        new_inequalities = chain(new_inequalities1, new_inequalities2)
+
+        # Equations that all vertices corresponding to ``new_vertices1`` satisfy.
+        # For any vertex from ``new_vertices2`` the condition is trivial.
+        new_equations1 = ([e[0]] + list(e[1:]) + [0]*dim_other + [-e[0]] for e in self.equation_generator())
+
+        # Equations that all vertices corresponding to ``new_vertices2`` satisfy.
+        # For any vertex from ``new_vertices1`` the condition is trivial.
+        new_equations2 = ([0] + [0]*dim_self + list(e[1:]) + [e[0]] for e in other.equation_generator())
+
+        new_equations = chain(new_equations1, new_equations2)
+
+        new_n_inequalities = self.n_inequalities() + other.n_inequalities()
+        new_n_vertices = self.n_vertices() + other.n_vertices()
+        new_n_rays = self.n_rays() + other.n_rays()
+
+        pref_rep = 'Vrep' if new_n_vertices + new_n_rays <= new_n_inequalities else 'Hrep'
+
+        return parent.element_class(parent,
+                                    [new_vertices, new_rays, new_lines],
+                                    [new_inequalities, new_equations],
+                                    Vrep_minimal=True, Hrep_minimal=True,
+                                    pref_rep=pref_rep)
 
     def subdirect_sum(self, other):
         """
@@ -1088,7 +1147,7 @@ class Polyhedron_base5(Polyhedron_base4):
 
         INPUT:
 
-        - ``other`` -- a :class:`Polyhedron_base`
+        - ``other`` -- a :class:`~sage.geometry.polyhedron.base.Polyhedron_base`
 
         EXAMPLES::
 
@@ -1153,7 +1212,7 @@ class Polyhedron_base5(Polyhedron_base4):
 
         INPUT:
 
-        - ``other`` -- a :class:`Polyhedron_base`
+        - ``other`` -- a :class:`~sage.geometry.polyhedron.base.Polyhedron_base`
 
         EXAMPLES::
 
@@ -1561,7 +1620,6 @@ class Polyhedron_base5(Polyhedron_base4):
 
             sage: polytopes.cross_polytope(3)._test_dilation()
         """
-        from sage.rings.qqbar import AA
         from sage.rings.real_double import RDF
         from .base import Polyhedron_base
 
@@ -1586,6 +1644,11 @@ class Polyhedron_base5(Polyhedron_base4):
                 (ZZ(-1)/2 * p)._test_basic_properties(tester)
         else:
             tester.assertIsInstance(ZZ(1)/3*self, Polyhedron_base)
+
+        try:
+            from sage.rings.qqbar import AA
+        except ImportError:
+            return
 
         if self.n_vertices() > 20 or self.base_ring() is AA:
             # Avoid long time computations.
@@ -1834,17 +1897,17 @@ class Polyhedron_base5(Polyhedron_base4):
 
         INPUT:
 
-        - ``face`` -- a PolyhedronFace
+        - ``face`` -- a :class:`~sage.geometry.polyhedron.face.PolyhedronFace`
         - ``linear_coefficients`` -- tuple of integer. Specifies the coefficient
           of the normal vector of the cutting hyperplane used to truncate the
           face.
           The default direction is determined using the normal fan of the
           polyhedron.
         - ``cut_frac`` -- number between 0 and 1. Determines where the
-           hyperplane cuts the polyhedron. A value close to 0 cuts very close
-           to the face, whereas a value close to 1 cuts very close to the next
-           vertex (according to the normal vector of the cutting hyperplane).
-           Default is `\frac{1}{3}`.
+          hyperplane cuts the polyhedron. A value close to 0 cuts very close
+          to the face, whereas a value close to 1 cuts very close to the next
+          vertex (according to the normal vector of the cutting hyperplane).
+          Default is `\frac{1}{3}`.
 
         OUTPUT:
 
@@ -2206,7 +2269,7 @@ class Polyhedron_base5(Polyhedron_base4):
 
         The backend should be preserved as long as the value of width permits.
         The base_ring will change to the field of fractions of the current
-        base_ring, unless width forces a different ring. ::
+        base_ring, unless ``width`` forces a different ring. ::
 
             sage: P = polytopes.cyclic_polytope(3,7, base_ring=ZZ, backend='field')
             sage: W1 = P.wedge(P.faces(2)[0]); W1.base_ring(); W1.backend()

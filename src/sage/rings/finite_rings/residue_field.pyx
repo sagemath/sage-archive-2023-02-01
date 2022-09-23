@@ -126,12 +126,10 @@ And now over a large prime field::
     sage: S.<X, Y, Z> = PolynomialRing(Rf, order='lex')
     sage: I = ideal([2*X - Y^2, Y + Z])
     sage: I.groebner_basis()
-    verbose 0 (...: multi_polynomial_ideal.py, groebner_basis) Warning: falling back to very slow toy implementation.
     [X + 2199023255559*Z^2, Y + Z]
     sage: S.<X, Y, Z> = PolynomialRing(Rf, order='deglex')
     sage: I = ideal([2*X - Y^2, Y + Z])
     sage: I.groebner_basis()
-    verbose 0 (...: multi_polynomial_ideal.py, groebner_basis) Warning: falling back to very slow toy implementation.
     [Z^2 + 4398046511117*X, Y + Z]
 """
 
@@ -153,7 +151,9 @@ from sage.rings.rational cimport Rational
 from sage.categories.homset import Hom
 from sage.categories.basic import Fields, Rings
 from sage.categories.pushout import AlgebraicExtensionFunctor
-from sage.rings.all import ZZ, QQ, Integers
+from sage.rings.finite_rings.integer_mod_ring import Integers
+from sage.rings.integer_ring import ZZ
+from sage.rings.rational_field import QQ
 from sage.rings.finite_rings.finite_field_constructor import zech_log_bound, FiniteField as GF
 from sage.rings.finite_rings.finite_field_givaro import FiniteField_givaro
 from sage.rings.finite_rings.finite_field_ntl_gf2e import FiniteField_ntl_gf2e

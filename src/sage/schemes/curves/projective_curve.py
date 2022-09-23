@@ -139,17 +139,16 @@ AUTHORS:
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.cachefunc import cached_method
 
-from sage.categories.all import hom
 from sage.categories.fields import Fields
+from sage.categories.homset import hom, Hom, End
 from sage.categories.number_fields import NumberFields
-from sage.categories.homset import Hom, End
 
 from sage.interfaces.singular import singular
 from sage.matrix.constructor import matrix
 from builtins import sum as add
 from sage.misc.sage_eval import sage_eval
 
-from sage.rings.all import degree_lowest_rational_function
+from sage.rings.polynomial.multi_polynomial_element import degree_lowest_rational_function
 from sage.rings.integer_ring import IntegerRing
 from sage.rings.number_field.number_field import NumberField
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
@@ -612,7 +611,7 @@ class ProjectivePlaneCurve(ProjectiveCurve):
         if not (is_ProjectiveSpace(A) and A.dimension != 2):
             raise TypeError("the ambient space is not a projective plane")
 
-        super(ProjectivePlaneCurve, self).__init__(A, [f])
+        super().__init__(A, [f])
 
     def _repr_type(self):
         r"""
@@ -1534,7 +1533,7 @@ class ProjectiveCurve_field(ProjectiveCurve, AlgebraicScheme_subscheme_projectiv
             sage: loads(dumps(C)) == C
             True
         """
-        super(ProjectiveCurve_field, self).__init__(A, X)
+        super().__init__(A, X)
 
         if not A.base_ring() in Fields():
             raise TypeError("curve not defined over a field")
@@ -1691,6 +1690,15 @@ class ProjectivePlaneCurve_field(ProjectivePlaneCurve, ProjectiveCurve_field):
         .. WARNING::
 
             This functionality requires the ``sirocco`` package to be installed.
+
+        TESTS::
+
+            sage: P.<x,y,z>=ProjectiveSpace(QQ,2)
+            sage: f=z^2*y^3-z*(33*x*z+2*x^2+8*z^2)*y^2+(21*z^2+21*x*z-x^2)*(z^2+11*x*z-x^2)*y+(x-18*z)*(z^2+11*x*z-x^2)^2
+            sage: C = P.curve(f)
+            sage: C.fundamental_group() # optional - sirocco
+            Finitely presented group < x1, x3 | (x3^-1*x1^-1*x3*x1^-1)^2*x3^-1, x3*(x1^-1*x3^-1)^2*x1^-1*(x3*x1)^2 >
+
         """
         from sage.schemes.curves.zariski_vankampen import fundamental_group
         F = self.base_ring()
@@ -1868,7 +1876,7 @@ class ProjectivePlaneCurve_finite_field(ProjectivePlaneCurve_field):
         """
         g = self.defining_polynomial()
         K = g.parent().base_ring()
-        from sage.rings.polynomial.all import PolynomialRing
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
         R = PolynomialRing(K,'X')
         X = R.gen()
         one = K.one()
@@ -2038,7 +2046,7 @@ class ProjectivePlaneCurve_finite_field(ProjectivePlaneCurve_field):
                 Dcoeffs.append(D.coefficient(coords[x[1]]))
             else:
                 Dcoeffs.append(0)
-        G = singular(','.join([str(x) for x in Dcoeffs]), type='intvec')
+        G = singular(','.join(str(x) for x in Dcoeffs), type='intvec')
         # call singular's brill noether routine and return
         T = X2[1][2]
         T.set_ring()
@@ -2168,7 +2176,7 @@ class IntegralProjectiveCurve(ProjectiveCurve_field):
             sage: loads(dumps(C)) == C
             True
         """
-        super(IntegralProjectiveCurve, self).__init__(A, f)
+        super().__init__(A, f)
 
         ideal = self.defining_ideal()
         gs = self.ambient_space().gens()
@@ -2232,7 +2240,7 @@ class IntegralProjectiveCurve(ProjectiveCurve_field):
             y^5 + x*y*z^3 + z^5
         """
         try:
-            return super(IntegralProjectiveCurve, self).__call__(*args)
+            return super().__call__(*args)
         except TypeError as e:
             try:
                 return self.function(*args)

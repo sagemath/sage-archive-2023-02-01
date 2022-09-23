@@ -230,6 +230,7 @@ import inspect
 import html
 import requests
 from json.decoder import JSONDecodeError
+import itertools
 
 # Combinatorial collections
 from sage.combinat.alternating_sign_matrix import AlternatingSignMatrix, AlternatingSignMatrices
@@ -281,8 +282,6 @@ FINDSTAT_URL_NEW_MAP        = FINDSTAT_URL + 'NewMap/'
 FINDSTAT_MAX_VALUES = 1000
 # the number of values FindStat needs at least to search for
 FINDSTAT_MIN_VALUES = 3
-# the number of maps that FindStat should compose at most to find a match
-FINDSTAT_MAX_DEPTH = 4
 # the maximal number of maps that FindStat composes by default to find a match
 FINDSTAT_DEFAULT_DEPTH = 2
 # the number of values FindStat allows to submit at most
@@ -471,8 +470,9 @@ def _post_json(url, data, **kwargs):
         return result
     raise ConnectionError(response.text)
 
+
 def _submit(args, url):
-    """
+    r"""
     Open a post form containing fields for each of the arguments,
     which is sent to the given url.
 
@@ -646,6 +646,7 @@ def _data_from_iterable(iterable, mapping=False, domain=None,
         codomain = FindStatCollection(vals)
 
     all_elements = set()
+
     def sanitize_pair(elts, vals):
         if domain.is_element(elts):
             elts = [elts]
@@ -776,7 +777,7 @@ def _distribution_from_data(data, domain, max_values, generating_functions=False
           [1, 1, 2, 2, 3, 3])]
     """
     lvl_dict = {} # lvl: elts, vals
-    total = min(max_values, FINDSTAT_MAX_VALUES)
+    total = max_values
     iterator = iter(data)
     levels_with_sizes = domain.levels_with_sizes()
     while total > 0:
@@ -1018,15 +1019,15 @@ def findstat(query=None, values=None, distribution=None, domain=None,
 
     TESTS::
 
-        sage: findstat("Permutations", lambda x: 1, depth="x")
+        sage: findstat("Permutations", lambda x: 1, depth="x")                  # optional -- internet
         Traceback (most recent call last):
         ...
-        ValueError: the depth of a FindStat query must be a non-negative integer less than or equal to 4
+        ValueError: E021: Depth should be a non-negative integer at most 9, but is x.
 
-        sage: findstat("Permutations", lambda x: 1, depth=100)
+        sage: findstat("Permutations", lambda x: 1, depth=100)                  # optional -- internet
         Traceback (most recent call last):
         ...
-        ValueError: the depth of a FindStat query must be a non-negative integer less than or equal to 4
+        ValueError: E021: Depth should be a non-negative integer at most 9, but is 100.
 
         sage: S = Permutation
         sage: findstat([(S([1,2]), 1), ([S([1,3,2]), S([1,2])], [2,3])])        # optional -- internet
@@ -1045,18 +1046,13 @@ def findstat(query=None, values=None, distribution=None, domain=None,
         0: St000259 (quality [100, 100])
     """
     try:
-        depth = int(depth)
-        assert 0 <= depth <= FINDSTAT_MAX_DEPTH
-    except (ValueError, AssertionError):
-        raise ValueError("the depth of a FindStat query must be a non-negative integer less than or equal to %i" % FINDSTAT_MAX_DEPTH)
-
-    try:
         max_values = int(max_values)
         assert 0 <= max_values <= FINDSTAT_MAX_VALUES
     except (ValueError, AssertionError):
         raise ValueError("the maximal number of values for a FindStat query must be a non-negative integer less than or equal to %i" % FINDSTAT_MAX_VALUES)
 
     check_collection = True
+
     def get_values(raw, domain=None):
         if callable(raw):
             known_terms = _data_from_function(raw, domain)
@@ -1146,9 +1142,9 @@ def findmap(*args, **kwargs):
     ``distribution``, ``depth`` and ``max_values``. They have the
     following meanings:
 
-    - ``depth`` -- (default ``FINDSTAT_DEFAULT_DEPTH``), an integer
-      between 0 and ``FINDSTAT_MAX_DEPTH``, specifying how many maps
-      to apply to generate the given map.
+    - ``depth`` -- (default ``FINDSTAT_DEFAULT_DEPTH``), a
+      non-negative integer, specifying how many maps to apply to
+      generate the given map.
 
     - ``max_values`` -- (default ``FINDSTAT_MAX_VALUES``), an integer
       specifying how many values are sent to the finder.
@@ -1273,18 +1269,13 @@ def findmap(*args, **kwargs):
     codomain = kwargs.get("codomain", None)
 
     try:
-        depth = int(depth)
-        assert 0 <= depth <= FINDSTAT_MAX_DEPTH
-    except (ValueError, AssertionError):
-        raise ValueError("the depth of a FindStat query must be a non-negative integer less than or equal to %i" % FINDSTAT_MAX_DEPTH)
-
-    try:
         max_values = int(max_values)
         assert 0 <= max_values <= FINDSTAT_MAX_VALUES
     except (ValueError, AssertionError):
         raise ValueError("the maximal number of values for a FindStat query must be a non-negative integer less than or equal to %i" % FINDSTAT_MAX_VALUES)
 
     check_collection = True
+
     def get_values(raw, domain=None, codomain=None):
         if callable(raw):
             known_terms = _data_from_function(raw, domain)
@@ -1912,6 +1903,18 @@ class FindStatCombinatorialStatistic(SageObject):
             [(1,2),(3,4)] => 0
             [(1,3),(2,4)] => 0
             [(1,4),(2,3)] => 1
+
+        TESTS:
+
+        Check that no more terms than asked for are computed::
+
+            sage: st = cached_function(lambda d: randint(1,1000))
+            sage: s = findstat("Dyck paths", st, max_values=100, depth=0)       # optional -- internet
+            sage: len(st.cache)                                                 # optional -- internet
+            100
+            sage: _ = s.first_terms_str(max_values=100)                         # optional -- internet
+            sage: len(st.cache)                                                 # optional -- internet
+            100
         """
         return "\r\n".join(key + " => " + str(val)
                            for key, val in self._first_terms_raw(max_values=max_values))
@@ -1935,7 +1938,8 @@ class FindStatCombinatorialStatistic(SageObject):
         return [(from_str(obj), Integer(val))
                 for obj, val in self._first_terms_raw_cache]
 
-    def _generating_functions_dict(self):
+    def _generating_functions_dict(self,
+                                   max_values=FINDSTAT_MAX_SUBMISSION_VALUES):
         r"""
         Return the generating functions of ``self`` as dictionary of
         dictionaries, computed from ``self.first_terms``.
@@ -1950,10 +1954,14 @@ class FindStatCombinatorialStatistic(SageObject):
         lvls = {}
         domain = self.domain()
         levels_with_sizes = domain.levels_with_sizes()
+        total = 0
         for elt, val in self.first_terms().items():
+            if total == max_values:
+                break
             lvl = domain.element_level(elt)
             if lvl not in levels_with_sizes:
                 continue
+            total += 1
             if lvl not in gfs:
                 gfs[lvl] = {}
             gfs[lvl][val] = gfs[lvl].get(val, 0) + 1
@@ -1964,7 +1972,8 @@ class FindStatCombinatorialStatistic(SageObject):
                 del gfs[lvl]
         return gfs
 
-    def generating_functions(self, style="polynomial"):
+    def generating_functions(self, style="polynomial",
+                             max_values=FINDSTAT_MAX_SUBMISSION_VALUES):
         r"""
         Return the generating functions of the statistic as a dictionary.
 
@@ -2010,9 +2019,30 @@ class FindStatCombinatorialStatistic(SageObject):
 
             sage: st.generating_functions(style="list")                         # optional -- internet
             {2: [1], 4: [2, 1], 6: [5, 6, 3, 1], 8: [14, 28, 28, 20, 10, 4, 1]}
+
+        TESTS::
+
+            sage: st = findstat(41)                                             # optional -- internet
+            sage: st.generating_functions(max_values=19)                        # optional -- internet
+            {2: 1, 4: q + 2, 6: q^3 + 3*q^2 + 6*q + 5}
+
+            sage: st = findstat("graphs", lambda G: G.size(), max_values=100)   # optional -- internet
+            sage: st.generating_functions(max_values=18)                        # optional -- internet
+            {1: 1,
+             2: q + 1,
+             3: q^3 + q^2 + q + 1,
+             4: q^6 + q^5 + 2*q^4 + 3*q^3 + 2*q^2 + q + 1}
+            sage: st.generating_functions(max_values=1252)                      # optional -- internet
+            {1: 1,
+             2: q + 1,
+             3: q^3 + q^2 + q + 1,
+             4: q^6 + q^5 + 2*q^4 + 3*q^3 + 2*q^2 + q + 1,
+             5: q^10 + q^9 + 2*q^8 + 4*q^7 + 6*q^6 + 6*q^5 + 6*q^4 + 4*q^3 + 2*q^2 + q + 1,
+             6: q^15 + q^14 + 2*q^13 + 5*q^12 + 9*q^11 + 15*q^10 + 21*q^9 + 24*q^8 + 24*q^7 + 21*q^6 + 15*q^5 + 9*q^4 + 5*q^3 + 2*q^2 + q + 1,
+             7: q^21 + q^20 + 2*q^19 + 5*q^18 + 10*q^17 + 21*q^16 + 41*q^15 + 65*q^14 + 97*q^13 + 131*q^12 + 148*q^11 + 148*q^10 + 131*q^9 + 97*q^8 + 65*q^7 + 41*q^6 + 21*q^5 + 10*q^4 + 5*q^3 + 2*q^2 + q + 1}
         """
-        return _generating_functions_from_dict(self._generating_functions_dict(),
-                                               style=style)
+        d = self._generating_functions_dict(max_values=max_values)
+        return _generating_functions_from_dict(d, style)
 
     def oeis_search(self, search_size=32, verbose=True):
         r"""
@@ -2169,7 +2199,7 @@ class FindStatStatistic(Element,
         return richcmp(self.id(), other.id(), op)
 
     def _fetch_data(self):
-        """
+        r"""
         Return a dictionary containing the data of the statistic, except
         for the values, fetched from FindStat.
 
@@ -2613,7 +2643,7 @@ class FindStatStatisticQuery(FindStatStatistic):
                                   function=function)
         Element.__init__(self, FindStatStatistics()) # this is not completely correct, but it works
 
-    def first_terms(self):
+    def first_terms(self, max_values=FINDSTAT_MAX_SUBMISSION_VALUES):
         """
         Return the pairs of the known terms which contain singletons as a dictionary.
 
@@ -2627,8 +2657,9 @@ class FindStatStatisticQuery(FindStatStatistic):
              sage: r.first_terms()                                              # optional -- internet
              OrderedDict([([], 0), ([(1, 2)], 0)])
         """
-        return OrderedDict((objs[0], vals[0]) for objs, vals in self._known_terms
-                           if len(vals) == 1)
+        return OrderedDict(itertools.islice(((objs[0], vals[0])
+                                             for objs, vals in self._known_terms
+                                             if len(vals) == 1), max_values))
 
     def _first_terms_raw(self, max_values):
         """
@@ -2646,9 +2677,10 @@ class FindStatStatisticQuery(FindStatStatistic):
         """
         to_str = self.domain().to_string()
         return [(to_str(obj), val)
-                for (obj, val), _ in zip(self.first_terms().items(), range(max_values))]
+                for obj, val in self.first_terms(max_values=max_values).items()]
 
-    def _generating_functions_dict(self, max_values=FINDSTAT_MAX_VALUES):
+    def _generating_functions_dict(self,
+                                   max_values=FINDSTAT_MAX_SUBMISSION_VALUES):
         """
         Return the generating functions of the levels where all values
         can be determined.
@@ -2701,6 +2733,17 @@ class FindStatStatisticQuery(FindStatStatistic):
         """
         return self._result[i]
 
+    def __len__(self):
+        """
+        Return the number of results in the query.
+
+        EXAMPLES::
+
+            sage: r = findstat(Permutations, lambda pi: pi.saliances()[0], depth=1)       # optional -- internet
+            sage: len(r) > 4                                                              # optional -- internet
+            True
+        """
+        return len(self._result)
 
 class FindStatCompoundStatistic(Element, FindStatCombinatorialStatistic):
     def __init__(self, id, domain=None, check=True):
@@ -3095,7 +3138,7 @@ class FindStatMap(Element,
         return richcmp(self.id(), other.id(), op)
 
     def _fetch_data(self):
-        """
+        r"""
         Return a dictionary containing the data of the map, fetched from
         FindStat.
 
@@ -3563,6 +3606,17 @@ class FindStatMapQuery(FindStatMap):
         """
         return self._result[i]
 
+    def __len__(self):
+        """
+        Return the number of results in the query.
+
+        EXAMPLES::
+
+            sage: r = findmap("Permutations", lambda pi: pi.descents_composition())       # optional -- internet
+            sage: len(r) > 0                                                              # optional -- internet
+            True
+        """
+        return len(self._result)
 
 class FindStatCompoundMap(Element, FindStatCombinatorialMap):
     def __init__(self, id, domain=None, codomain=None, check=True):
@@ -4215,7 +4269,6 @@ class FindStatCollection(Element,
             ....:     if c.id() not in long and c.is_supported():
             ....:         f = c.first_terms(lambda x: 1)
             ....:         print("{} {} {}".format(c, len(list(f)), all(c.in_range(e) for e, _ in f)))
-            ....:
             Cc0001: Permutations 5913 True
             Cc0002: Integer partitions 1211 True
             Cc0005: Dyck paths 2055 True
@@ -4529,7 +4582,7 @@ _SupportedFindStatCollections = {
     "Posets":
     _SupportedFindStatCollection(lambda x: (lambda R, E: Poset((list(range(E)), R)))(*literal_eval(x)),
                                  lambda X: str((sorted(X._hasse_diagram.cover_relations()),
-                                                len(X._hasse_diagram.vertices()))),
+                                                len(X._hasse_diagram.vertices(sort=False)))),
                                  Posets,
                                  lambda x: x.cardinality(),
                                  lambda x: isinstance(x, FinitePoset)),
@@ -4573,15 +4626,15 @@ _SupportedFindStatCollections = {
     "DecoratedPermutations":
     _SupportedFindStatCollection(lambda x: DecoratedPermutation([v if v > 0 else (i if v == 0 else -i)
                                                                  for i, v in enumerate(literal_eval(x.replace("+","0").replace("-","-1")), 1)]),
-                                 lambda x: "[" + ",".join([str(v) if abs(v) != i else ("+" if v > 0 else "-")
-                                                           for i, v in enumerate(x, 1)]) + "]",
+                                 lambda x: "[" + ",".join((str(v) if abs(v) != i else ("+" if v > 0 else "-")
+                                                           for i, v in enumerate(x, 1))) + "]",
                                  DecoratedPermutations,
                                  lambda x: x.size(),
                                  lambda x: isinstance(x, DecoratedPermutation)),
     "Lattices":
     _SupportedFindStatCollection(lambda x: (lambda R, E: LatticePoset((list(range(E)), R)))(*literal_eval(x)),
                                  lambda X: str((sorted(X._hasse_diagram.cover_relations()),
-                                                len(X._hasse_diagram.vertices()))),
+                                                len(X._hasse_diagram.vertices(sort=False)))),
                                  _finite_lattices,
                                  lambda x: x.cardinality(),
                                  lambda x: isinstance(x, FiniteLatticePoset))}

@@ -14,9 +14,7 @@ including minimum spanning trees.
 
 .. TODO::
 
-    - Rewrite :func:`kruskal` to use priority queues.
     - Parallel version of Boruvka's algorithm.
-    - Randomized spanning tree construction.
 
 
 Methods
@@ -40,6 +38,7 @@ cimport cython
 from memory_allocator cimport MemoryAllocator
 from sage.sets.disjoint_set cimport DisjointSet_of_hashables
 from sage.misc.decorators import rename_keyword
+
 
 @rename_keyword(deprecation=32805, wfunction='weight_function')
 def kruskal(G, by_weight=True, weight_function=None, check_weight=False, check=False):
@@ -112,7 +111,7 @@ def kruskal(G, by_weight=True, weight_function=None, check_weight=False, check=F
 
     Variants of the previous example. ::
 
-        sage: H = Graph(G.edges(labels=False))
+        sage: H = Graph(G.edges(sort=True, labels=False))
         sage: kruskal(H, check=True)
         [(1, 2, None), (1, 6, None), (2, 3, None), (2, 7, None), (3, 4, None), (4, 5, None)]
         sage: G.allow_loops(True)
@@ -148,7 +147,14 @@ def kruskal(G, by_weight=True, weight_function=None, check_weight=False, check=F
         ....: "BWI":{"MIA":946}})
         sage: G.weighted(True)
         sage: kruskal(G, check=True)
-        [('JFK', 'PVD', 144), ('BWI', 'JFK', 184), ('BOS', 'JFK', 187), ('LAX', 'SFO', 337), ('BWI', 'ORD', 621), ('DFW', 'ORD', 802), ('BWI', 'MIA', 946), ('DFW', 'LAX', 1235)]
+        [('JFK', 'PVD', 144),
+         ('BWI', 'JFK', 184),
+         ('BOS', 'JFK', 187),
+         ('LAX', 'SFO', 337),
+         ('BWI', 'ORD', 621),
+         ('DFW', 'ORD', 802),
+         ('BWI', 'MIA', 946),
+         ('DFW', 'LAX', 1235)]
 
     An example from pages 568--569 in [CLRS2001]_. ::
 
@@ -246,7 +252,7 @@ def kruskal(G, by_weight=True, weight_function=None, check_weight=False, check=F
         []
     """
     return list(kruskal_iterator(G, by_weight=by_weight, weight_function=weight_function,
-                                     check_weight=check_weight, check=check))
+                                 check_weight=check_weight, check=check))
 
 
 @rename_keyword(deprecation=32805, wfunction='weight_function')
@@ -353,7 +359,7 @@ def kruskal_iterator(G, by_weight=True, weight_function=None, check_weight=False
 
 @rename_keyword(deprecation=32805, weighted='by_weight')
 def kruskal_iterator_from_edges(edges, union_find, by_weight=True,
-                                    weight_function=None, check_weight=False):
+                                weight_function=None, check_weight=False):
     """
     Return an iterator implementation of Kruskal algorithm on list of edges.
 
@@ -402,7 +408,7 @@ def kruskal_iterator_from_edges(edges, union_find, by_weight=True,
         sage: from sage.graphs.spanning_tree import kruskal_iterator_from_edges
         sage: G = Graph([(0, 1)])
         sage: union_set = DisjointSet(G)
-        sage: next(kruskal_iterator_from_edges(G.edges(), union_set, weighted=False))
+        sage: next(kruskal_iterator_from_edges(G.edges(sort=True), union_set, weighted=False))
         doctest:...: DeprecationWarning: use the option 'by_weight' instead of 'weighted'
         See https://trac.sagemath.org/32805 for details.
         (0, 1, None)
@@ -416,19 +422,19 @@ def kruskal_iterator_from_edges(edges, union_find, by_weight=True,
 
     # Kruskal's algorithm
     for e in edges:
-         # acyclic test via union-find
-         u = union_find.find(e[0])
-         v = union_find.find(e[1])
-         if u != v:
-             yield e
-             # merge the trees
-             union_find.union(u, v)
-             if union_find.number_of_subsets() == 1:
-                 return
+        # acyclic test via union-find
+        u = union_find.find(e[0])
+        v = union_find.find(e[1])
+        if u != v:
+            yield e
+            # merge the trees
+            union_find.union(u, v)
+            if union_find.number_of_subsets() == 1:
+                return
 
 
 def filter_kruskal(G, threshold=10000, by_weight=True, weight_function=None,
-                       check_weight=True, bint check=False):
+                   check_weight=True, bint check=False):
     """
     Minimum spanning tree using Filter Kruskal algorithm.
 
@@ -503,7 +509,7 @@ def filter_kruskal(G, threshold=10000, by_weight=True, weight_function=None,
 
 
 def filter_kruskal_iterator(G, threshold=10000, by_weight=True, weight_function=None,
-                                check_weight=True, bint check=False):
+                            check_weight=True, bint check=False):
     r"""
     Return an iterator implementation of Filter Kruskal's algorithm.
 
@@ -781,7 +787,7 @@ def boruvka(G, by_weight=True, weight_function=None, check_weight=True, check=Fa
 
     Check if the weight of MST returned by Prim's and Boruvka's is the same::
 
-        sage: G = Graph([(u,v,randint(1,5)) for u,v in graphs.CompleteGraph(4).edges(labels=0)], weighted=True)
+        sage: G = Graph([(u,v,randint(1,5)) for u,v in graphs.CompleteGraph(4).edges(sort=True, labels=0)], weighted=True)
         sage: G.weighted()
         True
         sage: E1 = G.min_spanning_tree(algorithm='Boruvka')
@@ -982,12 +988,12 @@ def random_spanning_tree(G, output_as_graph=False, by_weight=False, weight_funct
         ....:         S.add(Graph(E).graph6_string())
         ....:     return S
         sage: K3 = graphs.CompleteGraph(3)
-        sage: for u, v in K3.edges(labels=False):
+        sage: for u, v in K3.edges(sort=True, labels=False):
         ....:     K3.set_edge_label(u, v, randint(1, 2))
         sage: foo(K3, 100) == {'BW', 'Bg', 'Bo'}  # random
         True
         sage: K4 = graphs.CompleteGraph(4)
-        sage: for u, v in K4.edges(labels=False):
+        sage: for u, v in K4.edges(sort=True, labels=False):
         ....:     K4.set_edge_label(u, v, randint(1, 2))
         sage: print(len(foo(K4, 100)))  # random
         16
@@ -1115,11 +1121,11 @@ def spanning_trees(g, labels=False):
 
         sage: g = Graph([(1,2,2),(1,2,1),(1,2,4),(1,4,5)],multiedges=True)
         sage: l = list(g.spanning_trees(labels=True))
-        sage: l[0].edges()
+        sage: l[0].edges(sort=True)
         [(1, 2, 4), (1, 4, 5)]
-        sage: l[1].edges()
+        sage: l[1].edges(sort=True)
         [(1, 2, 1), (1, 4, 5)]
-        sage: l[2].edges()
+        sage: l[2].edges(sort=True)
         [(1, 2, 2), (1, 4, 5)]
 
     Small cases::
@@ -1189,6 +1195,7 @@ def spanning_trees(g, labels=False):
         forest = Graph([g, g.bridges()], format='vertices_and_edges')
         yield from _recursive_spanning_trees(Graph(g, immutable=False, loops=False), forest, labels)
 
+
 def edge_disjoint_spanning_trees(G, k, by_weight=False, weight_function=None, check_weight=True):
     r"""
     Return `k` edge-disjoint spanning trees of minimum cost.
@@ -1251,7 +1258,7 @@ def edge_disjoint_spanning_trees(G, k, by_weight=False, weight_function=None, ch
     The sum of the weights of the returned spanning trees is minimum::
 
         sage: g = graphs.CompleteGraph(5)
-        sage: for u, v in g.edges(labels=False):
+        sage: for u, v in g.edges(sort=True, labels=False):
         ....:     g.set_edge_label(u, v, 1)
         sage: g.set_edge_label(0, 1, 33)
         sage: g.set_edge_label(1, 3, 33)
@@ -1307,7 +1314,7 @@ def edge_disjoint_spanning_trees(G, k, by_weight=False, weight_function=None, ch
 
     # Initialization of data structures
 
-    # - partition[0] is used to maitain known clumps.
+    # - partition[0] is used to maintain known clumps.
     # - partition[i], 1 <= i <= k, is used to check if a given edge has both its
     #   endpoints in the same tree of forest Fi.
     partition = [DisjointSet_of_hashables(G) for _ in range(k + 1)]
@@ -1381,7 +1388,7 @@ def edge_disjoint_spanning_trees(G, k, by_weight=False, weight_function=None, ch
                 # We find the unlabeled edges of Fi(e) by ascending through the
                 # tree one vertex at a time from z toward x, until reaching
                 # either x or a previously labeled edge.
-    
+
                 # Stack of edges to be labeled
                 edges_to_label = []
                 while u != x and (u in p[i] and frozenset((u, p[i][u])) not in edge_label):
@@ -1418,6 +1425,6 @@ def edge_disjoint_spanning_trees(G, k, by_weight=False, weight_function=None, ch
         raise EmptySetError(msg_no_solution)
 
     for f in res:
-        for u, v in f.edges(labels=False):
+        for u, v in f.edges(sort=False, labels=False):
             f.set_edge_label(u, v, G.edge_label(u, v))
     return res

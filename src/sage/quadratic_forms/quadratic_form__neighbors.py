@@ -183,12 +183,12 @@ def find_p_neighbor_from_vec(self, p, y):
     R = self.base_ring()
     odd = False
     if R is QQ:
-      odd = True
-      if G.denominator() != 1:
-        raise ValueError("the associated bilinear form q(x+y)-q(x)-q(y) must be integral.")
+        odd = True
+        if G.denominator() != 1:
+            raise ValueError("the associated bilinear form q(x+y)-q(x)-q(y) must be integral.")
     b = y*G*y
     if not b % p == 0:
-        raise ValueError("y^2 must be divisible by p=%s"%p)
+        raise ValueError("y^2 must be divisible by p=%s" % p)
     y_dual = y*G
     if p != 2 and b % p**2 != 0:
         for k in range(n):
@@ -248,7 +248,7 @@ def neighbor_iteration(seeds, p, mass=None, max_classes=ZZ(10)**3,
 
     - ``max_classes`` -- (default: ``1000``) break the computation when ``max_classes`` are found
 
-    - ``algorithm`` -- (optional) one of 'orbits', 'random', 'exaustion'
+    - ``algorithm`` -- (optional) one of 'orbits', 'random', 'exhaustion'
 
     - ``max_random_trys`` -- (default: ``1000``) the maximum number of neighbors
                              computed for a single lattice
@@ -265,7 +265,7 @@ def neighbor_iteration(seeds, p, mass=None, max_classes=ZZ(10)**3,
         46
         sage: mass = Q.conway_mass()
         sage: g1 = neighbor_iteration([Q],3, mass=mass, algorithm = 'random') # long time
-        sage: g2 = neighbor_iteration([Q],3, algorithm = 'exaustion') # long time
+        sage: g2 = neighbor_iteration([Q],3, algorithm = 'exhaustion') # long time
         sage: g3 = neighbor_iteration([Q],3, algorithm = 'orbits')
         sage: mass == sum(1/q.number_of_automorphisms() for q in g1) # long time
         True
@@ -304,7 +304,7 @@ def neighbor_iteration(seeds, p, mass=None, max_classes=ZZ(10)**3,
             yield from iter(v.lift() for v in Q.orbits_lines_mod_p(p)
                             if v != 0 and Q(v.lift()).valuation(p) > 0)
             return
-    elif algorithm == 'exaustion':
+    elif algorithm == 'exhaustion':
         def p_divisible_vectors(Q, max_neighbors):
             k = 0
             v = Q.find_primitive_p_divisible_vector__next(p)
@@ -312,12 +312,12 @@ def neighbor_iteration(seeds, p, mass=None, max_classes=ZZ(10)**3,
                 k = k + 1
                 v = Q.find_primitive_p_divisible_vector__next(p, v)
                 if v is not None:
-                  yield v
+                    yield v
     elif algorithm == 'random':
         def p_divisible_vectors(Q, max_neighbors):
             k = 0
             while k < max_neighbors:
-                k = k +1
+                k += 1
                 v = Q.find_primitive_p_divisible_vector__random(p)
                 yield v
     else:
@@ -397,6 +397,3 @@ def orbits_lines_mod_p(self, p):
     orbs_reps = orbs(gens, p)
     M = GF(p)**self.dim()
     return [M(m.sage()) for m in orbs_reps if not m.IsZero()]
-
-
-

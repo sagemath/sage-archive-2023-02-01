@@ -578,7 +578,7 @@ class FiniteInductiveValuation(InductiveValuation, DiscreteValuation):
             # extend to K[x] and from there to K(x)
             v = self.extension(self.domain().change_ring(self.domain().base().fraction_field()))
             return [other.valuation(v)]
-        return super(FiniteInductiveValuation, self).extensions(other)
+        return super().extensions(other)
 
 
 class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
@@ -1264,6 +1264,19 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
             sage: v2.is_equivalent(F.prod(), G)
             True
 
+        Check that :trac:`33422` is fixed::
+
+            sage: R.<x> = QQ[]
+            sage: v_7 = QQ.valuation(7)
+            sage: v0 = GaussValuation(R, v_7)
+            sage: v1 = v0.augmentation(x, 3/2)
+            sage: v2 = v1.augmentation(x^2-686, 7/2)
+            sage: f = x^4 - 8001504*x^2 - 592815428352
+            sage: F = v2.equivalence_decomposition(f); F
+            x^4 - 343/2*x^2 + 1294139
+            sage: v2.is_equivalent(F.prod(), f)
+            True
+
         """
         f = self.domain().coerce(f)
 
@@ -1296,6 +1309,9 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
         if compute_unit:
             from sage.misc.misc_c import prod
             unit *= self.lift(self.residue_ring()(prod([psi.leading_coefficient()**e for psi, e in F])))
+            if not self.is_gauss_valuation():
+                unit *= prod([self._Q_reciprocal(e*psi.degree()) for psi, e in F])
+            unit = self.simplify(unit, effective_degree=0, force=True)
 
         # A potential speedup that we tried to implement here:
         # When F factors as T^n - a, then instead of using any lift of T^n - a
@@ -1305,12 +1321,6 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
 
         F = [(self.lift_to_key(psi / psi.leading_coefficient()), e)
              for psi, e in F]
-
-        if compute_unit:
-            for g, e in F:
-                v_g = self(g)
-                unit *= self._pow(self.equivalence_unit(-v_g, reciprocal=True), e, error=-v_g * e, effective_degree=0)
-            unit = self.simplify(unit, effective_degree=0, force=True)
 
         if phi_divides:
             for i, (g, e) in enumerate(F):
@@ -1667,7 +1677,7 @@ class InfiniteInductiveValuation(FinalInductiveValuation, InfiniteDiscretePseudo
         from sage.rings.polynomial.polynomial_quotient_ring import is_PolynomialQuotientRing
         if is_PolynomialQuotientRing(ring) and ring.base() is self.domain() and ring.modulus() == self.phi():
             return self.restriction(self.domain().base())._extensions_to_quotient(ring, approximants=[self])[0]
-        return super(InfiniteInductiveValuation, self).change_domain(ring)
+        return super().change_domain(ring)
 
 
 def _lift_to_maximal_precision(c):

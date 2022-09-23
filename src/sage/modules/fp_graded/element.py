@@ -1,10 +1,6 @@
 r"""
 Elements of finitely presented graded modules
 
-This class implements construction and basic manipulation of elements of the
-Sage parent :class:`sage.modules.fp_graded.module.FPModule`, which models
-finitely presented modules over connected graded algebras.
-
 AUTHORS:
 
 - Robert R. Bruner, Michael J. Catanzaro (2012): Initial version.
@@ -14,7 +10,7 @@ AUTHORS:
   new documentation and tests.
 """
 
-#*****************************************************************************
+# *****************************************************************************
 #       Copyright (C) 2011 Robert R. Bruner <rrb@math.wayne.edu> and
 #                          Michael J. Catanzaro <mike@math.wayne.edu>
 #
@@ -40,6 +36,7 @@ class FPElement(IndexedFreeModuleElement):
         sage: FPModule(SteenrodAlgebra(2), [0])([Sq(2)])
         Sq(2)*g[0]
     """
+
     def lift_to_free(self):
         r"""
         Return the lift of ``self`` to the free module ``F``,
@@ -61,7 +58,6 @@ class FPElement(IndexedFreeModuleElement):
         """
         C = self.parent()._j.codomain()
         return C(self.dense_coefficient_list())
-
 
     @cached_method
     def degree(self):
@@ -114,7 +110,6 @@ class FPElement(IndexedFreeModuleElement):
             raise ValueError("the zero element does not have a well-defined degree")
         return self.lift_to_free().degree()
 
-
     def dense_coefficient_list(self, order=None):
         """
         Return a list of all coefficients of ``self``.
@@ -142,7 +137,6 @@ class FPElement(IndexedFreeModuleElement):
         if order is None:
             order = self.parent()._indices
         return [self[i] for i in order]
-
 
     def _lmul_(self, a):
         r"""
@@ -181,29 +175,28 @@ class FPElement(IndexedFreeModuleElement):
              Sq(1,1,1)*g[0] + Sq(5,1)*g[3],
              Sq(3,2)*g[3]]
         """
-        return self.parent()(a*self.lift_to_free())
-
+        return self.parent()(a * self.lift_to_free())
 
     def vector_presentation(self):
         r"""
         A coordinate vector representing ``self`` when it is non-zero.
 
         These are coordinates with respect to the basis chosen by
-        :meth:`sage.modules.fp_graded.module.FPModule.basis_elements`.
+        :meth:`~sage.modules.fp_graded.module.FPModule.basis_elements`.
         When the element is zero, it has no well defined degree, and this
         function returns ``None``.
 
         OUTPUT:
 
-        A vector of elements in the ground field of the algebra for
+        A vector of elements in the ground ring of the algebra for
         this module when this element is non-zero.  Otherwise, the
         value ``None``.
 
         .. SEEALSO::
 
-            :meth:`sage.modules.fp_graded.module.FPModule.vector_presentation`
-            :meth:`sage.modules.fp_graded.module.FPModule.basis_elements`
-            :meth:`sage.modules.fp_graded.module.FPModule.element_from_coordinates`
+            * :meth:`sage.modules.fp_graded.module.FPModule.vector_presentation`
+            * :meth:`sage.modules.fp_graded.module.FPModule.basis_elements`
+            * :meth:`sage.modules.fp_graded.module.FPModule.element_from_coordinates`
 
         EXAMPLES::
 
@@ -254,7 +247,6 @@ class FPElement(IndexedFreeModuleElement):
         F_n = self.parent().vector_presentation(degree)
         return F_n.quotient_map()(self.lift_to_free().vector_presentation())
 
-
     def __bool__(self):
         r"""
         Determine if this element is non-zero.
@@ -285,7 +277,6 @@ class FPElement(IndexedFreeModuleElement):
         if pres is None:
             return False
         return bool(pres)
-
 
     def __eq__(self, other):
         r"""
@@ -322,7 +313,6 @@ class FPElement(IndexedFreeModuleElement):
         except TypeError:
             return False
 
-
     def normalize(self):
         r"""
         A normalized form of ``self``.
@@ -356,4 +346,3 @@ class FPElement(IndexedFreeModuleElement):
 
         v = self.vector_presentation()
         return self.parent().element_from_coordinates(v, self.degree())
-

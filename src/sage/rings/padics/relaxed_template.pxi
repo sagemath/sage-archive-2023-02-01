@@ -809,7 +809,7 @@ cdef class RelaxedElement(pAdicGenericElement):
             return a == b
         return self.is_equal_to(other, secure=self._parent.is_secure())
 
-    def __nonzero__(self):
+    def __bool__(self):
         r"""
         Return ``True`` if this element is indistinguishable from zero.
 
@@ -4030,7 +4030,7 @@ cdef class RelaxedElement_zeroone(RelaxedElementWithDigits):
         return ERROR_NOTDEFINED
 
 
-cdef class ExpansionIter(object):
+cdef class ExpansionIter():
     """
     An iterator over a `p`-adic expansion.
 

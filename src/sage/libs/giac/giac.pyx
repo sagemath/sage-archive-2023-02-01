@@ -159,9 +159,6 @@ from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational
 from sage.structure.element cimport Matrix
 
-from sage.plot.line import line
-from sage.plot.scatter_plot import scatter_plot
-
 from sage.symbolic.expression import symbol_table
 from sage.calculus.calculus import symbolic_expression_from_string, SR_parser_giac
 from sage.symbolic.ring import SR
@@ -170,21 +167,16 @@ from sage.symbolic.expression_conversions import InterfaceInit
 from sage.interfaces.giac import giac
 
 
-#### Python3 compatibility  #############################
-PythonVersion3 = True
-
+# Python3 compatibility ############################
 def decstring23(s):
     return s.decode()
 
 
 def encstring23(s):
-    return bytes(s,'UTF-8')
+    return bytes(s, 'UTF-8')
 
-listrange = list,range
-
-####End of Python3 compatibility########################
-
-########################################################
+listrange = list, range
+# End of Python3 compatibility #####################
 
 
 ########################################################
@@ -812,39 +804,31 @@ cdef class Pygen(GiacMethods_base):
             sig_off()
             return
 
-        if isinstance(s,int):       # This looks 100 faster than the str initialisation
-            if PythonVersion3:
-            #in python3 int and long are int
-                if s.bit_length()< Pymaxint.bit_length():
-                    sig_on()
-                    self.gptr = new gen(<long long>s)
-                    sig_off()
-                else:
-                    sig_on()
-                    self.gptr = new gen(pylongtogen(s))
-                    sig_off()
-            else:
+        if isinstance(s, int):
+            # This looks 100 faster than the str initialisation
+            if s.bit_length() < Pymaxint.bit_length():
                 sig_on()
                 self.gptr = new gen(<long long>s)
                 sig_off()
+            else:
+                sig_on()
+                self.gptr = new gen(pylongtogen(s))
+                sig_off()
 
-        #
-        elif isinstance(s,Integer):       # for sage int (gmp)
+        elif isinstance(s, Integer):       # for sage int (gmp)
             sig_on()
             if (abs(s)>Pymaxint):
                 self.gptr = new gen((<Integer>s).value)
             else:
-                self.gptr = new gen(<long long>s)   #important for pow to have a int
+                self.gptr = new gen(<long long>s)   # important for pow to have a int
             sig_off()
 
-
-        elif isinstance(s,Rational):       # for sage rat (gmp)
+        elif isinstance(s, Rational):       # for sage rat (gmp)
             #self.gptr = new gen((<Pygen>(Pygen(s.numerator())/Pygen(s.denominator()))).gptr[0])
             # FIXME: it's slow
             sig_on()
             self.gptr = new gen(GIAC_rdiv(gen((<Integer>(s.numerator())).value),gen((<Integer>(s.denominator())).value)))
             sig_off()
-
 
         elif isinstance(s, Matrix):
             s = Pygen(s.list()).list2mat(s.ncols())
@@ -852,23 +836,13 @@ cdef class Pygen(GiacMethods_base):
             self.gptr = new gen((<Pygen>s).gptr[0])
             sig_off()
 
-
-        elif isinstance(s,float):
+        elif isinstance(s, float):
             sig_on()
             self.gptr = new gen(<double>s)
             sig_off()
 
-
-        elif isinstance(s,long):
-            #s=str(s)
-            #self.gptr = new gen(<string>s,context_ptr)
-            sig_on()
-            self.gptr = new gen(pylongtogen(s))
-            sig_off()
-
-
-        elif isinstance(s,Pygen):
-            #in the test: x,y=Pygen('x,y');((x+2*y).sin()).texpand()
+        elif isinstance(s, Pygen):
+            # in the test: x,y=Pygen('x,y');((x+2*y).sin()).texpand()
             # the y are lost without this case.
             sig_on()
             self.gptr = new gen((<Pygen>s).gptr[0])
@@ -879,26 +853,27 @@ cdef class Pygen(GiacMethods_base):
             self.gptr = new gen(_wrap_pylist(<list>s),<short int>0)
             sig_off()
 
-        elif isinstance(s,tuple):
+        elif isinstance(s, tuple):
             sig_on()
             self.gptr = new gen(_wrap_pylist(<tuple>s),<short int>1)
             sig_off()
 
         # Other types are converted with strings.
         else:
-            if isinstance(s,Expression):
+            if isinstance(s, Expression):
                 # take account of conversions with key giac in the sage symbol dict
-                s=SRexpressiontoGiac(s)
-            if not(isinstance(s,str)):  #modif python3
-                s=s.__str__()
+                try:
+                    s = s._giac_init_()
+                except AttributeError:
+                    s = SRexpressiontoGiac(s)
+            if not(isinstance(s, str)):  #modif python3
+                s = s.__str__()
             sig_on()
             self.gptr = new gen(<string>encstring23(s),context_ptr)
             sig_off()
 
-
     def __dealloc__(self):
         del self.gptr
-
 
     def __repr__(self):
         # fast evaluation of the complexity of the gen. (it's not the number of char )
@@ -981,7 +956,7 @@ cdef class Pygen(GiacMethods_base):
         cdef gen result
 
         if(self._type == 7) or (self._type == 12):   #if self is a list or a string
-            if isinstance(i,int) or isinstance(i,Integer):
+            if isinstance(i, (int, Integer)):
                 n=len(self)
                 if(i<n)and(-i<=n):
                     if(i<0):
@@ -1103,11 +1078,11 @@ cdef class Pygen(GiacMethods_base):
 
     def __add__(self, right):
         cdef gen result
-        if isinstance(right,Pygen)==False:
+        if not isinstance(right, Pygen):
             right=Pygen(right)
         # Curiously this case is important:
         # otherwise: f=1/(2+sin(5*x)) crash
-        if isinstance(self,Pygen)==False:
+        if not isinstance(self, Pygen):
             self=Pygen(self)
         sig_on()
         result= (<Pygen>self).gptr[0] + (<Pygen>right).gptr[0]
@@ -1128,7 +1103,7 @@ cdef class Pygen(GiacMethods_base):
             right = Pygen(args[0])
         else:
             right = GIACNULL
-        if isinstance(self, Pygen) == False:
+        if not isinstance(self, Pygen):
             self = Pygen(self)
         # Some giac errors such as pari_locked are caught by the try
         # so we can't put the sig_on() in the try.
@@ -1157,9 +1132,9 @@ cdef class Pygen(GiacMethods_base):
 
     def __sub__(self, right):
         cdef gen result
-        if isinstance(right,Pygen)==False:
+        if not isinstance(right, Pygen):
             right=Pygen(right)
-        if isinstance(self,Pygen)==False:
+        if not isinstance(self, Pygen):
             self=Pygen(self)
         sig_on()
         result= (<Pygen>self).gptr[0] - (<Pygen>right).gptr[0]
@@ -1177,9 +1152,9 @@ cdef class Pygen(GiacMethods_base):
             sqrt(5)*x
         """
         cdef gen result
-        if isinstance(right,Pygen)==False:
+        if not isinstance(right, Pygen):
             right=Pygen(right)
-        if isinstance(self,Pygen)==False:
+        if not isinstance(self, Pygen):
             self=Pygen(self)
         #result= (<Pygen>self).gptr[0] * (<Pygen>right).gptr[0]
         #NB: with the natural previous method, the following error generated by
@@ -1202,9 +1177,9 @@ cdef class Pygen(GiacMethods_base):
             sqrt(3)*x/3
         """
         cdef gen result
-        if isinstance(right,Pygen)==False:
+        if not isinstance(right, Pygen):
             right=Pygen(right)
-        if isinstance(self,Pygen)==False:
+        if not isinstance(self, Pygen):
             self=Pygen(self)
         sig_on()
         result= GIAC_giacdiv((<Pygen>self).gptr[0] , (<Pygen>right).gptr[0],context_ptr)
@@ -1213,9 +1188,9 @@ cdef class Pygen(GiacMethods_base):
 
     def __truediv__(self, right):
         cdef gen result
-        if isinstance(right,Pygen)==False:
+        if not isinstance(right, Pygen):
             right=Pygen(right)
-        if isinstance(self,Pygen)==False:
+        if not isinstance(self, Pygen):
             self=Pygen(self)
         sig_on()
         result= (<Pygen>self).gptr[0] / (<Pygen>right).gptr[0]
@@ -1225,9 +1200,9 @@ cdef class Pygen(GiacMethods_base):
 
     def __pow__(self, right ,ignored):
         cdef gen result
-        if isinstance(right,Pygen)==False:
+        if not isinstance(right, Pygen):
             right=Pygen(right)
-        if isinstance(self,Pygen)==False:
+        if not isinstance(self, Pygen):
             self=Pygen(self)
         sig_on()
         result= GIAC_pow((<Pygen>self).gptr[0],(<Pygen>right).gptr[0], context_ptr )
@@ -1236,9 +1211,9 @@ cdef class Pygen(GiacMethods_base):
 
     def __mod__(self, right):
         cdef gen result
-        if not isinstance(right,Pygen):
+        if not isinstance(right, Pygen):
             right=Pygen(right)
-        if not isinstance(self,Pygen):
+        if not isinstance(self, Pygen):
             self=Pygen(self)
         #result= gen(GIAC_makenewvecteur((<Pygen>self).gptr[0],(<Pygen>right).gptr[0]),<short int>1)
         #to have an integer output:
@@ -1251,7 +1226,7 @@ cdef class Pygen(GiacMethods_base):
 
     def __neg__(self):
         cdef gen result
-        if isinstance(self,Pygen)==False:
+        if not isinstance(self, Pygen):
             self=Pygen(self)
         sig_on()
         result= GIAC_neg((<Pygen>self).gptr[0])
@@ -1678,15 +1653,18 @@ cdef class Pygen(GiacMethods_base):
         Basic export of some 2D plots to sage. Only generic plots are supported.
         lines, circles, ... are not implemented
         """
-        xyscat=[]
-        xyplot=[]
-        plotdata=self
-        if not plotdata.type()=='DOM_LIST':
-            plotdata=[plotdata]
+        from sage.plot.line import line
+        from sage.plot.scatter_plot import scatter_plot
+
+        xyscat = []
+        xyplot = []
+        plotdata = self
+        if not plotdata.type() == 'DOM_LIST':
+            plotdata = [plotdata]
 
         sig_on()
         for G in plotdata:
-            if G.dim()>2:  # it is not a pnt. Ex: scatterplot
+            if G.dim() > 2:  # it is not a pnt. Ex: scatterplot
                 for g in G:
                     xyscat=xyscat+[[(g.real())._double,(g.im())._double]]
 
@@ -1708,9 +1686,6 @@ cdef class Pygen(GiacMethods_base):
 
         return result
 
-
-
-
     # # # # # # # # # # # # # # # # # # # # # # # # #
     #           WARNING:
     #
@@ -1721,9 +1696,9 @@ cdef class Pygen(GiacMethods_base):
     # # # # # # # # # # # # # # # # # # # # # # # # #
 
     def __richcmp__( self, other,op):
-        if isinstance(other,Pygen)==False:
+        if not isinstance(other, Pygen):
             other=Pygen(other)
-        if isinstance(self,Pygen)==False:
+        if not isinstance(self, Pygen):
             self=Pygen(self)
         sig_on()
         result= giacgenrichcmp((<Pygen>self).gptr[0],(<Pygen>other).gptr[0], op, context_ptr )
@@ -1929,8 +1904,7 @@ cdef  gen pylongtogen(a) except +:
         # when cythonizing with cython 0.24:
         # g=-g gives an Invalid operand type for '-' (gen)
         g=GIAC_neg(g)
-    return g;
-
+    return g
 
 
 #############################################################
@@ -2036,8 +2010,8 @@ class GiacFunctionNoEV(Pygen):
 #############################################################
 # Some convenient settings
 ############################################################
-Pygen('printpow(1)').eval() ; # default power is ^
-Pygen('add_language(1)').eval(); # Add the french keywords in the giac library language.
+Pygen('printpow(1)').eval()  # default power is ^
+Pygen('add_language(1)').eval()  # Add the french keywords in the giac library language.
 # FIXME: print I for sqrt(-1) instead of i
 # GIAC_try_parse_i(False,context_ptr); (does not work??)
 

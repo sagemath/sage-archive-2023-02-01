@@ -49,10 +49,10 @@ dnl Make sure the path to our own m4 macros is always properly set
 dnl and doesn't depend on how autoconf is called.
 AC_CONFIG_MACRO_DIR([m4])
 
-dnl The AC_LIB_RPATH macro comes from gettext, which is one of our bootstrap
-dnl packages. It defines, among other things, the $acl_shlibext variable that
+dnl The AC_LIB_RPATH macro comes from a Gnulib-provided file in m4/.
+dnl It defines, among other things, the $acl_shlibext variable that
 dnl contains the shared library extension for this system. We already use the
-dnl AM_ICONV macro from gettext (which ultimately calls AC_LIB_RPATH), and we
+dnl AM_ICONV macro from the same source (which ultimately calls AC_LIB_RPATH), and we
 dnl avoid involving libtool by using it to get the shared library extension.
 AC_LIB_RPATH
 AC_SUBST(SHLIBEXT, "${acl_shlibext}")
@@ -127,8 +127,9 @@ AC_ARG_ENABLE([debug],
 AC_ARG_VAR(SAGE_DEBUG, controls debugging support: "no" debugging; debugging "symbols" (default); build debug version ("yes"))
 
 AC_ARG_ENABLE([editable],
-              [AS_HELP_STRING([--enable-editable],
-                              [use an editable install of the Sage library])],
+              [AS_HELP_STRING([--disable-editable],
+                              [do not use an editable install of the Sage library: changes to Python files will require "sage -b" to rebuild the Sage library])],
+              [AC_SUBST([SAGE_EDITABLE], [$enableval])],
               [AC_SUBST([SAGE_EDITABLE], [yes])])
 
 # Check whether we are on a supported platform
@@ -465,7 +466,7 @@ AC_ARG_ENABLE([cvxopt],
 AC_ARG_ENABLE([notebook],
   AS_HELP_STRING([--disable-notebook],
                  [disable build of the Jupyter notebook and related packages]), [
-    for pkg in notebook nbconvert sagenb_export nbformat nbclient terminado send2trash prometheus_client mistune pandocfilters bleach defusedxml jsonschema jupyter_jsmol argon2_cffi; do
+    for pkg in notebook nbconvert beautifulsoup4 sagenb_export nbformat nbclient terminado send2trash prometheus_client mistune pandocfilters bleach defusedxml jsonschema jupyter_jsmol argon2_cffi; do
       AS_VAR_SET([SAGE_ENABLE_$pkg], [$enableval])
     done
   ])
@@ -488,11 +489,12 @@ AC_ARG_ENABLE([doc],
   AS_HELP_STRING([--disable-doc],
                  [disable build of the Sage documentation and packages depending on it]), [
     dnl Disable packages needed for docbuilding
-    for pkg in sage_docbuild alabaster babel snowballstemmer imagesize sphinx sphinxcontrib_devhelp sphinxcontrib_jsmath sphinxcontrib_serializinghtml sphinxcontrib_applehelp sphinxcontrib_htmlhelp sphinxcontrib_qthelp sphinxcontrib_websupport; do
+    for pkg in sage_docbuild alabaster babel snowballstemmer imagesize sphinx sphinxcontrib_devhelp sphinxcontrib_jsmath sphinxcontrib_serializinghtml sphinxcontrib_applehelp sphinxcontrib_htmlhelp sphinxcontrib_qthelp sphinxcontrib_websupport jupyter_sphinx furo; do
       AS_VAR_SET([SAGE_ENABLE_$pkg], [$enableval])
     done
-    dnl Disable the docbuild by disabling the install tree for documentation
-    AS_VAR_SET([SAGE_DOCS], [])
+    AS_VAR_IF([enableval], [no], [dnl Disable the docbuild by disabling the install tree for documentation
+        AS_VAR_SET([SAGE_DOCS], [])dnl
+    ])
   ])
 
 AC_ARG_ENABLE([sagelib],
@@ -513,7 +515,7 @@ dnl AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_FILES([build/make/Makefile-auto build/make/Makefile])
 AC_CONFIG_FILES([src/bin/sage-env-config src/bin/sage-src-env-config build/bin/sage-build-env-config])
 
-AC_CONFIG_FILES([pkgs/sage-conf/sage_conf.py pkgs/sage-conf/setup.cfg])
+AC_CONFIG_FILES([pkgs/sage-conf/_sage_conf/_conf.py])
 
 dnl Create basic directories needed for Sage
 AC_CONFIG_COMMANDS(mkdirs,

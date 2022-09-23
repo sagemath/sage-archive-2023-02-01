@@ -12,16 +12,14 @@ A (slightly generalized) description of the algorithm can be found in [KS2019]_.
 
 Terminology in this module:
 
-- Coatoms               -- the faces from which all others are constructed in
-                           the face iterator. This will be facets or Vrep.
-                           In non-dual mode, faces are constructed as
-                           intersections of the facets. In dual mode, the are
-                           constructed theoretically as joins of vertices.
-                           The coatoms are repsented as incidences with the
-                           atoms they contain.
-- Atoms                 -- facets or Vrep depending on application of algorithm.
-                           Atoms are repsented as incidences of coatoms they
-                           are contained in.
+- Coatoms -- the faces from which all others are constructed in the
+  face iterator. This will be facets or Vrep.  In non-dual mode, faces
+  are constructed as intersections of the facets. In dual mode, they
+  are constructed theoretically as joins of vertices.  The coatoms are
+  repsented as incidences with the atoms they contain.
+
+- Atoms -- facets or Vrep depending on application of algorithm.  Atoms are
+  represented as incidences of coatoms they are contained in.
 
 .. SEEALSO::
 
@@ -213,7 +211,7 @@ cdef class FaceIterator_base(SageObject):
 
             sage: P = polytopes.permutahedron(4)                     # optional - sage.combinat
             sage: C = CombinatorialPolyhedron(P)                     # optional - sage.combinat
-            sage: it = C.face_iter() # indirect doctest              # optional - sage.combinat
+            sage: it = C.face_generator() # indirect doctest              # optional - sage.combinat
 
             sage: f_vector = [1, 0, 0, 0, 1]
             sage: for face in it: f_vector[face.dimension()+1] += 1  # optional - sage.combinat
@@ -379,7 +377,7 @@ cdef class FaceIterator_base(SageObject):
 
             sage: P = polytopes.cube()
             sage: C = P.combinatorial_polyhedron()
-            sage: it = C.face_iter()
+            sage: it = C.face_generator()
             sage: next(it).ambient_V_indices()
             (0, 3, 4, 5)
             sage: it.reset()
@@ -392,7 +390,7 @@ cdef class FaceIterator_base(SageObject):
 
             sage: P = polytopes.Birkhoff_polytope(3)
             sage: C = P.combinatorial_polyhedron()
-            sage: it = C.face_iter(dual=False)
+            sage: it = C.face_generator(algorithm='primal')
             sage: face = next(it)
             sage: face.ambient_H_indices(add_equations=False)
             (8,)
@@ -454,7 +452,7 @@ cdef class FaceIterator_base(SageObject):
         EXAMPLES::
 
             sage: P = polytopes.octahedron()
-            sage: it = P.combinatorial_polyhedron().face_iter()
+            sage: it = P.combinatorial_polyhedron().face_generator()
             sage: next(it)
             A 0-dimensional face of a 3-dimensional combinatorial polyhedron
             sage: it.current()
@@ -472,7 +470,7 @@ cdef class FaceIterator_base(SageObject):
 
             sage: P = polytopes.simplex()
             sage: C = CombinatorialPolyhedron(P)
-            sage: it = C.face_iter()
+            sage: it = C.face_generator()
             sage: [d for d in it]
             [A 2-dimensional face of a 3-dimensional combinatorial polyhedron,
              A 2-dimensional face of a 3-dimensional combinatorial polyhedron,
@@ -499,7 +497,7 @@ cdef class FaceIterator_base(SageObject):
 
             sage: P = polytopes.simplex()
             sage: C = CombinatorialPolyhedron(P)
-            sage: it = C.face_iter()
+            sage: it = C.face_generator()
             sage: it1 = loads(it.dumps())
             Traceback (most recent call last):
             ...
@@ -517,7 +515,7 @@ cdef class FaceIterator_base(SageObject):
 
             sage: P = polytopes.Gosset_3_21()
             sage: C = CombinatorialPolyhedron(P)
-            sage: it = C.face_iter(dual=False)
+            sage: it = C.face_generator(algorithm='primal')
             sage: n_non_simplex_faces = 1
             sage: for face in it:
             ....:     if face.n_ambient_Vrepresentation() > face.dimension() + 1:
@@ -530,7 +528,7 @@ cdef class FaceIterator_base(SageObject):
 
         Face iterator must not be in dual mode::
 
-            sage: it = C.face_iter(dual=True)
+            sage: it = C.face_generator(algorithm='dual')
             sage: _ = next(it)
             sage: it.ignore_subfaces()
             Traceback (most recent call last):
@@ -539,7 +537,7 @@ cdef class FaceIterator_base(SageObject):
 
         Ignoring the same face as was requested to visit only consumes the iterator::
 
-            sage: it = C.face_iter(dual=False)
+            sage: it = C.face_generator(algorithm='primal')
             sage: _ = next(it)
             sage: it.only_subfaces()
             sage: it.ignore_subfaces()
@@ -548,7 +546,7 @@ cdef class FaceIterator_base(SageObject):
 
         Face iterator must be set to a face first::
 
-            sage: it = C.face_iter(dual=False)
+            sage: it = C.face_generator(algorithm='primal')
             sage: it.ignore_subfaces()
             Traceback (most recent call last):
             ...
@@ -568,7 +566,7 @@ cdef class FaceIterator_base(SageObject):
 
             sage: P = polytopes.Gosset_3_21()
             sage: C = CombinatorialPolyhedron(P)
-            sage: it = C.face_iter(dual=True)
+            sage: it = C.face_generator(algorithm='dual')
             sage: n_faces_with_non_simplex_quotient = 1
             sage: for face in it:
             ....:     n_facets = face.n_ambient_Hrepresentation(add_equations=False)
@@ -582,7 +580,7 @@ cdef class FaceIterator_base(SageObject):
 
         Face iterator must be in dual mode::
 
-            sage: it = C.face_iter(dual=False)
+            sage: it = C.face_generator(algorithm='primal')
             sage: _ = next(it)
             sage: it.ignore_supfaces()
             Traceback (most recent call last):
@@ -631,7 +629,7 @@ cdef class FaceIterator_base(SageObject):
 
             sage: s = cones.schur(4)
             sage: C = CombinatorialPolyhedron(s)
-            sage: it = C.face_iter()
+            sage: it = C.face_generator()
             sage: it.meet_of_Hrep(1,2).ambient_H_indices()
             (1, 2)
             sage: it.meet_of_Hrep(1,2,3).ambient_H_indices()
@@ -829,7 +827,7 @@ cdef class FaceIterator_base(SageObject):
         In non-dual mode we construct the meet of facets::
 
             sage: P = polytopes.cube()
-            sage: it = P.face_generator(dual=False)
+            sage: it = P.face_generator(algorithm='primal')
             sage: it._meet_of_coatoms(1,2)
             A 1-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 2 vertices
             sage: it._meet_of_coatoms(1,2,3)
@@ -840,7 +838,7 @@ cdef class FaceIterator_base(SageObject):
         In dual mode we construct the join of vertices/rays::
 
             sage: P = polytopes.cube()
-            sage: it = P.face_generator(dual=True)
+            sage: it = P.face_generator(algorithm='dual')
             sage: it._meet_of_coatoms(1,2)
             A 1-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 2 vertices
             sage: it._meet_of_coatoms(1,2,3)
@@ -938,7 +936,7 @@ cdef class FaceIterator_base(SageObject):
         In dual mode we construct the meet of facets::
 
             sage: P = polytopes.cube()
-            sage: it = P.face_generator(dual=True)
+            sage: it = P.face_generator(algorithm='dual')
             sage: it._join_of_atoms(1,2)
             A 1-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 2 vertices
             sage: it._join_of_atoms(1,2,3)
@@ -949,7 +947,7 @@ cdef class FaceIterator_base(SageObject):
         In non-dual mode we construct the join of vertices/rays::
 
             sage: P = polytopes.cube()
-            sage: it = P.face_generator(dual=False)
+            sage: it = P.face_generator(algorithm='primal')
             sage: it._join_of_atoms(1,2)
             A 1-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 2 vertices
             sage: it._join_of_atoms(1,2,3)
@@ -1093,7 +1091,7 @@ cdef class FaceIterator_base(SageObject):
 
             sage: P = polytopes.Birkhoff_polytope(4)
             sage: C = P.combinatorial_polyhedron()
-            sage: it = C.face_iter()
+            sage: it = C.face_generator()
             sage: next(it).ambient_H_indices(add_equations=False)
             (15,)
             sage: next(it).ambient_H_indices(add_equations=False)
@@ -1104,7 +1102,7 @@ cdef class FaceIterator_base(SageObject):
 
         Face iterator needs to be set to a face first::
 
-            sage: it = C.face_iter()
+            sage: it = C.face_generator()
             sage: it.only_subfaces()
             Traceback (most recent call last):
             ...
@@ -1112,16 +1110,16 @@ cdef class FaceIterator_base(SageObject):
 
         Face iterator must not be in dual mode::
 
-            sage: it = C.face_iter(dual=True)
+            sage: it = C.face_generator(algorithm='dual')
             sage: _ = next(it)
             sage: it.only_subfaces()
             Traceback (most recent call last):
             ...
             ValueError: only possible when not in dual mode
 
-        Cannot run ``only_subfaces`` after ``ignore_subfaces::
+        Cannot run ``only_subfaces`` after ``ignore_subfaces``::
 
-            sage: it = C.face_iter()
+            sage: it = C.face_generator()
             sage: _ = next(it)
             sage: it.ignore_subfaces()
             sage: it.only_subfaces()
@@ -1158,7 +1156,7 @@ cdef class FaceIterator_base(SageObject):
 
             sage: P = polytopes.Birkhoff_polytope(4)
             sage: C = P.combinatorial_polyhedron()
-            sage: it = C.face_iter(dual=True)
+            sage: it = C.face_generator(algorithm='dual')
             sage: next(it).ambient_V_indices()
             (23,)
             sage: next(it).ambient_V_indices()
@@ -1335,17 +1333,17 @@ cdef class FaceIterator(FaceIterator_base):
 
         sage: P = polytopes.cuboctahedron()
         sage: C = CombinatorialPolyhedron(P)
-        sage: it = C.face_iter()
+        sage: it = C.face_generator()
         sage: next(it)
         A 0-dimensional face of a 3-dimensional combinatorial polyhedron
 
     Construct faces by the dual or not::
 
-        sage: it = C.face_iter(dual=False)
+        sage: it = C.face_generator(algorithm='primal')
         sage: next(it).dimension()
         2
 
-        sage: it = C.face_iter(dual=True)
+        sage: it = C.face_generator(algorithm='dual')
         sage: next(it).dimension()
         0
 
@@ -1353,7 +1351,7 @@ cdef class FaceIterator(FaceIterator_base):
 
         sage: P = Polyhedron(rays=[[0,0,1], [0,1,0], [1,0,0]])
         sage: C = CombinatorialPolyhedron(P)
-        sage: it = C.face_iter()
+        sage: it = C.face_generator()
         sage: [face.ambient_Vrepresentation() for face in it]
         [(A vertex at (0, 0, 0),
           A ray in the direction (0, 1, 0),
@@ -1368,16 +1366,16 @@ cdef class FaceIterator(FaceIterator_base):
          (A vertex at (0, 0, 0), A ray in the direction (0, 1, 0)),
          (A vertex at (0, 0, 0),),
          (A vertex at (0, 0, 0), A ray in the direction (0, 0, 1))]
-        sage: it = C.face_iter(dual=True)
+        sage: it = C.face_generator(algorithm='dual')
         Traceback (most recent call last):
         ...
-        ValueError: cannot iterate over dual of unbounded Polyedron
+        ValueError: dual algorithm only available for bounded polyhedra
 
     Construct a face iterator only yielding dimension `2` faces::
 
         sage: P = polytopes.permutahedron(5)
         sage: C = CombinatorialPolyhedron(P)
-        sage: it = C.face_iter(dimension=2)
+        sage: it = C.face_generator(dimension=2)
         sage: counter = 0
         sage: for _ in it: counter += 1
         sage: print ('permutahedron(5) has', counter,
@@ -1390,7 +1388,7 @@ cdef class FaceIterator(FaceIterator_base):
 
         sage: P = polytopes.cube()
         sage: C = CombinatorialPolyhedron(P)
-        sage: it = C.face_iter(dual=False)
+        sage: it = C.face_generator(algorithm='primal')
         sage: face = next(it)
         sage: face.ambient_H_indices()
         (5,)
@@ -1414,7 +1412,7 @@ cdef class FaceIterator(FaceIterator_base):
          (0, 1, 2),
          (0, 1)]
 
-        sage: it = C.face_iter(dual=True)
+        sage: it = C.face_generator(algorithm='dual')
         sage: next(it)
         A 0-dimensional face of a 3-dimensional combinatorial polyhedron
         sage: it.ignore_subfaces()
@@ -1424,7 +1422,7 @@ cdef class FaceIterator(FaceIterator_base):
 
     In dual mode one can ignore all faces that contain the current face::
 
-        sage: it = C.face_iter(dual=True)
+        sage: it = C.face_generator(algorithm='dual')
         sage: next(it)
         A 0-dimensional face of a 3-dimensional combinatorial polyhedron
         sage: face = next(it)
@@ -1456,7 +1454,7 @@ cdef class FaceIterator(FaceIterator_base):
          (1, 2),
          (0, 1)]
 
-        sage: it = C.face_iter(dual=False)
+        sage: it = C.face_generator(algorithm='primal')
         sage: next(it)
         A 2-dimensional face of a 3-dimensional combinatorial polyhedron
         sage: it.ignore_supfaces()
@@ -1466,84 +1464,93 @@ cdef class FaceIterator(FaceIterator_base):
 
     ALGORITHM:
 
-    For the special case that the all intervals of the lattice not containing zero are boolean
-    (e.g. when the polyhedron is simple) the algorithm is modified. See below.
-
-
-    A (slightly generalized) description of the algorithm can be found in [KS2019]_.
-
     The algorithm to visit all proper faces exactly once is roughly
-    equivalent to::
+    equivalent to the following. A (slightly generalized) description of the
+    algorithm can be found in [KS2019]_.
+
+    Initialization::
 
         faces = [set(facet) for facet in P.facets()]
         face_iterator(faces, [])
 
+    The function ``face_iterator`` is defined recursively. It visits all faces of
+    the polyhedron `P`, except those contained in any of ``visited_all``.
+    It assumes ``faces`` to be exactly those facets of `P`
+    that are not contained in any of the ``visited_all``.
+    It assumes ``visited_all`` to be some list of faces of
+    a polyhedron `P_2`, which contains `P` as one of its faces::
+
         def face_iterator(faces, visited_all):
-            # Visit all faces of a polyhedron `P`, except those contained in
-            # any of the visited all.
-
-            # Assumes ``faces`` to be exactly those facets of `P`
-            # that are not contained in any of the ``visited_all``.
-
-            # Assumes ``visited_all`` to be some list of faces of
-            # a polyhedron `P_2`, which contains `P` as one of its faces.
-
             while facets:
                 one_face = faces.pop()
-                new_faces = [one_face.intersection(face) for face in faces]
+                maybe_new_faces = [one_face.intersection(face) for face in faces]
+        ...
 
-                # ``maybe_new_faces`` contains all facets of ``one_face``,
-                # which we have not visited before.
-                # Proof: Let `F` be a facet of ``one_face``.
-                # We have a chain:
-                # `P` ⊃ ``one_face`` ⊃ `F`.
-                # By diamond property there exists ``second_face`` with:
-                # `P` ⊃ ``second_face`` ⊃ `F`.
+    At this point we claim that ``maybe_new_faces`` contains all facets of ``one_face``,
+    which we have not visited before.
 
-                # Either ``second_face`` is not an element of ``faces``:
-                #     Hence ``second_face`` is contained in one of ``visited_all``.
-                #     In particular, `F` is contained in ``visited_all``.
-                # Or ``second_face`` is an element of ``faces``:
-                #     Then, intersecting ``one_face`` with ``second_face`` gives
-                #     ``F``. ∎
+    Proof: Let `F` be a facet of ``one_face``. We have a chain:
+    `P \supset{}` ``one_face`` `{}\supset F`.
+    By the diamond property, there exists a ``second_face`` with
+    `P \supset{}` ``second_face`` `{}\supset F`.
 
-                # If an element in ``maybe_new_faces`` is inclusion maximal
-                # and not contained in any of the ``visited_all``,
-                # it is a facet of ``one_face``.
-                # Any facet in ``maybe_new_faces`` of ``one_face``
-                # is inclusion maximal.
+    Now either ``second_face`` is not an element of ``faces``:
+    Hence ``second_face`` is contained in one of ``visited_all``.
+    In particular, `F` is contained in ``visited_all``.
+
+    Or ``second_face`` is an element of ``faces``:
+    Then, intersecting ``one_face`` with ``second_face`` gives ``F``.
+
+    This concludes the proof.
+
+    Moreover, if an element in ``maybe_new_faces`` is inclusion-maximal
+    and not contained in any of the ``visited_all``, it is a facet of ``one_face``.
+    Any facet in ``maybe_new_faces`` of ``one_face`` is inclusion-maximal.
+
+    Hence, in the following loop, an element ``face1`` in ``maybe_new_faces``
+    is a facet of ``one_face`` if and only if it is not contained in another facet::
+
+        ...
                 maybe_new_faces2 = []
                 for i, face1 in enumerate(maybe_new_faces):
-                    # ``face1`` is a facet of ``one_face``,
-                    # iff it is not contained in another facet.
                     if (all(not face1 < face2 for face2 in maybe_new_faces[:i])
                             and all(not face1 <= face2 for face2 in maybe_new_faces[i+1:])):
                         maybe_new_faces2.append(face1)
+        ...
 
-                # ``maybe_new_faces2`` contains only facets of ``one_face``
-                # and some faces contained in any of ``visited_all``.
-                # It also contains all the facets not contained in any of ``visited_all``.
-                # Let ``new_faces`` be the list of all facets of ``one_face``
-                # not contained in any of ``visited_all``.
+    Now ``maybe_new_faces2`` contains only facets of ``one_face``
+    and some faces contained in any of ``visited_all``.
+    It also contains all the facets not contained in any of ``visited_all``.
+
+    We construct ``new_faces`` as the list of all facets of ``one_face``
+    not contained in any of ``visited_all``::
+
+        ...
                 new_faces = []
                 for face1 in maybe_new_faces2:
                     if all(not face1 < face2 for face2 in visited_all):
                         new_faces.append(face1)
+        ...
 
-                # By induction we can apply the algorithm, to visit all
-                # faces of ``one_face`` not contained in ``visited_all``:
+    By induction we can apply the algorithm, to visit all
+    faces of ``one_face`` not contained in ``visited_all``::
+
+        ...
                 face_iterator(new_faces, visited_all)
+        ...
 
-                # Finally visit ``one_face`` and add it to ``visited_all``:
+    Finally we visit ``one_face`` and add it to ``visited_all``::
+
+        ...
                 visit(one_face)
                 visited_all.append(one_face)
 
-                # Note: At this point, we have visited exactly those faces,
-                # contained in any of the ``visited_all``.
+    Note: At this point, we have visited exactly those faces,
+    contained in any of the ``visited_all``. The function ends here.
 
 
-    For the special case that the all intervals of the lattice not containing zero are boolean
-    (e.g. when the polyhedron is simple), the algorithm can be modified.
+    ALGORITHM for the special case that all intervals of the lattice not
+    containing zero are boolean (e.g. when the polyhedron is simple):
 
     We do not assume any other properties of our lattice in this case.
     Note that intervals of length 2 not containing zero, have exactly 2 elements now.
@@ -1571,10 +1578,10 @@ cdef class FaceIterator(FaceIterator_base):
 
             sage: P = polytopes.associahedron(['A',3])               # optional - sage.combinat
             sage: C = CombinatorialPolyhedron(P)                     # optional - sage.combinat
-            sage: C.face_iter()                                      # optional - sage.combinat
+            sage: C.face_generator()                                 # optional - sage.combinat
             Iterator over the proper faces of a 3-dimensional combinatorial polyhedron
 
-            sage: C.face_iter(1)                                     # optional - sage.combinat
+            sage: C.face_generator(1)                                # optional - sage.combinat
             Iterator over the 1-faces of a 3-dimensional combinatorial polyhedron
         """
         if self.structure.output_dimension != -2:
@@ -1596,7 +1603,7 @@ cdef class FaceIterator(FaceIterator_base):
 
             sage: P = polytopes.cube()
             sage: C = CombinatorialPolyhedron(P)
-            sage: it = C.face_iter()
+            sage: it = C.face_generator()
             sage: [next(it) for _ in range(7)]
             [A 2-dimensional face of a 3-dimensional combinatorial polyhedron,
              A 2-dimensional face of a 3-dimensional combinatorial polyhedron,
@@ -1639,12 +1646,12 @@ cdef class FaceIterator_geom(FaceIterator_base):
 
     Construct faces by the dual or not::
 
-        sage: it = P.face_generator(dual=False)
+        sage: it = P.face_generator(algorithm='primal')
         sage: _ = next(it), next(it)
         sage: next(it).dim()
         2
 
-        sage: it = P.face_generator(dual=True)
+        sage: it = P.face_generator(algorithm='dual')
         sage: _ = next(it), next(it)
         sage: next(it).dim()
         0
@@ -1672,7 +1679,7 @@ cdef class FaceIterator_geom(FaceIterator_base):
          (A vertex at (0, 0, 0), A ray in the direction (0, 1, 0)),
          (A vertex at (0, 0, 0),),
          (A vertex at (0, 0, 0), A ray in the direction (0, 0, 1))]
-        sage: it = P.face_generator(dual=True)
+        sage: it = P.face_generator(algorithm='dual')
         Traceback (most recent call last):
         ...
         ValueError: cannot iterate over dual of unbounded Polyedron
@@ -1692,7 +1699,7 @@ cdef class FaceIterator_geom(FaceIterator_base):
     In non-dual mode one can ignore all faces contained in the current face::
 
         sage: P = polytopes.cube()
-        sage: it = P.face_generator(dual=False)
+        sage: it = P.face_generator(algorithm='primal')
         sage: _ = next(it), next(it)
         sage: face = next(it)
         sage: face.ambient_H_indices()
@@ -1717,7 +1724,7 @@ cdef class FaceIterator_geom(FaceIterator_base):
          (0, 1, 2),
          (0, 1)]
 
-        sage: it = P.face_generator(dual=True)
+        sage: it = P.face_generator(algorithm='dual')
         sage: _ = next(it), next(it)
         sage: next(it)
         A 0-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 1 vertex
@@ -1729,7 +1736,7 @@ cdef class FaceIterator_geom(FaceIterator_base):
     In dual mode one can ignore all faces that contain the current face::
 
         sage: P = polytopes.cube()
-        sage: it = P.face_generator(dual=True)
+        sage: it = P.face_generator(algorithm='dual')
         sage: _ = next(it), next(it)
         sage: next(it)
         A 0-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 1 vertex
@@ -1762,7 +1769,7 @@ cdef class FaceIterator_geom(FaceIterator_base):
          (1, 2),
          (0, 1)]
 
-        sage: it = P.face_generator(dual=False)
+        sage: it = P.face_generator(algorithm='primal')
         sage: _ = next(it), next(it)
         sage: next(it)
         A 2-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 4 vertices
@@ -1970,7 +1977,13 @@ cdef inline int next_face_loop(iter_t structure) nogil except -1:
         # In this case there exists ``faces[0].faces[n_faces]``, of which we
         # have visited all faces, but which was not added to
         # ``visited_all`` yet.
-        add_face_shallow(visited_all[0], faces[0].faces[n_faces])
+
+        if not faces[0].polyhedron_is_simple:
+            # In case of a simple lattice, this step needs not to be applied:
+            # Every element, except the lower bound, has a unique representation of coatoms in this case.
+            # Hence, as the face is already removed from faces[0], any subfaces will not be visited.
+            # (If we manually ignore subfaces, faces will still be added to visited_all).
+            add_face_shallow(visited_all[0], faces[0].faces[n_faces])
     else:
         # Once we have visited all faces of ``faces[n_faces]``, we want
         # to add it to ``visited_all``.
@@ -2008,7 +2021,7 @@ cdef inline int next_face_loop(iter_t structure) nogil except -1:
 
 cdef inline size_t n_atom_rep(iter_t structure) nogil except -1:
     r"""
-    See meth:`FaceIterator.n_atom_rep`.
+    See :meth:`FaceIterator.n_atom_rep`.
     """
     if structure.face_status:
         return face_len_atoms(structure.face)
@@ -2193,7 +2206,14 @@ cdef inline int prepare_face_iterator_for_partial_job(
 
             for i in range(job_id_c):
                 # Fast forwarding the jobs.
-                add_face_shallow(structure.visited_all[d], structure.new_faces[d].faces[structure.new_faces[d].n_faces -1])
+
+                if not structure.new_faces[d].polyhedron_is_simple:
+                    # In case of a simple lattice, this step needs not to be applied:
+                    # Every element, except the lower bound, has a unique representation of coatoms in this case.
+                    # Hence, as the face is already removed from faces[0], any subfaces will not be visited.
+                    # (If we manually ignore subfaces, faces will still be added to visited_all).
+                    add_face_shallow(structure.visited_all[d], structure.new_faces[d].faces[structure.new_faces[d].n_faces -1])
+
                 structure.new_faces[d].n_faces -= 1
 
             parallel_struct.current_job_id[current_depth -1] = job_id_c

@@ -202,7 +202,7 @@ class SloaneEncyclopediaClass:
             raise IOError("Sloane encyclopedia is already installed")
 
         tm = verbose("Downloading stripped version of Sloane encyclopedia")
-        ssl._create_default_https_context = ssl.SSLContext
+        ssl._create_default_https_context = ssl.create_default_context
         try:
             fname, _ = urlretrieve(oeis_url)
         except IOError as msg:
@@ -357,7 +357,6 @@ def copy_gz_file(gz_source, bz_destination):
     - ``bz_destination`` -- string.  The name of the newly compressed file.
     """
     import gzip
-    from sage.misc.misc import sage_makedirs
 
     # Read the gzipped input
     try:
@@ -369,7 +368,7 @@ def copy_gz_file(gz_source, bz_destination):
 
     # Write the bzipped output
     try:
-        sage_makedirs(os.path.dirname(bz_destination))
+        os.makedirs(os.path.dirname(bz_destination), exist_ok=True)
         bz2_output = bz2.BZ2File(bz_destination, 'w')
         bz2_output.write(db_text)
         bz2_output.close()

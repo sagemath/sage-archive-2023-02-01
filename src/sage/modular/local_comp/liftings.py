@@ -2,12 +2,12 @@ r"""
 Helper functions for local components
 
 This module contains various functions relating to lifting elements of
-`\mathrm{SL}_2(\ZZ / N\ZZ)` to `\mathrm{SL}_2(\ZZ)`, and other related
+`\SL_2(\ZZ / N\ZZ)` to `\SL_2(\ZZ)`, and other related
 problems.
 """
 
 from sage.rings.integer_ring import ZZ
-from sage.arith.all import crt, inverse_mod
+from sage.arith.misc import crt, inverse_mod
 from sage.modular.modsym.p1list import lift_to_sl2z
 
 
@@ -106,7 +106,7 @@ def lift_matrix_to_sl2z(A, N):
 
 def lift_gen_to_gamma1(m, n):
     r"""
-    Return four integers defining a matrix in `\mathrm{SL}_2(\ZZ)` which is
+    Return four integers defining a matrix in `\SL_2(\ZZ)` which is
     congruent to `\begin{pmatrix} 0 & -1 \\ 1 & 0 \end{pmatrix} \pmod m` and
     lies in the subgroup `\begin{pmatrix} 1 & * \\ 0 & 1 \end{pmatrix} \pmod
     n`.

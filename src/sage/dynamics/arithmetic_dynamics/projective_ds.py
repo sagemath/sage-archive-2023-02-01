@@ -334,7 +334,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: DynamicalSystem_projective([y, x, y], domain=P1)
             Traceback (most recent call last):
             ...
-            ValueError: Number of polys does not match dimension of Projective Space of dimension 1 over Rational Field
+            ValueError: number of polys does not match dimension of Projective Space of dimension 1 over Rational Field
 
         ::
 
@@ -419,7 +419,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             except TypeError:
                 raise TypeError('coefficients of polynomial not in {}'.format(domain.base_ring()))
         if len(polys) != domain.ambient_space().coordinate_ring().ngens():
-            raise ValueError('Number of polys does not match dimension of {}'.format(domain))
+            raise ValueError(f'number of polys does not match dimension of {domain}')
         R = domain.base_ring()
         if isinstance(R, sage.rings.abc.SymbolicRing):
             raise TypeError("the base ring cannot be the Symbolic Ring or a symbolic subring")
@@ -973,7 +973,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         else:
             PHI = H([Coord_ring.gen(i) for i in range(N)])
         while D:
-            if D&1:
+            if D & 1:
                 PHI = PHI*F
                 if normalize:
                     PHI.normalize_coordinates()
@@ -1072,7 +1072,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: f.nth_iterate(P(0, 1), 3)
             Traceback (most recent call last):
             ...
-            ValueError: [0, 0] does not define a valid point since all entries are 0
+            ValueError: [0, 0] does not define a point in Projective Space of dimension 1 over Rational Field since all entries are zero
 
         ::
 
@@ -1286,7 +1286,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: f.orbit(P(0, 1), 3)
             Traceback (most recent call last):
             ...
-            ValueError: [0, 0] does not define a valid point since all entries are 0
+            ValueError: [0, 0] does not define a point in Projective Space of dimension 1 over Rational Field since all entries are zero
             sage: f.orbit(P(0, 1), 3, check=False)
             [(0 : 1), (0 : 0), (0 : 0), (0 : 0)]
 
@@ -2029,7 +2029,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             # this looks different than Wells' Algorithm because of the difference
             # between what Wells' calls H_infty,
             # and what Green's Function returns for the infinite place
-            h = f.green_function(Q, 0 , **kwds) - H + R(t).log()
+            h = f.green_function(Q, 0, **kwds) - H + R(t).log()
             # The value returned by Well's algorithm may be negative. As the canonical height
             # is always nonnegative, so if this value is within -err of 0, return 0.
             if h < 0:
@@ -2104,36 +2104,38 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
         EXAMPLES::
 
-            sage: P.<x,y> = ProjectiveSpace(QQ,1)
-            sage: f = DynamicalSystem_projective([x^2+y^2, x*y])
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: f = DynamicalSystem_projective([x^2 + y^2, x*y])
             sage: f.height_difference_bound()
             1.38629436111989
 
-        This function does not automatically normalize. ::
-
-            sage: P.<x,y,z> = ProjectiveSpace(ZZ,2)
-            sage: f = DynamicalSystem_projective([4*x^2+100*y^2, 210*x*y, 10000*z^2])
-            sage: f.height_difference_bound()
-            11.0020998412042
-            sage: f.normalize_coordinates()
+            sage: P.<x,y,z> = ProjectiveSpace(ZZ, 2)
+            sage: f = DynamicalSystem_projective([4*x^2 + 100*y^2, 210*x*y, 10000*z^2])
             sage: f.height_difference_bound()
             10.3089526606443
 
-       A number field example::
+        A number field example::
 
             sage: R.<x> = QQ[]
             sage: K.<c> = NumberField(x^3 - 2)
-            sage: P.<x,y,z> = ProjectiveSpace(K,2)
-            sage: f = DynamicalSystem_projective([1/(c+1)*x^2+c*y^2, 210*x*y, 10000*z^2])
+            sage: P.<x,y,z> = ProjectiveSpace(K, 2)
+            sage: f = DynamicalSystem_projective([1/(c+1)*x^2 + c*y^2, 210*x*y, 10000*z^2])
             sage: f.height_difference_bound()
-            11.0020998412042
+            11.3683039374269
 
         ::
 
-            sage: P.<x,y,z> = ProjectiveSpace(QQbar,2)
+            sage: P.<x,y,z> = ProjectiveSpace(QQbar, 2)
             sage: f = DynamicalSystem_projective([x^2, QQbar(sqrt(-1))*y^2, QQbar(sqrt(3))*z^2])
             sage: f.height_difference_bound()
-            3.43967790223022
+            2.89037175789616
+
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: f = DynamicalSystem([5*x^2 + 3*x*y , y^2 + 3*x^2])
+            sage: f.height_difference_bound(prec=100)
+            5.3375380797013179737224159274
         """
         FF = FractionField(self.domain().base_ring()) #lift will only work over fields, so coercing into FF
         if FF not in NumberFields():
@@ -2157,19 +2159,12 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         #compute lower bound - from explicit polynomials of Nullstellensatz
         CR = f.domain().coordinate_ring()
         I = CR.ideal(f.defining_polynomials())
-        MCP = []
+        maxh = 0
         for k in range(N + 1):
             CoeffPolys = (CR.gen(k) ** D).lift(I)
-            Res = lcm([1] + [abs(coeff.denominator()) for val in CoeffPolys
-                             for coeff in val.coefficients()])
-            h = max([c.global_height() for g in CoeffPolys for c in (Res*g).coefficients()])
-            MCP.append([Res, h]) #since we need to clear denominators
-        maxh = 0
-        gcdRes = 0
-        for val in MCP:
-            gcdRes = gcd(gcdRes, val[0])
-            maxh = max(maxh, val[1])
-        L = abs(R(gcdRes).log() - R((N + 1) * binomial(N + D - d, D - d)).log() - maxh)
+            h = max([g.global_height(prec) for g in CoeffPolys])
+            maxh = max(maxh, h)
+        L = R((N + 1) * binomial(N + D - d, D - d)).log() + maxh
         C = max(U, L) #height difference dh(P) - L <= h(f(P)) <= dh(P) +U
         return C / (d - 1)
 
@@ -3150,10 +3145,10 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         """
         n = ZZ(n)
         if n < 1:
-            raise ValueError('Period must be positive')
+            raise ValueError('period must be positive')
         m = ZZ(m)
         if m < 0:
-            raise ValueError('Preperiod must be non-negative')
+            raise ValueError('preperiod must be non-negative')
         f = self
         CR = f.coordinate_ring()
         dom = f.domain()
@@ -3359,11 +3354,11 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         num_cpus = kwds.get('num_cpus', 2)
         if self.domain().dimension_relative() != 1:
             return self.conjugating_set(self, num_cpus)
-        if self.base_ring() != QQ  and self.base_ring() != ZZ:
+        if self.base_ring() != QQ and self.base_ring() != ZZ:
             return self.conjugating_set(self, num_cpus)
         self.normalize_coordinates()
         if (self.degree() == 1) or (self.degree() == 0):
-            raise NotImplementedError("Rational function of degree 1 not implemented.")
+            raise NotImplementedError("rational function of degree 1 not implemented")
         f = self.dehomogenize(1)
         R = PolynomialRing(f.base_ring(),'x')
         if is_FractionFieldElement(f[0]):
@@ -3747,7 +3742,6 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         if len(set(crit_orbit)) > 3:
             return False
         return True
-
 
     def critical_point_portrait(self, check=True, use_algebraic_closure=True):
         r"""
@@ -4187,8 +4181,8 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             f_sub = self.change_ring(R)
             R = f_sub.base_ring() #in the case when R is an embedding
         if isinstance(R, FractionField_1poly_field) or is_FunctionField(R):
-            raise NotImplementedError('Periodic points not implemented for function fields.'
-            + 'Clear denominators and use the polynomial ring instead.')
+            raise NotImplementedError('Periodic points not implemented for function fields; '
+                'clear denominators and use the polynomial ring instead')
         CR = f_sub.coordinate_ring()
         dom = f_sub.domain()
         PS = f_sub.codomain().ambient_space()
@@ -4518,12 +4512,12 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             f_sub = self.change_ring(R)
             R = f_sub.base_ring() #in the case when R is an embedding
         if isinstance(R, FractionField_1poly_field) or is_FunctionField(R):
-            raise NotImplementedError('Periodic points not implemented for fraction function fields.'
-            + 'Clear denominators and use the polynomial ring instead.')
+            raise NotImplementedError('periodic points not implemented for fraction function fields; '
+                'clear denominators and use the polynomial ring instead')
         if is_FractionField(R):
             if is_MPolynomialRing(R.ring()):
-                raise NotImplementedError('Periodic points not implemented for fraction function fields.'
-                + 'Clear denominators and use the polynomial ring instead.')
+                raise NotImplementedError('periodic points not implemented for fraction function fields; '
+                    'clear denominators and use the polynomial ring instead')
         CR = f_sub.coordinate_ring()
         dom = f_sub.domain()
         PS = f_sub.codomain().ambient_space()
@@ -4848,7 +4842,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         Computes the values of the elementary symmetric polynomials evaluated
         on the ``n`` multiplier spectra of this dynamical system.
 
-        The sigma invariants are the symetric polynomials evaluated on the
+        The sigma invariants are the symmetric polynomials evaluated on the
         characteristic polynomial of the multipliers. See [Hutz2019]_ for
         the full definition. Spepcifically, this function returns either
         the following polynomial or its coefficients (with signs
@@ -5165,7 +5159,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             Traceback (most recent call last):
             ..
             ValueError: sigma polynomial dropped degree, as multiplicities were not accounted
-            for correctly. try setting chow=True and/or deform=True
+            for correctly; try setting chow=True and/or deform=True
 
         ::
 
@@ -5175,7 +5169,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             Traceback (most recent call last):
             ..
             ValueError: sigma polynomial dropped degree, as multiplicities were not accounted
-            for correctly. try setting chow=True and/or deform=True
+            for correctly; try setting chow=True and/or deform=True
         """
         n = ZZ(n)
 
@@ -5310,8 +5304,8 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                 else:
                     expected_degree = sum(d**(n*i) for i in range(N+1))
                 if degree_w != expected_degree:
-                    raise ValueError('sigma polynomial dropped degree, as multiplicities were not accounted for correctly.'+
-                                    ' try setting chow=True and/or deform=True')
+                    raise ValueError('sigma polynomial dropped degree, as multiplicities were not accounted for correctly; '
+                                     'try setting chow=True and/or deform=True')
             if return_polynomial:
                 return sigma_polynomial
             # if we are returing a numerical list, read off the coefficients
@@ -5727,7 +5721,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                     pp_d = pts_poly.degree()
                     pts_poly_CF = pts_poly_CF.subs({pts_poly_CF.parent().gen(1):1}).univariate_polynomial()
                     max_mult = max([pp_d - pts_poly_CF.degree()] + [ex for p,ex in pts_poly_CF.roots()])
-            assert(n<=4), "n > 4, failed to find usable poly"
+            assert (n<=4), "n > 4, failed to find usable poly"
             G,m = pts_poly.reduced_form(prec=prec, emb=emb, smallest_coeffs=False)
             sm_f = self.conjugate(m)
 
@@ -5811,7 +5805,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         # however precision issues can occur so we can only tell *not* preperiodic
         # if the value is larger than the error
         if h <= err:
-            # if the canonical height is less than than the
+            # if the canonical height is less than the
             # error, then we suspect preperiodic so check
             # either we can find the cycle or the height is
             # larger than the difference between the canonical height
@@ -5914,7 +5908,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         post_critical_list = []
         for point in critical_points:
             next_point = f(point)
-            while not(next_point in post_critical_list):
+            while next_point not in post_critical_list:
                 post_critical_list.append(next_point)
                 next_point = f(next_point)
         return post_critical_list
@@ -6117,12 +6111,12 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
                     k = 1
                     done = False
                     while not done and k <= n:
-                          newP = self(newP)
-                          if newP == P:
-                              if not ([P, k] in good_points):
-                                  good_points.append([newP, k])
-                              done = True
-                          k += 1
+                        newP = self(newP)
+                        if newP == P:
+                            if not ([P, k] in good_points):
+                                good_points.append([newP, k])
+                            done = True
+                        k += 1
 
         return good_points
 
@@ -6932,7 +6926,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
             sage: D8.conjugating_set(D8)
             Traceback (most recent call last):
             ...
-            ValueError: no more rational preimages. try extending the base field and trying again.
+            ValueError: no more rational preimages; try extending the base field and trying again
 
         ::
 
@@ -8328,7 +8322,7 @@ class DynamicalSystem_projective_finite_field(DynamicalSystem_projective_field,
             z = f[0].parent().gen()
         self.normalize_coordinates()
         if (self.degree() == 1) or (self.degree() == 0):
-            raise NotImplementedError("Rational function of degree 1 not implemented.")
+            raise NotImplementedError("rational function of degree 1 not implemented")
         if f[0].denominator() != 1:
             F = f[0].numerator().polynomial(z) / f[0].denominator().polynomial(z)
         else:

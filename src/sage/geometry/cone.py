@@ -1505,7 +1505,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container, ConvexSet_c
             True
             sage: TestSuite(sc).run()
         """
-        superinit = super(ConvexRationalPolyhedralCone, self).__init__
+        superinit = super().__init__
         if ambient is None:
             superinit(rays, lattice)
             self._ambient = self
@@ -1749,7 +1749,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container, ConvexSet_c
         """
         point = flatten(args)
         if len(point) == 1:
-           point = point[0]
+            point = point[0]
         return self._contains(point, 'interior')
 
     @cached_method
@@ -1827,7 +1827,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container, ConvexSet_c
         """
         point = flatten(args)
         if len(point) == 1:
-           point = point[0]
+            point = point[0]
         return self._contains(point, 'relative interior')
 
     @cached_method
@@ -1893,8 +1893,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container, ConvexSet_c
             in 2-d lattice N+N
         """
         assert is_Cone(other)
-        rc = super(ConvexRationalPolyhedralCone, self).cartesian_product(
-                                                                other, lattice)
+        rc = super().cartesian_product(other, lattice)
         return ConvexRationalPolyhedralCone(rc.rays(), rc.lattice())
 
     def __neg__(self):
@@ -1918,7 +1917,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container, ConvexSet_c
             N( 0, -1)
             in 2-d lattice N
         """
-        rc = super(ConvexRationalPolyhedralCone, self).__neg__()
+        rc = super().__neg__()
         return ConvexRationalPolyhedralCone(rc.rays(), rc.lattice())
 
     def __richcmp__(self, right, op):
@@ -2245,7 +2244,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container, ConvexSet_c
         """
         point = flatten(args)
         if len(point) == 1:
-           point = point[0]
+            point = point[0]
         return self._contains(point)
 
     def dual(self):
@@ -2603,7 +2602,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container, ConvexSet_c
 
                 self._face_lattice = lattice_from_incidences(
                                     atom_to_facets, facet_to_atoms, ConeFace,
-                                    key = id(self))
+                                    key=id(self))
             else:
                 # Get face lattice as a sublattice of the ambient one
                 allowed_indices = frozenset(self._ambient_ray_indices)
@@ -2643,7 +2642,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container, ConvexSet_c
                         L.add_edge(face_to_index[face], next_index)
                 D = {i:f for i,f in enumerate(faces)}
                 L.relabel(D)
-                self._face_lattice = FinitePoset(L, faces, key = id(self))
+                self._face_lattice = FinitePoset(L, faces, key=id(self))
         return self._face_lattice
 
     # Internally we use this name for a uniform behaviour of cones and fans.
@@ -2745,17 +2744,16 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container, ConvexSet_c
         We also ensure that a call to this function does not break
         :meth:`facets` method (see :trac:`9780`)::
 
-            sage: cone = toric_varieties.dP8().fan().generating_cone(0)
-            sage: cone
+            sage: cone = toric_varieties.dP8().fan().generating_cone(0); cone   # optional - palp
             2-d cone of Rational polyhedral fan in 2-d lattice N
-            sage: for f in cone.facets(): print(f.rays())
+            sage: for f in cone.facets(): print(f.rays())                       # optional - palp
             N(1, 1)
             in 2-d lattice N
             N(0, 1)
             in 2-d lattice N
-            sage: len(cone.faces())
+            sage: len(cone.faces())                                             # optional - palp
             3
-            sage: for f in cone.facets(): print(f.rays())
+            sage: for f in cone.facets(): print(f.rays())                       # optional - palp
             N(1, 1)
             in 2-d lattice N
             N(0, 1)
@@ -3535,21 +3533,15 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container, ConvexSet_c
 
             sage: quadrant = Cone([(1,0), (0,1)])
             sage: quadrant.an_affine_basis()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: this function is not implemented for unbounded polyhedra
+            [(0, 0), (1, 0), (0, 1)]
             sage: ray = Cone([(1, 1)])
             sage: ray.an_affine_basis()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: this function is not implemented for unbounded polyhedra
+            [(0, 0), (1, 1)]
             sage: line = Cone([(1,0), (-1,0)])
             sage: line.an_affine_basis()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: this function is not implemented for unbounded polyhedra
+            [(1, 0), (0, 0)]
         """
-        return self.polyhedron().an_affine_basis()
+        return [vector(v) for v in self.polyhedron().an_affine_basis()]
 
     @cached_method
     def strict_quotient(self):

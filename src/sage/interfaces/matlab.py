@@ -150,7 +150,7 @@ language works). Use square brackets or the set function::
 import os
 
 from .expect import Expect, ExpectElement
-from sage.docs.instancedoc import instancedoc
+from sage.misc.instancedoc import instancedoc
 
 
 class Matlab(Expect):
@@ -170,15 +170,15 @@ class Matlab(Expect):
     def __init__(self, maxread=None, script_subdirectory=None,
                  logfile=None, server=None,server_tmpdir=None):
         Expect.__init__(self,
-                        name = 'matlab',
-                        prompt = '>> ',
-                        command = "sage-native-execute matlab -nodisplay",
-                        server = server,
-                        server_tmpdir = server_tmpdir,
-                        script_subdirectory = script_subdirectory,
-                        restart_on_ctrlc = False,
-                        verbose_start = False,
-                        logfile = logfile,
+                        name='matlab',
+                        prompt='>> ',
+                        command="matlab -nodisplay",
+                        server=server,
+                        server_tmpdir=server_tmpdir,
+                        script_subdirectory=script_subdirectory,
+                        restart_on_ctrlc=False,
+                        verbose_start=False,
+                        logfile=logfile,
                         eval_using_file_cutoff=100)
 
     def __reduce__(self):

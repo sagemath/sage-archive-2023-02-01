@@ -496,7 +496,7 @@ class CoxeterTypeFromCartanType(UniqueRepresentation, CoxeterType):
         EXAMPLES::
 
             sage: C = CoxeterType(['H',3])
-            sage: C.coxeter_graph().edges()
+            sage: C.coxeter_graph().edges(sort=True)
             [(1, 2, 3), (2, 3, 5)]
         """
         return self._cartan_type.coxeter_diagram()
@@ -669,4 +669,3 @@ class CoxeterTypeFromCartanType(UniqueRepresentation, CoxeterType):
             Coxeter type of ['A', 2] relabelled by {1: -1, 2: -2}
         """
         return CoxeterType(self._cartan_type.relabel(relabelling))
-

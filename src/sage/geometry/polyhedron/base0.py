@@ -1,7 +1,5 @@
 r"""
-Base class for polyhedra, part 0
-
-Initialization and access to Vrepresentation and Hrepresentation.
+Base class for polyhedra: Initialization and access to Vrepresentation and Hrepresentation
 """
 
 # ****************************************************************************
@@ -33,6 +31,7 @@ Initialization and access to Vrepresentation and Hrepresentation.
 # ****************************************************************************
 
 from sage.misc.cachefunc import cached_method
+from sage.misc.abstract_method import abstract_method
 from sage.structure.element import Element
 import sage.geometry.abc
 
@@ -84,10 +83,10 @@ class Polyhedron_base0(Element, sage.geometry.abc.Polyhedron):
 
             sage: from sage.geometry.polyhedron.backend_field import Polyhedron_field
             sage: from sage.geometry.polyhedron.parent import Polyhedra_field
-            sage: parent = Polyhedra_field(AA, 1, 'field')
+            sage: parent = Polyhedra_field(AA, 1, 'field')                             # optional - sage.rings.number_field
             sage: Vrep = [[[0], [1/2], [1]], [], []]
             sage: Hrep = [[[0, 1], [1, -1]], []]
-            sage: p = Polyhedron_field(parent, Vrep, Hrep,
+            sage: p = Polyhedron_field(parent, Vrep, Hrep,                             # optional - sage.rings.number_field
             ....:                      Vrep_minimal=False, Hrep_minimal=True)
             Traceback (most recent call last):
             ...
@@ -181,6 +180,7 @@ class Polyhedron_base0(Element, sage.geometry.abc.Polyhedron):
         else:
             self._init_empty_polyhedron()
 
+    @abstract_method
     def _init_from_Vrepresentation(self, vertices, rays, lines, **kwds):
         """
         Construct polyhedron from V-representation data.
@@ -206,10 +206,10 @@ class Polyhedron_base0(Element, sage.geometry.abc.Polyhedron):
             sage: Polyhedron_base._init_from_Vrepresentation(p, [], [], [])
             Traceback (most recent call last):
             ...
-            NotImplementedError: a derived class must implement this method
+            TypeError: 'AbstractMethod' object is not callable
         """
-        raise NotImplementedError('a derived class must implement this method')
 
+    @abstract_method
     def _init_from_Hrepresentation(self, ieqs, eqns, **kwds):
         """
         Construct polyhedron from H-representation data.
@@ -231,9 +231,8 @@ class Polyhedron_base0(Element, sage.geometry.abc.Polyhedron):
             sage: Polyhedron_base._init_from_Hrepresentation(p, [], [])
             Traceback (most recent call last):
             ...
-            NotImplementedError: a derived class must implement this method
+            TypeError: 'AbstractMethod' object is not callable
         """
-        raise NotImplementedError('a derived class must implement this method')
 
     def _init_empty_polyhedron(self):
         """
@@ -314,8 +313,8 @@ class Polyhedron_base0(Element, sage.geometry.abc.Polyhedron):
             sage: P = Polyhedron(vertices = [[1, 0], [0, 1]], rays = [[1, 1]], backend='normaliz') # optional - pynormaliz
             sage: sage_input(P)                                                                    # optional - pynormaliz
             Polyhedron(backend='normaliz', base_ring=QQ, rays=[(QQ(1), QQ(1))], vertices=[(QQ(0), QQ(1)), (QQ(1), QQ(0))])
-            sage: P = Polyhedron(vertices = [[1, 0], [0, 1]], rays = [[1, 1]], backend='polymake') # optional - polymake
-            sage: sage_input(P)                                                                    # optional - polymake
+            sage: P = Polyhedron(vertices = [[1, 0], [0, 1]], rays = [[1, 1]], backend='polymake') # optional - jupymake
+            sage: sage_input(P)                                                                    # optional - jupymake
             Polyhedron(backend='polymake', base_ring=QQ, rays=[(QQ(1), QQ(1))], vertices=[(QQ(1), QQ(0)), (QQ(0), QQ(1))])
        """
         kwds = dict()
@@ -908,7 +907,7 @@ class Polyhedron_base0(Element, sage.geometry.abc.Polyhedron):
 
             It is recommended to use :meth:`inequalities` or
             :meth:`inequality_generator` instead to iterate over the
-            list of :class:`Inequality` objects.
+            list of :class:`~sage.geometry.polyhedron.representation.Inequality` objects.
 
         EXAMPLES::
 
@@ -990,7 +989,7 @@ class Polyhedron_base0(Element, sage.geometry.abc.Polyhedron):
         .. NOTE::
 
             It is recommended to use :meth:`vertex_generator` instead to
-            iterate over the list of :class:`Vertex` objects.
+            iterate over the list of :class:`~sage.geometry.polyhedron.representation.Vertex` objects.
 
         .. WARNING::
 
@@ -1201,7 +1200,7 @@ class Polyhedron_base0(Element, sage.geometry.abc.Polyhedron):
 
             It is recommended to use :meth:`rays` or
             :meth:`ray_generator` instead to iterate over the list of
-            :class:`Ray` objects.
+            :class:`~sage.geometry.polyhedron.representation.Ray` objects.
 
         OUTPUT:
 
@@ -1256,7 +1255,7 @@ class Polyhedron_base0(Element, sage.geometry.abc.Polyhedron):
         .. NOTE::
 
             It is recommended to use :meth:`line_generator` instead to
-            iterate over the list of :class:`Line` objects.
+            iterate over the list of :class:`~sage.geometry.polyhedron.representation.Line` objects.
 
         EXAMPLES::
 
@@ -1318,11 +1317,151 @@ class Polyhedron_base0(Element, sage.geometry.abc.Polyhedron):
             sage: triangle = Polyhedron(vertices = [[1, 0], [0, 1], [1, 1]])
             sage: triangle.backend()
             'ppl'
-            sage: D = polytopes.dodecahedron()
-            sage: D.backend()
+            sage: D = polytopes.dodecahedron()  # optional - sage.rings.number_field
+            sage: D.backend()                   # optional - sage.rings.number_field
             'field'
             sage: P = Polyhedron([[1.23]])
             sage: P.backend()
             'cdd'
         """
         return self.parent().backend()
+
+    def cdd_Hrepresentation(self):
+        r"""
+        Write the inequalities/equations data of the polyhedron in
+        cdd's H-representation format.
+
+        .. SEEALSO::
+
+            :meth:`write_cdd_Hrepresentation` -- export the polyhedron as a
+            H-representation to a file.
+
+        OUTPUT: a string
+
+        EXAMPLES::
+
+            sage: p = polytopes.hypercube(2)
+            sage: print(p.cdd_Hrepresentation())
+            H-representation
+            begin
+             4 3 rational
+             1 -1 0
+             1 0 -1
+             1 1 0
+             1 0 1
+            end
+            <BLANKLINE>
+
+            sage: triangle = Polyhedron(vertices=[[1,0], [0,1], [1,1]], base_ring=AA)   # optional - sage.rings.number_field
+            sage: triangle.base_ring()                                                  # optional - sage.rings.number_field
+            Algebraic Real Field
+            sage: triangle.cdd_Hrepresentation()                                        # optional - sage.rings.number_field
+            Traceback (most recent call last):
+            ...
+            TypeError: the base ring must be ZZ, QQ, or RDF
+        """
+        from .cdd_file_format import cdd_Hrepresentation
+        try:
+            cdd_type = self._cdd_type
+        except AttributeError:
+            from sage.rings.integer_ring import ZZ
+            from sage.rings.rational_field import QQ
+            from sage.rings.real_double import RDF
+
+            if self.base_ring() is ZZ or self.base_ring() is QQ:
+                cdd_type = 'rational'
+            elif self.base_ring() is RDF:
+                cdd_type = 'real'
+            else:
+                raise TypeError('the base ring must be ZZ, QQ, or RDF')
+        return cdd_Hrepresentation(cdd_type,
+                                   list(self.inequality_generator()),
+                                   list(self.equation_generator()))
+
+    def write_cdd_Hrepresentation(self, filename):
+        r"""
+        Export the polyhedron as a H-representation to a file.
+
+        INPUT:
+
+        - ``filename`` -- the output file.
+
+        .. SEEALSO::
+
+            :meth:`cdd_Hrepresentation` -- return the H-representation of the
+            polyhedron as a string.
+
+        EXAMPLES::
+
+            sage: from sage.misc.temporary_file import tmp_filename
+            sage: filename = tmp_filename(ext='.ext')
+            sage: polytopes.cube().write_cdd_Hrepresentation(filename)
+        """
+        with open(filename, 'w') as f:
+            f.write(self.cdd_Hrepresentation())
+
+    def cdd_Vrepresentation(self):
+        r"""
+        Write the vertices/rays/lines data of the polyhedron in cdd's
+        V-representation format.
+
+        .. SEEALSO::
+
+            :meth:`write_cdd_Vrepresentation` -- export the polyhedron as a
+            V-representation to a file.
+
+        OUTPUT: a string
+
+        EXAMPLES::
+
+            sage: q = Polyhedron(vertices = [[1,1],[0,0],[1,0],[0,1]])
+            sage: print(q.cdd_Vrepresentation())
+            V-representation
+            begin
+             4 3 rational
+             1 0 0
+             1 0 1
+             1 1 0
+             1 1 1
+            end
+        """
+        from .cdd_file_format import cdd_Vrepresentation
+        try:
+            cdd_type = self._cdd_type
+        except AttributeError:
+            from sage.rings.integer_ring import ZZ
+            from sage.rings.rational_field import QQ
+            from sage.rings.real_double import RDF
+
+            if self.base_ring() is ZZ or self.base_ring() is QQ:
+                cdd_type = 'rational'
+            elif self.base_ring() is RDF:
+                cdd_type = 'real'
+            else:
+                raise TypeError('the base ring must be ZZ, QQ, or RDF')
+        return cdd_Vrepresentation(cdd_type,
+                                   list(self.vertex_generator()),
+                                   list(self.ray_generator()),
+                                   list(self.line_generator()))
+
+    def write_cdd_Vrepresentation(self, filename):
+        r"""
+        Export the polyhedron as a V-representation to a file.
+
+        INPUT:
+
+        - ``filename`` -- the output file.
+
+        .. SEEALSO::
+
+            :meth:`cdd_Vrepresentation` -- return the V-representation of the
+            polyhedron as a string.
+
+        EXAMPLES::
+
+            sage: from sage.misc.temporary_file import tmp_filename
+            sage: filename = tmp_filename(ext='.ext')
+            sage: polytopes.cube().write_cdd_Vrepresentation(filename)
+        """
+        with open(filename, 'w') as f:
+            f.write(self.cdd_Vrepresentation())

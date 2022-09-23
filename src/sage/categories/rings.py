@@ -193,7 +193,7 @@ class Rings(CategoryWithAxiom):
             .. NOTE::
 
                 We can not override ``is_zero()`` from the category framework
-                and we can not implement ``__nonzero__`` because it is a
+                and we can not implement ``__bool__`` because it is a
                 special method. That this is why this has a cumbersome name.
 
             EXAMPLES::
@@ -202,7 +202,6 @@ class Rings(CategoryWithAxiom):
                 True
                 sage: ZZ.hom(Zmod(1))._is_nonzero()
                 False
-
             """
             return bool(self.codomain().one())
 
@@ -387,12 +386,13 @@ class Rings(CategoryWithAxiom):
             INPUT:
 
             - ``Y`` -- a ring
-            - ``category`` -- a subcategory of :class:`Rings`() or None
+            - ``category`` -- a subcategory of :class:`Rings()
+              <Rings>` or ``None``
 
             The sole purpose of this method is to construct the homset
             as a :class:`~sage.rings.homset.RingHomset`. If
             ``category`` is specified and is not a subcategory of
-            :class:`Rings`, a ``TypeError`` is raised instead
+            :class:`Rings() <Rings>`, a ``TypeError`` is raised instead
 
             This method is not meant to be called directly. Please use
             :func:`sage.categories.homset.Hom` instead.
@@ -413,14 +413,13 @@ class Rings(CategoryWithAxiom):
                 <class 'sage.rings.number_field.homset.CyclotomicFieldHomset_with_category'>
 
                 sage: TestSuite(Hom(QQ, QQ, category = Rings())).run() # indirect doctest
-
             """
             if category is not None and not category.is_subcategory(Rings()):
                 raise TypeError("%s is not a subcategory of Rings()"%category)
             if Y not in Rings():
-                raise TypeError("%s is not a ring"%Y)
+                raise TypeError("%s is not a ring" % Y)
             from sage.rings.homset import RingHomset
-            return RingHomset(self, Y, category = category)
+            return RingHomset(self, Y, category=category)
 
         # this is already in sage.rings.ring.Ring,
         # but not all rings descend from that class,
@@ -1006,9 +1005,9 @@ class Rings(CategoryWithAxiom):
 
             ::
 
-                sage: QQ[sqrt(2)]
+                sage: QQ[sqrt(2)]                               # optional - sage.symbolic
                 Number Field in sqrt2 with defining polynomial x^2 - 2 with sqrt2 = 1.414213562373095?
-                sage: QQ[sqrt(2)].coerce_embedding()
+                sage: QQ[sqrt(2)].coerce_embedding()            # optional - sage.symbolic
                 Generic morphism:
                   From: Number Field in sqrt2 with defining polynomial x^2 - 2 with sqrt2 = 1.414213562373095?
                   To:   Real Lazy Field
@@ -1016,16 +1015,16 @@ class Rings(CategoryWithAxiom):
 
             ::
 
-                sage: QQ[sqrt(2),sqrt(3)]
+                sage: QQ[sqrt(2), sqrt(3)]                      # optional - sage.symbolic
                 Number Field in sqrt2 with defining polynomial x^2 - 2 over its base field
 
             and orders in number fields::
 
                 sage: ZZ[I]
                 Order in Number Field in I0 with defining polynomial x^2 + 1 with I0 = 1*I
-                sage: ZZ[sqrt(5)]
+                sage: ZZ[sqrt(5)]                               # optional - sage.symbolic
                 Order in Number Field in sqrt5 with defining polynomial x^2 - 5 with sqrt5 = 2.236067977499790?
-                sage: ZZ[sqrt(2)+sqrt(3)]
+                sage: ZZ[sqrt(2) + sqrt(3)]                     # optional - sage.symbolic
                 Order in Number Field in a with defining polynomial x^4 - 10*x^2 + 1 with a = 3.146264369941973?
 
             Embeddings are found for simple extensions (when that makes sense)::
@@ -1077,13 +1076,13 @@ class Rings(CategoryWithAxiom):
 
             Embeddings::
 
-                sage: a = 10^100; expr = (2*a + sqrt(2))/(2*a^2-1)
-                sage: QQ[expr].coerce_embedding() is None
+                sage: a = 10^100; expr = (2*a + sqrt(2))/(2*a^2-1)              # optional - sage.symbolic
+                sage: QQ[expr].coerce_embedding() is None                       # optional - sage.symbolic
                 False
-                sage: QQ[sqrt(5)].gen() > 0
+                sage: QQ[sqrt(5)].gen() > 0                                     # optional - sage.symbolic
                 True
-                sage: expr = sqrt(2) + I*(cos(pi/4, hold=True) - sqrt(2)/2)
-                sage: QQ[expr].coerce_embedding()
+                sage: expr = sqrt(2) + I*(cos(pi/4, hold=True) - sqrt(2)/2)     # optional - sage.symbolic
+                sage: QQ[expr].coerce_embedding()                               # optional - sage.symbolic
                 Generic morphism:
                   From: Number Field in a with defining polynomial x^2 - 2 with a = 1.414213562373095?
                   To:   Real Lazy Field
@@ -1357,9 +1356,9 @@ def _gen_names(elts):
     EXAMPLES::
 
         sage: from sage.categories.rings import _gen_names
-        sage: list(_gen_names([sqrt(5)]))
+        sage: list(_gen_names([sqrt(5)]))                               # optional - sage.symbolic
         ['sqrt5']
-        sage: list(_gen_names([sqrt(-17), 2^(1/3)]))
+        sage: list(_gen_names([sqrt(-17), 2^(1/3)]))                    # optional - sage.symbolic
         ['a', 'b']
         sage: list(_gen_names((1..27)))[-1]
         'aa'

@@ -137,7 +137,7 @@ from sage.categories.number_fields import NumberFields
 
 from sage.matrix.constructor import matrix
 
-from sage.rings.all import degree_lowest_rational_function
+from sage.rings.polynomial.multi_polynomial_element import degree_lowest_rational_function
 from sage.rings.number_field.number_field import NumberField
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.qqbar import number_field_elements_from_algebraics, QQbar
@@ -293,7 +293,7 @@ class AffinePlaneCurve(AffineCurve):
         if not (is_AffineSpace(A) and A.dimension != 2):
             raise TypeError("Argument A (= %s) must be an affine plane." % A)
 
-        super(AffinePlaneCurve, self).__init__(A, [f])
+        super().__init__(A, [f])
 
     def _repr_type(self):
         r"""
@@ -841,7 +841,7 @@ class AffineCurve_field(AffineCurve, AlgebraicScheme_subscheme_affine_field):
             sage: C = Curve([x^2 - z, z - 8*x], A); C
             Affine Curve over Finite Field of size 7 defined by x^2 - z, -x + z
         """
-        super(AffineCurve_field, self).__init__(A, X)
+        super().__init__(A, X)
 
         if not A.base_ring() in Fields():
             raise TypeError("curve not defined over a field")
@@ -908,11 +908,7 @@ class AffineCurve_field(AffineCurve, AlgebraicScheme_subscheme_affine_field):
                To:   Affine Space of dimension 3 over Rational Field
                Defn: Defined on coordinates by sending (x, y, z, w) to
                      (x, y, z),
-             Closed subscheme of Affine Space of dimension 3 over Rational Field
-            defined by:
-               c - 1,
-               b - 3,
-               a - 2)
+             Affine Curve over Rational Field defined by c - 1, b - 3, a - 2)
 
         ::
 
@@ -1679,7 +1675,7 @@ class AffineCurve_field(AffineCurve, AlgebraicScheme_subscheme_affine_field):
         if Tp.dimension() > 1:
             raise ValueError("the curve is not smooth at {}".format(p))
 
-        from sage.schemes.curves.all import Curve
+        from sage.schemes.curves.constructor import Curve
 
         # translate to p
         I = []
@@ -2023,7 +2019,7 @@ class IntegralAffineCurve(AffineCurve_field):
             z^2
         """
         try:
-            return super(IntegralAffineCurve, self).__call__(*args)
+            return super().__call__(*args)
         except TypeError as e:
             try:
                 return self.function(*args)
@@ -2099,7 +2095,7 @@ class IntegralAffineCurve(AffineCurve_field):
                      y |--> z^2
                      z |--> z)
         """
-        from sage.rings.function_field.all import FunctionField
+        from sage.rings.function_field.constructor import FunctionField
 
         k = self.base_ring()
         I = self.defining_ideal()
@@ -2639,4 +2635,3 @@ class IntegralAffinePlaneCurve_finite_field(AffinePlaneCurve_finite_field, Integ
         Function field in y defined by y^5 + x*y + x^5 + 1
     """
     _point = IntegralAffinePlaneCurvePoint_finite_field
-

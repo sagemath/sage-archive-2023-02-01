@@ -877,7 +877,7 @@ class VermaModule(CombinatorialFreeModule):
             True
         """
         R = V.base_ring()
-        return super(VermaModule, cls).__classcall__(cls, V, R(c), R(h))
+        return super().__classcall__(cls, V, R(c), R(h))
 
     @staticmethod
     def _partition_to_neg_tuple(x):
@@ -978,7 +978,7 @@ class VermaModule(CombinatorialFreeModule):
             if index >= 0:
                 raise ValueError("sequence must have non-positive entries")
             index = (index,)
-        return super(VermaModule, self)._monomial(index)
+        return super()._monomial(index)
 
     def central_charge(self):
         """
@@ -1141,4 +1141,3 @@ class VermaModule(CombinatorialFreeModule):
             return CombinatorialFreeModule.Element._acted_upon_(self, scalar, self_on_left)
 
         _rmul_ = _lmul_ = _acted_upon_
-

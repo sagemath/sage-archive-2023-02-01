@@ -23,6 +23,7 @@ Free associative algebras and quotients
 
    sage/algebras/free_algebra_quotient
    sage/algebras/free_algebra_quotient_element
+   sage/algebras/tensor_algebra
 
 Finite dimensional algebras
 ---------------------------
@@ -78,6 +79,7 @@ Hecke algebras
    sage/algebras/iwahori_hecke_algebra
    sage/algebras/nil_coxeter_algebra
    sage/algebras/yokonuma_hecke_algebra
+   cubic_hecke_algebra
 
 Graded algebras
 ---------------

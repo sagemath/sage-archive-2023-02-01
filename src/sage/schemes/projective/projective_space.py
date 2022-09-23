@@ -79,16 +79,17 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 # ****************************************************************************
 
-from sage.arith.all import gcd, binomial, srange
-from sage.rings.all import PolynomialRing
+from sage.arith.misc import gcd, binomial
+from sage.arith.srange import srange
+
+from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
-
-from sage.rings.ring import CommutativeRing
-from sage.rings.rational_field import is_RationalField
 from sage.rings.polynomial.multi_polynomial_ring import is_MPolynomialRing
 from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
-from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+from sage.rings.ring import CommutativeRing
+from sage.rings.rational_field import is_RationalField
 
 from sage.categories.fields import Fields
 from sage.categories.number_fields import NumberFields
@@ -325,7 +326,7 @@ class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
             True
         """
         normalized_names = normalize_names(n + 1, names)
-        return super(ProjectiveSpace_ring, cls).__classcall__(cls, n, R, normalized_names)
+        return super().__classcall__(cls, n, R, normalized_names)
 
     def __init__(self, n, R=ZZ, names=None):
         """
@@ -853,7 +854,7 @@ class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
         """
         if v is None:
             v = self.gens()
-        return '(%s)' % (" : ".join([repr(f) for f in v]))
+        return '(%s)' % (" : ".join(repr(f) for f in v))
 
     def _latex_generic_point(self, v=None):
         """

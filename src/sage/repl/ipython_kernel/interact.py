@@ -16,12 +16,24 @@ EXAMPLES::
 
     sage: from sage.repl.ipython_kernel.interact import interact
     sage: @interact
-    ....: def f(x=(0,10)):
+    ....: def f(x=(0, 10)):
     ....:     pass
     Interactive function <function f at ...> with 1 widget
       x: IntSlider(value=5, description='x', max=10)
     sage: f.widget.children
     (IntSlider(value=5, description='x', max=10), Output())
+
+.. ONLY:: html
+
+    .. JUPYTER-EXECUTE::
+        :hide-code:
+        :hide-output:
+
+        from sage.repl.ipython_kernel.interact import interact
+        @interact
+        def f(x=(0, 10)):
+            pass
+
 """
 
 # ****************************************************************************
@@ -42,7 +54,8 @@ from .widgets import EvalText, SageColorPicker
 from .widgets_sagenb import input_grid
 from sage.structure.element import parent
 import sage.rings.abc
-from sage.plot.colors import Color
+from sage.misc.lazy_import import lazy_import
+lazy_import("sage.plot.colors", "Color")
 from sage.structure.element import Matrix
 
 
@@ -60,8 +73,18 @@ class sage_interactive(interactive):
           x: IntSlider(value=10, description='x')
           y: Text(value='hello', description='y')
           z: Dropdown(description='z', options=('one', 'two', 'three'), value=None)
+
+    .. ONLY:: html
+
+        .. JUPYTER-EXECUTE::
+            :hide-code:
+            :hide-output:
+
+            from sage.repl.ipython_kernel.interact import sage_interactive
+            def myfunc(x=10, y="hello", z=None): pass
+            sage_interactive(myfunc, x=(0,100), z=["one", "two", "three"])
     """
-    def __init__(*args, **kwds):
+    def __init__(self, *args, **kwds):
         """
         See :class:`ipywidgets.widgets.interaction.interactive`
 
@@ -82,11 +105,11 @@ class sage_interactive(interactive):
             Interactive function <function myfunc ...> with 0 widgets
         """
         # Use *args to avoid name clash with keyword arguments
-        if len(args) < 3:
-            (self, f) = args
+        if len(args) < 2:
+            f = args[0]
             options = {}
         else:
-            (self, f, options) = args
+            (f, options) = args
             options = options.copy()
 
         # Check for auto_update in signature
@@ -100,7 +123,7 @@ class sage_interactive(interactive):
             options["manual"] = (p_auto_update.default is False)
 
         self.__signature = sig.replace(parameters=params.values())
-        super(sage_interactive, self).__init__(f, options, **kwds)
+        super().__init__(f, options, **kwds)
         if self.manual:
             # In Sage, manual interacts are always run once
             self.on_displayed(self.update)
@@ -174,7 +197,7 @@ class sage_interactive(interactive):
         if isinstance(abbrev, Color):
             return SageColorPicker(value=abbrev.html_color())
         # Get widget from IPython if possible
-        widget = super(sage_interactive, cls).widget_from_single_value(abbrev, *args, **kwds)
+        widget = super().widget_from_single_value(abbrev, *args, **kwds)
         if widget is not None or isinstance(abbrev, Iterable):
             return widget
         # If IPython didn't construct a widget and the abbrev is not an
@@ -232,7 +255,7 @@ class sage_interactive(interactive):
             else:
                 return x
         abbrev = tuple(n(x) for x in abbrev)
-        return super(sage_interactive, cls).widget_from_tuple(abbrev, *args, **kwds)
+        return super().widget_from_tuple(abbrev, *args, **kwds)
 
     @classmethod  # Behaves like a staticmethod, but we need super()
     def widget_from_iterable(cls, abbrev, *args, **kwds):
@@ -260,7 +283,7 @@ class sage_interactive(interactive):
         """
         if isinstance(abbrev, Iterator):
             return SelectionSlider(options=list(abbrev))
-        return super(sage_interactive, cls).widget_from_iterable(abbrev, *args, **kwds)
+        return super().widget_from_iterable(abbrev, *args, **kwds)
 
 
 # @interact decorator

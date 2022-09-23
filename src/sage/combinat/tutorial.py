@@ -18,7 +18,7 @@ algorithms. Combinatorics covers a much wider domain (partial orders,
 representation theory, …) for which we only give a few pointers
 towards the possibilities offered by ``Sage``.
 
-.. todo:: Add link to some thematic tutorial on graphs
+.. TODO:: Add link to some thematic tutorial on graphs
 
 A characteristic of computational combinatorics is the profusion of
 types of objects and sets that one wants to manipulate. It would be
@@ -455,7 +455,7 @@ ring `R= \QQ(x)[y]/ (P)`::
 
 Note: ``ybar`` is the name of the variable `y` in the quotient ring.
 
-.. todo:: add link to some tutorial on quotient rings
+.. TODO:: add link to some tutorial on quotient rings
 
 We continue the calculation of this fraction in `R`::
 
@@ -1141,7 +1141,7 @@ Alternatively, we could construct an iterator on the counter-examples::
     possible, hide the result first and try to guess it before
     launching the command.
 
-    .. todo:: hide the results by default
+    .. TODO:: hide the results by default
 
     .. warning:: it will be necessary to interrupt the execution of some of the commands
 
@@ -1243,9 +1243,6 @@ are in the ``itertools`` library, which can be imported by::
 
     sage: import itertools
 
-The behaviour of this library has changed a lot between Python 2 and
-Python 3. What follows is mostly written for Python 2.
-
 We will demonstrate some applications, taking as a starting point the
 permutations of `3`::
 
@@ -1268,12 +1265,12 @@ or select only the elements in positions 2, 3, and 4 (analogue of
 
 To apply a function to all the elements, one can do::
 
-    sage: list(z.cycle_type() for z in Permutations(3))
+    sage: [z.cycle_type() for z in Permutations(3)]
     [[1, 1, 1], [2, 1], [2, 1], [3], [3], [2, 1]]
 
 and similarly to select the elements satisfying a certain condition::
 
-    sage: list(z for z in Permutations(3) if z.has_pattern([1,2]))
+    sage: [z for z in Permutations(3) if z.has_pattern([1,2])]
     [[1, 2, 3], [1, 3, 2], [2, 1, 3], [2, 3, 1], [3, 1, 2]]
 
 Implementation of new iterators
@@ -1845,7 +1842,7 @@ REFERENCES:
 
    .. [CMS2012] Alexandre Casamayou, Nathann Cohen, Guillaume Connan, Thierry Dumont, Laurent Fousse, François Maltey, Matthias Meulien, Marc Mezzarobba, Clément Pernet, Nicolas M. Thiéry, Paul Zimmermann
          *Calcul Mathématique avec Sage*
-         http://sagebook.gforge.inria.fr/
+         https://www.sagemath.org/sagebook/french.html
 
 .. [1]
    Or at least that should be the case; there are still many corners to

@@ -197,8 +197,7 @@ def automorphism_group_QQ_fixedpoints(rational_function, return_functions=False,
                     [(alpha - zeta*beta), - (alpha*beta)*(1 - zeta),
                      (1 - zeta), (alpha*zeta - beta)]))
 
-
-    #now consider 2-periodic points
+    # now consider 2-periodic points
     psi = phi(phi(z))
     f2 = psi.numerator()
     g2 = psi.denominator()
@@ -252,7 +251,7 @@ def automorphism_group_QQ_fixedpoints(rational_function, return_functions=False,
                         a = F(a)
                         d = F(d)
                         b = F(-alpha*beta)
-                        s = ( a*z  + b)/(z + d)
+                        s = (a * z + b) / (z + d)
                         if s(phi(z)) == phi(s(z)):
                             if return_functions:
                                 elements.append(K(s))
@@ -268,7 +267,7 @@ def automorphism_group_QQ_fixedpoints(rational_function, return_functions=False,
                         a = F(a)
                         d = F(d)
                         b = F(-alpha*beta)
-                        s = ( a*z  + b)/(z + d)
+                        s = (a * z + b) / (z + d)
                         if s(phi(z)) == phi(s(z)):
                             if return_functions:
                                 elements.append(K(s))
@@ -276,8 +275,9 @@ def automorphism_group_QQ_fixedpoints(rational_function, return_functions=False,
                                 elements.append(matrix(F, 2, [a,b, 1, d]))
 
     if iso_type:
-        return(elements, which_group(elements))
-    return(elements)
+        return elements, which_group(elements)
+    return elements
+
 
 def height_bound(polynomial):
     r"""
@@ -534,7 +534,7 @@ def valid_automorphisms(automorphisms_CRT, rational_function, ht_bound, M,
                         for x in init_lift]
             g = gcd(new_lift)
             new_lift = [x // g for x in new_lift]
-            if  all(abs(x) <= ht_bound for x in new_lift):
+            if all(abs(x) <= ht_bound for x in new_lift):
                 a, b, c, d = new_lift
                 f = (a*z + b) / (c*z + d)
                 if rational_function(f(z)) == f(rational_function(z)):
@@ -612,7 +612,8 @@ def remove_redundant_automorphisms(automorphisms, order_elts, moduli, integral_a
             del automorphisms[i][j]
             del order_elts[i][j]
 
-    return(automorphisms)
+    return automorphisms
+
 
 def automorphism_group_QQ_CRT(rational_function, prime_lower_bound=4, return_functions=True, iso_type=False):
     r"""
@@ -756,7 +757,7 @@ def automorphism_group_QQ_CRT(rational_function, prime_lower_bound=4, return_fun
                 (gcd(orderaut + [24]) == 24 and \
                 (len(elements) == 12 or len(elements) == 8)):
                     if iso_type:
-                        return(elements, which_group(elements))
+                        return elements, which_group(elements)
                     return elements
             else:
                 N = gcd(orderaut + [12])  # all orders of elements divide N
@@ -785,7 +786,7 @@ def automorphism_group_QQ_CRT(rational_function, prime_lower_bound=4, return_fun
                         if (len(elements) == gcd(orderaut + [24])):
                             #found enough automorphisms
                                 if iso_type:
-                                    return(elements, which_group(elements))
+                                    return elements, which_group(elements)
                                 return elements
                         elif numelts <= (len(temp)):
                             badorders.append(order)
@@ -820,8 +821,9 @@ def automorphism_group_QQ_CRT(rational_function, prime_lower_bound=4, return_fun
         p = primes.next(p)
 
     if iso_type:
-        return(elements, which_group(elements))
-    return(elements)
+        return elements, which_group(elements)
+    return elements
+
 
 def automorphism_group_FF(rational_function, absolute=False, iso_type=False, return_functions=False):
     r"""
@@ -1004,9 +1006,10 @@ def rational_function_coefficient_descent(rational_function, sigma, poly_ring):
         return
 
     z = poly_ring.gen(0)
-    numer = sum( poly_ring(ff[i])*z**fe[i] for i in range(len(ff)) )
-    denom = sum( poly_ring(gg[i])*z**ge[i] for i in range(len(gg)) )
-    return    numer / denom
+    numer = sum(poly_ring(ff[i]) * z**fe[i] for i in range(len(ff)))
+    denom = sum(poly_ring(gg[i]) * z**ge[i] for i in range(len(gg)))
+    return numer / denom
+
 
 def rational_function_coerce(rational_function, sigma, S_polys):
     r"""
@@ -1626,7 +1629,7 @@ def automorphism_group_FF_alg3(rational_function):
         if n%p == 1:
             automorphisms = automorphisms + order_p_automorphisms(phi, pre_images)
 
-    ## nontrivial elements with order prime to p ##
+    # nontrivial elements with order prime to p #
     # case of 2 F-rational fixed points
     for pt_pair in combinations(linear_fix_pts, 2):
         x = pt_pair[0]
@@ -1756,7 +1759,7 @@ def which_group(list_of_elements):
             for i in range(n-1):
                 h = g(H[-1])
                 H.append(h)
-            H    = list(set(H))
+            H = list(set(H))
             if len(H) == n:
                 return 'Cyclic of order {0}'.format(n)
             if len(H) > max_reg_cyclic[0] and gcd(len(H), p) != p:
@@ -2017,7 +2020,7 @@ def conjugating_set_initializer(f, g):
             # in which all subsets of size n+1 are linearly independent,
             # then we fail as we cannot specify conjugations
             if more:
-                raise ValueError('no more rational preimages. try extending the base field and trying again.')
+                raise ValueError('no more rational preimages; try extending the base field and trying again')
 
         # if we need to add more preimages, we update loop dictionaries
         if more:

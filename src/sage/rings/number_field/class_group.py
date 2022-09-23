@@ -288,7 +288,7 @@ class FractionalIdealClass(AbelianGroupWithValuesElement):
         # otherwise we just search:
         Cl = self.parent()
         K = Cl.number_field()
-        from sage.rings.all import RR
+        from sage.rings.real_mpfr import RR
         for P in K.primes_of_bounded_norm_iter(RR(norm_bound)):
             if Cl(P)==c:
                 return P
@@ -673,7 +673,7 @@ class SClassGroup(ClassGroup):
             sage: S = (I,)
             sage: CS = K.S_class_group(S);CS
             S-class group of order 2 with structure C2 of Number Field in a with defining polynomial x^2 + 14 with a = 3.741657386773942?*I
-            sage: T = tuple([])
+            sage: T = tuple()
             sage: CT = K.S_class_group(T);CT
             S-class group of order 4 with structure C4 of Number Field in a with defining polynomial x^2 + 14 with a = 3.741657386773942?*I
             sage: CS.S()

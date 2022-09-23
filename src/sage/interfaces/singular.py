@@ -1,31 +1,6 @@
 r"""
 Interface to Singular
 
-AUTHORS:
-
-- David Joyner and William Stein (2005): first version
-
-- Martin Albrecht (2006-03-05): code so singular.[tab] and x =
-  singular(...), x.[tab] includes all singular commands.
-
-- Martin Albrecht (2006-03-06): This patch adds the equality symbol to
-  singular. Also fix a problem in which " " as prompt means comparison
-  will break all further communication with Singular.
-
-- Martin Albrecht (2006-03-13): added current_ring() and
-  current_ring_name()
-
-- William Stein (2006-04-10): Fixed problems with ideal constructor
-
-- Martin Albrecht (2006-05-18): added sage_poly.
-
-- Simon King (2010-11-23): Reduce the overhead caused by waiting for
-  the Singular prompt by doing garbage collection differently.
-
-- Simon King (2011-06-06): Make conversion from Singular to Sage more flexible.
-
-- Simon King (2015): Extend pickling capabilities.
-
 Introduction
 ------------
 
@@ -36,7 +11,6 @@ should work here.
 The Singular interface will only work if Singular is installed on
 your computer; this should be the case, since Singular is included
 with Sage. The interface offers three pieces of functionality:
-
 
 #. ``singular_console()`` - A function that dumps you
    into an interactive command-line Singular session.
@@ -238,10 +212,6 @@ Note that the genus can be much smaller than the degree::
 An Important Concept
 --------------------
 
-AUTHORS:
-
-- Neal Harris
-
 The following illustrates an important concept: how Sage interacts
 with the data being used and returned by Singular. Let's compute a
 Groebner basis for some ideal, using Singular through Sage.
@@ -325,6 +295,34 @@ Verify that :trac:`17720` is fixed::
     [Ideal (z) of Multivariate Polynomial Ring in x, z over Number Field in p with defining polynomial p^2 - p - 1]
     sage: [ J.gens() for J in I.primary_decomposition("gtz")]
     [[z]]
+
+AUTHORS:
+
+- David Joyner and William Stein (2005): first version
+
+- Neal Harris (unknown): perhaps added "An Important Concept"
+
+- Martin Albrecht (2006-03-05): code so singular.[tab] and x =
+  singular(...), x.[tab] includes all singular commands.
+
+- Martin Albrecht (2006-03-06): This patch adds the equality symbol to
+  singular. Also fix a problem in which " " as prompt means comparison
+  will break all further communication with Singular.
+
+- Martin Albrecht (2006-03-13): added current_ring() and
+  current_ring_name()
+
+- William Stein (2006-04-10): Fixed problems with ideal constructor
+
+- Martin Albrecht (2006-05-18): added sage_poly.
+
+- Simon King (2010-11-23): Reduce the overhead caused by waiting for
+  the Singular prompt by doing garbage collection differently.
+
+- Simon King (2011-06-06): Make conversion from Singular to Sage more flexible.
+
+- Simon King (2015): Extend pickling capabilities.
+
 """
 
 # ****************************************************************************
@@ -342,17 +340,19 @@ import os
 import re
 import sys
 import pexpect
+import shlex
 
 from .expect import Expect, ExpectElement, FunctionElement, ExpectFunction
 
 from sage.interfaces.tab_completion import ExtraTabCompletion
 from sage.structure.sequence import Sequence_generic
 from sage.structure.element import RingElement
+import sage.features.singular
 
 import sage.rings.integer
 
 from sage.misc.verbose import get_verbose
-from sage.docs.instancedoc import instancedoc
+from sage.misc.instancedoc import instancedoc
 
 
 class SingularError(RuntimeError):
@@ -394,18 +394,19 @@ class Singular(ExtraTabCompletion, Expect):
         prompt = '> '
         Expect.__init__(self,
                         terminal_echo=False,
-                        name = 'singular',
-                        prompt = prompt,
+                        name='singular',
+                        prompt=prompt,
                         # no tty, fine grained cputime()
                         # and do not display CTRL-C prompt
-                        command = "Singular -t --ticks-per-sec 1000 --cntrlc=a",
-                        server = server,
-                        server_tmpdir = server_tmpdir,
-                        script_subdirectory = script_subdirectory,
-                        restart_on_ctrlc = True,
-                        verbose_start = False,
-                        logfile = logfile,
-                        eval_using_file_cutoff=100 if os.uname()[0]=="SunOS" else 1000)
+                        command="{} -t --ticks-per-sec 1000 --cntrlc=a".format(
+                            shlex.quote(sage.features.singular.Singular().absolute_filename())),
+                        server=server,
+                        server_tmpdir=server_tmpdir,
+                        script_subdirectory=script_subdirectory,
+                        restart_on_ctrlc=True,
+                        verbose_start=False,
+                        logfile=logfile,
+                        eval_using_file_cutoff=100 if os.uname()[0] == "SunOS" else 1000)
         self.__libs  = []
         self._prompt_wait = prompt
         self.__to_clear = []   # list of variable names that need to be cleared.
@@ -1013,25 +1014,20 @@ class Singular(ExtraTabCompletion, Expect):
             self.eval('matrix %s[%s][%s] = %s'%(name, nrows, ncols, entries))
         return SingularElement(self, None, name, True)
 
-    def ring(self, char=0, vars='(x)', order='lp', check=True):
+    def ring(self, char=0, vars='(x)', order='lp', check=None):
         r"""
         Create a Singular ring and makes it the current ring.
 
         INPUT:
 
 
-        -  ``char`` - characteristic of the base ring (see
-           examples below), which must be either 0, prime (!), or one of
-           several special codes (see examples below).
+        -  ``char`` (string) -- a string specifying the characteristic
+           of the base ring, in the format accepted by Singular (see
+           examples below).
 
-        -  ``vars`` - a tuple or string that defines the
-           variable names
+        -  ``vars`` -- a tuple or string defining the variable names
 
-        -  ``order`` - string - the monomial order (default:
-           'lp')
-
-        -  ``check`` - if True, check primality of the
-           characteristic if it is an integer.
+        -  ``order`` (string) -- the monomial order (default: "lp")
 
 
         OUTPUT: a Singular ring
@@ -1101,11 +1097,10 @@ class Singular(ExtraTabCompletion, Expect):
                           for x in vars[1:-1].split(','))
             self.eval(s)
 
-        if check and isinstance(char, (int, sage.rings.integer.Integer)):
-            if char:
-                n = sage.rings.integer.Integer(char)
-                if not n.is_prime():
-                    raise ValueError("the characteristic must be 0 or prime")
+        if check is not None:
+            from sage.misc.superseded import deprecation
+            deprecation(33319, 'The check= keyword argument does nothing.' + f'({check})')
+
         R = self('%s,%s,%s' % (char, vars, order), 'ring')
         self.eval('short=0')  # make output include *'s for multiplication for *THIS* ring.
         return R
@@ -1499,8 +1494,6 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
         P = self.parent()
         return P.eval('%s == 0' % self.name()) == '0'
 
-    __nonzero__ = __bool__
-
     def sage_polystring(self):
         r"""
         If this Singular element is a polynomial, return a string
@@ -1815,15 +1808,15 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
         coeff_start = len(singular_poly_list) // 2
 
         # Singular 4 puts parentheses around floats and sign outside them
-        charstr = self.parent().eval('charstr(basering)').split(',',1)
+        charstr = self.parent().eval('charstr(basering)').split(',', 1)
         if charstr[0].startswith('Float') or charstr[0] == 'complex':
-              for i in range(coeff_start, 2 * coeff_start):
-                  singular_poly_list[i] = singular_poly_list[i].replace('(','').replace(')','')
+            for i in range(coeff_start, 2 * coeff_start):
+                singular_poly_list[i] = singular_poly_list[i].replace('(', '').replace(')', '')
 
         if isinstance(R, MPolynomialRing_polydict) and (ring_is_fine or can_convert_to_singular(R)):
             # we need to lookup the index of a given variable represented
             # through a string
-            var_dict = dict(zip(R.variable_names(),range(R.ngens())))
+            var_dict = dict(zip(R.variable_names(), range(R.ngens())))
 
             ngens = R.ngens()
 
@@ -2071,7 +2064,6 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
             //        block   2 : ordering C
         """
         self.parent().set_ring(self)
-
 
     def sage_flattened_str_list(self):
         """
@@ -2337,25 +2329,26 @@ def generate_docstring_dictionary():
     with io.open(singular_info_file,
                  encoding='latin-1') as f:
         for line in f:
-            m = re.match(new_node,line)
+            m = re.match(new_node, line)
             if m:
                 # a new node starts
                 in_node = True
                 nodes[curr_node] = "".join(L)
                 L = []
                 curr_node, = m.groups()
-            elif in_node: # we are in a node
-               L.append(line)
+            elif in_node:  # we are in a node
+                L.append(line)
             else:
-               m = re.match(new_lookup, line)
-               if m:
-                   a,b = m.groups()
-                   node_names[a] = b.strip()
+                m = re.match(new_lookup, line)
+                if m:
+                    a, b = m.groups()
+                    node_names[a] = b.strip()
 
             if line == "6 Index\n":
                 in_node = False
 
-    nodes[curr_node] = "".join(L) # last node
+    nodes[curr_node] = "".join(L)  # last node
+
 
 def get_docstring(name):
     """
@@ -2412,7 +2405,7 @@ def singular_console():
     from sage.repl.rich_output.display_manager import get_display_manager
     if not get_display_manager().is_in_terminal():
         raise RuntimeError('Can use the console only in the terminal. Try %%singular magics instead.')
-    os.system('Singular')
+    os.system(sage.features.singular.Singular().absolute_filename())
 
 
 def singular_version():
@@ -2597,6 +2590,7 @@ class SingularGBLogPrettyPrinter:
             sage: s3.flush()
         """
         sys.stdout.flush()
+
 
 class SingularGBDefaultContext:
     """

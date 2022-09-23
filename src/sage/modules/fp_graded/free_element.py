@@ -1,7 +1,8 @@
 r"""
 Elements of finitely generated free graded left modules
 
-For an overview of the free module API, see :doc:`free_module`.
+For an overview, see the :mod:`free graded modules documentation
+<sage.modules.fp_graded.free_module>`.
 
 AUTHORS:
 
@@ -12,7 +13,7 @@ AUTHORS:
   new documentation and tests.
 """
 
-#*****************************************************************************
+# *****************************************************************************
 #       Copyright (C) 2019 Robert R. Bruner <rrb@math.wayne.edu>
 #                     and  Michael J. Catanzaro <mike@math.wayne.edu>
 #
@@ -25,7 +26,7 @@ AUTHORS:
 
 from sage.misc.cachefunc import cached_method
 from sage.modules.with_basis.indexed_element import IndexedFreeModuleElement
-from sage.categories.finite_dimensional_modules_with_basis import FiniteDimensionalModulesWithBasis
+
 
 class FreeGradedModuleElement(IndexedFreeModuleElement):
     r"""
@@ -83,8 +84,7 @@ class FreeGradedModuleElement(IndexedFreeModuleElement):
         """
         if order is None:
             order = self.parent()._indices
-        return super().dense_coefficient_list(order)
-
+        return [self[i] for i in order]
 
     def degree(self):
         r"""
@@ -112,7 +112,7 @@ class FreeGradedModuleElement(IndexedFreeModuleElement):
             ...
             ValueError: the zero element does not have a well-defined degree
 
-        Neither do non-homogeneous slements
+        Neither do non-homogeneous elements::
 
             sage: y = M.an_element(4)
             sage: (x+y).degree()
@@ -136,7 +136,6 @@ class FreeGradedModuleElement(IndexedFreeModuleElement):
             return m
         raise ValueError("this is a nonhomogeneous element, no well-defined degree")
 
-
     def lift_to_free(self):
         r"""
         Return ``self``.
@@ -156,7 +155,6 @@ class FreeGradedModuleElement(IndexedFreeModuleElement):
             True
         """
         return self
-
 
     def _lmul_(self, a):
         r"""
@@ -195,40 +193,44 @@ class FreeGradedModuleElement(IndexedFreeModuleElement):
              Sq(1,1,1)*x0 + Sq(1,1,1)*y0 + Sq(5,1)*z3,
              Sq(3,2)*z3]
         """
-        return self.parent()((a*c for c in self.dense_coefficient_list()))
+        return self.parent()((a * c for c in self.dense_coefficient_list()))
 
     @cached_method
     def vector_presentation(self):
         r"""
-        A coordinate vector representing ``self`` when it is non-zero.
+        A coordinate vector representing ``self`` when it is a non-zero
+        homogeneous element.
 
         These are coordinates with respect to the basis chosen by
-        :meth:`sage.modules.fp_graded.free_module.FreeGradedModule.basis_elements`.
+        :meth:`~sage.modules.fp_graded.free_module.FreeGradedModule.basis_elements`.
         When the element is zero, it has no well defined degree, and this
         function returns ``None``.
 
         OUTPUT:
 
-        A vector of elements in the ground field of the algebra for
+        A vector of elements in the ground ring of the algebra for
         this module when this element is non-zero.  Otherwise, the value
         ``None``.
 
         .. SEEALSO::
 
-            :meth:`sage.modules.fp_graded.free_module.FreeGradedModule.vector_presentation`
-            :meth:`sage.modules.fp_graded.free_module.FreeGradedModule.basis_elements`
-            :meth:`sage.modules.fp_graded.free_module.FreeGradedModule.element_from_coordinates`
+            * :meth:`sage.modules.fp_graded.free_module.FreeGradedModule.vector_presentation`
+            * :meth:`sage.modules.fp_graded.free_module.FreeGradedModule.basis_elements`
+            * :meth:`sage.modules.fp_graded.free_module.FreeGradedModule.element_from_coordinates`
 
         EXAMPLES::
 
-            sage: from sage.modules.fp_graded.free_module import *
             sage: A2 = SteenrodAlgebra(2, profile=(3,2,1))
-            sage: M = FreeGradedModule(A2, (0,1))
+            sage: M = A2.free_graded_module((0,1))
             sage: x = M.an_element(7)
             sage: v = x.vector_presentation(); v
             (1, 0, 0, 0, 0, 1, 0)
             sage: type(v)
             <class 'sage.modules.vector_mod2_dense.Vector_mod2_dense'>
+            sage: M.gen(0).vector_presentation()
+            (1)
+            sage: M.gen(1).vector_presentation()
+            (0, 1)
 
             sage: V = M.vector_presentation(7)
             sage: v in V
@@ -248,6 +250,13 @@ class FreeGradedModuleElement(IndexedFreeModuleElement):
             sage: x == x_ == x__
             True
 
+        This is not defined for elements that are not homogeneous::
+
+            sage: sum(M.basis()).vector_presentation()
+            Traceback (most recent call last):
+            ...
+            ValueError: this is a nonhomogeneous element, no well-defined degree
+
         TESTS::
 
             sage: M.zero().vector_presentation() is None
@@ -258,44 +267,27 @@ class FreeGradedModuleElement(IndexedFreeModuleElement):
         #
         # In this case, we could return the integer value 0 since coercion would
         # place it inside any vector space.  However, this will not work for
-        # homomorphisms, so we we return None to be consistent.
+        # homomorphisms, so we return None to be consistent.
         if self.is_zero():
-             return None
+            return None
 
         P = self.parent()
-        bas_gen = P.basis_elements(self.degree())
-        base_vec = P.vector_presentation(self.degree())
+        deg = self.degree()
+        m = len(P._generator_degrees)
+        V = P.vector_presentation(deg)
 
-        base_dict = dict(zip(bas_gen, base_vec.basis()))
-
-        # Create a sparse representation of the element.
-        sparse_coeffs = [x for x in enumerate(self.dense_coefficient_list())
-                         if not x[1].is_zero()]
-
-        vector = base_vec.zero()
-        for summand_index, algebra_element in sparse_coeffs:
-            g = P.generator(summand_index)
-            for scalar_coefficient, monomial in zip(algebra_element.coefficients(), algebra_element.monomials()):
-                vector += scalar_coefficient * base_dict[monomial * g]
-
-        return vector
-
-    def lift_to_free(self):
-        r"""
-        Return the lift of ``self`` to a free module, which is ``self``
-        since the parent is a free module.
-
-        This is included for compatibility with
-        :class:`~sage.modules.fp_graded.element.FPElement`.
-
-        EXAMPLES::
-
-            sage: from sage.modules.fp_graded.free_module import *
-            sage: A2 = SteenrodAlgebra(2, profile=(3,2,1))
-            sage: M = FreeGradedModule(A2, (0,1))
-            sage: x = M.an_element(7)
-            sage: x.lift_to_free() is x
-            True
-        """
-        return self
-
+        ret = V.zero_vector()
+        j = 0
+        I = P._indices
+        for i in range(m):
+            if I[i] not in self._monomial_coefficients:
+                j += len(P._basis_coeffs(deg, i))
+                continue
+            coeff = self._monomial_coefficients[I[i]]
+            mc = coeff.monomial_coefficients(copy=False)
+            for mono in P._basis_coeffs(deg, i):
+                supp = mono.leading_support()
+                if supp in mc:
+                    ret[j] = mc[supp]
+                j += 1
+        return ret

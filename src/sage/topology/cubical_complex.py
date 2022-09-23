@@ -77,6 +77,7 @@ from sage.matrix.constructor import matrix
 from sage.homology.chain_complex import ChainComplex
 from sage.graphs.graph import Graph
 from sage.misc.cachefunc import cached_method
+from sage.misc.superseded import deprecation
 from functools import total_ordering
 
 
@@ -145,17 +146,17 @@ class Cube(SageObject):
                 try:
                     Integer(x[0])
                 except TypeError:
-                    raise ValueError("The interval %s is not of the correct form" % x)
+                    raise ValueError("the interval %s is not of the correct form" % x)
                 if x[0] + 1 == x[1]:
                     nondegenerate.append(i)
                 elif x[0] != x[1]:
-                    raise ValueError("The interval %s is not of the correct form" % x)
+                    raise ValueError("the interval %s is not of the correct form" % x)
                 new_data.append(tuple(x))
             elif len(x) == 1:
                 y = tuple(x)
                 new_data.append(y+y)
             elif len(x) != 1:
-                raise ValueError("The interval %s is not of the correct form" % x)
+                raise ValueError("the interval %s is not of the correct form" % x)
             i += 1
         self.__tuple = tuple(new_data)
         self.__nondegenerate = nondegenerate
@@ -356,10 +357,10 @@ class Cube(SageObject):
             sage: C.face(3)
             Traceback (most recent call last):
             ...
-            ValueError: Can only compute the nth face if 0 <= n < dim.
+            ValueError: can only compute the nth face if 0 <= n < dim
         """
         if n < 0 or n >= self.dimension():
-            raise ValueError("Can only compute the nth face if 0 <= n < dim.")
+            raise ValueError("can only compute the nth face if 0 <= n < dim")
         idx = self.nondegenerate_intervals()[n]
         t = self.__tuple
         if upper:
@@ -456,7 +457,7 @@ class Cube(SageObject):
         """
         d = self.dimension()
         if d != other.dimension():
-            raise ValueError("Cubes must be of the same dimension.")
+            raise ValueError("cubes must be of the same dimension")
         insert_self = []
         insert_other = []
         translate = []
@@ -847,7 +848,7 @@ class CubicalComplex(GenericCellComplex):
         sage: S1.join(S1)
         Traceback (most recent call last):
         ...
-        NotImplementedError: Joins are not implemented for cubical complexes.
+        NotImplementedError: joins are not implemented for cubical complexes
 
     Therefore, neither are cones or suspensions.
     """
@@ -1065,7 +1066,7 @@ class CubicalComplex(GenericCellComplex):
         if subcomplex not in self._cells:
             if subcomplex is not None and subcomplex.dimension() > -1:
                 if not subcomplex.is_subcomplex(self):
-                    raise ValueError("The 'subcomplex' is not actually a subcomplex.")
+                    raise ValueError("the 'subcomplex' is not actually a subcomplex")
             # Cells is the dictionary of cells in self but not in
             # subcomplex, indexed by dimension
             Cells = {}
@@ -1381,9 +1382,9 @@ class CubicalComplex(GenericCellComplex):
             sage: C1.join(C1)
             Traceback (most recent call last):
             ...
-            NotImplementedError: Joins are not implemented for cubical complexes.
+            NotImplementedError: joins are not implemented for cubical complexes
         """
-        raise NotImplementedError("Joins are not implemented for cubical complexes.")
+        raise NotImplementedError("joins are not implemented for cubical complexes")
 
     # Use * to mean 'join':
     # __mul__ = join
@@ -1405,10 +1406,10 @@ class CubicalComplex(GenericCellComplex):
             sage: C1.cone()
             Traceback (most recent call last):
             ...
-            NotImplementedError: Cones are not implemented for cubical complexes.
+            NotImplementedError: cones are not implemented for cubical complexes
         """
-        #return self.join(cubical_complexes.Cube(0))
-        raise NotImplementedError("Cones are not implemented for cubical complexes.")
+        # return self.join(cubical_complexes.Cube(0))
+        raise NotImplementedError("cones are not implemented for cubical complexes")
 
     def suspension(self, n=1):
         r"""
@@ -1430,7 +1431,7 @@ class CubicalComplex(GenericCellComplex):
             sage: C1.suspension()
             Traceback (most recent call last):
             ...
-            NotImplementedError: Suspensions are not implemented for cubical complexes.
+            NotImplementedError: suspensions are not implemented for cubical complexes
         """
 #         if n<0:
 #             raise ValueError, "n must be non-negative."
@@ -1439,7 +1440,7 @@ class CubicalComplex(GenericCellComplex):
 #         if n==1:
 #             return self.join(cubical_complexes.Sphere(0))
 #         return self.suspension().suspension(int(n-1))
-        raise NotImplementedError("Suspensions are not implemented for cubical complexes.")
+        raise NotImplementedError("suspensions are not implemented for cubical complexes")
 
     def product(self, other):
         r"""
@@ -1562,7 +1563,7 @@ class CubicalComplex(GenericCellComplex):
         # C x 0 and C x 1, putting in its place (its boundary) x (0,1).
         if not (self.is_pure() and other.is_pure() and
                 self.dimension() == other.dimension()):
-            raise ValueError("Complexes are not pure of the same dimension.")
+            raise ValueError("complexes are not pure of the same dimension")
 
         self_facets = list(self.maximal_cells())
         other_facets = list(other.maximal_cells())
@@ -1689,14 +1690,19 @@ class CubicalComplex(GenericCellComplex):
         String representation of self suitable for use by the CHomP
         program.  This lists each maximal cube on its own line.
 
+        This function is deprecated.
+
         EXAMPLES::
 
             sage: C = cubical_complexes.Cube(0).product(cubical_complexes.Cube(2))
             sage: C.maximal_cells()
             {[0,0] x [0,1] x [0,1]}
             sage: C._chomp_repr_()
+            doctest:...: DeprecationWarning: the CHomP interface is deprecated; hence so is this function
+            See https://trac.sagemath.org/33777 for details.
             '[0,0] x [0,1] x [0,1]\n'
         """
+        deprecation(33777, "the CHomP interface is deprecated; hence so is this function")
         s = ""
         for c in self.maximal_cells():
             s += str(c)
@@ -1939,6 +1945,7 @@ class CubicalComplexExamples():
         if n == 0:
             return CubicalComplex([Cube([[0]])])
         else:
-            return CubicalComplex([Cube([[0,1]]*n)])
+            return CubicalComplex([Cube([[0, 1]] * n)])
+
 
 cubical_complexes = CubicalComplexExamples()

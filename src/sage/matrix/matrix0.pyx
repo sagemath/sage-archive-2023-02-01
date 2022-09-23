@@ -521,11 +521,22 @@ cdef class Matrix(sage.structure.element.Matrix):
         """
         raise NotImplementedError("this must be defined in the derived type.")
 
-    cdef bint get_is_zero_unsafe(self, Py_ssize_t i, Py_ssize_t j):
+    cdef bint get_is_zero_unsafe(self, Py_ssize_t i, Py_ssize_t j) except -1:
         """
         Return 1 if the entry ``(i, j)`` is zero, otherwise 0.
 
         Might/should be optimized for derived type.
+
+        TESTS::
+
+            sage: class MyAlgebraicNumber(sage.rings.qqbar.AlgebraicNumber):
+            ....:     def __bool__(self):
+            ....:         raise ValueError
+            sage: mat = matrix(1,1,MyAlgebraicNumber(1))
+            sage: bool(mat)
+            Traceback (most recent call last):
+            ...
+            ValueError
         """
         if self.get_unsafe(i, j):
             return 0
@@ -1434,7 +1445,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             row_list = normalize_index(row_index, nrows)
             row_list_len = len(row_list)
             if row_list_len==0:
-               return
+                return
 
         if single_row and single_col and not no_col_index:
             self.set_unsafe(row, col, self._coerce_element(value))
@@ -1656,13 +1667,12 @@ cdef class Matrix(sage.structure.element.Matrix):
 
         EXAMPLES::
 
-            sage: a=matrix([[1,2],[3,4]])
+            sage: a = matrix([[1,2],[3,4]])
             sage: a._test_change_ring()
-
         """
         tester = self._tester(**options)
         # Test to make sure the returned matrix is a copy
-        tester.assertTrue(self.change_ring(self.base_ring()) is not self)
+        tester.assertIsNot(self.change_ring(self.base_ring()), self)
 
     def _matrix_(self, R=None):
         """
@@ -2292,7 +2302,7 @@ cdef class Matrix(sage.structure.element.Matrix):
     # Functions
     ###################################################
     def act_on_polynomial(self, f):
-        """
+        r"""
         Return the polynomial f(self\*x).
 
         INPUT:
@@ -2358,7 +2368,7 @@ cdef class Matrix(sage.structure.element.Matrix):
     # Arithmetic
     ###################################################
     def commutator(self, other):
-        """
+        r"""
         Return the commutator self\*other - other\*self.
 
         EXAMPLES::
@@ -4031,6 +4041,9 @@ cdef class Matrix(sage.structure.element.Matrix):
         s = 1
         if skew:
             s = -1
+
+        tolerance = self.base_ring()(tolerance)
+        cdef bint tolerance_is_zero = tolerance.is_zero()
         cdef Py_ssize_t i,j
 
         if self.is_sparse_c():
@@ -4040,22 +4053,37 @@ cdef class Matrix(sage.structure.element.Matrix):
             # the non-zero positions. This will be faster if the matrix
             # is truly sparse (if there are not so many of those positions)
             # even after taking numerical issues into account.
-            for (i,j) in self.nonzero_positions():
-                d = self.get_unsafe(i,j) - s*self.get_unsafe(j,i).conjugate()
+            #
+            # We access this list of entries directly, without making a
+            # copy, so it's important that we don't modify it.
+            entries = self._nonzero_positions_by_row(copy=False)
+        else:
+            entries = ( (i,j) for i in range(self._nrows)
+                              for j in range(i+1) )
 
-                # avoid abs() which is missing for finite fields.
-                if d > tolerance or -d > tolerance:
+        for (i,j) in entries:
+            entry_a = self.get_unsafe(i,j)
+            entry_b = s*self.get_unsafe(j,i).conjugate()
+
+            if tolerance_is_zero:
+                # When the tolerance is exactly zero, as will
+                # usually be the case for exact rings, testing for
+                # literal equality provides a simple answer to the
+                # question of how we should test against the
+                # tolerance in rings such as finite fields and
+                # polynomials where abs/norm support is spotty and
+                # an ordering may not be intelligently defined.
+                if entry_a != entry_b:
                     self.cache(key, False)
                     return False
-        else:
-            for i in range(self._nrows):
-                for j in range(i+1):
-                    d = (   self.get_unsafe(i,j)
-                          - s*self.get_unsafe(j,i).conjugate() )
-                    # avoid abs() which is missing for finite fields.
-                    if d > tolerance or -d > tolerance:
-                        self.cache(key, False)
-                        return False
+            else:
+                d = entry_a - entry_b
+                # sqrt() can have a different parent, and doesn't
+                # preserve order in e.g. finite fields, so we
+                # square both sides of the usual test here.
+                if (d*d.conjugate()) > tolerance**2:
+                    self.cache(key, False)
+                    return False
 
         self.cache(key, True)
         return True
@@ -4702,16 +4730,16 @@ cdef class Matrix(sage.structure.element.Matrix):
             [(0, 0), (1, 1)]
         """
         x = self.fetch('nonzero_positions')
-        if not x is None:
+        if x is not None:
             if copy:
                 return list(x)
             return x
         cdef Py_ssize_t i, j
         nzp = []
         for i from 0 <= i < self._nrows:
-           for j from 0 <= j < self._ncols:
-                if not self.get_is_zero_unsafe(i,j):
-                    nzp.append((i,j))
+            for j from 0 <= j < self._ncols:
+                if not self.get_is_zero_unsafe(i, j):
+                    nzp.append((i, j))
         self.cache('nonzero_positions', nzp)
         if copy:
             return list(nzp)
@@ -4953,9 +4981,9 @@ cdef class Matrix(sage.structure.element.Matrix):
             fac = o1.factor()
             S = sum((pi - 1) * pi**(ei - 1) for pi, ei in fac)
             if fac[0] == (2, 1):
-               impossible_order = not(S <= n + 1)
+                impossible_order = not(S <= n + 1)
             else:
-               impossible_order = not(S <= n)
+                impossible_order = not(S <= n)
             if impossible_order:
                 return Infinity
 
@@ -4976,7 +5004,7 @@ cdef class Matrix(sage.structure.element.Matrix):
     # Arithmetic
     ###################################################
     cdef _vector_times_matrix_(self, Vector v):
-        """
+        r"""
         Return the vector times matrix product.
 
         INPUT:
@@ -6022,7 +6050,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         """
         raise NotImplementedError  # this is defined in the derived classes
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         EXAMPLES::
 

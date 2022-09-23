@@ -2,7 +2,7 @@
 r"""
 KnotInfo Database
 
-This module contains the class :class:`KnotInfoDataBase`  and auxilary classes
+This module contains the class :class:`KnotInfoDataBase`  and auxiliary classes
 for it which serves as an interface to the lists of named knots and links provided
 at the web-pages `KnotInfo <https://knotinfo.math.indiana.edu/>`__ and
 `LinkInfo <https://linkinfo.sitehost.iu.edu>`__.
@@ -162,8 +162,8 @@ class KnotInfoFilename(Enum):
     r"""
     Enum for the different data files. The following choices are possible:
 
-    - ``knots`` -- contains the the data from KnotInfo
-    - ``links`` -- contains the the data for proper links from LinkInfo
+    - ``knots`` -- contains the data from KnotInfo
+    - ``links`` -- contains the data for proper links from LinkInfo
 
     Examples::
 

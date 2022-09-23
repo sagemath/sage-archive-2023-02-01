@@ -130,7 +130,8 @@ class TensorFieldModule(UniqueRepresentation, Parent):
 
     `T^{(2,0)}(M)` is not a free module::
 
-        sage: isinstance(T20, FiniteRankFreeModule)
+        sage: from sage.tensor.modules.finite_rank_free_module import FiniteRankFreeModule_abstract
+        sage: isinstance(T20, FiniteRankFreeModule_abstract)
         False
 
     because `M = S^2` is not parallelizable::
@@ -142,7 +143,7 @@ class TensorFieldModule(UniqueRepresentation, Parent):
     free module, since `U` is parallelizable (being a coordinate domain)::
 
         sage: T20U = U.tensor_field_module((2,0))
-        sage: isinstance(T20U, FiniteRankFreeModule)
+        sage: isinstance(T20U, FiniteRankFreeModule_abstract)
         True
         sage: U.is_manifestly_parallelizable()
         True
@@ -373,8 +374,8 @@ class TensorFieldModule(UniqueRepresentation, Parent):
                 and self._ambient_domain.is_subset(comp._ambient_domain)):
                 return comp.restrict(self._domain)
             else:
-               raise TypeError("cannot convert the {}".format(comp) +
-                               " to an element of {}".format(self))
+                raise TypeError("cannot convert the {}".format(comp) +
+                                " to an element of {}".format(self))
         if not isinstance(comp, (list, tuple)):
             raise TypeError("cannot convert the {} ".format(comp) +
                             "to an element of {}".format(self))
@@ -510,7 +511,7 @@ class TensorFieldModule(UniqueRepresentation, Parent):
         if self._latex_name is None:
             return r'\mbox{' + str(self) + r'}'
         else:
-           return self._latex_name
+            return self._latex_name
 
     def base_module(self):
         r"""
@@ -658,7 +659,8 @@ class TensorFieldFreeModule(TensorFreeModule):
 
     `T^{(2,0)}(\RR^3)` is a free module::
 
-        sage: isinstance(T20, FiniteRankFreeModule)
+        sage: from sage.tensor.modules.finite_rank_free_module import FiniteRankFreeModule_abstract
+        sage: isinstance(T20, FiniteRankFreeModule_abstract)
         True
 
     because `M = \RR^3` is parallelizable::
@@ -960,4 +962,3 @@ class TensorFieldFreeModule(TensorFreeModule):
             description += "along the {}".format(self._domain) + \
                            " mapped into the {}".format(self._ambient_domain)
         return description
-

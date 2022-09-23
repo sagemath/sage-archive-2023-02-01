@@ -2270,7 +2270,7 @@ cdef class GapElement_Boolean(GapElement):
             return False
         raise ValueError('the GAP boolean value "fail" cannot be represented in Sage')
 
-    def __nonzero__(self):
+    def __bool__(self):
         """
         Check that the boolean is "true".
 
@@ -2284,12 +2284,12 @@ cdef class GapElement_Boolean(GapElement):
 
             sage: gap_bool = [libgap.eval('true'), libgap.eval('false'), libgap.eval('fail')]
             sage: for x in gap_bool:
-            ....:     if x:     # this calls __nonzero__
+            ....:     if x:     # this calls __bool__
             ....:         print("{} {}".format(x, type(x)))
             true <class 'sage.libs.gap.element.GapElement_Boolean'>
 
             sage: for x in gap_bool:
-            ....:     if not x:     # this calls __nonzero__
+            ....:     if not x:     # this calls __bool__
             ....:         print("{} {}".format( x, type(x)))
             false <class 'sage.libs.gap.element.GapElement_Boolean'>
             fail <class 'sage.libs.gap.element.GapElement_Boolean'>
@@ -3246,7 +3246,7 @@ cdef class GapElement_Record(GapElement):
         return result
 
 
-cdef class GapElement_RecordIterator(object):
+cdef class GapElement_RecordIterator():
     r"""
     Iterator for :class:`GapElement_Record`
 
@@ -3314,6 +3314,6 @@ cdef class GapElement_RecordIterator(object):
 
 
 # Add support for _instancedoc_
-from sage.docs.instancedoc import instancedoc
+from sage.misc.instancedoc import instancedoc
 instancedoc(GapElement_Function)
 instancedoc(GapElement_MethodProxy)

@@ -114,7 +114,7 @@ def sorting_keys(element):
 
     OUTPUT:
 
-    Its coordinates in the corresponding cohomology_raw quotoent vector space
+    Its coordinates in the corresponding cohomology_raw quotient vector space
 
     EXAMPLES::
 
@@ -551,7 +551,7 @@ class Differential(UniqueRepresentation, Morphism,
         """
         Return ``True`` iff this morphism is nonzero.
 
-        This is used by the :meth:`Morphism.__nonzero__` method, which
+        This is used by the :meth:`Morphism.__bool__` method, which
         in turn is used by the :func:`TestSuite` test
         ``_test_nonzero_equal``.
 
@@ -2281,7 +2281,7 @@ class DifferentialGCAlgebra(GCAlgebra):
 
         ALGORITHM:
 
-        Reduce a basis of the `n`'th cohomology modulo all the degree $n$
+        Reduce a basis of the `n`'th cohomology modulo all the degree `n`
         products of the lower degree cohomologies.
 
         EXAMPLES::
@@ -2292,12 +2292,12 @@ class DifferentialGCAlgebra(GCAlgebra):
             {1: [a], 2: [x], 3: [a*y]}
 
         The previous example has infinitely generated cohomology:
-        $a y^n$ is a cohomology generator for each $n$::
+        `a y^n` is a cohomology generator for each `n`::
 
             sage: B.cohomology_generators(10)
             {1: [a], 2: [x], 3: [a*y], 5: [a*y^2], 7: [a*y^3], 9: [a*y^4]}
 
-        In contrast, the corresponding algebra in characteristic $p$
+        In contrast, the corresponding algebra in characteristic `p`
         has finitely generated cohomology::
 
             sage: A3.<a,x,y> = GradedCommutativeAlgebra(GF(3), degrees=(1,2,2))

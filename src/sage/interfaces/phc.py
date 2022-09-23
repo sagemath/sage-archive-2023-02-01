@@ -40,8 +40,9 @@ from sage.misc.temporary_file import tmp_filename
 from sage.rings.real_mpfr import RR
 from sage.rings.cc import CC
 from sage.rings.integer import Integer
-from sage.plot.line import line
-from sage.plot.point import point
+from sage.misc.lazy_import import lazy_import
+lazy_import("sage.plot.line", "line")
+lazy_import("sage.plot.point", "point")
 
 
 def get_solution_dicts(output_file_contents, input_ring, get_failures=True):
@@ -481,19 +482,17 @@ class PHC:
         return output_filename
 
     def _input_file(self, polys):
-        """
+        r"""
         This is used internally to implement the PHC interface.
 
         INPUT:
 
         - polys -- a list of polynomials in a Sage polynomial ring
-          over a field that embeds into the complex
-          numbers.
+          over a field that embeds into the complex numbers
 
         OUTPUT:
 
-        - a PHC input file (as a text string) that describes these -
-          polynomials.
+        a PHC input file (as a text string) that describes these polynomials
 
         EXAMPLES::
 

@@ -20,7 +20,8 @@ AUTHORS:
 #
 ################################################################################
 
-from sage.arith.all import euler_phi, lcm, gcd, divisors, get_inverse_mod, get_gcd, factor, xgcd
+from sage.arith.functions import lcm
+from sage.arith.misc import euler_phi, gcd, divisors, get_inverse_mod, get_gcd, factor, xgcd
 from sage.modular.modsym.p1list import lift_to_sl2z
 from .congroup_generic import CongruenceSubgroup
 from sage.modular.cusps import Cusp
@@ -157,8 +158,8 @@ def _normalize_H(H, level):
 class GammaH_class(CongruenceSubgroup):
     r"""
     The congruence subgroup `\Gamma_H(N)` for some subgroup `H \trianglelefteq
-    (\ZZ / N\ZZ)^\times`, which is the subgroup of `{\rm
-    SL}_2(\ZZ)` consisting of matrices of the form `\begin{pmatrix} a &
+    (\ZZ / N\ZZ)^\times`, which is the subgroup of `\SL_2(\ZZ)` consisting of
+    matrices of the form `\begin{pmatrix} a &
     b \\ c & d \end{pmatrix}` with `N \mid c` and `a, b \in H`.
 
     TESTS:

@@ -1,17 +1,18 @@
 r"""
 Finite dimensional modules with basis
 """
-#*****************************************************************************
+# ****************************************************************************
 #  Copyright (C) 2008 Teresa Gomez-Diaz (CNRS) <Teresa.Gomez-Diaz@univ-mlv.fr>
 #                2011 Nicolas M. Thiery <nthiery at users.sf.net>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
-#******************************************************************************
+# *****************************************************************************
 
 import operator
 from sage.categories.category_with_axiom import CategoryWithAxiom_over_base_ring
 from sage.categories.fields import Fields
+from sage.categories.tensor import TensorProductsCategory
 from sage.misc.cachefunc import cached_method
 
 class FiniteDimensionalModulesWithBasis(CategoryWithAxiom_over_base_ring):
@@ -83,7 +84,7 @@ class FiniteDimensionalModulesWithBasis(CategoryWithAxiom_over_base_ring):
 
             If ``self`` is a ring, ``action`` an action of ``self`` on
             a module `M` and `S` is a subset of `M`, we recover the
-            :Wikipedia:`Annihilator_%28ring_theory%29`. Similarly this
+            :wikipedia:`Annihilator_%28ring_theory%29`. Similarly this
             can be used to compute torsion or orthogonals.
 
             .. SEEALSO:: :meth:`annihilator_basis` for lots of examples.
@@ -344,15 +345,25 @@ class FiniteDimensionalModulesWithBasis(CategoryWithAxiom_over_base_ring):
 
             ::
 
-                sage: M = MatrixSpace(QQ, 3, 3)                                                                                     
-                sage: A = M([[0, 0, 2], [0, 0, 0], [0, 0, 0]])                                                                      
-                sage: M.echelon_form([A, A])                                                                                         
+                sage: M = MatrixSpace(QQ, 3, 3)
+                sage: A = M([[0, 0, 2], [0, 0, 0], [0, 0, 0]])
+                sage: M.echelon_form([A, A])
                 [
                 [0 0 1]
                 [0 0 0]
                 [0 0 0]
                 ]
+
+            TESTS:
+
+            We convert the input elements to ``self``::
+
+                sage: E.<x,y,z> = ExteriorAlgebra(QQ)
+                sage: E.echelon_form([1, x + 2])
+                [1, x]
             """
+            # Make sure elements consists of elements of ``self``
+            elements = [self(y) for y in elements]
             if order is not None:
                 order = self._compute_support_order(elements, order)
             from sage.matrix.constructor import matrix
@@ -761,3 +772,19 @@ class FiniteDimensionalModulesWithBasis(CategoryWithAxiom_over_base_ring):
             return C.submodule(self.image_basis(), already_echelonized=True,
                                category=self.category_for())
 
+    class TensorProducts(TensorProductsCategory):
+
+        def extra_super_categories(self):
+            """
+            Implement the fact that a (finite) tensor product of
+            finite dimensional modules is a finite dimensional module.
+
+            EXAMPLES::
+
+                sage: ModulesWithBasis(ZZ).FiniteDimensional().TensorProducts().extra_super_categories()
+                [Category of finite dimensional modules with basis over Integer Ring]
+                sage: ModulesWithBasis(ZZ).FiniteDimensional().TensorProducts().FiniteDimensional()
+                Category of tensor products of finite dimensional modules with basis over Integer Ring
+
+            """
+            return [self.base_category()]

@@ -5,7 +5,25 @@ Sets
 #  Copyright (C) 2005      David Kohel <kohel@maths.usyd.edu>
 #                          William Stein <wstein@math.ucsd.edu>
 #                2008      Teresa Gomez-Diaz (CNRS) <Teresa.Gomez-Diaz@univ-mlv.fr>
-#                2008-2014 Nicolas M. Thiery <nthiery at users.sf.net>
+#                2008-2017 Nicolas M. Thiery <nthiery at users.sf.net>
+#                2009      Mike Hansen
+#                2010      Florent Hivert
+#                2010      William Laffin
+#                2012      Franco Saliola
+#                2013      Sara Billey
+#                2013      Simon King
+#                2013-2016 Julian Rüth
+#                2014      Darij Grinberg
+#                2014      Peter Bruin
+#                2014-2021 Frédéric Chapoton
+#                2014-2021 Travis Scrimshaw
+#                2015      Daniel Krenn
+#                2015      Vincent Delecroix
+#                2015-2016 Jori Mäntysalo
+#                2016      Kwankyu Lee
+#                2018      Vincent Klein
+#                2019      Markus Wageringel
+#                2020-2021 Matthias Koeppe
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  https://www.gnu.org/licenses/
@@ -229,7 +247,7 @@ class Sets(Category_singleton):
             {1, 2, 3}
 
             sage: S = Sets()([1, 2, 3]); S.category()
-            Category of finite sets
+            Category of finite enumerated sets
             sage: S = Sets()([1, 2, 3], enumerated_set=True); S.category()
             Category of facade finite enumerated sets
 
@@ -1089,7 +1107,7 @@ class Sets(Category_singleton):
                 an_element = self.an_element()
             except EmptySetError:
                 return
-            tester.assertTrue(an_element in self, "self.an_element() is not in self")
+            tester.assertIn(an_element, self, "self.an_element() is not in self")
 #            tester.assertTrue(self.is_parent_of(an_element), "self is not the parent of self.an_element()")
 #            tester.assertEqual(self(an_element), an_element, "element construction is not idempotent")
             if self.is_parent_of(an_element):
@@ -1144,16 +1162,17 @@ class Sets(Category_singleton):
             # The intention is to raise an exception only if this is
             # run as a sub-testsuite of a larger testsuite.
             is_sub_testsuite = (tester is not None)
-            tester = self._tester(tester = tester, **options)
+            tester = self._tester(tester=tester, **options)
             # Or do we want to run the test on some_elements?
             try:
                 an_element = self.an_element()
             except EmptySetError:
                 return
             tester.info("\n  Running the test suite of self.an_element()")
-            TestSuite(an_element).run(verbose = tester._verbose, prefix = tester._prefix+"  ",
-                                      raise_on_failure = is_sub_testsuite)
-            tester.info(tester._prefix+" ", newline = False)
+            TestSuite(an_element).run(verbose=tester._verbose,
+                                      prefix=tester._prefix + "  ",
+                                      raise_on_failure=is_sub_testsuite)
+            tester.info(tester._prefix + " ", newline=False)
 
         def _test_elements_eq_reflexive(self, **options):
             """
@@ -1259,7 +1278,7 @@ class Sets(Category_singleton):
             """
             tester = self._tester(**options)
             S = list(tester.some_elements())
-            n = tester._max_runs
+            n = max(tester._max_runs, 8)
             if (len(S)+2)**3 <= n:
                 S = list(S) + [None, 0]
             else:
@@ -1274,7 +1293,7 @@ class Sets(Category_singleton):
                     for z in S:
                         if not y == z:
                             continue
-                        tester.assertTrue(x == z,
+                        tester.assertEqual(x, z,
                             LazyFormat("non transitive equality:\n"
                                        "%s and %s but %s")%(
                                 print_compare(x, y),
@@ -1343,7 +1362,7 @@ class Sets(Category_singleton):
                 sage: S.some_elements()
                 [47]
                 sage: S = Set([])
-                sage: S.some_elements()
+                sage: list(S.some_elements())
                 []
 
             This method should return an iterable, *not* an iterator.
@@ -1382,7 +1401,7 @@ class Sets(Category_singleton):
             #tester.assertTrue(elements != iter(elements),
             #               "self.some_elements() should return an iterable, not an iterator")
             for x in elements:
-                tester.assertTrue(x in self, LazyFormat(
+                tester.assertIn(x, self, LazyFormat(
                     "the object %s in self.some_elements() is not in self")%(x,))
 
         #Note: the four methods 'cardinality', 'is_finite_, 'is_empty' and
@@ -1453,10 +1472,10 @@ class Sets(Category_singleton):
 
         def _test_construction(self, **options):
             """
-            Test that the construction returned by self really yields self.
+            Test that the construction returned by ``self`` really yields ``self``.
 
-            :meth:`construction` either returns None or a pair ``(F,O)``,
-            and if it returns the latter, then it is supposed that ``F(O)==self`.
+            :meth:`construction` either returns None or a pair ``(F, O)``,
+            and if it returns the latter, then it is supposed that ``F(O) == self``.
             The test verifies this assumption.
 
             EXAMPLES:
@@ -1826,6 +1845,39 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
                 return False
             raise NotImplementedError
 
+        def image(self, domain_subset=None):
+            r"""
+            Return the image of the domain or of ``domain_subset``.
+
+            EXAMPLES::
+
+                sage: P = Partitions(6)
+                sage: H = Hom(P, ZZ)
+                sage: f = H(ZZ.sum)
+                sage: X = f.image()
+                sage: list(X)
+                [6]
+            """
+            D = self.domain()
+            if D is None:
+                raise ValueError("this map became defunct by garbage collection")
+            if domain_subset is None or domain_subset == D:
+                try:
+                    if self.is_surjective():
+                        return D
+                except NotImplementedError:
+                    pass
+                domain_subset = D
+            from sage.sets.set import Set_base
+            from sage.sets.image_set import ImageSubobject, ImageSet
+            if isinstance(domain_subset, Set_base):
+                # Most of our parents are sets, but the mixin class Set_base
+                # provides the full kit of operators.  The image should get them too.
+                cls = ImageSet
+            else:
+                cls = ImageSubobject
+            return cls(self, domain_subset)
+
     Enumerated = LazyImport('sage.categories.enumerated_sets', 'EnumeratedSets', at_startup=True)
     Facade = LazyImport('sage.categories.facade_sets', 'FacadeSets')
     Finite = LazyImport('sage.categories.finite_sets', 'FiniteSets', at_startup=True)
@@ -2166,7 +2218,14 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
         class ParentMethods:
             def __iter__(self):
                 r"""
-                Return a lexicographic iterator for the elements of this Cartesian product.
+                Return an iterator for the elements of this Cartesian product.
+
+                If all factors (except possibly the first factor) are known to be finite,
+                it uses the lexicographic order.
+
+                Otherwise, the iterator enumerates the elements in increasing
+                order of sum-of-ranks, refined by the reverse lexicographic order
+                (see :func:`~sage.misc.mrange.cantor_product`).
 
                 EXAMPLES:
 
@@ -2209,29 +2268,38 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
                      [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
                      [1, 2, 3, 4, 5, 6, 7, 8, 10, 9])
 
-                .. WARNING::
+                When all factors (except possibly the first factor) are known to be finite, it
+                uses the lexicographic order::
 
-                    The elements are returned in lexicographic order,
-                    which gives a valid enumeration only if all
-                    factors, but possibly the first one, are
-                    finite. So the following one is fine::
+                    sage: it = iter(cartesian_product([ZZ, GF(2)]))
+                    sage: [next(it) for _ in range(10)]
+                    [(0, 0), (0, 1),
+                     (1, 0), (1, 1),
+                     (-1, 0), (-1, 1),
+                     (2, 0), (2, 1),
+                     (-2, 0), (-2, 1)]
 
-                        sage: it = iter(cartesian_product([ZZ, GF(2)]))
-                        sage: [next(it) for _ in range(10)]
-                        [(0, 0), (0, 1), (1, 0), (1, 1),
-                         (-1, 0), (-1, 1), (2, 0), (2, 1),
-                         (-2, 0), (-2, 1)]
+                When other factors are infinite (or not known to be finite), it enumerates
+                the elements in increasing order of sum-of-ranks::
 
-                    But this one is not::
+                    sage: NN = NonNegativeIntegers()
+                    sage: it = iter(cartesian_product([NN, NN]))
+                    sage: [next(it) for _ in range(10)]
+                    [(0, 0),
+                     (1, 0), (0, 1),
+                     (2, 0), (1, 1), (0, 2),
+                     (3, 0), (2, 1), (1, 2), (0, 3)]
 
-                        sage: it = iter(cartesian_product([GF(2), ZZ]))
-                        sage: [next(it) for _ in range(10)]
-                        doctest:...: UserWarning: Sage is not able to determine
-                        whether the factors of this Cartesian product are
-                        finite. The lexicographic ordering might not go through
-                        all elements.
-                        [(0, 0), (0, 1), (0, -1), (0, 2), (0, -2),
-                         (0, 3), (0, -3), (0, 4), (0, -4), (0, 5)]
+                An example with the first factor finite, the second infinite::
+
+                    sage: it = iter(cartesian_product([GF(2), ZZ]))
+                    sage: [next(it) for _ in range(11)]
+                    [(0, 0),
+                     (1, 0), (0, 1),
+                     (1, 1), (0, -1),
+                     (1, -1), (0, 2),
+                     (1, 2), (0, -2),
+                     (1, -2), (0, 3)]
 
                 .. NOTE::
 
@@ -2241,17 +2309,18 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
 
                 ALGORITHM:
 
-                Recipe 19.9 in the Python Cookbook by Alex Martelli
-                and David Ascher.
+                The lexicographic enumeration follows Recipe 19.9 in the Python Cookbook
+                by Alex Martelli and David Ascher.
                 """
-                if any(f not in Sets().Finite() for f in self.cartesian_factors()[1:]):
-                    from warnings import warn
-                    warn("Sage is not able to determine whether the factors of "
-                         "this Cartesian product are finite. The lexicographic "
-                         "ordering might not go through all elements.")
-
-                # visualize an odometer, with "wheels" displaying "digits"...:
                 factors = list(self.cartesian_factors())
+                if any(f not in Sets().Finite() for f in factors[1:]):
+                    from sage.misc.mrange import cantor_product
+                    for t in cantor_product(*factors):
+                        yield self._cartesian_product_of_elements(t)
+                    return
+
+                # Lexicographic enumeration:
+                # visualize an odometer, with "wheels" displaying "digits"...:
                 wheels = [iter(f) for f in factors]
                 try:
                     digits = [next(it) for it in wheels]
@@ -2449,6 +2518,19 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
                     42
                 """
 
+            def construction(self):
+                """
+                The construction functor and the list of Cartesian factors.
+
+                EXAMPLES::
+
+                    sage: C = cartesian_product([QQ, ZZ, ZZ])
+                    sage: C.construction()
+                    (The cartesian_product functorial construction,
+                    (Rational Field, Integer Ring, Integer Ring))
+                """
+                return cartesian_product, self.cartesian_factors()
+
             @abstract_method
             def _cartesian_product_of_elements(self, elements):
                 """
@@ -2631,7 +2713,7 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
             """
             return [Sets().Facade()]
 
-        def example(self, base_ring = None, set = None):
+        def example(self, base_ring=None, set=None):
             r"""
             Return an example of set with multiple realizations, as
             per :meth:`Category.example`.

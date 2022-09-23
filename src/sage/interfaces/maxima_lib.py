@@ -101,7 +101,7 @@ from sage.libs.ecl import EclObject, ecl_eval
 from .maxima_abstract import (MaximaAbstract, MaximaAbstractFunction,
     MaximaAbstractElement, MaximaAbstractFunctionElement,
     MaximaAbstractElementFunction)
-from sage.docs.instancedoc import instancedoc
+from sage.misc.instancedoc import instancedoc
 from sage.env import MAXIMA_FAS
 
 
@@ -1589,7 +1589,7 @@ def sr_to_max(expr):
     """
     global sage_op_dict, max_op_dict
     global sage_sym_dict, max_sym_dict
-    if isinstance(expr,list) or isinstance(expr,tuple):
+    if isinstance(expr, (list, tuple)):
         return EclObject(([mlist],[sr_to_max(e) for e in expr]))
     op = expr.operator()
     if op:
@@ -1691,29 +1691,29 @@ def max_to_sr(expr):
         op_max=caar(expr)
         if op_max in special_max_to_sage:
             return special_max_to_sage[op_max](expr)
-        if not(op_max in max_op_dict):
-            op_max_str=maxprint(op_max).python()[1:-1]
-            if op_max_str in max_to_pynac_table:
+        if op_max not in max_op_dict:
+            op_max_str = maxprint(op_max).python()[1:-1]
+            if op_max_str in max_to_pynac_table:   # nargs ?
                 op = max_to_pynac_table[op_max_str]
             else:
                 # This could be unsafe if the conversion to SR
                 # changes the structure of expr
-                sage_expr=SR(maxima(expr))
-                op=sage_expr.operator()
+                sage_expr = SR(maxima(expr))
+                op = sage_expr.operator()
             if op in sage_op_dict:
                 raise RuntimeError("Encountered operator mismatch in maxima-to-sr translation")
             max_op_dict[op_max]=op
             sage_op_dict[op]=op_max
         else:
-            op=max_op_dict[op_max]
-        max_args=cdr(expr)
-        args=[max_to_sr(a) for a in max_args]
+            op = max_op_dict[op_max]
+        max_args = cdr(expr)
+        args = [max_to_sr(a) for a in max_args]
         return op(*args)
     elif expr.symbolp():
-        if not(expr in max_sym_dict):
-            sage_symbol=SR(maxima(expr))
-            sage_sym_dict[sage_symbol]=expr
-            max_sym_dict[expr]=sage_symbol
+        if expr not in max_sym_dict:
+            sage_symbol = SR(maxima(expr))
+            sage_sym_dict[sage_symbol] = expr
+            max_sym_dict[expr] = sage_symbol
         return max_sym_dict[expr]
     else:
         e = expr.python()

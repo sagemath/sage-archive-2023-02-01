@@ -109,7 +109,7 @@ def get_basename(path):
     return fully_qualified_path.replace(os.path.sep, '.')
 
 
-class DocTestSource(object):
+class DocTestSource():
     """
     This class provides a common base class for different sources of doctests.
 
@@ -193,7 +193,7 @@ class DocTestSource(object):
 
         - ``namespace`` -- a dictionary or
           :class:`sage.doctest.util.RecordingDict`, used in the
-          creation of new :class:`doctest.DocTest`s.
+          creation of new :class:`doctest.DocTest` s.
 
         - ``start`` -- an integer, giving the line number of the start
           of this docstring in the larger file.
@@ -239,7 +239,7 @@ class DocTestSource(object):
 
         - ``namespace`` -- a dictionary or
           :class:`sage.doctest.util.RecordingDict`, used in the
-          creation of new :class:`doctest.DocTest`s.
+          creation of new :class:`doctest.DocTest` s.
 
         - ``tab_okay`` -- whether tabs are allowed in this source.
 
@@ -418,7 +418,7 @@ class StringDocTestSource(DocTestSource):
         DocTestSource.__init__(self, options)
 
     def __iter__(self):
-        """
+        r"""
         Iterating over this source yields pairs ``(lineno, line)``.
 
         EXAMPLES::
@@ -505,7 +505,7 @@ class FileDocTestSource(DocTestSource):
         Traceback (most recent call last):
         ...
         ValueError: unknown extension for the file to test (=...txtt),
-        valid extensions are: .py, .pyx, .pxd, .pxi, .sage, .spyx, .tex, .rst
+        valid extensions are: .py, .pyx, .pxd, .pxi, .sage, .spyx, .tex, .rst, .rst.txt
 
     """
     def __init__(self, path, options):
@@ -525,7 +525,10 @@ class FileDocTestSource(DocTestSource):
         """
         self.path = path
         DocTestSource.__init__(self, options)
-        base, ext = os.path.splitext(path)
+        if path.endswith('.rst.txt'):
+            ext = '.rst.txt'
+        else:
+            base, ext = os.path.splitext(path)
         valid_code_ext = ('.py', '.pyx', '.pxd', '.pxi', '.sage', '.spyx')
         if ext in valid_code_ext:
             self.__class__ = dynamic_class('PythonFileSource',(FileDocTestSource,PythonSource))
@@ -533,11 +536,11 @@ class FileDocTestSource(DocTestSource):
         elif ext == '.tex':
             self.__class__ = dynamic_class('TexFileSource',(FileDocTestSource,TexSource))
             self.encoding = "utf-8"
-        elif ext == '.rst':
+        elif ext == '.rst' or ext == '.rst.txt':
             self.__class__ = dynamic_class('RestFileSource',(FileDocTestSource,RestSource))
             self.encoding = "utf-8"
         else:
-            valid_ext = ", ".join(valid_code_ext + ('.tex', '.rst'))
+            valid_ext = ", ".join(valid_code_ext + ('.tex', '.rst', '.rst.txt'))
             raise ValueError("unknown extension for the file to test (={}),"
                     " valid extensions are: {}".format(path, valid_ext))
 
@@ -752,7 +755,7 @@ class FileDocTestSource(DocTestSource):
         return self._create_doctests(namespace)
 
     def _test_enough_doctests(self, check_extras=True, verbose=True):
-        """
+        r"""
         This function checks to see that the doctests are not getting
         unexpectedly skipped.  It uses a different (and simpler) code
         path than the doctest creation functions, so there are a few
@@ -760,13 +763,12 @@ class FileDocTestSource(DocTestSource):
 
         INPUT:
 
-        - ``check_extras`` -- bool (default True), whether to check if
-          doctests are created that don't correspond to either a
-          ``sage: `` or a ``>>> `` prompt.
+        - ``check_extras`` -- bool (default ``True``), whether to check if
+          doctests are created that do not correspond to either a ``sage:``
+          or a ``>>>`` prompt
 
-        - ``verbose`` -- bool (default True), whether to print
-          offending line numbers when there are missing or extra
-          tests.
+        - ``verbose`` -- bool (default ``True``), whether to print
+          offending line numbers when there are missing or extra tests
 
         TESTS::
 
@@ -1062,7 +1064,7 @@ class PythonSource(SourceLanguage):
             sage: FDS.ending_docstring("'''")
             <...Match object...>
             sage: FDS.qualified_name = NestedName(FDS.basename)
-            sage: FDS.starting_docstring("class MyClass(object):")
+            sage: FDS.starting_docstring("class MyClass():")
             sage: FDS.starting_docstring("    def hello_world(self):")
             sage: FDS.starting_docstring("        '''")
             <...Match object...>
@@ -1070,7 +1072,7 @@ class PythonSource(SourceLanguage):
             sage.doctest.sources.MyClass.hello_world
             sage: FDS.ending_docstring("    '''")
             <...Match object...>
-            sage: FDS.starting_docstring("class NewClass(object):")
+            sage: FDS.starting_docstring("class NewClass():")
             sage: FDS.starting_docstring("    '''")
             <...Match object...>
             sage: FDS.ending_docstring("    '''")
@@ -1553,10 +1555,11 @@ class RestSource(SourceLanguage):
         PythonStringSource = dynamic_class("sage.doctest.sources.PythonStringSource",
                                            (StringDocTestSource, PythonSource))
         min_indent = self.parser._min_indent(docstring)
-        pysource = '\n'.join([l[min_indent:] for l in docstring.split('\n')])
+        pysource = '\n'.join(l[min_indent:] for l in docstring.split('\n'))
         inner_source = PythonStringSource(self.basename, pysource,
                                           self.options,
-                                          self.printpath, lineno_shift=start+1)
+                                          self.printpath,
+                                          lineno_shift=start + 1)
         inner_doctests, _ = inner_source._create_doctests(namespace, True)
         safe_docstring = inner_source._neutralize_doctests(min_indent)
         outer_doctest = self.parser.get_doctest(safe_docstring, namespace,
@@ -1592,7 +1595,7 @@ class DictAsObject(dict):
             sage: D.a
             2
         """
-        super(DictAsObject, self).__init__(attrs)
+        super().__init__(attrs)
         self.__dict__.update(attrs)
 
     def __setitem__(self, ky, val):
@@ -1608,9 +1611,9 @@ class DictAsObject(dict):
             sage: D.a
             2
         """
-        super(DictAsObject, self).__setitem__(ky, val)
+        super().__setitem__(ky, val)
         try:
-            super(DictAsObject, self).__setattr__(ky, val)
+            super().__setattr__(ky, val)
         except TypeError:
             pass
 
@@ -1627,5 +1630,5 @@ class DictAsObject(dict):
             sage: D['a']
             2
         """
-        super(DictAsObject, self).__setitem__(ky, val)
-        super(DictAsObject, self).__setattr__(ky, val)
+        super().__setitem__(ky, val)
+        super().__setattr__(ky, val)

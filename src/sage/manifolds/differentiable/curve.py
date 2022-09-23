@@ -956,7 +956,7 @@ class DifferentiableCurve(DiffMap):
                 plot_curve.append( [numerical_approx(x[j]) for j in ind_pc] )
                 t += dt
         else:
-             for i in range(plot_points):
+            for i in range(plot_points):
                 x = transf(t, simplify=False)
                 plot_curve.append(
                                [numerical_approx( x[j].substitute(parameters) )
@@ -965,10 +965,8 @@ class DifferentiableCurve(DiffMap):
 
         return self._graphics(plot_curve, ambient_coords,
                               thickness=thickness,
-                              aspect_ratio=aspect_ratio, color= color,
+                              aspect_ratio=aspect_ratio, color=color,
                               style=style, label_axes=label_axes)
-
-
 
     def _graphics(self, plot_curve, ambient_coords, thickness=1,
                   aspect_ratio='automatic', color='red', style='-',

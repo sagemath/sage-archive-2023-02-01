@@ -15,18 +15,22 @@ component of the newform at `p`.
 """
 
 import operator
-from sage.modular.arithgroup.all import GammaH
-from sage.modular.modform.element import Newform
-from sage.modular.modform.constructor import ModularForms
-from sage.modular.modsym.modsym import ModularSymbols
-from sage.rings.all import ZZ, Zmod, QQ
-from sage.rings.fast_arith import prime_range
-from sage.arith.all import crt
-from sage.structure.sage_object import SageObject
+
+from sage.arith.misc import crt
 from sage.matrix.constructor import matrix
 from sage.misc.cachefunc import cached_method, cached_function
+from sage.modular.arithgroup.all import GammaH
+from sage.modular.modform.constructor import ModularForms
+from sage.modular.modform.element import Newform
+from sage.modular.modsym.modsym import ModularSymbols
+from sage.rings.fast_arith import prime_range
+from sage.rings.finite_rings.integer_mod_ring import Zmod
+from sage.rings.integer_ring import ZZ
+from sage.rings.rational_field import QQ
+from sage.structure.sage_object import SageObject
 
 from .liftings import lift_gen_to_gamma1, lift_ramified
+
 
 @cached_function
 def example_type_space(example_no = 0):
@@ -472,12 +476,12 @@ class TypeSpace(SageObject):
         r"""
         Calculate the action of ``g`` on the type space, in the unramified (even
         level) case. Uses the two standard generators, and a solution of the
-        word problem in `{\rm SL}_2(\ZZ / p^u \ZZ)`.
+        word problem in `\SL_2(\ZZ / p^u \ZZ)`.
 
         INPUT:
 
         - ``g`` -- 4-tuple of integers (or more generally anything that can be
-          converted into an element of the matrix group `{\rm SL}_2(\ZZ / p^u
+          converted into an element of the matrix group `\SL_2(\ZZ / p^u
           \ZZ)`).
 
         EXAMPLES::
@@ -538,7 +542,7 @@ class TypeSpace(SageObject):
     def _group_gens(self):
         r"""
         Return a set of generators of the group `S(K_0) / S(K_u)` (which is
-        either `{\rm SL}_2(\ZZ / p^u \ZZ)` if the conductor is even, and a
+        either `\SL_2(\ZZ / p^u \ZZ)` if the conductor is even, and a
         quotient of an Iwahori subgroup if the conductor is odd).
 
         EXAMPLES::

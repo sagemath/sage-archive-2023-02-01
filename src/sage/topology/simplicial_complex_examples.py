@@ -27,6 +27,7 @@ All of these examples are accessible by typing
 - :func:`ComplexProjectivePlane`
 - :func:`DunceHat`
 - :func:`FareyMap`
+- :func:`GenusSix`
 - :func:`K3Surface`
 - :func:`KleinBottle`
 - :func:`MatchingComplex`
@@ -242,9 +243,7 @@ class UniqueSimplicialComplex(SimplicialComplex, UniqueRepresentation):
                 maximal_faces = C.facets()
             # Now convert maximal_faces to a tuple of tuples, so that it is hashable.
             maximal_faces = tuple(tuple(mf) for mf in maximal_faces)
-        return super(UniqueSimplicialComplex, self).__classcall__(self, maximal_faces,
-                                                                  name=name,
-                                                                  **kwds)
+        return super().__classcall__(self, maximal_faces, name=name, **kwds)
 
     def __init__(self, maximal_faces=None, name=None, **kwds):
         """
@@ -390,7 +389,9 @@ def RealProjectivePlane():
                               [2, 3, 5], [2, 4, 5]],
                               name='Minimal triangulation of the real projective plane')
 
+
 ProjectivePlane = RealProjectivePlane
+
 
 def KleinBottle():
     """
@@ -436,7 +437,7 @@ def SurfaceOfGenus(g, orientable=True):
     """
     if g == 0:
         if not orientable:
-            raise ValueError("No non-orientable surface of genus zero.")
+            raise ValueError("no non-orientable surface of genus zero")
         else:
             return Sphere(2)
     if orientable:
@@ -490,7 +491,7 @@ def MooreSpace(q):
         Triangulation of the mod 8 Moore space
     """
     if q <= 1:
-        raise ValueError("The mod q Moore space is only defined if q is at least 2")
+        raise ValueError("the mod q Moore space is only defined if q is at least 2")
     if q == 2:
         return RealProjectivePlane()
     facets = []
@@ -724,13 +725,9 @@ def RealProjectiveSpace(n):
         [1, 63, 903, 4200, 8400, 7560, 2520]
 
     The following computation can take a long time -- over half an
-    hour -- with Sage's default computation of homology groups,
-    but if you have CHomP installed, Sage will use that and the
-    computation should only take a second or two.  (You can
-    download CHomP from http://chomp.rutgers.edu/, or you can
-    install it as a Sage package using ``sage -i chomp``). ::
+    hour. ::
 
-        sage: P5.homology()  # long time # optional - CHomP
+        sage: P5.homology()  # not tested
         {0: 0, 1: C2, 2: 0, 3: C2, 4: 0, 5: Z}
         sage: simplicial_complexes.RealProjectiveSpace(2).dimension()
         2
@@ -1297,7 +1294,7 @@ def SumComplex(n, A):
         C23
         sage: S = simplicial_complexes.SumComplex(11, [0, 1, 2, 3, 4, 7]); S
         Sum complex on vertices Z/11Z associated to {0, 1, 2, 3, 4, 7}
-        sage: S.homology(algorithm='no_chomp') # long time
+        sage: S.homology() # long time
         {0: 0, 1: 0, 2: 0, 3: 0, 4: C645679, 5: 0}
         sage: factor(645679)
         23 * 67 * 419
@@ -1310,32 +1307,32 @@ def SumComplex(n, A):
         3 * 53
         sage: S = simplicial_complexes.SumComplex(13, [0, 1, 2, 5]); S
         Sum complex on vertices Z/13Z associated to {0, 1, 2, 5}
-        sage: S.homology(algorithm='no_chomp') # long time
+        sage: S.homology() # long time
         {0: 0, 1: 0, 2: C146989209, 3: 0}
         sage: factor(1648910295)
         3^2 * 5 * 53 * 521 * 1327
         sage: S = simplicial_complexes.SumComplex(13, [0, 1, 2, 3, 5]); S
         Sum complex on vertices Z/13Z associated to {0, 1, 2, 3, 5}
-        sage: S.homology(algorithm='no_chomp') # long time
+        sage: S.homology() # long time
         {0: 0, 1: 0, 2: 0, 3: C3 x C237 x C706565607945, 4: 0}
         sage: factor(706565607945)
         3 * 5 * 53 * 79 * 131 * 157 * 547
 
         sage: S = simplicial_complexes.SumComplex(17, [0, 1, 4]); S
         Sum complex on vertices Z/17Z associated to {0, 1, 4}
-        sage: S.homology(1, algorithm='no_chomp')
+        sage: S.homology(1)
         C140183
         sage: factor(140183)
         103 * 1361
         sage: S = simplicial_complexes.SumComplex(19, [0, 1, 4]); S
         Sum complex on vertices Z/19Z associated to {0, 1, 4}
-        sage: S.homology(1, algorithm='no_chomp')
+        sage: S.homology(1)
         C5670599
         sage: factor(5670599)
         11 * 191 * 2699
         sage: S = simplicial_complexes.SumComplex(31, [0, 1, 4]); S
         Sum complex on vertices Z/31Z associated to {0, 1, 4}
-        sage: S.homology(1, algorithm='no_chomp') # long time
+        sage: S.homology(1) # long time
         C5 x C5 x C5 x C5 x C26951480558170926865
         sage: factor(26951480558170926865)
         5 * 311 * 683 * 1117 * 11657 * 1948909
@@ -1617,3 +1614,43 @@ def FareyMap(p):
     triangle = libgap.Set(triangle)
     triangles = libgap.Orbit(group, triangle, libgap.OnSets).sage()
     return SimplicialComplex(triangles)
+
+
+def GenusSix():
+    """
+    Return a triangulated surface of genus 6.
+
+    This is triangulated with 12 vertices, 66 edges and 44 faces. Each
+    vertex is neighbour to all other vertices.
+
+    It appears as number `58` in the classification of Altshuler,
+    Bokowski and Schuchert in [ABS96]_, where it is the unique surface
+    with the largest symmetry group, of order 12. This article refers
+    for this surface to Ringel.
+
+    EXAMPLES::
+
+        sage: S = simplicial_complexes.GenusSix()
+        sage: S.automorphism_group().cardinality()
+        12
+        sage: S.betti()
+        {0: 1, 1: 12, 2: 1}
+        sage: S.f_vector()
+        [1, 12, 66, 44]
+
+    REFERENCES:
+
+    .. [ABS96] Amos Altshule, Jürgen Bokowski and Peter Schuchert,
+               *Neighborly 2-Manifolds with 12 Vertices*,
+               Journal of Combinatorial Theory, Series A, 75, 148-162 (1996),
+               :doi:`10.1006/jcta.1996.0069`
+    """
+    L = ["014", "018", "023", "027", "036", "049",
+         "056", "05b", "07a", "08a", "09b",
+         "125", "126", "137", "139", "147", "15a",
+         "16b", "18b", "19a", "23b", "248",
+         "24a", "258", "269", "279", "2ab", "345",
+         "34b", "35a", "367", "389", "38a",
+         "459", "46a", "46b", "478", "568", "579",
+         "57b", "67a", "689", "78b", "9ab"]
+    return SimplicialComplex([list(w) for w in L])

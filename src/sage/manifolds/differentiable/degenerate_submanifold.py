@@ -156,6 +156,9 @@ REFERENCES:
 #                  https://www.gnu.org/licenses/
 # *****************************************************************************
 
+from __future__ import annotations
+from typing import TYPE_CHECKING
+
 from sage.manifolds.differentiable.pseudo_riemannian import \
     PseudoRiemannianManifold
 from sage.manifolds.differentiable.degenerate import (DegenerateManifold,
@@ -167,6 +170,8 @@ from sage.rings.infinity import infinity
 from sage.matrix.constructor import matrix
 from sage.symbolic.expression import Expression
 
+if TYPE_CHECKING:
+    from sage.manifolds.differentiable.metric import DegenerateMetric
 
 class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
     r"""
@@ -271,13 +276,13 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
         signature = self._ambient.metric().signature()
         ndim = self._ambient._dim
         try:
-           if signature[0]==ndim or signature[1]==ndim:
-            raise ValueError("ambient must be a proper pseudo-Riemannian"+
-                              " or a degenerate manifold")
+            if signature[0] == ndim or signature[1] == ndim:
+                raise ValueError("ambient must be a proper pseudo-Riemannian"
+                                 " or a degenerate manifold")
         except TypeError:
-          if signature==ndim or signature==-ndim:
-            raise ValueError("ambient must be a proper pseudo-Riemannian"+
-                              " or a degenerate manifold")
+            if signature == ndim or signature == -ndim:
+                raise ValueError("ambient must be a proper pseudo-Riemannian"
+                                 " or a degenerate manifold")
         self._transverse = {}
 
     def _repr_(self):
@@ -300,11 +305,11 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
         """
         if self._ambient is None:
             return super(DegenerateManifold, self).__repr__()
-        if self._ambient._dim-self._dim==1:
-          return "degenerate hypersurface {} embedded " \
-               "in {}-dimensional differentiable " \
-               "manifold {}".format(self._name, self._ambient._dim,
-                                    self._ambient._name)
+        if self._ambient._dim - self._dim == 1:
+            return "degenerate hypersurface {} embedded " \
+                "in {}-dimensional differentiable " \
+                "manifold {}".format(self._name, self._ambient._dim,
+                                     self._ambient._name)
         return "{}-dimensional degenerate submanifold {} embedded " \
                "in {}-dimensional differentiable " \
                "manifold {}".format(self._dim, self._name, self._ambient._dim,
@@ -590,7 +595,7 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
         self._default_screen = self._screens[name]
         return self._screens[name]
 
-    def induced_metric(self):
+    def induced_metric(self) -> DegenerateMetric:
         r"""
         Return the pullback of the ambient metric.
 
@@ -692,9 +697,9 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
           spanning the transversal normal distribution, the 4th one being a list
           of independent riggings in `Rig(T\Sigma)` according to the decomposition
 
-         .. MATH::
+        .. MATH::
 
-         TM_{|\Sigma}=S(T\Sigma)\oplus_{orth}((Rad(T\Sigma)\oplus_{orth}(
+            TM_{|\Sigma}=S(T\Sigma)\oplus_{orth}((Rad(T\Sigma)\oplus_{orth}(
             T\sigma^\perp\cap tr(TM))\oplus Rig(T\Sigma))
 
         EXAMPLES:
@@ -741,7 +746,7 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
             v = rig[0]
             g = self.ambient_metric()
             N = (1/g(xi, v))*(v-(g(v,v)/(2*g(xi, v)))*xi)
-            if not len(self._adapted_frame):
+            if not self._adapted_frame:
                 N.set_name(name='N')
             else:
                 n = len(self._adapted_frame)
@@ -820,7 +825,7 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
             i += 1
         f = self._ambient.default_frame()
         GLHPhi = f.along(self.immersion())[0].parent().general_linear_group()
-        if not len(self._adapted_frame):
+        if not self._adapted_frame:
             e = f.new_frame(A, 'vv')
         else:
             n = len(self._adapted_frame)
@@ -829,13 +834,13 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
                   self.immersion()), GLHPhi(A.along(self.immersion())))
         b = e.dual_basis()
         if self._codim==1:
-            if not len(self._adapted_frame):
+            if not self._adapted_frame:
                 e[self._dim-self._sindex].set_name('N')
             else:
                 n = len(self._adapted_frame)
                 e[self._dim-self._sindex].set_name('N'+str(n))
             e[self._dim-self._sindex-1].set_name('xi', latex_name=r'\xi')
-            if not len(self._adapted_frame):
+            if not self._adapted_frame:
                 b[self._dim-self._sindex].set_name('N^b', latex_name=r'N^\flat')
             else:
                 b[self._dim-self._sindex].set_name('N'+str(n)+'^b', latex_name=r'N'+str(n)+r'^\flat')
@@ -886,17 +891,16 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
             Lorentzian manifold M
 
         """
-
         e = self._adapted_frame_(screen).along(self.immersion())
         b = e.dual_basis()
         if self._codim==1:
-            if not len(self._adapted_frame):
+            if not self._adapted_frame:
                 e[self._dim-self._sindex].set_name('N')
             else:
                 n = len(self._adapted_frame)
                 e[self._dim-self._sindex].set_name('N'+str(n))
             e[self._dim-self._sindex-1].set_name('xi', latex_name=r'\xi')
-            if not len(self._adapted_frame):
+            if not self._adapted_frame:
                 b[self._dim-self._sindex].set_name('N^b', latex_name=r'N^\flat')
             else:
                 b[self._dim-self._sindex].set_name('N'+str(n)+'^b', latex_name=r'N'+str(n)+r'^\flat')
@@ -1196,14 +1200,14 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
             T = T.along(im)
         except ValueError:
             pass
-        T.set_name("A^*", latex_name =  r'A^\ast')
+        T.set_name("A^*", latex_name=r'A^\ast')
         A = TangentTensor(T, im)
         self._shape_operator[screen._name] = A
         return A
 
     def gauss_curvature(self, screen=None):
         r"""
-        Gauss curvature is the product of all  eigenfunctions of the shape operator.
+        Gauss curvature is the product of all eigenfunctions of the shape operator.
 
         INPUT:
 
@@ -1241,8 +1245,8 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
 
         """
         if self._ambient._dim-self._dim != 1:
-            raise ValueError("'gauss_curvature' is defined"+
-                                      " only for hypersurfaces.")
+            raise ValueError("'gauss_curvature' is defined"
+                             " only for hypersurfaces.")
         if screen is None:
             screen = self.default_screen()
         if screen._name not in self._gauss_curvature:

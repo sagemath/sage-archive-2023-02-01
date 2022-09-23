@@ -102,13 +102,13 @@ cdef class ModularSymbols:
             156
         """
         if self.is_cuspidal():
-           return self.H.h1cuspdim()
+            return self.H.h1cuspdim()
         else:
-           return self.H.h1dim()
+            return self.H.h1dim()
 
     def number_of_cusps(self):
         r"""
-        Return the number of cusps for $\Gamma_0(N)$, where $N$ is the
+        Return the number of cusps for `\Gamma_0(N)`, where `N` is the
         level.
 
         EXAMPLES::

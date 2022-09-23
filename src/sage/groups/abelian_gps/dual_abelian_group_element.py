@@ -200,7 +200,7 @@ class DualAbelianGroupElement(AbelianGroupElementBase):
             [[b^2*c^2*d^3*e^5, 245]]
 
         The command e.word_problem([u,v,w,x,y],display=True) returns
-        the same list but also prints $e = (b^2*c^2*d^3*e^5)^245$.
+        the same list but also prints ``e = (b^2*c^2*d^3*e^5)^245``.
         """
         ## First convert the problem to one using AbelianGroups
         import copy
@@ -214,9 +214,9 @@ class DualAbelianGroupElement(AbelianGroupElementBase):
         s1 = "gens := GeneratorsOfGroup(%s)"%G._gap_init_()
         gap.eval(s1)
         for i in range(len(gens)):
-           cmd = ("%s := gens["+str(i+1)+"]")%gens[i]
-           gap.eval(cmd)
-        s2 = "g0:=%s; gensH:=%s"%(str(g),words)
+            cmd = ("%s := gens["+str(i+1)+"]") % gens[i]
+            gap.eval(cmd)
+        s2 = "g0:=%s; gensH:=%s" % (str(g), words)
         gap.eval(s2)
         s3 = 'G:=Group(gens); H:=Group(gensH)'
         gap.eval(s3)

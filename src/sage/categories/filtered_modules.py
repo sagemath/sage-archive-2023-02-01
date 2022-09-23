@@ -53,7 +53,7 @@ class FilteredModulesCategory(RegressiveCovariantConstructionCategory, Category_
             sage: HopfAlgebrasWithBasis(QQ).Filtered().base_ring()
             Rational Field
         """
-        super(FilteredModulesCategory, self).__init__(base_category, base_category.base_ring())
+        super().__init__(base_category, base_category.base_ring())
 
     _functor_category = "Filtered"
 
@@ -157,4 +157,3 @@ class FilteredModules(FilteredModulesCategory):
 
     class Connected(CategoryWithAxiom_over_base_ring):
         pass
-

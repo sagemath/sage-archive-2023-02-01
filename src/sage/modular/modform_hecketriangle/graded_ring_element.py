@@ -16,23 +16,21 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.rings.integer_ring import ZZ
-from sage.rings.infinity import infinity
-from sage.rings.all import LaurentSeries, O
-from sage.functions.all import exp
-from sage.rings.number_field.number_field import QuadraticField
-from sage.symbolic.all import pi
-
-from sage.structure.parent_gens import localvars
-from sage.structure.richcmp import op_NE, op_EQ
-from sage.structure.element import CommutativeAlgebraElement
-from sage.structure.unique_representation import UniqueRepresentation
-
-from sage.modules.free_module_element import vector
+from sage.functions.log import exp
 from sage.geometry.hyperbolic_space.hyperbolic_interface import HyperbolicPlane
-
 from sage.misc.cachefunc import cached_method
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
+from sage.modules.free_module_element import vector
+from sage.rings.big_oh import O
+from sage.rings.infinity import infinity
+from sage.rings.integer_ring import ZZ
+from sage.rings.laurent_series_ring_element import LaurentSeries
+from sage.rings.number_field.number_field import QuadraticField
+from sage.structure.element import CommutativeAlgebraElement
+from sage.structure.parent_gens import localvars
+from sage.structure.richcmp import op_NE, op_EQ
+from sage.structure.unique_representation import UniqueRepresentation
+from sage.symbolic.constants import pi
 
 from .constructor import rational_type, FormsSpace, FormsRing
 from .series_constructor import MFSeriesConstructor
@@ -66,11 +64,10 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation,
             sage: el.rat().parent()
             Fraction Field of Multivariate Polynomial Ring in x, y, z, d over Integer Ring
         """
-
         rat = parent.rat_field()(rat)
         # rat.reduce() <- maybe add this for the nonexact case
 
-        return super(FormsRingElement,cls).__classcall__(cls, parent, rat)
+        return super().__classcall__(cls, parent, rat)
 
     def __init__(self, parent, rat):
         r"""
@@ -123,16 +120,14 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation,
             sage: el.parent()
             QuasiModularFormsRing(n=+Infinity) over Integer Ring
         """
-
         self._rat = rat
         (elem, homo, self._weight, self._ep, self._analytic_type) = rational_type(rat, parent.hecke_n(), parent.base_ring())
 
-        if not (
-            elem and\
-            self._analytic_type <= parent.analytic_type() ):
-                raise ValueError("{} does not correspond to an element of the {}.".format(rat, parent))
+        if not (elem and
+                self._analytic_type <= parent.analytic_type()):
+            raise ValueError("{} does not correspond to an element of the {}.".format(rat, parent))
 
-        super(FormsRingElement, self).__init__(parent)
+        super().__init__(parent)
 
     # Unfortunately the polynomial ring does not give unique
     # representations of elements (with respect to ==)
@@ -1046,7 +1041,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation,
             sage: from sage.modular.modform_hecketriangle.graded_ring import QuasiMeromorphicModularFormsRing
             sage: MR = QuasiMeromorphicModularFormsRing(n=8, red_hom=True)
             sage: (X,Y,Z,dX,dY,dZ) = MR.diff_alg().gens()
-            sage: n=MR.hecke_n()
+            sage: n = MR.hecke_n()
             sage: mul_op = 4/(n-2)*X*dX + 2*n/(n-2)*Y*dY + 2*Z*dZ
             sage: der_op = MR._derivative_op()
             sage: ser_op = MR._serre_derivative_op()
@@ -1462,7 +1457,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation,
             sage: ModularFormsRing(n=7)(x+1).reduce(force=True).parent()
             ModularFormsRing(n=7) over Integer Ring
 
-            sage: y=var("y")
+            sage: y = var("y")
             sage: ModularFormsRing(n=infinity)(x-y^2).reduce(force=True)
             64*q - 512*q^2 + 1792*q^3 - 4096*q^4 + O(q^5)
         """
@@ -1493,7 +1488,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation,
             sage: el.reduced_parent()
             ModularFormsRing(n=3) over Integer Ring
 
-            sage: y=var("y")
+            sage: y = var("y")
             sage: QuasiMeromorphicModularFormsRing(n=infinity)(x-y^2).reduced_parent()
             ModularForms(n=+Infinity, k=4, ep=1) over Integer Ring
             sage: QuasiMeromorphicModularFormsRing(n=infinity)(x*(x-y^2)).reduced_parent()
@@ -1547,10 +1542,7 @@ class FormsRingElement(CommutativeAlgebraElement, UniqueRepresentation,
             sage: J_inv._q_expansion_cached(prec=5, fix_d=True, subs_d=None, d_num_prec=53, fix_prec=False) == J_inv.q_expansion_fixed_d()
             True
         """
-
         if not fix_prec:
-            #if (prec <1):
-            #    print "Warning: non-positive precision!"
             if ((not self.is_zero()) and prec <= self.order_at(infinity)):
                 from warnings import warn
                 warn("precision too low to determine any coefficient!")

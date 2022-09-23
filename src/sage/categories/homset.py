@@ -462,7 +462,8 @@ def hom(X, Y, f):
 
     EXAMPLES::
 
-        sage: phi = hom(QQ['x'], QQ, [2])
+        sage: R.<x> = QQ[]
+        sage: phi = hom(R, QQ, [2])
         sage: phi(x^2 + 3)
         7
     """
@@ -579,7 +580,7 @@ class Homset(Set_generic):
         sage: loads(dumps(H)) == H
         True
     """
-    def __init__(self, X, Y, category=None, base = None, check=True):
+    def __init__(self, X, Y, category=None, base=None, check=True):
         r"""
         TESTS::
 
@@ -648,8 +649,8 @@ class Homset(Set_generic):
             # See also #15801.
             base = X.base_ring()
 
-        Parent.__init__(self, base = base,
-                        category = category.Endsets() if X is Y else category.Homsets())
+        Parent.__init__(self, base=base,
+                        category=category.Endsets() if X is Y else category.Homsets())
 
     def __reduce__(self):
         """
@@ -725,8 +726,8 @@ class Homset(Set_generic):
             sage: hash(Hom(QQ, ZZ)) == hash((QQ, ZZ, QQ))
             True
 
-            sage: E = EllipticCurve('37a')
-            sage: H = E(0).parent(); H
+            sage: E = EllipticCurve('37a')                              # optional - sage.symbolic
+            sage: H = E(0).parent(); H                                  # optional - sage.symbolic
             Abelian group of points on Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field
             sage: hash(H) == hash((H.domain(), H.codomain(), H.base()))
             True
@@ -742,7 +743,7 @@ class Homset(Set_generic):
         """
         return True
 
-    __nonzero__ = __bool__
+    
 
     def homset_category(self):
         """
@@ -827,7 +828,7 @@ class Homset(Set_generic):
             sage: H = Hom(Set([1,2,3]), Set([1,2,3]))
             sage: f = H( lambda x: 4-x )
             sage: f.parent()
-            Set of Morphisms from {1, 2, 3} to {1, 2, 3} in Category of finite sets
+            Set of Morphisms from {1, 2, 3} to {1, 2, 3} in Category of finite enumerated sets
             sage: f(1), f(2), f(3) # todo: not implemented
 
             sage: H = Hom(ZZ, QQ, Sets())
@@ -1223,7 +1224,8 @@ class Homset(Set_generic):
             sage: type(H.reversed())
             <class 'sage.modules.free_module_homspace.FreeModuleHomspace_with_category'>
         """
-        return Hom(self.codomain(), self.domain(), category = self.homset_category())
+        return Hom(self.codomain(), self.domain(),
+                   category=self.homset_category())
 
 
 # Really needed???
@@ -1248,7 +1250,8 @@ class HomsetWithBase(Homset):
         """
         if base is None:
             base = X.base_ring()
-        Homset.__init__(self, X, Y, check=check, category=category, base = base)
+        Homset.__init__(self, X, Y, check=check, category=category, base=base)
+
 
 def is_Homset(x):
     """
@@ -1284,4 +1287,3 @@ def is_Endset(x):
         True
     """
     return isinstance(x, Homset) and x.is_endomorphism_set()
-

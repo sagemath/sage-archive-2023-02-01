@@ -72,10 +72,16 @@ def sage_makedirs(dirname, mode=0o777):
     if the directory already exists (unlike ``os.makedirs()``).
     Raise other errors (like permission errors) normally.
 
+    This function is deprecated; use ``os.makedirs(..., exist_ok=True)``
+    instead.
+
     EXAMPLES::
 
         sage: from sage.misc.misc import sage_makedirs
         sage: sage_makedirs(DOT_SAGE) # no output
+        doctest:warning...
+        DeprecationWarning: sage_makedirs is deprecated; use os.makedirs(..., exist_ok=True) instead
+        See https://trac.sagemath.org/32987 for details.
 
     The following fails because we are trying to create a directory in
     place of an ordinary file::
@@ -86,6 +92,9 @@ def sage_makedirs(dirname, mode=0o777):
         ...
         FileExistsError: [Errno ...] File exists: ...
     """
+    from sage.misc.superseded import deprecation
+    deprecation(32987,
+                'sage_makedirs is deprecated; use os.makedirs(..., exist_ok=True) instead')
     try:
         os.makedirs(dirname)
     except OSError:
@@ -98,7 +107,7 @@ def sage_makedirs(dirname, mode=0o777):
 # restrictive permissions, since otherwise possibly just anybody can easily see
 # every command you type.
 
-sage_makedirs(DOT_SAGE, mode=0o700)
+os.makedirs(DOT_SAGE, mode=0o700, exist_ok=True)
 
 
 def try_read(obj, splitlines=False):
@@ -166,7 +175,7 @@ def try_read(obj, splitlines=False):
 
     Custom readable::
 
-        sage: class MyFile(object):
+        sage: class MyFile():
         ....:     def read(self): return 'Hello world!'
         sage: try_read(MyFile())
         'Hello world!'
@@ -212,10 +221,17 @@ def SAGE_TMP():
 
         sage: from sage.misc.misc import SAGE_TMP
         sage: SAGE_TMP
+        doctest:warning...
+        DeprecationWarning: SAGE_TMP is deprecated; please use python's
+        "tempfile" module instead.
+        See https://trac.sagemath.org/33213 for details.
         l'.../temp/...'
+
     """
+    from sage.misc.superseded import deprecation
+    deprecation(33213, "SAGE_TMP is deprecated; please use python's \"tempfile\" module instead.")
     d = os.path.join(DOT_SAGE, 'temp', HOSTNAME, str(os.getpid()))
-    sage_makedirs(d)
+    os.makedirs(d, exist_ok=True)
     return d
 
 
@@ -229,45 +245,49 @@ def ECL_TMP():
 
         sage: from sage.misc.misc import ECL_TMP
         sage: ECL_TMP
-        l'.../temp/.../ecl'
+        doctest:warning...
+        DeprecationWarning: ECL_TMP is deprecated and is no longer used
+        by the ECL interface in sage
+        See https://trac.sagemath.org/33213 for details.
+        ...
+
     """
-    d = os.path.join(str(SAGE_TMP), 'ecl')
-    sage_makedirs(d)
-    return d
+    from sage.misc.superseded import deprecation
+    deprecation(33213, "ECL_TMP is deprecated and is no longer used by the ECL interface in sage")
+    import atexit
+    import tempfile
+    d = tempfile.TemporaryDirectory()
+    result = os.path.join(d.name, 'ecl')
+    atexit.register(lambda: d.cleanup())
+    return result
 
 
 @lazy_string
 def SPYX_TMP():
-    """
+    r"""
     EXAMPLES::
 
         sage: from sage.misc.misc import SPYX_TMP
         sage: SPYX_TMP
-        l'.../temp/.../spyx'
-    """
-    return os.path.join(str(SAGE_TMP), 'spyx')
+        doctest:warning...
+        DeprecationWarning: SPYX_TMP is deprecated;
+        use sage.misc.temporary_file.spyx_tmp instead
+        See https://trac.sagemath.org/33213 for details.
+        ...
 
-
-@lazy_string
-def SAGE_TMP_INTERFACE():
     """
-    EXAMPLES::
-
-        sage: from sage.misc.misc import SAGE_TMP_INTERFACE
-        sage: SAGE_TMP_INTERFACE
-        l'.../temp/.../interface'
-    """
-    d = os.path.join(str(SAGE_TMP), 'interface')
-    sage_makedirs(d)
-    return d
+    from sage.misc.temporary_file import spyx_tmp
+    from sage.misc.superseded import deprecation
+    deprecation(33213, "SPYX_TMP is deprecated; use sage.misc.temporary_file.spyx_tmp instead")
+    return spyx_tmp()
 
 
 SAGE_DB = os.path.join(DOT_SAGE, 'db')
-sage_makedirs(SAGE_DB)
+os.makedirs(SAGE_DB, exist_ok=True)
 
 try:
     # Create the matplotlib config directory.
-    sage_makedirs(os.environ["MPLCONFIGDIR"])
+    os.makedirs(os.environ["MPLCONFIGDIR"], exist_ok=True)
 except KeyError:
     pass
 
@@ -555,7 +575,7 @@ def uniq(x):
 def _stable_uniq(L):
     """
     Iterate over the elements of ``L``, yielding every element at most
-    once: keep only the first occurance of any item.
+    once: keep only the first occurrence of any item.
 
     The items must be hashable.
 

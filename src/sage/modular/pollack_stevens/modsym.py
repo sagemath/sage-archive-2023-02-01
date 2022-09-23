@@ -36,23 +36,26 @@ EXAMPLES::
 #  the License, or (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # *****************************************************************************
+
 import operator
+
+from sage.arith.misc import next_prime, gcd, kronecker
+from sage.categories.action import Action
+from sage.misc.cachefunc import cached_method
+from sage.misc.verbose import verbose
+from sage.rings.integer_ring import ZZ
+from sage.rings.padics.factory import Qp
+from sage.rings.padics.padic_generic import pAdicGeneric
+from sage.rings.padics.precision_error import PrecisionError
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+from sage.rings.rational_field import QQ
 from sage.structure.element import ModuleElement
 from sage.structure.richcmp import op_EQ, op_NE
-from sage.rings.integer_ring import ZZ
-from sage.rings.rational_field import QQ
-from sage.misc.cachefunc import cached_method
-from sage.rings.padics.factory import Qp
-from sage.rings.polynomial.all import PolynomialRing
-from sage.rings.padics.padic_generic import pAdicGeneric
-from sage.arith.all import next_prime, gcd, kronecker
-from sage.misc.verbose import verbose
-from sage.rings.padics.precision_error import PrecisionError
 
-from sage.categories.action import Action
 from .manin_map import ManinMap
 from .sigma0 import Sigma0
 from .fund_domain import M2Z
+
 
 minusproj = [1, 0, 0, -1]
 
@@ -715,18 +718,16 @@ class PSModularSymbolElement(ModuleElement):
         A number field example. Here there are multiple primes above `p`, and
         `\phi` is ordinary at one but not the other.::
 
-            sage: f = Newforms(32, 8, names='a')[1]
-            sage: K = f.hecke_eigenvalue_field()
-            sage: a = f[3]
             sage: from sage.modular.pollack_stevens.space import ps_modsym_from_simple_modsym_space
+            sage: f = Newforms(32, 8, names='a')[1]
             sage: phi = ps_modsym_from_simple_modsym_space(f.modular_symbols(1))
-            sage: phi.is_ordinary(K.ideal(3, 1/16*a + 3/2)) !=  phi.is_ordinary(K.ideal(3, 1/16*a + 5/2))
+            sage: (p1, _), (p2, _) = phi.base_ring().ideal(3).factor()
+            sage: phi.is_ordinary(p1) != phi.is_ordinary(p2)
             True
             sage: phi.is_ordinary(3)
             Traceback (most recent call last):
             ...
             TypeError: P must be an ideal
-
         """
         # q is the prime below p, if base is a number field; q = p otherwise
         if p is None:
@@ -1285,7 +1286,7 @@ class PSModularSymbolElement_symk(PSModularSymbolElement):
         OUTPUT:
 
         - An overconvergent modular symbol whose specialization
-        equals self up to some Eisenstein error.
+          equals self up to some Eisenstein error.
 
         EXAMPLES::
 

@@ -1378,7 +1378,7 @@ class InfinitePolynomialFunctor(ConstructionFunctor):
         # even respecting the order. Note that, if the pushout is computed, only *one* variable
         # will occur in the polynomial constructor. Hence, any order is fine, which is exactly
         # what we need in order to have coercion maps for different orderings.
-        if isinstance(other, MultiPolynomialFunctor) or isinstance(other, PolynomialFunctor):
+        if isinstance(other, (MultiPolynomialFunctor, PolynomialFunctor)):
             if isinstance(other, MultiPolynomialFunctor):
                 othervars = other.vars
             else:
@@ -1822,7 +1822,8 @@ class VectorFunctor(ConstructionFunctor):
     rank = 10 # ranking of functor, not rank of module.
     # This coincides with the rank of the matrix construction functor, but this is OK since they cannot both be applied in any order
 
-    def __init__(self, n, is_sparse=False, inner_product_matrix=None):
+    def __init__(self, n=None, is_sparse=False, inner_product_matrix=None, *,
+                 with_basis='standard', basis_keys=None, name_mapping=None, latex_name_mapping=None):
         """
         INPUT:
 
@@ -1830,6 +1831,8 @@ class VectorFunctor(ConstructionFunctor):
         - ``is_sparse`` (optional bool, default ``False``), create sparse implementation of modules
         - ``inner_product_matrix``: ``n`` by ``n`` matrix, used to compute inner products in the
           to-be-created modules
+        - ``name_mapping``, ``latex_name_mapping``: Dictionaries from base rings to names
+        - other keywords: see :func:`~sage.modules.free_module.FreeModule`
 
         TESTS::
 
@@ -1860,14 +1863,22 @@ class VectorFunctor(ConstructionFunctor):
         self.n = n
         self.is_sparse = is_sparse
         self.inner_product_matrix = inner_product_matrix
+        self.with_basis = with_basis
+        self.basis_keys = basis_keys
+        if name_mapping is None:
+            name_mapping = {}
+        self.name_mapping = name_mapping
+        if latex_name_mapping is None:
+            latex_name_mapping = {}
+        self.latex_name_mapping = latex_name_mapping
 
     def _apply_functor(self, R):
-        """
+        r"""
         Apply the functor to an object of ``self``'s domain.
 
         TESTS::
 
-            sage: from sage.categories.pushout import VectorFunctor
+            sage: from sage.categories.pushout import VectorFunctor, pushout
             sage: F1 = VectorFunctor(3, inner_product_matrix = Matrix(3,3,range(9)))
             sage: M1 = F1(ZZ)   # indirect doctest
             sage: M1.is_sparse()
@@ -1885,9 +1896,31 @@ class VectorFunctor(ConstructionFunctor):
             sage: v.inner_product(v)
             14
 
+            sage: M = FreeModule(ZZ, 4, with_basis=None, name='M')
+            sage: latex(M)
+            M
+            sage: M_QQ = pushout(M, QQ)
+            sage: latex(M_QQ)
+            M \otimes \Bold{Q}
+
         """
         from sage.modules.free_module import FreeModule
-        return FreeModule(R, self.n, sparse=self.is_sparse, inner_product_matrix=self.inner_product_matrix)
+        name = self.name_mapping.get(R, None)
+        latex_name = self.latex_name_mapping.get(R, None)
+        if name is None:
+            for base_ring, name in self.name_mapping.items():
+                name = f'{name}_base_ext'
+                break
+        if latex_name is None:
+            from sage.misc.latex import latex
+            for base_ring, latex_name in self.latex_name_mapping.items():
+                latex_name = fr'{latex_name} \otimes {latex(R)}'
+                break
+        if name is None and latex_name is None:
+            return FreeModule(R, self.n, sparse=self.is_sparse, inner_product_matrix=self.inner_product_matrix,
+                              with_basis=self.with_basis, basis_keys=self.basis_keys)
+        return FreeModule(R, self.n, sparse=self.is_sparse, inner_product_matrix=self.inner_product_matrix,
+                              with_basis=self.with_basis, basis_keys=self.basis_keys, name=name, latex_name=latex_name)
 
     def _apply_functor_to_morphism(self, f):
         """
@@ -1924,7 +1957,11 @@ class VectorFunctor(ConstructionFunctor):
         """
         if isinstance(other, VectorFunctor):
             return (self.n == other.n and
-                    self.inner_product_matrix == other.inner_product_matrix)
+                    self.inner_product_matrix == other.inner_product_matrix and
+                    self.with_basis == other.with_basis and
+                    self.basis_keys == other.basis_keys and
+                    self.name_mapping == other.name_mapping and
+                    self.latex_name_mapping == other.latex_name_mapping)
         return False
 
     def __ne__(self, other):
@@ -1997,19 +2034,73 @@ class VectorFunctor(ConstructionFunctor):
             [3 4 5]
             [6 7 8]'
 
+        Names are removed when they conflict::
+
+            sage: from sage.categories.pushout import VectorFunctor, pushout
+            sage: M_ZZx = FreeModule(ZZ['x'], 4, with_basis=None, name='M_ZZx')
+            sage: N_ZZx = FreeModule(ZZ['x'], 4, with_basis=None, name='N_ZZx')
+            sage: pushout(M_ZZx, QQ)
+            Rank-4 free module M_ZZx_base_ext over the Univariate Polynomial Ring in x over Rational Field
+            sage: pushout(M_ZZx, N_ZZx)
+            Rank-4 free module over the Univariate Polynomial Ring in x over Integer Ring
+            sage: pushout(pushout(M_ZZx, N_ZZx), QQ)
+            Rank-4 free module over the Univariate Polynomial Ring in x over Rational Field
         """
         if not isinstance(other, VectorFunctor):
             return None
-        if self.inner_product_matrix is None:
-            return VectorFunctor(self.n, self.is_sparse and other.is_sparse, other.inner_product_matrix)
-        if other.inner_product_matrix is None:
-            return VectorFunctor(self.n, self.is_sparse and other.is_sparse, self.inner_product_matrix)
-        # At this point, we know that the user wants to take care of the inner product.
-        # So, we only merge if both coincide:
-        if self.inner_product_matrix != other.inner_product_matrix:
+
+        if self.with_basis != other.with_basis:
             return None
         else:
-            return VectorFunctor(self.n, self.is_sparse and other.is_sparse, self.inner_product_matrix)
+            with_basis = self.with_basis
+
+        if self.basis_keys != other.basis_keys:
+            # TODO: If both are enumerated families, should we try to take the union of the families?
+            return None
+        else:
+            basis_keys = self.basis_keys
+
+        is_sparse = self.is_sparse and other.is_sparse
+
+        if self.inner_product_matrix is None:
+            inner_product_matrix = other.inner_product_matrix
+        elif other.inner_product_matrix is None:
+            inner_product_matrix = self.inner_product_matrix
+        elif self.inner_product_matrix != other.inner_product_matrix:
+            # At this point, we know that the user wants to take care of the inner product.
+            # So, we only merge if both coincide:
+            return None
+        else:
+            inner_product_matrix = None
+
+        if self.n != other.n:
+            return None
+        else:
+            n = self.n
+
+        name_mapping = dict()
+        for base_ring, name in self.name_mapping.items():
+            try:
+                other_name = other.name_mapping[base_ring]
+            except KeyError:
+                name_mapping[base_ring] = name
+            else:
+                if name == other_name:
+                    name_mapping[base_ring] = name
+
+        latex_name_mapping = dict()
+        for base_ring, latex_name in self.latex_name_mapping.items():
+            try:
+                other_latex_name = other.latex_name_mapping[base_ring]
+            except KeyError:
+                latex_name_mapping[base_ring] = latex_name
+            else:
+                if latex_name == other_latex_name:
+                    latex_name_mapping[base_ring] = latex_name
+
+        return VectorFunctor(n, is_sparse, inner_product_matrix,
+                             with_basis=with_basis, basis_keys=basis_keys,
+                             name_mapping=name_mapping, latex_name_mapping=latex_name_mapping)
 
 
 class SubspaceFunctor(ConstructionFunctor):
@@ -2917,7 +3008,8 @@ class AlgebraicExtensionFunctor(ConstructionFunctor):
 
     EXAMPLES::
 
-        sage: K.<a> = NumberField(x^3+x^2+1)
+        sage: x = polygen(QQ, 'x')
+        sage: K.<a> = NumberField(x^3 + x^2 + 1)
         sage: F = K.construction()[0]
         sage: F(ZZ['t'])
         Univariate Quotient Polynomial Ring in a over Univariate Polynomial Ring in t over Integer Ring with modulus a^3 + a^2 + 1
@@ -2940,7 +3032,8 @@ class AlgebraicExtensionFunctor(ConstructionFunctor):
 
     This also holds for non-absolute number fields::
 
-        sage: K.<a,b> = NumberField([x^3+x^2+1,x^2+x+1])
+        sage: x = polygen(QQ, 'x')
+        sage: K.<a,b> = NumberField([x^3 + x^2 + 1, x^2 + x + 1])
         sage: F = K.construction()[0]
         sage: O = F(ZZ); O
         Relative Order in Number Field in a with defining polynomial x^3 + x^2 + 1 over its base field
@@ -3135,7 +3228,8 @@ class AlgebraicExtensionFunctor(ConstructionFunctor):
 
         TESTS::
 
-            sage: K.<a>=NumberField(x^3+x^2+1)
+            sage: x = polygen(QQ, 'x')
+            sage: K.<a> = NumberField(x^3 + x^2 + 1)
             sage: F = K.construction()[0]
             sage: F(ZZ)       # indirect doctest
             Order in Number Field in a with defining polynomial x^3 + x^2 + 1
@@ -3179,21 +3273,21 @@ class AlgebraicExtensionFunctor(ConstructionFunctor):
 
         TESTS::
 
-            sage: K.<a>=NumberField(x^3+x^2+1)
+            sage: x = polygen(QQ, 'x')
+            sage: K.<a> = NumberField(x^3 + x^2 + 1)
             sage: F = K.construction()[0]
             sage: F == loads(dumps(F))
             True
 
-            sage: K2.<a> = NumberField(x^3+x^2+1, latex_names='a')
+            sage: K2.<a> = NumberField(x^3 + x^2 + 1, latex_names='a')
             sage: F2 = K2.construction()[0]
             sage: F2 == F
             True
 
-            sage: K3.<a> = NumberField(x^3+x^2+1, latex_names='alpha')
+            sage: K3.<a> = NumberField(x^3 + x^2 + 1, latex_names='alpha')
             sage: F3 = K3.construction()[0]
             sage: F3 == F
             False
-
         """
         if not isinstance(other, AlgebraicExtensionFunctor):
             return False
@@ -3210,7 +3304,8 @@ class AlgebraicExtensionFunctor(ConstructionFunctor):
 
         EXAMPLES::
 
-            sage: K.<a>=NumberField(x^3+x^2+1)
+            sage: x = polygen(QQ, 'x')
+            sage: K.<a> = NumberField(x^3 + x^2 + 1)
             sage: F = K.construction()[0]
             sage: F != loads(dumps(F))
             False
@@ -3293,7 +3388,9 @@ class AlgebraicExtensionFunctor(ConstructionFunctor):
         are embedded into a field that is not a numberfield, no merging
         occurs::
 
-            sage: K.<a> = NumberField(x^3-2, embedding=CDF(1/2*I*2^(1/3)*sqrt(3) - 1/2*2^(1/3)))
+            sage: cbrt2 = CDF(2)^(1/3)
+            sage: zeta3 = CDF.zeta(3)
+            sage: K.<a> = NumberField(x^3-2, embedding=cbrt2 * zeta3)
             sage: L.<b> = NumberField(x^6-2, embedding=1.1)
             sage: L.coerce_map_from(K)
             sage: K.coerce_map_from(L)
@@ -3485,6 +3582,7 @@ class AlgebraicClosureFunctor(ConstructionFunctor):
 
         TESTS::
 
+            sage: x = polygen(QQ, 'x')
             sage: K.<a> = NumberField(x^3+x^2+1)
             sage: CDF.construction()[0].merge(K.construction()[0]) is None
             True
@@ -3515,7 +3613,7 @@ class PermutationGroupFunctor(ConstructionFunctor):
             PermutationGroupFunctor[(1,2)]
         """
         Functor.__init__(self, Groups(), Groups())
-        self._gens = gens
+        self._gens = tuple(gens)
         self._domain = domain
 
     def _repr_(self):
@@ -3527,7 +3625,7 @@ class PermutationGroupFunctor(ConstructionFunctor):
             sage: PF
             PermutationGroupFunctor[(1,2)]
         """
-        return "PermutationGroupFunctor%s" % self.gens()
+        return "PermutationGroupFunctor%s" % list(self.gens())
 
     def __call__(self, R):
         """
@@ -3549,7 +3647,7 @@ class PermutationGroupFunctor(ConstructionFunctor):
             sage: P1 = PermutationGroup([[(1,2)]])
             sage: PF, P = P1.construction()
             sage: PF.gens()
-            [(1,2)]
+            ((1,2),)
         """
         return self._gens
 
@@ -3616,10 +3714,10 @@ class BlackBoxConstructionFunctor(ConstructionFunctor):
 
             sage: from sage.categories.pushout import BlackBoxConstructionFunctor
             sage: FG = BlackBoxConstructionFunctor(gap)
-            sage: FM = BlackBoxConstructionFunctor(maxima)
-            sage: FM == FG
+            sage: FM = BlackBoxConstructionFunctor(maxima)                          # optional - sage.symbolic
+            sage: FM == FG                                                          # optional - sage.symbolic
             False
-            sage: FM == loads(dumps(FM))
+            sage: FM == loads(dumps(FM))                                            # optional - sage.symbolic
             True
         """
         ConstructionFunctor.__init__(self, Objects(), Objects())
@@ -3648,10 +3746,10 @@ class BlackBoxConstructionFunctor(ConstructionFunctor):
 
             sage: from sage.categories.pushout import BlackBoxConstructionFunctor
             sage: FG = BlackBoxConstructionFunctor(gap)
-            sage: FM = BlackBoxConstructionFunctor(maxima)
-            sage: FM == FG       # indirect doctest
+            sage: FM = BlackBoxConstructionFunctor(maxima)                          # optional - sage.symbolic
+            sage: FM == FG       # indirect doctest                                 # optional - sage.symbolic
             False
-            sage: FM == loads(dumps(FM))
+            sage: FM == loads(dumps(FM))                                            # optional - sage.symbolic
             True
         """
         if not isinstance(other, BlackBoxConstructionFunctor):
@@ -3667,10 +3765,10 @@ class BlackBoxConstructionFunctor(ConstructionFunctor):
 
             sage: from sage.categories.pushout import BlackBoxConstructionFunctor
             sage: FG = BlackBoxConstructionFunctor(gap)
-            sage: FM = BlackBoxConstructionFunctor(maxima)
-            sage: FM != FG       # indirect doctest
+            sage: FM = BlackBoxConstructionFunctor(maxima)                          # optional - sage.symbolic
+            sage: FM != FG       # indirect doctest                                 # optional - sage.symbolic
             True
-            sage: FM != loads(dumps(FM))
+            sage: FM != loads(dumps(FM))                                            # optional - sage.symbolic
             False
         """
         return not (self == other)
@@ -3793,10 +3891,10 @@ def pushout(R, S):
         sage: from sage.categories.pushout import ConstructionFunctor
         sage: class EvenPolynomialRing(type(QQ['x'])):
         ....:     def __init__(self, base, var):
-        ....:         super(EvenPolynomialRing, self).__init__(base, var)
+        ....:         super().__init__(base, var)
         ....:         self.register_embedding(base[var])
         ....:     def __repr__(self):
-        ....:         return "Even Power " + super(EvenPolynomialRing, self).__repr__()
+        ....:         return "Even Power " + super().__repr__()
         ....:     def construction(self):
         ....:         return EvenPolynomialFunctor(), self.base()[self.variable_name()]
         ....:     def _coerce_map_from_(self, R):
@@ -3850,7 +3948,7 @@ def pushout(R, S):
         ....:         self.coefficients = coefficients
         ....:         self.var = var
         ....:         self.exponents = exponents
-        ....:         super(GPolynomialRing, self).__init__(category=Rings())
+        ....:         super().__init__(category=Rings())
         ....:     def _repr_(self):
         ....:         return 'Generalized Polynomial Ring in %s^(%s) over %s' % (
         ....:                self.var, self.exponents, self.coefficients)
@@ -3972,7 +4070,7 @@ def pushout(R, S):
         sage: class CartesianProductPoly(CartesianProduct):
         ....:     def __init__(self, polynomial_rings):
         ....:         sort = sorted(polynomial_rings, key=lambda P: P.variable_name())
-        ....:         super(CartesianProductPoly, self).__init__(sort, Sets().CartesianProducts())
+        ....:         super().__init__(sort, Sets().CartesianProducts())
         ....:     def vars(self):
         ....:         return tuple(P.variable_name() for P in self.cartesian_factors())
         ....:     def _pushout_(self, other):
@@ -4008,7 +4106,7 @@ def pushout(R, S):
          (Univariate Polynomial Ring in x over Integer Ring,
           Univariate Polynomial Ring in y over Integer Ring,
           Univariate Polynomial Ring in z over Integer Ring)
-        sage: pushout(CartesianProductPoly((QQ['a,b']['x'], QQ['y'])),
+        sage: pushout(CartesianProductPoly((QQ['a,b']['x'], QQ['y'])),              # optional - sage.symbolic
         ....:         CartesianProductPoly((ZZ['b,c']['x'], SR['z'])))
         The Cartesian product of
          (Univariate Polynomial Ring in x over

@@ -106,13 +106,14 @@ EXAMPLES::
 
 from copy import copy
 from colorsys import hsv_to_rgb
-from sage.plot.plot3d.parametric_plot3d import parametric_plot3d
-from sage.plot.plot3d.shapes2 import text3d
-from sage.plot.graphics import Graphics
-from sage.plot.line import line
-from sage.plot.text import text
-from sage.plot.point import point
-from sage.plot.plot import parametric_plot
+from sage.misc.lazy_import import lazy_import
+lazy_import("sage.plot.plot3d.parametric_plot3d", "parametric_plot3d")
+lazy_import("sage.plot.plot3d.shapes2", "text3d")
+lazy_import("sage.plot.graphics", "Graphics")
+lazy_import("sage.plot.line", "line")
+lazy_import("sage.plot.text", "text")
+lazy_import("sage.plot.point", "point")
+lazy_import("sage.plot.plot", "parametric_plot")
 from sage.symbolic.ring import SR
 
 
@@ -405,13 +406,13 @@ def plot_hyperplane(hyperplane, **kwds):
         ranges_set = True
         ranges = kwds.pop('ranges')
     else:
-        ranges_set = False # give default values below
+        ranges_set = False  # give default values below
     # the extra keywords have now been handled
     # now create the plot
-    if hyperplane.dimension() == 0: # a point on a line
+    if hyperplane.dimension() == 0:  # a point on a line
         x, = hyperplane.A() 
         d = hyperplane.b()
-        p = point((d/x,0), size = pt_size, **kwds)
+        p = point((d/x,0), size=pt_size, **kwds)
         if has_hyp_label:
             if not has_offset:
                 label_offset = 0.1
@@ -521,4 +522,3 @@ def legend_3d(hyperplane_arrangement, hyperplane_colors, length):
             fancybox=True, font_size='x-large', ncol=2)
     p.legend(True)
     return p
-

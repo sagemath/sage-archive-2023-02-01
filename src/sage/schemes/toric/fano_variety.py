@@ -138,7 +138,8 @@ import re
 from sage.geometry.all import Cone, FaceFan, Fan, LatticePolytope
 from sage.misc.latex import latex
 from sage.misc.misc_c import prod
-from sage.rings.all import (PolynomialRing, QQ)
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+from sage.rings.rational_field import QQ
 
 from sage.rings.polynomial.multi_polynomial_ring import is_MPolynomialRing
 from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
@@ -707,8 +708,8 @@ class CPRFanoToricVariety_field(ToricVariety_field):
         # Check/normalize coordinate_indices
         if coordinate_name_indices is None:
             coordinate_name_indices = coordinate_points
-        super(CPRFanoToricVariety_field, self).__init__(fan, coordinate_names,
-                                        coordinate_name_indices, base_field)
+        super().__init__(fan, coordinate_names,
+                         coordinate_name_indices, base_field)
 
     def _latex_(self):
         r"""
@@ -1120,7 +1121,7 @@ class CPRFanoToricVariety_field(ToricVariety_field):
             sage: p = ReflexivePolytope(3, 2254)
             sage: np = p.nef_partitions()[1]
             sage: np
-            Nef-partition {2, 3, 4, 7, 8} U {0, 1, 5, 6}
+            Nef-partition {2, 3, 4, 7, 8} ⊔ {0, 1, 5, 6}
             sage: X = CPRFanoToricVariety(Delta_polar=p)
             sage: X.nef_complete_intersection(np)
             Closed subscheme of 3-d CPR-Fano toric variety
@@ -1230,7 +1231,7 @@ class CPRFanoToricVariety_field(ToricVariety_field):
                                         coordinate_points, point_to_ray,
                                         coordinate_names, coordinate_indices,
                                         self.base_ring())
-        return super(CPRFanoToricVariety_field, self).cartesian_product(other)
+        return super().cartesian_product(other)
 
     def resolve(self, **kwds):
         r"""
@@ -1292,12 +1293,12 @@ class CPRFanoToricVariety_field(ToricVariety_field):
             if "new_points" in kwds:
                 raise ValueError("you cannot give new_points and new_rays at "
                                  "the same time!")
-            return super(CPRFanoToricVariety_field, self).resolve(**kwds)
+            return super().resolve(**kwds)
         # Now we need to construct another Fano variety
         new_points = kwds.pop("new_points", ())
         coordinate_points = self.coordinate_points()
         new_points = tuple(point for point in new_points
-                                 if point not in coordinate_points)
+                           if point not in coordinate_points)
         Delta_polar = self._Delta_polar
         if Delta_polar.origin() in new_points:
             raise ValueError("the origin (point #%d) cannot be used for "
@@ -1441,9 +1442,9 @@ class AnticanonicalHypersurface(AlgebraicScheme_subscheme_toric):
         # Defining polynomial
         h = sum(coef * prod(P_Delta.coordinate_point_to_coordinate(n)
                             ** (Delta.point(m) * Delta_polar.point(n) + 1)
-                       for n in P_Delta.coordinate_points())
+                            for n in P_Delta.coordinate_points())
             for m, coef in zip(monomial_points, coefficients))
-        super(AnticanonicalHypersurface, self).__init__(P_Delta, h)
+        super().__init__(P_Delta, h)
 
 
 class NefCompleteIntersection(AlgebraicScheme_subscheme_toric):
@@ -1469,7 +1470,7 @@ class NefCompleteIntersection(AlgebraicScheme_subscheme_toric):
         sage: o = lattice_polytope.cross_polytope(3)
         sage: np = o.nef_partitions()[0]
         sage: np
-        Nef-partition {0, 1, 3} U {2, 4, 5}
+        Nef-partition {0, 1, 3} ⊔ {2, 4, 5}
         sage: X = CPRFanoToricVariety(Delta_polar=o)
         sage: X.nef_complete_intersection(np)
         Closed subscheme of 3-d CPR-Fano toric variety
@@ -1494,7 +1495,7 @@ class NefCompleteIntersection(AlgebraicScheme_subscheme_toric):
             sage: o = lattice_polytope.cross_polytope(3)
             sage: np = o.nef_partitions()[0]
             sage: np
-            Nef-partition {0, 1, 3} U {2, 4, 5}
+            Nef-partition {0, 1, 3} ⊔ {2, 4, 5}
             sage: X = CPRFanoToricVariety(Delta_polar=o)
             sage: from sage.schemes.toric.fano_variety import *
             sage: NefCompleteIntersection(X, np)
@@ -1572,11 +1573,11 @@ class NefCompleteIntersection(AlgebraicScheme_subscheme_toric):
             h = sum(coef * prod(P_Delta.coordinate_point_to_coordinate(n)
                                 ** (Delta_i.point(m) * Delta_polar.point(n)
                                     + (nef_partition.part_of_point(n) == i))
-                           for n in P_Delta.coordinate_points())
+                                for n in P_Delta.coordinate_points())
                 for m, coef in zip(monomial_points[i], coefficients[i]))
             polynomials.append(h)
         self._monomial_points = tuple(monomial_points)
-        super(NefCompleteIntersection, self).__init__(P_Delta, polynomials)
+        super().__init__(P_Delta, polynomials)
 
     def cohomology_class(self):
         r"""
@@ -1592,7 +1593,7 @@ class NefCompleteIntersection(AlgebraicScheme_subscheme_toric):
             sage: o = lattice_polytope.cross_polytope(3)
             sage: np = o.nef_partitions()[0]
             sage: np
-            Nef-partition {0, 1, 3} U {2, 4, 5}
+            Nef-partition {0, 1, 3} ⊔ {2, 4, 5}
             sage: X = CPRFanoToricVariety(Delta_polar=o)
             sage: CI = X.nef_complete_intersection(np)
             sage: CI
@@ -1625,7 +1626,7 @@ class NefCompleteIntersection(AlgebraicScheme_subscheme_toric):
             sage: o = lattice_polytope.cross_polytope(3)
             sage: np = o.nef_partitions()[0]
             sage: np
-            Nef-partition {0, 1, 3} U {2, 4, 5}
+            Nef-partition {0, 1, 3} ⊔ {2, 4, 5}
             sage: X = CPRFanoToricVariety(Delta_polar=o)
             sage: CI = X.nef_complete_intersection(np)
             sage: CI
@@ -1636,7 +1637,7 @@ class NefCompleteIntersection(AlgebraicScheme_subscheme_toric):
               b1*z1*z2^2 + b2*z2^2*z4 + b5*z1*z2*z5
               + b4*z2*z4*z5 + b3*z1*z5^2 + b0*z4*z5^2
             sage: CI.nef_partition()
-            Nef-partition {0, 1, 3} U {2, 4, 5}
+            Nef-partition {0, 1, 3} ⊔ {2, 4, 5}
             sage: CI.nef_partition() is np
             True
         """
@@ -1699,4 +1700,3 @@ def add_variables(field, variables):
         if v not in new_variables:
             new_variables.append(v)
     return PolynomialRing(field, new_variables).fraction_field()
-

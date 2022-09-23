@@ -386,7 +386,7 @@ class CoFrame(FreeModuleCoBasis):
             Dual basis (dx,dy) on the Tangent space at Point p on the
              2-dimensional differentiable manifold M
             sage: type(fp)
-            <class 'sage.tensor.modules.free_module_basis.FreeModuleCoBasis'>
+            <class 'sage.tensor.modules.free_module_basis.FreeModuleCoBasis_with_category'>
             sage: fp[0]
             Linear form dx on the Tangent space at Point p on the 2-dimensional
              differentiable manifold M
@@ -462,7 +462,8 @@ class CoFrame(FreeModuleCoBasis):
             self._latex_name = r"\left({}, {}\right)".format(
                                     self._domain._latex_name, self._latex_name)
 
-#******************************************************************************
+# ******************************************************************************
+
 
 class VectorFrame(FreeModuleBasis):
     r"""
@@ -1361,7 +1362,7 @@ class VectorFrame(FreeModuleBasis):
             Basis (∂/∂x,∂/∂y) on the Tangent space at Point p on the
              2-dimensional differentiable manifold M
             sage: type(ep)
-            <class 'sage.tensor.modules.free_module_basis.FreeModuleBasis'>
+            <class 'sage.tensor.modules.free_module_basis.FreeModuleBasis_with_category'>
             sage: ep[0]
             Tangent vector ∂/∂x at Point p on the 2-dimensional differentiable
              manifold M

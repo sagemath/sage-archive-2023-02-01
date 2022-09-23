@@ -227,7 +227,7 @@ import sage.rings.rational
 import sage.rings.integer_ring
 
 _obj = {}
-class _uniq(object):
+class _uniq():
     def __new__(cls, *args):
         """
         This ensures uniqueness of these objects.
@@ -243,7 +243,7 @@ class _uniq(object):
         return O
 
 
-class AnInfinity(object):
+class AnInfinity():
     """
     TESTS::
 
@@ -1351,12 +1351,20 @@ class FiniteNumber(RingElement):
             SignError: cannot add positive finite value to negative finite value
             sage: P(44) - P(-1)
             A positive finite number
+
+        TESTS:
+
+        Check that :trac:`34231` is fixed::
+
+            sage: R = InfinityRing
+            sage: all(R(0) + x == x + R(0) == x for x in [-oo, R(-1), R(0), R(1), oo])
+            True
         """
         if isinstance(other, InfinityElement):
             return other
         if self.value * other.value < 0:
             raise SignError("cannot add positive finite value to negative finite value")
-        return FiniteNumber(self.parent(), self.value)
+        return FiniteNumber(self.parent(), self.value + other.value)
 
     def _mul_(self, other):
         """

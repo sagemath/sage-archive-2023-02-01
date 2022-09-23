@@ -6,7 +6,7 @@ Description
 
 GMP-ECM - Elliptic Curve Method for Integer Factorization
 
-Sources can be obtained from http://gforge.inria.fr/projects/ecm/
+Sources can be obtained from https://gitlab.inria.fr/zimmerma/ecm
 
 License
 -------
@@ -17,7 +17,7 @@ LGPL V3+
 Upstream Contact
 ----------------
 
--  ecm-discuss@lists.gforge.inria.fr (requires subscription)
+-  ecm-discuss@inria.fr
 
 Special Update/Build Instructions
 ---------------------------------

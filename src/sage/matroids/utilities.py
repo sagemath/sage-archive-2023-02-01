@@ -24,6 +24,7 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
+from collections.abc import Iterable
 from sage.matrix.constructor import Matrix
 from sage.rings.finite_rings.finite_field_constructor import GF
 from sage.rings.integer_ring import ZZ
@@ -122,7 +123,7 @@ def setprint_s(X, toplevel=False):
         sage: setprint_s(X, toplevel=True)
         'abcd'
     """
-    if isinstance(X, frozenset) or isinstance(X, set):
+    if isinstance(X, (frozenset, set)):
         return '{' + ', '.join(sorted(setprint_s(x) for x in X)) + '}'
     elif isinstance(X, dict):
         return '{' + ', '.join(sorted(setprint_s(key) + ': ' + setprint_s(val)
@@ -132,7 +133,7 @@ def setprint_s(X, toplevel=False):
             return X
         else:
             return "'" + X + "'"
-    elif hasattr(X, '__iter__') and not isinstance(X, SageObject):
+    elif isinstance(X, Iterable) and not isinstance(X, SageObject):
         return '[' + ', '.join(sorted(setprint_s(x) for x in X)) + ']'
     else:
         return repr(X)

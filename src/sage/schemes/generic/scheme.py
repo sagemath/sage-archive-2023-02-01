@@ -21,7 +21,8 @@ AUTHORS:
 
 from sage.structure.parent import Parent
 from sage.misc.cachefunc import cached_method
-from sage.rings.all import (ZZ, CommutativeRing)
+from sage.rings.integer_ring import ZZ
+from sage.rings.ring import CommutativeRing
 from sage.rings.ideal import is_Ideal
 from sage.structure.unique_representation import UniqueRepresentation
 
@@ -100,7 +101,7 @@ class Scheme(Parent):
         """
         from sage.schemes.generic.morphism import is_SchemeMorphism
         from sage.categories.map import Map
-        from sage.categories.all import Rings
+        from sage.categories.rings import Rings
 
         if X is None:
             self._base_ring = ZZ
@@ -891,7 +892,7 @@ class AffineScheme(UniqueRepresentation, Scheme):
         """
         if '_Spec__R' in state:
             state['_AffineScheme__R'] = state.pop('_Spec__R')
-        super(AffineScheme, self).__setstate__(state)
+        super().__setstate__(state)
 
     def _repr_(self):
         """
@@ -1011,7 +1012,7 @@ class AffineScheme(UniqueRepresentation, Scheme):
         try:
             # Construct a scheme homset or a scheme-valued point from
             # args using the generic Scheme.__call__() method.
-            return super(AffineScheme, self).__call__(*args)
+            return super().__call__(*args)
         except NotImplementedError:
             # This arises from self._morphism() not being implemented.
             # We must convert it into a TypeError to keep the coercion
@@ -1055,7 +1056,7 @@ class AffineScheme(UniqueRepresentation, Scheme):
             Point on Spectrum of Integer Ring defined by the Principal ideal (811) of Integer Ring
         """
         if self.coordinate_ring() is ZZ:
-            from sage.arith.all import random_prime
+            from sage.arith.misc import random_prime
             return self(ZZ.ideal(random_prime(1000)))
         return self(self.coordinate_ring().zero_ideal())
 
@@ -1212,7 +1213,7 @@ class AffineScheme(UniqueRepresentation, Scheme):
                     (2, r)
         """
         from sage.categories.map import Map
-        from sage.categories.all import Rings
+        from sage.categories.rings import Rings
 
         if is_Scheme(x):
             return self.Hom(x).natural_map()

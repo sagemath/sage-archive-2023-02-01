@@ -8,6 +8,7 @@ How to implement new algebraic structures in Sage
 
 .. contents::
    :depth: 3
+   :class: this-will-duplicate-information-and-it-is-still-useful-here
 
 --------------------------------------
 Sage's category and coercion framework
@@ -15,7 +16,7 @@ Sage's category and coercion framework
 
 .. MODULEAUTHOR::
     Simon King,
-    Friedrich\--Schiller\--Universität Jena,
+    Friedrich\-Schiller\-Universität Jena,
     <simon.king@uni-jena.de>
     © 2011/2013
 
@@ -1503,7 +1504,7 @@ The elements have to provide more::
 
 Hence, the elements must provide ``denominator()`` and ``numerator()``
 methods, and must be able to tell whether they are zero or not. The base class
-:class:`~sage.structure.element.Element` provides a default ``__nonzero__()``
+:class:`~sage.structure.element.Element` provides a default ``__bool__()``
 method. In addition, the elements may provide Sage's single underscore
 arithmetic methods (actually any ring element *should* provide them).
 

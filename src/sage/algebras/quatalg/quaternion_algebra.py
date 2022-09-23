@@ -798,7 +798,7 @@ class QuaternionAlgebra_ab(QuaternionAlgebra_abstract):
         e_new_gens = []
 
         # For each prime at which R is not yet maximal, make it bigger
-        for (p, p_val) in d_R.factor():
+        for p, _ in d_R.factor():
             e = R.basis()
             while self.quaternion_order(e).discriminant().valuation(p) > d_A.valuation(p):
                 # Compute a normalized basis at p
@@ -1221,7 +1221,7 @@ class QuaternionAlgebra_ab(QuaternionAlgebra_abstract):
         if self.discriminant() % p == 0:
             raise ValueError("p (=%s) must be an unramified prime" % p)
 
-        i, j, k = self.gens()
+        i, j, _ = self.gens()
         F = GF(p)
         i2 = F(i * i)
         j2 = F(j * j)
@@ -1230,9 +1230,9 @@ class QuaternionAlgebra_ab(QuaternionAlgebra_abstract):
         I = M([0, i2, 1, 0])
         if i2 == 0:
             raise NotImplementedError("algorithm for computing local splittings not implemented in general (currently require the first invariant to be coprime to p)")
-        i2inv = 1/i2
+        i2inv = ~i2
         a = None
-        for b in list(F):
+        for b in F:
             if not b:
                 continue
             c = j2 + i2inv * b*b
@@ -1425,6 +1425,49 @@ class QuaternionOrder(Parent):
         self.__quaternion_algebra = A
         Parent.__init__(self, base=ZZ, facade=(A,),
                         category=Algebras(ZZ).Facade().FiniteDimensional())
+
+    def _element_constructor_(self, x):
+        """
+        Construct an element of this quaternion order from ``x``,
+        or throw an error if ``x`` is not contained in the order.
+
+        EXAMPLES::
+
+            sage: Q.<i,j,k> = QuaternionAlgebra(-1,-19)
+            sage: O = Q.quaternion_order([1,i,j,k])
+            sage: O(1+i)
+            1 + i
+            sage: O(1/2)
+            Traceback (most recent call last):
+            ...
+            TypeError: 1/2 does not lie in Order of Quaternion Algebra (-1, -19)
+            with base ring Rational Field with basis (1, i, j, k)
+
+        TESTS:
+
+        Test for :trac:`32364`::
+
+            sage: 1/5 in O
+            False
+            sage: j/2 in O
+            False
+
+        """
+        y = self.quaternion_algebra()(x)
+        if y not in self.unit_ideal():
+            raise TypeError(f'{x!r} does not lie in {self!r}')
+        return y
+
+    def one(self):
+        """
+        Return the multiplicative unit of this quaternion order.
+
+        EXAMPLES::
+
+            sage: QuaternionAlgebra(-1,-7).maximal_order().one()
+            1
+        """
+        return self.quaternion_algebra().one()
 
     def gens(self):
         """
@@ -2822,7 +2865,7 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
         else:
             x = alpha
             lines = []
-            for i in range(p+1):
+            for _ in range(p + 1):
                 lines.append(P1.normalize(x[0, 0], x[0, 1]))
                 x *= alpha
 

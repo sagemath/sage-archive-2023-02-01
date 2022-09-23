@@ -8,6 +8,8 @@
 Additional development and testing tools
 ========================================
 
+.. _section-tools-tox:
+
 Tox
 ===
 
@@ -36,7 +38,7 @@ The tox configuration ``SAGE_ROOT/src/tox.ini`` can be invoked by using the comm
 you can just type ``tox`` instead.)
 
 This configuration provides an entry point for various testing/linting methods,
-known as "tox environments".  We can type ``./sage --advanced`` so see what is
+known as "tox environments".  We can type ``./sage --advanced`` to see what is
 available::
 
   $ ./sage --advanced
@@ -72,6 +74,8 @@ Sage doctester in the normal Sage environment.  This is equivalent to
 using the command ``./sage -t``; see :ref:`chapter-doctesting`.
 
 
+.. _section-tools-coverage:
+
 Coverage
 ========
 
@@ -82,6 +86,8 @@ arguments are provided) or ``./sage --coverage`` (if arguments are
 provided).
 
 
+.. _section-tools-startuptime:
+
 Startuptime
 ===========
 
@@ -89,6 +95,8 @@ The command ``./sage -tox -e startuptime`` requires that Sage has been
 built already.  ``startuptime`` is a special tox environment that is
 equivalent to using the command ``./sage --startuptime``.
 
+
+.. _section-tools-pycodestyle:
 
 Pycodestyle
 ===========
@@ -188,12 +196,19 @@ or a few related issues::
 
 - Manual: Run ``pycodestyle path/to/the/file.py``.
 
-- VS Code: Activate by adding the setting ``"python.linting.pycodestyleEnabled": true``, see `official VS Code documentation <https://code.visualstudio.com/docs/python/linting>`__ for details.
+- VS Code: The minimal version of pycodestyle is activated by default in
+  ``SAGE_ROOT/.vscode/settings.json`` (the corresponding setting is
+  ``"python.linting.pycodestyleEnabled": true``). Note that the
+  ``settings.json`` file is not ignored by git so be aware to keep it in sync
+  with the trac repo. For further details, see the
+  `official VS Code documentation <https://code.visualstudio.com/docs/python/linting>`__.
 
 *Configuration:* ``[pycodestyle]`` block in ``SAGE_ROOT/src/tox.ini``
 
 *Documentation:* https://pycodestyle.pycqa.org/en/latest/index.html
 
+
+.. _section-tools-relint:
 
 Relint
 ======
@@ -209,6 +224,8 @@ documentation markup, and modularization anti-patterns.
 
 *Documentation:* https://pypi.org/project/relint/
 
+
+.. _section-tools-codespell:
 
 Codespell
 =========
@@ -241,25 +258,31 @@ Sage defines a configuration for codespell::
 - ``SAGE_ROOT/src/.codespell-dictionary.txt`` and ``SAGE_ROOT/src/.codespell-ignore.txt``
 
 
+.. _section-tools-pytest:
+
 Pytest
 ======
 `Pytest <https://docs.pytest.org/en/stable/>`_ is a testing framework.
 It is included in the Sage distribution as an optional package.
 
 Currently, Sage only makes very limited use of pytest, for testing the
-package :mod:`sage.numerical.backends`.
+package :mod:`sage.numerical.backends` and some modules in
+:mod:`sage.manifolds`.
 
 *Installation:*
 
-- (for use with the Sage doctester:) ``./sage -i pytest``.
-
-- (for manual use:) ``pip install -U pytest``, see `documentation <https://docs.pytest.org/en/stable/getting-started.html#installation-and-getting-started>`__ for details.
+- ``./sage -i pytest pytest_xdist``.
 
 *Usage:*
 
 - Tox, Sage doctester: At the end of ``./sage -t`` (or ``./sage --tox -e doctest``), Pytest is automatically invoked.
 
-- Manual: Run ``pytest path/to/the/test_file.py`` or ``pytest`` to run all tests (from a virtual environment with the Sage library installed)
+- Manual: Run ``./sage -pytest path/to/the/test_file.py`` or ``./sage -pytest``
+  to run all tests. The additional argument ``-n`` can be used to
+  distribute tests across multiple CPUs to speed up test execution.
+  For example, ``./sage -pytest -n 4`` will run 4 tests in parallel, while
+  ``./sage -pytest -n auto`` will spawn a number of workers processes equal
+  to the number of available CPUs.
 
 - VS Code: Install the `Python extension <https://marketplace.visualstudio.com/items?itemName=ms-python.python>`_ and follow the `offical VS Code documentation <https://code.visualstudio.com/docs/python/testing>`__.
 
@@ -267,13 +290,20 @@ package :mod:`sage.numerical.backends`.
 
 *Documentation:* https://docs.pytest.org/en/stable/index.html
 
-Pyright 
-===============================
+
+.. _section-tools-pyright:
+
+Pyright
+=======
 `Pyright <https://github.com/microsoft/pyright>`_ is static type checker.
 
-*Installation:* ``npm install -g pyright``, see `documentation <https://github.com/microsoft/pyright#installation>`__ for details.
+*Installation:*
+
+- (for manual use:) ``npm install -g pyright``, see `documentation <https://github.com/microsoft/pyright#installation>`__ for details.
 
 *Usage:*
+
+- Tox: Run ``./sage -tox -e pyright path/to/the/file.py``
 
 - Manual: Run ``pyright path/to/the/file.py``
 
@@ -281,10 +311,22 @@ Pyright
 
 *Configuration:* ``SAGE_ROOT/pyrightconfig.json``
 
-*Note*: Currently, only the package :mod:`sage.manifolds` is checked. Further packages can be added in the ``pyrightconfig.json`` file.
-
 *Documentation:* https://github.com/microsoft/pyright#documentation
 
+
+.. _section-tools-pyflakes:
+
 Pyflakes
-===============================
+========
 `Pyflakes <https://github.com/PyCQA/pyflakes>`_ checks for common coding errors.
+
+
+.. _section-tools-lgtm:
+
+LGTM
+====
+The website ``lgtm.com`` offers a detailed diagnostic about the global code quality and its evolution.
+
+The reports can be found `here <https://lgtm.com/projects/g/sagemath/sage/>`_.
+
+Our choice of configuration is made in ``.lgtm.yml``.

@@ -199,7 +199,7 @@ class Diagram(ClonableArray, metaclass=InheritComparisonClasscallMetaclass):
             . . . . . .
             . . . . . .
         """
-        return self._pretty_print()
+        print(self._pretty_print(), end='')
 
     def _ascii_art_(self):
         r"""
@@ -224,7 +224,7 @@ class Diagram(ClonableArray, metaclass=InheritComparisonClasscallMetaclass):
             . . . . . .
             . . . . . .
         """
-        return self._pretty_print()
+        return ascii_art(self._pretty_print())
 
     def _unicode_art_(self):
         r"""
@@ -249,7 +249,7 @@ class Diagram(ClonableArray, metaclass=InheritComparisonClasscallMetaclass):
             ☐☐☐☐☐☐
             ☐☐☐☐☐☐
         """
-        return self._pretty_print('☒', '☐')
+        return unicode_art(self._pretty_print('☒', '☐'))
 
     def _pretty_print(self, cell='O ', empty='. '):
         r"""
@@ -284,7 +284,46 @@ class Diagram(ClonableArray, metaclass=InheritComparisonClasscallMetaclass):
                     output_str += empty
             output_str += '\n'
 
-        print(output_str, end='')  # don't double up on `\n`'ss
+        return output_str
+
+    def _latex_(self):
+        r"""
+        EXAMPLES::
+
+            sage: from sage.combinat.diagram import Diagram
+            sage: latex(Diagram([]))
+            sage: latex(Diagram([(0,0), (0,3), (2,2), (2,4)]))
+        """
+        if not self.cells():
+            return "{\\emptyset}"
+        from string import Template
+        lr = Template(r'\def\lr#1{\multicolumn{1}{$|@{\hspace{.6ex}}c@{\hspace{.6ex}}$|}{\raisebox{-.3ex}{$$#1$$}}}')
+
+        array = []
+        for i in range(self._n_rows):
+            row = []
+            for j in range(self._n_cols):
+                row.append("\\phantom{x}" if (i, j) in self else None)
+            array.append(row)
+    
+        def end_line(r):
+            # give the line ending to row ``r``
+            if r == 0:
+                return "".join(r'\cline{%s-%s}'%(i+1, i+1) for i,j in enumerate(array[0]) if j != None)
+            elif r == len(array):
+                return "".join(r'\cline{%s-%s}'%(i+1, i+1) for i,j in enumerate(array[r-1]) if j != None)
+            else:
+                out = "".join(r'\cline{%s-%s}'%(i+1, i+1) for i,j in enumerate(array[r-1]) if j != None)
+                out += "".join(r'\cline{%s-%s}'%(i+1, i+1) for i,j in enumerate(array[r]) if j != None)
+                return out
+
+        # now we draw the arrayarray
+        tex=r'\raisebox{-.6ex}{$\begin{array}[b]{*{%s}{p{0.6ex}}}'%(max(map(len,array)))
+        tex+=end_line(0)+'\n'
+        for r in range(len(array)):
+            tex+='&'.join('' if c is None else r'\lr{%s}'%(c,) for c in array[r])
+            tex += end_line(r+1)+'\n'
+        return tex+r'\end{array}$}'
 
     def number_of_rows(self):
         r"""

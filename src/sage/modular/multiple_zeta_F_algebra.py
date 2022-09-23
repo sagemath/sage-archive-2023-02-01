@@ -264,9 +264,9 @@ class F_algebra(CombinatorialFreeModule):
 
             sage: from sage.modular.multiple_zeta_F_algebra import F_algebra
             sage: F = F_algebra(QQ)
-            sage: f2 = F.gen(0)
-            sage: f3 = F.gen(1)
-            sage: f5 = F.gen(2)
+            sage: f2 = F.gen(2)
+            sage: f3 = F.gen(3)
+            sage: f5 = F.gen(5)
             sage: f2*f3+f5+f2**2
             f5 + f2*f3 + f2^2
         """
@@ -383,27 +383,6 @@ class F_algebra(CombinatorialFreeModule):
 
     def gen(self, i):
         r"""
-        Return the ``i``-th generator of the algebra.
-
-        INPUT:
-
-        - ``i`` -- an integer, index in the enumeration `f_2,f_3,f_5,f_7,\ldots`
-
-        EXAMPLES::
-
-            sage: from sage.modular.multiple_zeta_F_algebra import F_algebra
-            sage: F = F_algebra(ZZ)
-            sage: F.gen(0)
-            f2
-            sage: F.gen(4)
-            f9
-        """
-        if i == 0:
-            return self.monomial(self._indices((1, [])))
-        return self.monomial(self._indices((0, [2 * i + 1])))
-
-    def custom_gen(self, i):
-        r"""
         Return the generator of the F ring over `\QQ`.
 
         INPUT:
@@ -419,15 +398,15 @@ class F_algebra(CombinatorialFreeModule):
 
             sage: from sage.modular.multiple_zeta_F_algebra import F_algebra
             sage: A = F_algebra(QQ)
-            sage: [A.custom_gen(i) for i in range(2,8)]
+            sage: [A.gen(i) for i in range(2,8)]
             [f2, f3, 2/5*f2^2, f5, 8/35*f2^3, f7]
         """
-        f2 = self("2")
+        f2 = self.monomial(self._indices((1, [])))
         if i == 2:
             return f2
         # now i odd >= 3
         if i % 2:
-            return self.gen((i - 1) // 2)
+            return self.monomial(self._indices((0, [i])))
         # now powers of f2
         i = i // 2
         B = bernoulli(2 * i) * (-1)**(i - 1)
@@ -458,8 +437,8 @@ class F_algebra(CombinatorialFreeModule):
             sage: F.some_elements()
             [0, 1, f2, f3 + f5]
         """
-        return [self.zero(), self.one(), self.gen(0),
-                self.gen(1) + self.gen(2)]
+        return [self.zero(), self.one(), self.gen(2),
+                self.gen(3) + self.gen(5)]
 
     def coproduct_on_basis(self, pw):
         r"""
@@ -630,7 +609,7 @@ class F_algebra(CombinatorialFreeModule):
         `\ZZ` coerces to `\GF{7}`::
 
             sage: G = F_algebra(ZZ)
-            sage: Gx,Gy = G.gen(0), G.gen(1)
+            sage: Gx,Gy = G.gen(2), G.gen(3)
             sage: z = F.coerce(Gx**2 * Gy);z
             f2^2*f3
             sage: z.parent() is F

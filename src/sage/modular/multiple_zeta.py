@@ -1790,7 +1790,7 @@ class Multizetas_iterated(CombinatorialFreeModule):
         # this is now hardcoded
         # prec = 1024
         F = F_algebra(self.base_ring())
-        f = F.custom_gen
+        f = F.gen
         if not w:
             return F.one()
         N = len(w)
@@ -2413,7 +2413,7 @@ def phi_on_multiplicative_basis(compo):
         sage: phi_on_multiplicative_basis((3,))
         f3
     """
-    f = F_algebra(QQ).custom_gen
+    f = F_algebra(QQ).gen
 
     if tuple(compo) == (2,):
         return f(2)
@@ -2560,7 +2560,7 @@ def compute_u_on_basis(w):
     for k in range(3, N, 2):
         xi_dict[k] = F.sum(cf * coeff_phi(ww[0]) * M.phi_extended(tuple(ww[1]))
                            for ww, cf in M.D_on_basis(k, w))
-    return F.sum(F.half_product(F.custom_gen(k), xi_dict[k])
+    return F.sum(F.half_product(F.gen(k), xi_dict[k])
                  for k in range(3, N, 2))
 
 
@@ -2613,7 +2613,7 @@ def rho_inverse(elt):
         sage: from sage.modular.multiple_zeta import rho_inverse
         sage: from sage.modular.multiple_zeta_F_algebra import F_algebra
         sage: A = F_algebra(QQ)
-        sage: f = A.custom_gen
+        sage: f = A.gen
         sage: rho_inverse(f(3))
         ζ(3)
         sage: rho_inverse(f(9))

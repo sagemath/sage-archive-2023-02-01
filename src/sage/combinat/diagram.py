@@ -199,14 +199,89 @@ class Diagram(ClonableArray, metaclass=InheritComparisonClasscallMetaclass):
             . . . . . .
             . . . . . .
         """
+        return self._pretty_print()
+
+    def _ascii_art_(self):
+        r"""
+        Return a visualization of the diagram.
+
+        Cells which are present in the
+        diagram are filled with a ``O``. Cells which are not present in the
+        diagram are filled with a ``.``.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.diagram import Diagram
+            sage: ascii_art(Diagram([(0,0), (0,3), (2,2), (2,4)]))
+            O . . O .
+            . . . . .
+            . . O . O
+            sage: ascii_art(Diagram([(0,0), (0,3), (2,2), (2,4)], n_rows=6, n_cols=6))
+            O . . O . .
+            . . . . . .
+            . . O . O .
+            . . . . . .
+            . . . . . .
+            . . . . . .
+        """
+        return self._pretty_print()
+
+    def _unicode_art_(self):
+        r"""
+        Return a unicode visualization of the diagram.
+
+        Cells which are present in the
+        diagram are filled with a crossed box. Cells which are not present in the
+        diagram are filled with an empty box.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.diagram import Diagram
+            sage: unicode_art(Diagram([(0,0), (0,3), (2,2), (2,4)]))
+            ☒☐☐☒☐
+            ☐☐☐☐☐
+            ☐☐☒☐☒
+            sage: unicode_art(Diagram([(0,0), (0,3), (2,2), (2,4)], n_rows=6, n_cols=6))
+            ☒☐☐☒☐☐
+            ☐☐☐☐☐☐
+            ☐☐☒☐☒☐
+            ☐☐☐☐☐☐
+            ☐☐☐☐☐☐
+            ☐☐☐☐☐☐
+        """
+        return self._pretty_print('☒', '☐')
+
+    def _pretty_print(self, cell='O ', empty='. '):
+        r"""
+        Return a visualization of the diagram.
+
+        Cells which are present in the
+        diagram are filled with ``cell``. Cells which are not present in the
+        diagram are filled with ``empty``.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.diagram import Diagram
+            sage: Diagram([(0,0), (0,3), (2,2), (2,4)])._pretty_print('x ','. ')
+            x . . x .
+            . . . . .
+            . . x . x
+            sage: Diagram([(0,0), (0,3), (2,2), (2,4)], n_rows=6, n_cols=6)._pretty_print('x ','. ')
+            x . . x . .
+            . . . . . .
+            . . x . x .
+            . . . . . .
+            . . . . . .
+            . . . . . .
+        """
         output_str = ''
 
         for i in range(self._n_rows):
             for j in range(self._n_cols):
                 if (i, j) in self:
-                    output_str += 'O '
+                    output_str += cell
                 else:
-                    output_str += '. '
+                    output_str += empty
             output_str += '\n'
 
         print(output_str, end='')  # don't double up on `\n`'ss

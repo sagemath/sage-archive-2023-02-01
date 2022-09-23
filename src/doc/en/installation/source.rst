@@ -63,9 +63,9 @@ However, there are minimal prerequisites for building Sage that
 already must be installed on your system:
 
 - `Fundamental system packages required for installing from source
-  <../reference/spkg/_prereq>`_
+  <../reference/spkg/_prereq.html>`_
 
-- `C/C++ compilers <../reference/spkg/gcc>`_
+- `C/C++ compilers <../reference/spkg/gcc.html>`_
 
 If you have sufficient privileges (for example, on Linux you can
 use ``sudo`` to become the ``root`` user), then you can install these packages
@@ -76,12 +76,12 @@ do this for you.
 In addition to these minimal prerequisites, we strongly recommend to use system
 installations of the following:
 
-- `Fortran compiler <../reference/spkg/gfortran>`_
+- `Fortran compiler <../reference/spkg/gfortran.html>`_
 
-- `Python <../reference/spkg/python3>`_
+- `Python <../reference/spkg/python3.html>`_
 
 Sage developers will also need the `system packages required for
-bootstrapping <../reference/spkg/_bootstrap>`_; they cannot be
+bootstrapping <../reference/spkg/_bootstrap.html>`_; they cannot be
 installed by Sage.
 
 When the ``./configure`` script runs, it will check for the presence of many

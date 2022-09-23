@@ -1,6 +1,10 @@
 # -*- coding: utf-8 -*-
 r"""
 Miscellaneous arithmetic functions
+
+AUTHORS:
+
+- Kevin Stueve (2010-01-17): in ``is_prime(n)``, delegated calculation to ``n.is_prime()``
 """
 
 # ****************************************************************************
@@ -473,6 +477,10 @@ def is_prime(n):
     r"""
     Determine whether `n` is a prime element of its parent ring.
 
+    INPUT:
+
+    -  ``n`` - the object for which to determine primality
+
     Exceptional special cases:
 
     - For integers, determine whether `n` is a *positive* prime.
@@ -485,19 +493,10 @@ def is_prime(n):
     or a strong pseudo-primality test depending on the global
     :mod:`arithmetic proof flag <sage.structure.proof.proof>`.
 
-    INPUT:
-
-    -  ``n`` - the object for which to determine primality
-
     .. SEEALSO::
 
         - :meth:`is_pseudoprime`
         - :meth:`sage.rings.integer.Integer.is_prime`
-
-    AUTHORS:
-
-    - Kevin Stueve kstueve@uw.edu (2010-01-17):
-      delegated calculation to ``n.is_prime()``
 
     EXAMPLES::
 
@@ -530,16 +529,18 @@ def is_prime(n):
         sage: is_prime(7/1)
         doctest:warning
         ...
-        UserWarning: Testing primality in Rational Field, which is a field, hence the result will always be False. To test whether n is a prime integer, use is_prime(ZZ(n)) or ZZ(n).is_prime(). Using n.is_prime() instead will silence this warning.
+        UserWarning: Testing primality in Rational Field, which is a field,
+        hence the result will always be False. To test whether n is a prime
+        integer, use is_prime(ZZ(n)) or ZZ(n).is_prime(). Using n.is_prime()
+        instead will silence this warning.
         False
         sage: ZZ(7/1).is_prime()
         True
         sage: QQ(7/1).is_prime()
         False
 
-    However, number fields redefine ``.is_prime()`` in an
-    incompatible fashion (cf. :trac:`32340`) and we should
-    not warn::
+    However, number fields redefine ``.is_prime()`` in an incompatible fashion
+    (cf. :trac:`32340`) and we should not warn::
 
         sage: K.<i> = NumberField(x^2+1)
         sage: is_prime(1+i)

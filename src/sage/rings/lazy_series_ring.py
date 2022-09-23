@@ -897,9 +897,44 @@ class LazySeriesRing(UniqueRepresentation, Parent):
                 continue
             y = ~x
             e = y * x
-            tester.assertFalse(x.is_zero())
-            tester.assertTrue(e.is_one())
-            tester.assertEqual(y.valuation(), -x.valuation())
+            tester.assertFalse(x.is_zero(), "zero should not be invertible")
+            tester.assertTrue(e.is_one(), "an element (%s) times its inverse should be 1" % x)
+            tester.assertEqual(y.valuation(), -x.valuation(), "the valuation of the inverse should be the negative of the valuation of the element (%s)" % x)
+
+    def _test_div(self, **options):
+        r"""
+        Test division of elements of this ring.
+
+        INPUT:
+
+        - ``options`` -- any keyword arguments accepted by :meth:`_tester`
+
+        EXAMPLES::
+
+            sage: LazyLaurentSeriesRing.options.halting_precision(5)
+            sage: L = LazyLaurentSeriesRing(QQ, 'z')
+            sage: L._test_div()
+            sage: LazyLaurentSeriesRing.options._reset()  # reset the options
+
+        .. SEEALSO::
+
+            :class:`TestSuite`
+        """
+        from sage.misc.misc import some_tuples
+        tester = self._tester(**options)
+
+        elements = list(tester.some_elements())
+        for x, y in some_tuples(elements, 2, tester._max_runs):
+            try:
+                z = x / y
+            except (ZeroDivisionError, ValueError):
+                tester.assertFalse(y.is_unit(), "it should be possible to divide an element (%s) by a unit (%s)" % (x, y))
+            else:
+                xx = z * y
+                tester.assertFalse(y.is_zero(), "it should not be possible to divide by zero")
+                if not x.is_zero():
+                    tester.assertEqual(z.valuation(), x.valuation() - y.valuation(), "the valuation of the quotient should be the difference of the valuations of the elements (%s and %s)" % (x, y))
+                tester.assertEqual(xx, x, "the element (%s) should be the quotient times the divisor (%s)" % (x, y))
 
     def _test_revert(self, **options):
         """

@@ -929,11 +929,21 @@ class LazySeriesRing(UniqueRepresentation, Parent):
                 z = x / y
             except (ZeroDivisionError, ValueError):
                 tester.assertFalse(y.is_unit(), "it should be possible to divide an element (%s) by a unit (%s)" % (x, y))
+            except Exception as error:
+                raise ValueError("could not compute (%s)/(%s): %s" % (x, y, error))
             else:
                 xx = z * y
                 tester.assertFalse(y.is_zero(), "it should not be possible to divide by zero")
                 if not x.is_zero():
-                    tester.assertEqual(z.valuation(), x.valuation() - y.valuation(), "the valuation of the quotient should be the difference of the valuations of the elements (%s and %s)" % (x, y))
+                    try:
+                        v_z = z.valuation()
+                    except Exception as error:
+                        raise ValueError("could not compute the valuation of the quotient (%s)/(%s): %s" % (x, y, error))
+                    else:
+                        v_x = x.valuation()
+                        v_y = y.valuation()
+                        tester.assertEqual(v_z, v_x - v_y, "the valuation of the quotient should be the difference of the valuations of the elements (%s and %s)" % (x, y))
+
                 tester.assertEqual(xx, x, "the element (%s) should be the quotient times the divisor (%s)" % (x, y))
 
     def _test_revert(self, **options):

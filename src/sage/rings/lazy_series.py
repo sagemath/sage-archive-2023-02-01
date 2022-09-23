@@ -3596,6 +3596,7 @@ class LazyLaurentSeries(LazyCauchyProductSeries):
 
             def coefficient(n):
                 return sum(self[i] * (g**i)[n] for i in range(n+1))
+
             R = P._internal_poly_ring.base_ring()
             coeff_stream = Stream_function(coefficient, P._sparse, 1)
             return P.element_class(P, coeff_stream)
@@ -3773,11 +3774,11 @@ class LazyLaurentSeries(LazyCauchyProductSeries):
         if coeff_stream._approximate_order > 1:
             raise ValueError("compositional inverse does not exist")
 
-        #if not coeff_stream[1]:
-        #    raise ValueError("compositional inverse does not exist")
+        # if not coeff_stream[1]:
+        #     raise ValueError("compositional inverse does not exist")
 
-        #if coeff_stream[0]:
-        #    raise ValueError("cannot determine whether the compositional inverse exists")
+        if coeff_stream[0]:
+            raise ValueError("cannot determine whether the compositional inverse exists")
 
         z = P.gen()
         g = P.undefined(valuation=1)
@@ -4424,6 +4425,7 @@ class LazyPowerSeries(LazyCauchyProductSeries):
                 # we assume that the valuation of self[i](g) is at least i
                 def coefficient(n):
                     return sum(self[i] * (g0**i)[n] for i in range(n+1))
+
                 coeff_stream = Stream_function(coefficient, P._sparse, 1)
                 return P.element_class(P, coeff_stream)
 
@@ -4435,7 +4437,7 @@ class LazyPowerSeries(LazyCauchyProductSeries):
 
         def coefficient(n):
             r = R.zero()
-            for i in range(n//gv+1):
+            for i in range(n // gv + 1):
                 # Make sure the element returned from the composition is in P
                 r += P(self[i](g))[n]
             return r
@@ -4580,11 +4582,12 @@ class LazyPowerSeries(LazyCauchyProductSeries):
 
         # TODO: coefficients should not be checked here, it prevents
         # us from using self.define in some cases!
-#         if not coeff_stream[1]:
-#             raise ValueError("compositional inverse does not exist")
-#
-#         if coeff_stream[0]:
-#             raise ValueError("cannot determine whether the compositional inverse exists")
+        # if not coeff_stream[1]:
+        #     raise ValueError("compositional inverse does not exist")
+
+        if coeff_stream[0]:
+            raise ValueError("cannot determine whether the compositional inverse exists")
+
         z = P.gen()
         g = P.undefined(valuation=1)
         # the following is mathematically equivalent to
@@ -5339,7 +5342,8 @@ class LazySymmetricFunction(LazyCompletionGradedAlgebraElement):
         TESTS::
 
             sage: f = L(lambda n: h[n]) - 1 - h[1]
-            sage: f.compositional_inverse()
+            sage: g = f.revert()
+            sage: g[1]
             Traceback (most recent call last):
             ...
             ValueError: compositional inverse does not exist
@@ -5411,17 +5415,24 @@ class LazySymmetricFunction(LazyCompletionGradedAlgebraElement):
 
         # TODO: coefficients should not be checked here, it prevents
         # us from using self.define in some cases!
-#        if not coeff_stream[1]:
-#            raise ValueError("compositional inverse does not exist")
-#
-#        if coeff_stream[0]:
-#            raise ValueError("cannot determine whether the compositional inverse exists")
+        # if not coeff_stream[1]:
+        #     raise ValueError("compositional inverse does not exist")
 
-        # TODO: we assume that not coeff_stream[0], can we test it?
+        if coeff_stream[0]:
+            raise ValueError("cannot determine whether the compositional inverse exists")
+
         la = Partition([1])
         X = R(la)
+        def coefficient(n):
+            if n:
+                return 0
+            c = coeff_stream[1][la]
+            if c.is_unit():
+                return ~c
+            raise ValueError("compositional inverse does not exist")
+
         b = P(lambda n: 0 if n else coeff_stream[1][la])  # TODO: we want a lazy version of Stream_exact
-        b_inv = P(lambda n: 0 if n else ~coeff_stream[1][la])  # TODO: we want a lazy version of Stream_exact
+        b_inv = P(coefficient)  # TODO: we want a lazy version of Stream_exact
         g = P.undefined(valuation=1)
         g.define(b_inv * (X - (self - b * X)(g)))
         return g

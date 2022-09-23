@@ -3031,28 +3031,48 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
 
         -  ``x`` -- a symmetric function over the same base ring as
            ``self``
-
         -  ``include`` -- a list of variables to be treated as
            degree one elements instead of the default degree one elements
-
         -  ``exclude`` -- a list of variables to be excluded
            from the default degree one elements
+
+        OUTPUT:
+
+        An element in the parent of ``x`` or the base ring `R` of ``self``
+        when ``x`` is in `R`.
 
         EXAMPLES::
 
             sage: Sym = SymmetricFunctions(QQ)
             sage: s = Sym.s()
             sage: h = Sym.h()
-            sage: s(h[3](h[2]))
+            sage: h3h2 = h[3](h[2]); h3h2
+            h[2, 2, 2] - 2*h[3, 2, 1] + h[3, 3] + h[4, 1, 1] - h[5, 1] + h[6]
+            sage: s(h3h2)
             s[2, 2, 2] + s[4, 2] + s[6]
             sage: p = Sym.p()
-            sage: p(p[3](s[2,1]))
+            sage: p3s21 = p[3](s[2,1]); p3s21
+            s[2, 2, 2, 1, 1, 1] - s[2, 2, 2, 2, 1] - s[3, 2, 1, 1, 1, 1]
+             + s[3, 2, 2, 2] + s[3, 3, 1, 1, 1] - s[3, 3, 2, 1] + 2*s[3, 3, 3]
+             + s[4, 1, 1, 1, 1, 1] - s[4, 3, 2] + s[4, 4, 1] - s[5, 1, 1, 1, 1]
+             + s[5, 2, 2] - s[5, 4] + s[6, 1, 1, 1] - s[6, 2, 1] + s[6, 3]
+            sage: p(p3s21)
             1/3*p[3, 3, 3] - 1/3*p[9]
             sage: e = Sym.e()
             sage: e[3](e[2])
             e[3, 3] + e[4, 1, 1] - 2*e[4, 2] - e[5, 1] + e[6]
 
-        ::
+        Note that the output is in the basis of the input ``x``::
+
+            sage: s[2,1](h[3])
+            h[4, 3, 2] - h[4, 4, 1] - h[5, 2, 2] + h[5, 3, 1] + h[5, 4]
+             + h[6, 2, 1] - 2*h[6, 3] - h[7, 1, 1] + h[7, 2] + h[8, 1] - h[9]
+
+            sage: h[2,1](s[3])
+            s[4, 3, 2] + s[4, 4, 1] + s[5, 2, 2] + s[5, 3, 1] + s[5, 4]
+             + s[6, 2, 1] + 2*s[6, 3] + 2*s[7, 2] + s[8, 1] + s[9]
+
+        Examples over a polynomial ring::
 
             sage: R.<t> = QQ[]
             sage: s = SymmetricFunctions(R).s()
@@ -3069,6 +3089,12 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             sage: s(1).plethysm(s(0))
             s[]
 
+        When ``x`` is a constant, then it is returned as an element
+        of the base ring::
+
+            sage: s[3](2).parent() is R
+            True
+
         Sage also handles plethysm of tensor products of symmetric functions::
 
             sage: s = SymmetricFunctions(QQ).s()
@@ -3080,8 +3106,8 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             s[1, 1, 1] # s[3] + s[2, 1] # s[2, 1] + s[3] # s[1, 1, 1]
 
         One can use this to work with symmetric functions in two sets of
-        commuting variables. For example, we verify the Cauchy identities (in
-        degree 5)::
+        commuting variables. For example, we verify the Cauchy identities
+        (in degree 5)::
 
             sage: m = SymmetricFunctions(QQ).m()
             sage: P5 = Partitions(5)

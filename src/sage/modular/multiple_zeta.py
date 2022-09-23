@@ -191,7 +191,8 @@ from sage.modular.multiple_zeta_F_algebra import F_algebra
 from sage.modules.free_module import VectorSpace
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
-from sage.rings.semirings.non_negative_integer_semiring import NN
+from sage.sets.integer_range import IntegerRange
+from sage.rings.infinity import Infinity
 
 # multiplicative generators for weight <= 17
 # using the following convention
@@ -660,7 +661,8 @@ class Multizetas(CombinatorialFreeModule):
         cat = GradedAlgebrasWithBasis(R).Commutative()
         if R in Domains():
             cat = cat & Domains()
-        CombinatorialFreeModule.__init__(self, R, Words(NN, infinite=False),
+        NN1 = IntegerRange(1, Infinity)
+        CombinatorialFreeModule.__init__(self, R, Words(NN1, infinite=False),
                                          prefix="Z",
                                          category=cat)
 

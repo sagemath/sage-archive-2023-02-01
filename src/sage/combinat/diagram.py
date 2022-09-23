@@ -224,6 +224,7 @@ class Diagram(ClonableArray, metaclass=InheritComparisonClasscallMetaclass):
             . . . . . .
             . . . . . .
         """
+        from sage.typeset.ascii_art import ascii_art
         return ascii_art(self._pretty_print())
 
     def _unicode_art_(self):
@@ -249,6 +250,7 @@ class Diagram(ClonableArray, metaclass=InheritComparisonClasscallMetaclass):
             ☐☐☐☐☐☐
             ☐☐☐☐☐☐
         """
+        from sage.typeset.unicode_art import unicode_art
         return unicode_art(self._pretty_print('☒', '☐'))
 
     def _pretty_print(self, cell='O ', empty='. '):
@@ -263,16 +265,9 @@ class Diagram(ClonableArray, metaclass=InheritComparisonClasscallMetaclass):
 
             sage: from sage.combinat.diagram import Diagram
             sage: Diagram([(0,0), (0,3), (2,2), (2,4)])._pretty_print('x ','. ')
-            x . . x .
-            . . . . .
-            . . x . x
+            'x . . x . \n. . . . . \n. . x . x \n'
             sage: Diagram([(0,0), (0,3), (2,2), (2,4)], n_rows=6, n_cols=6)._pretty_print('x ','. ')
-            x . . x . .
-            . . . . . .
-            . . x . x .
-            . . . . . .
-            . . . . . .
-            . . . . . .
+            'x . . x . . \n. . . . . . \n. . x . x . \n. . . . . . \n. . . . . . \n. . . . . . \n'
         """
         output_str = ''
 
@@ -292,12 +287,21 @@ class Diagram(ClonableArray, metaclass=InheritComparisonClasscallMetaclass):
 
             sage: from sage.combinat.diagram import Diagram
             sage: latex(Diagram([]))
+            {\emptyset}
             sage: latex(Diagram([(0,0), (0,3), (2,2), (2,4)]))
+            {\def\lr#1{\multicolumn{1}{|@{\hspace{.6ex}}c@{\hspace{.6ex}}|}{\raisebox{-.3ex}{$#1$}}}
+            \raisebox{-.6ex}{$\begin{array}[b]{*{5}{p{0.6ex}}}\cline{1-1}\cline{4-4}
+            \lr{\phantom{x}}&&&\lr{\phantom{x}}&\\\cline{1-1}\cline{4-4}
+            &&&&\\\cline{3-3}\cline{5-5}
+            &&\lr{\phantom{x}}&&\lr{\phantom{x}}\\\cline{3-3}\cline{5-5}
+            \end{array}$}
+            }
+
         """
         if not self.cells():
             return "{\\emptyset}"
-        from string import Template
-        lr = Template(r'\def\lr#1{\multicolumn{1}{$|@{\hspace{.6ex}}c@{\hspace{.6ex}}$|}{\raisebox{-.3ex}{$$#1$$}}}')
+
+        lr = r'\def\lr#1{\multicolumn{1}{|@{\hspace{.6ex}}c@{\hspace{.6ex}}|}{\raisebox{-.3ex}{$#1$}}}'
 
         array = []
         for i in range(self._n_rows):
@@ -305,25 +309,24 @@ class Diagram(ClonableArray, metaclass=InheritComparisonClasscallMetaclass):
             for j in range(self._n_cols):
                 row.append("\\phantom{x}" if (i, j) in self else None)
             array.append(row)
-    
+
         def end_line(r):
             # give the line ending to row ``r``
             if r == 0:
                 return "".join(r'\cline{%s-%s}'%(i+1, i+1) for i,j in enumerate(array[0]) if j != None)
             elif r == len(array):
-                return "".join(r'\cline{%s-%s}'%(i+1, i+1) for i,j in enumerate(array[r-1]) if j != None)
+                return r"\\" + "".join(r'\cline{%s-%s}'%(i+1, i+1) for i,j in enumerate(array[r-1]) if j != None)
             else:
-                out = "".join(r'\cline{%s-%s}'%(i+1, i+1) for i,j in enumerate(array[r-1]) if j != None)
+                out = r"\\" + "".join(r'\cline{%s-%s}'%(i+1, i+1) for i,j in enumerate(array[r-1]) if j != None)
                 out += "".join(r'\cline{%s-%s}'%(i+1, i+1) for i,j in enumerate(array[r]) if j != None)
                 return out
 
-        # now we draw the arrayarray
         tex=r'\raisebox{-.6ex}{$\begin{array}[b]{*{%s}{p{0.6ex}}}'%(max(map(len,array)))
         tex+=end_line(0)+'\n'
         for r in range(len(array)):
             tex+='&'.join('' if c is None else r'\lr{%s}'%(c,) for c in array[r])
             tex += end_line(r+1)+'\n'
-        return tex+r'\end{array}$}'
+        return '{%s\n%s\n}' % (lr, tex+r'\end{array}$}')
 
     def number_of_rows(self):
         r"""

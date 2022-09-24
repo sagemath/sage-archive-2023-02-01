@@ -58,6 +58,17 @@ callable object that accepts non-negative integers as input and
 returns non-negative integers, then ``c^P`` means to apply ``P`` to
 the variable indices occurring in ``c``.
 
+If you want to substitute variables more generally, use the ``.subs``
+method::
+
+    sage: R.<x,y> = InfinitePolynomialRing(QQ)
+    sage: f = x[1] + x[1]*x[2]*x[3]
+    sage: f.subs({x[1]: x[0]})
+    x_3*x_2*x_0 + x_0
+    sage: g = x[0] + x[1] + y[0]
+    sage: g.subs({x[0]: y[0]})
+    x_1 + 2*y_0
+
 TESTS:
 
 We test whether coercion works, even in complicated cases in which
@@ -432,6 +443,41 @@ class InfinitePolynomial_sparse(RingElement):
             return getattr(self._p, s)
         except AttributeError:
             raise AttributeError('%s has no attribute %s' % (self.__class__, s))
+
+    def subs(self, in_dict):
+        """
+        Substitute variables in an infinite polynomial.
+
+        INPUT:
+
+        - ``in_dict`` - (optional) dictionary of inputs
+
+        OUTPUT:
+
+        - new object if substitution is possible, otherwise self.
+
+        EXAMPLES::
+
+            sage: R.<x,y> = InfinitePolynomialRing(QQ)
+            sage: f = x[1] + x[1]*x[2]*x[3]
+            sage: f.subs({x[1]: x[0]})
+            x_3*x_2*x_0 + x_0
+
+            sage: f.subs({x[1]: y[1]})
+            x_3*x_2*y_1 + y_1
+
+        The substitution returns the original polynomial if you try
+        to substitute a variable not present.
+
+            sage: g = x[0] + x[1]
+            sage: g.subs({y[0]:x[0]})
+            x_1 + x_0
+        """
+        P = self.parent()._P
+
+        in_dict = {P(i):P(j) for i,j in in_dict.items()}
+
+        return self.parent(self._p.subs(in_dict))
 
     def ring(self):
         """

@@ -38,6 +38,10 @@ Check lazy import of ``interacts``::
     <class 'sage.misc.lazy_import.LazyImport'>
     sage: interacts
     <module 'sage.interacts.all' from '...'>
+
+Check that :trac:`34506` is resolved::
+
+    sage: x = int('1'*4301)
 """
 # ****************************************************************************
 #       Copyright (C) 2005-2012 William Stein <wstein@gmail.com>
@@ -274,6 +278,11 @@ sage.misc.lazy_import.save_cache_file()
 # sys.settrace(poison_currRing)
 
 
+# Deprecated leftover of monkey-patching inspect.isfunction() to support Cython functions.
+lazy_import('sage.misc.sageinspect', 'is_function_or_cython_function',
+            as_='isfunction', namespace=sage.__dict__, deprecation=32479)
+
+
 # Set a new random number seed as the very last thing
 # (so that printing initial_seed() and using that seed
 # in set_random_seed() will result in the same sequence you got at
@@ -283,6 +292,12 @@ set_random_seed()
 
 # From now on it is ok to resolve lazy imports
 sage.misc.lazy_import.finish_startup()
+
+
+### Python broke large ints; see trac #34506
+
+if hasattr(sys, "set_int_max_str_digits"):
+    sys.set_int_max_str_digits(0)
 
 
 def sage_globals():

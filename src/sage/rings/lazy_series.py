@@ -1161,6 +1161,14 @@ class LazyModuleElement(Element):
             sage: f
             1 + t - t^2 + 3*t^3 - 13*t^4 + 69*t^5 - 419*t^6 + O(t^7)
 
+            sage: f = L.undefined(valuation=0)
+            sage: f.define(1+(t*~f).revert())
+            sage: f
+            1 + t + t^2 + 2*t^3 + 6*t^4 + 23*t^5 + 104*t^6 + O(t^7)
+            sage: oeis(f[:20])                                                  # optional, internet
+            0: A030266: Shifts left under COMPOSE transform with itself.
+            1: A110447: Permutations containing 3241 patterns only as part of 35241 patterns.
+
             sage: s = SymmetricFunctions(QQ).s()
             sage: L = LazySymmetricFunctions(s)
             sage: f = L.undefined()
@@ -3763,22 +3771,22 @@ class LazyLaurentSeries(LazyCauchyProductSeries):
 
         # TODO: coefficients should not be checked here, it prevents
         # us from using self.define in some cases!
-        if any(coeff_stream[i] for i in range(coeff_stream._approximate_order, -1)):
-            raise ValueError("compositional inverse does not exist")
+        # if any(coeff_stream[i] for i in range(coeff_stream._approximate_order, -1)):
+        #     raise ValueError("compositional inverse does not exist")
+        #
+        # if coeff_stream[-1]:
+        #     if coeff_stream[0] or coeff_stream[1]:
+        #         raise ValueError("compositional inverse does not exist")
+        #     raise ValueError("cannot determine whether the compositional inverse exists")
 
-        if coeff_stream[-1]:
-            if coeff_stream[0] or coeff_stream[1]:
-                raise ValueError("compositional inverse does not exist")
-            raise ValueError("cannot determine whether the compositional inverse exists")
-
-        if coeff_stream._approximate_order > 1:
-            raise ValueError("compositional inverse does not exist")
+        # if coeff_stream._approximate_order > 1:
+        #     raise ValueError("compositional inverse does not exist")
 
         # if not coeff_stream[1]:
         #     raise ValueError("compositional inverse does not exist")
 
-        if coeff_stream[0]:
-            raise ValueError("cannot determine whether the compositional inverse exists")
+        # if coeff_stream[0]:
+        #     raise ValueError("cannot determine whether the compositional inverse exists")
 
         z = P.gen()
         g = P.undefined(valuation=1)

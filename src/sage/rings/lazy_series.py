@@ -962,8 +962,7 @@ class LazyModuleElement(Element):
         return any(self[i] for i in range(v, v + prec))
 
     def define(self, s):
-        r"""
-        Define an equation by ``self = s``.
+        r"""Define an equation by ``self = s``.
 
         INPUT:
 
@@ -1169,20 +1168,14 @@ class LazyModuleElement(Element):
             0: A030266: Shifts left under COMPOSE transform with itself.
             1: A110447: Permutations containing 3241 patterns only as part of 35241 patterns.
 
-        The following should work, but doesn't::
+        The following can only work for power series, where we have a
+        minimal valuation of `0`::
 
+            sage: L.<t> = LazyPowerSeriesRing(QQ)
             sage: f = L.undefined(valuation=0)
-            sage: f.define(1 + t*~f + (t*f).revert())
+            sage: f.define(1 - t*~(-f) - (-t*f).revert())
             sage: f
-
-            sage: a = var(["a%s" % n for n in range(10)])
-            sage: L.<t> = LazyLaurentSeriesRing(SR)
-            sage: f = sum(a[k] * t^k for k in range(10))
-            sage: g = -f + 1 + t*~f + (t*f).revert()
-            sage: g[5].subs(a0=1, a1=2, a2=-4, a3=20, a4=-144, a5=1296)
-            0
-            sage: f.map_coefficients(lambda c: c.subs(a0=1, a1=2, a2=-4, a3=20, a4=-144, a5=1296))
-            1 + 2*t - 4*t^2 + 20*t^3 - 144*t^4 + 1296*t^5
+            1 + 2*t + 12*t^3 + 32*t^4 + 368*t^5 + 2192*t^6 + O(t^7)
 
             sage: s = SymmetricFunctions(QQ).s()
             sage: L = LazySymmetricFunctions(s)

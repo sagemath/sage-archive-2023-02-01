@@ -1331,20 +1331,20 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         if R is QQ:
             for p in bad_primes:
                 temp = (ZZ(1)/2) * (-f_disc.ord(p)) * Real(p).log() / (f_deg**2)
-                if abs(temp) > noise_multiplier * Real(f_deg).log() / (Real(f_deg)):
+                if abs(temp) > noise_multiplier * Real(f_deg).log() / Real(f_deg):
                     AZ_pairing += temp
                 AZ_pairing -= (-res.ord(p)) * Real(p).log() / (f_deg * g_deg)
 
                 temp = (ZZ(1)/2) * (-g_disc.ord(p)) * Real(p).log() / (g_deg**2)
-                if abs(temp) > noise_multiplier * Real(g_deg).log() / (Real(g_deg)):
+                if abs(temp) > noise_multiplier * Real(g_deg).log() / Real(g_deg):
                     AZ_pairing += temp
 
             temp = (ZZ(1)/2) * (Real(f_disc).abs().log()) / (f_deg**2)
-            if abs(temp) > noise_multiplier * Real(f_deg).log() / (Real(f_deg)):
+            if abs(temp) > noise_multiplier * Real(f_deg).log() / Real(f_deg):
                 AZ_pairing += temp
 
             temp = (ZZ(1)/2) * (Real(g_disc).abs().log()) / (g_deg**2)
-            if abs(temp) > noise_multiplier * Real(g_deg).log() / (Real(g_deg)):
+            if abs(temp) > noise_multiplier * Real(g_deg).log() / Real(g_deg):
                 AZ_pairing += temp
 
             AZ_pairing -= Real(res).abs().log() / (f_deg * g_deg)
@@ -1356,6 +1356,8 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
             for v in bad_primes:
                 Nv = v.absolute_ramification_index() * v.residue_class_degree() / d
+                if abs(Nv) > noise_multiplier * Real(f_deg).log() / Real(f_deg):
+                    AZ_pairing += Nv
                 AZ_pairing += Nv * ((ZZ(1)/2) * K(f_disc).abs_non_arch(v, prec=prec).log() / (f_deg**2)
                            + (ZZ(1)/2) * K(g_disc).abs_non_arch(v, prec=prec).log() / (g_deg**2))
                            - K(res).abs_non_arch(v, prec=prec).log() / (f_deg * g_deg)

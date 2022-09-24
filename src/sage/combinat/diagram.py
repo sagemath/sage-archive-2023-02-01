@@ -313,12 +313,12 @@ class Diagram(ClonableArray, metaclass=InheritComparisonClasscallMetaclass):
         def end_line(r):
             # give the line ending to row ``r``
             if r == 0:
-                return "".join(r'\cline{%s-%s}'%(i+1, i+1) for i,j in enumerate(array[0]) if j != None)
+                return "".join(r'\cline{%s-%s}'%(i+1, i+1) for i,j in enumerate(array[0]) if j is not None)
             elif r == len(array):
-                return r"\\" + "".join(r'\cline{%s-%s}'%(i+1, i+1) for i,j in enumerate(array[r-1]) if j != None)
+                return r"\\" + "".join(r'\cline{%s-%s}'%(i+1, i+1) for i,j in enumerate(array[r-1]) if j is not None)
             else:
-                out = r"\\" + "".join(r'\cline{%s-%s}'%(i+1, i+1) for i,j in enumerate(array[r-1]) if j != None)
-                out += "".join(r'\cline{%s-%s}'%(i+1, i+1) for i,j in enumerate(array[r]) if j != None)
+                out = r"\\" + "".join(r'\cline{%s-%s}'%(i+1, i+1) for i,j in enumerate(array[r-1]) if j is not None)
+                out += "".join(r'\cline{%s-%s}'%(i+1, i+1) for i,j in enumerate(array[r]) if j is not None)
                 return out
 
         tex=r'\raisebox{-.6ex}{$\begin{array}[b]{*{%s}{p{0.6ex}}}'%(max(map(len,array)))

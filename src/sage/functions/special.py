@@ -849,7 +849,7 @@ class EllipticF(BuiltinFunction):
     - :wikipedia:`Elliptic_integral#Incomplete_elliptic_integral_of_the_first_kind`
     """
     def __init__(self):
-        """
+        r"""
         EXAMPLES::
 
             sage: loads(dumps(elliptic_f))

@@ -221,9 +221,6 @@ cdef class GabowEdgeConnectivity:
             self.F.clear()
             return
 
-        # Set upper bound on the edge connectivity
-        self.max_ec = min(min(G.out_degree_iterator()), min(G.in_degree_iterator()))
-
         #
         # Initialize some data structures
         #
@@ -235,6 +232,17 @@ cdef class GabowEdgeConnectivity:
         # Build compact graph data structure with out and in adjacencies
         self.build_graph_data_structure()
         # From now on, vertices are numbered in [0..n-1] and edges in [0..m-1]
+
+        # Set upper bound on the edge connectivity
+        cdef int i, d
+        self.max_ec = INT_MAX
+        for i in range(self.n):
+            d = self.g_out[i].size()
+            if d < self.max_ec:
+                self.max_ec = d
+            d = self.g_in[i].size()
+            if d < self.max_ec:
+                self.max_ec = d
 
         self.labels = <int*>self.mem.calloc(self.m, sizeof(int))
         self.tree_flag = <bint*>self.mem.calloc(self.max_ec, sizeof(bint))
@@ -262,7 +270,6 @@ cdef class GabowEdgeConnectivity:
         self.UNUSED = INT_MAX
         self.FIRSTEDGE = INT_MAX - 1
 
-        cdef int i
         for i in range(self.m):
             self.edge_state_1[i] = self.UNUSED  # edge i is unused
             self.edge_state_2[i] = self.UNUSED
@@ -303,11 +310,14 @@ cdef class GabowEdgeConnectivity:
         for x, u in enumerate(self.int_to_vertex):
             for v in self.G.neighbor_out_iterator(u):
                 y = vertex_to_int[v]
-                self.g_out[x].push_back(e_id)
-                self.g_in[y].push_back(e_id)
-                self.tail[e_id] = x
-                self.head[e_id] = y
-                e_id += 1
+                if x != y:
+                    self.g_out[x].push_back(e_id)
+                    self.g_in[y].push_back(e_id)
+                    self.tail[e_id] = x
+                    self.head[e_id] = y
+                    e_id += 1
+        # Loops have been removed, so we update the number of edges
+        self.m = e_id
 
     cdef bint compute_edge_connectivity(self) except -1:
         """
@@ -501,7 +511,7 @@ cdef class GabowEdgeConnectivity:
 
             sage: from sage.graphs.edge_connectivity import GabowEdgeConnectivity
             sage: D = digraphs.Complete(5)
-            sage: GabowEdgeConnectivity(D, dfs=True, use_rec=False).edge_connectivity()
+            sage: GabowEdgeConnectivity(D, dfs_preprocessing=True, use_rec=False).edge_connectivity()
             4
         """
         cdef int u, v, e_id
@@ -545,7 +555,7 @@ cdef class GabowEdgeConnectivity:
 
             sage: from sage.graphs.edge_connectivity import GabowEdgeConnectivity
             sage: D = digraphs.Complete(5)
-            sage: GabowEdgeConnectivity(D, dfs=True, use_rec=True).edge_connectivity()
+            sage: GabowEdgeConnectivity(D, dfs_preprocessing=True, use_rec=True).edge_connectivity()
             4
         """
         # Mark vertex u as visited to avoid visiting it multiple times

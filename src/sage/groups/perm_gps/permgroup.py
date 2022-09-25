@@ -3358,8 +3358,7 @@ class PermutationGroup_generic(FiniteGroup):
             sage: G = PermutationGroup([[(1,2),(3,4)], [(1,2,3)]])
             sage: CT = gap(G).CharacterTable()
 
-        Type ``print(gap.eval("Display(%s)"%CT.name()))`` to display this
-        nicely.
+        Type ``CT.Display()`` to display this nicely.
 
         ::
 
@@ -3374,8 +3373,7 @@ class PermutationGroup_generic(FiniteGroup):
             [ 2  0  0  0 -2]
             sage: CT = gap(G).CharacterTable()
 
-        Again, type ``print(gap.eval("Display(%s)"%CT.name()))`` to display this
-        nicely.
+        Again, type ``CT.Display()`` to display this nicely.
 
         ::
 

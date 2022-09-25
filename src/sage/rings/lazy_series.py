@@ -964,7 +964,8 @@ class LazyModuleElement(Element):
         return any(self[i] for i in range(v, v + prec))
 
     def define(self, s):
-        r"""Define an equation by ``self = s``.
+        r"""
+        Define an equation by ``self = s``.
 
         INPUT:
 
@@ -1135,6 +1136,13 @@ class LazyModuleElement(Element):
             sage: P.<x> = LazyPowerSeriesRing(QQ)
             sage: f = P.undefined()
             sage: f.define(1 - ~f*x)
+            sage: f
+            1 - x - x^2 - 2*x^3 - 5*x^4 - 14*x^5 - 42*x^6 + O(x^7)
+
+        Check that this also works using division::
+
+            sage: f = P.undefined()
+            sage: f.define(1 - x / f)
             sage: f
             1 - x - x^2 - 2*x^3 - 5*x^4 - 14*x^5 - 42*x^6 + O(x^7)
 
@@ -3083,9 +3091,8 @@ class LazyCauchyProductSeries(LazyModuleElement):
 
         # if P._minimal_valuation == 0, then this is the true order
         # of coeff_stream, otherwise P._minimal_valuation is None
-        # right_inverse = Stream_cauchy_invert(right,
-        #                                     approximate_order=P._minimal_valuation)
-        right_inverse = Stream_cauchy_invert(right)
+        right_inverse = Stream_cauchy_invert(right,
+                                             approximate_order_upper_bound=P._minimal_valuation)
         return P.element_class(P, Stream_cauchy_mul(left, right_inverse))
 
 

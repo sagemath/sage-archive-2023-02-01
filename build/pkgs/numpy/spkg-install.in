@@ -7,6 +7,14 @@ if [ `uname` = "Darwin" ]; then
     unset ATLAS
     unset BLAS
     unset LAPACK
+    # https://trac.sagemath.org/ticket/34110#comment:35
+    # The fix for "reciprocal" (affected by a clang compiler bug) in
+    # https://github.com/numpy/numpy/pull/19926 relies on -ftrapping-math
+    # being used when Apple clang v12+ is used.
+    # But numpy.distutils.ccompiler only sets this flag when
+    # $CC contains the string "clang" -- missing the case CC=/usr/bin/gcc.
+    # So we set it here explicitly if the compiler supports the flag.
+    export CFLAGS="$(testcflags.sh $CFLAGS -ftrapping-math)"
 else
     export {ATLAS,PTATLAS,OPENBLAS,MKL,MKLROOT}=None
     export LDFLAGS="${LDFLAGS} -shared"

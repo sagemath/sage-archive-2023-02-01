@@ -8,7 +8,7 @@ based on Gröbner bases.
 This module provide implementations of some operations on polynomial ideals
 based on msolve.
 
-Note that msolve must be installed separately.
+Note that the `optional package msolve <../spkg/msolve.html>`_ must be installed.
 
 .. SEEALSO::
 
@@ -46,13 +46,11 @@ def _run_msolve(ideal, options):
 
     # Run msolve
 
-    msolve().require()
-
     drlpolring = ideal.ring().change_ring(order='degrevlex')
     polys = ideal.change_ring(drlpolring).gens()
     msolve_in = tempfile.NamedTemporaryFile(mode='w',
                                             encoding='ascii', delete=False)
-    command = ["msolve", "-f", msolve_in.name] + options
+    command = [msolve().absolute_filename(), "-f", msolve_in.name] + options
     try:
         print(",".join(drlpolring.variable_names()), file=msolve_in)
         print(base.characteristic(), file=msolve_in)

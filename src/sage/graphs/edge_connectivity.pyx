@@ -51,7 +51,7 @@ cdef class GabowEdgeConnectivity:
 
     - ``D`` -- a :class:`~sage.graphs.digraph.DiGraph`
 
-    EXAMPLES:
+    EXAMPLES::
 
     A random `d`-regular digraph is `d`-edge-connected::
 
@@ -68,6 +68,17 @@ cdef class GabowEdgeConnectivity:
         sage: D = DiGraph(digraphs.Complete(10))
         sage: GabowEdgeConnectivity(D, use_rec = True).edge_connectivity()
         9
+    
+    ::
+
+        sage: G = graphs.RandomBarabasiAlbert(100, 2)
+        sage: D = DiGraph(G)
+        sage: GabowEdgeConnectivity(D).edge_connectivity()
+        2
+        sage: GabowEdgeConnectivity(D, dfs_preprocessing=False).edge_connectivity()
+        2
+        sage: GabowEdgeConnectivity(D, dfs_preprocessing=True, use_rec=True).edge_connectivity()
+        2
         
     TESTS:
 

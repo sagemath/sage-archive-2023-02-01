@@ -87,6 +87,8 @@ class PackageCreator(object):
         If ``source`` is ``"normal"``, write the files ``spkg-install.in`` and
         ``install-requires.txt``.
 
+        If ``source`` is ``"wheel"``, write the file ``install-requires.txt``.
+
         If ``source`` is ``"pip"``, write the file ``requirements.txt``.
         """
         if pypi_package_name is None:
@@ -108,4 +110,4 @@ class PackageCreator(object):
         elif source == 'script':
             pass
         else:
-            raise ValueError('package source must be one of normal, script, or pip')
+            raise ValueError('package source must be one of normal, script, pip, or wheel')

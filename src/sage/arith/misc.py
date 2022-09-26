@@ -479,7 +479,7 @@ def is_prime(n):
 
     INPUT:
 
-    -  ``n`` - the object for which to determine primality
+    - ``n`` -- the object for which to determine primality
 
     Exceptional special cases:
 

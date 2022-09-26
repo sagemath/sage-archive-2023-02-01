@@ -266,7 +266,15 @@ class Application(object):
     def create(self, package_name, version=None, tarball=None, pkg_type=None, upstream_url=None,
                description=None, license=None, upstream_contact=None, pypi=False, source='normal'):
         """
-        Create a normal package
+        Create a package
+
+        $ sage --package create foo --version 1.3 --tarball FoO-VERSION.tar.gz --type experimental
+
+        $ sage --package create scikit_spatial --pypi --type optional
+
+        $ sage --package create torch --pypi --source pip --type optional
+
+        $ sage --package create jupyterlab_markup --pypi --source wheel --type optional
         """
         if '-' in package_name:
             raise ValueError('package names must not contain dashes, use underscore instead')

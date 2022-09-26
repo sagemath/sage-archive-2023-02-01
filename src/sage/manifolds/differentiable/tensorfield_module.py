@@ -50,6 +50,8 @@ from sage.manifolds.differentiable.multivectorfield import (MultivectorField,
                                                             MultivectorFieldParal)
 from sage.manifolds.differentiable.automorphismfield import (AutomorphismField,
                                                              AutomorphismFieldParal)
+from sage.manifolds.differentiable.vectorfield_module import VectorFieldModule
+
 
 class TensorFieldModule(UniqueRepresentation, Parent):
     r"""
@@ -560,6 +562,10 @@ class TensorFieldModule(UniqueRepresentation, Parent):
 
         """
         return self._tensor_type
+
+    tensor_power = VectorFieldModule.tensor_power
+
+    tensor = tensor_product = VectorFieldModule.tensor_product
 
     @cached_method
     def zero(self):

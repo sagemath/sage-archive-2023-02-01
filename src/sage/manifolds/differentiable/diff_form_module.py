@@ -47,6 +47,7 @@ from sage.tensor.modules.ext_pow_free_module import ExtPowerDualFreeModule
 from sage.manifolds.differentiable.diff_form import DiffForm, DiffFormParal
 from sage.manifolds.differentiable.tensorfield import TensorField
 from sage.manifolds.differentiable.tensorfield_paral import TensorFieldParal
+from sage.manifolds.differentiable.vectorfield_module import VectorFieldModule
 
 
 class DiffFormModule(UniqueRepresentation, Parent):
@@ -533,6 +534,33 @@ class DiffFormModule(UniqueRepresentation, Parent):
 
         """
         return self._vmodule
+
+    def tensor_type(self):
+        r"""
+        Return the tensor type of ``self`` if ``self`` is a module of 1-forms.
+
+        In this case, the pair `(0, 1)` is returned, indicating that the module
+        is identified with the dual of the base module.
+
+        For differential forms of other degrees, an exception is raised.
+
+        EXAMPLES::
+
+            sage: M = Manifold(3, 'M')
+            sage: M.diff_form_module(1).tensor_type()
+            (0, 1)
+            sage: M.diff_form_module(2).tensor_type()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+        """
+        if self._degree == 1:
+            return (0, 1)
+        raise NotImplementedError
+
+    tensor_power = VectorFieldModule.tensor_power
+
+    tensor = tensor_product = VectorFieldModule.tensor_product
 
     def degree(self):
         r"""

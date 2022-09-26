@@ -147,6 +147,16 @@ class Stream():
 
     @lazy_attribute
     def _approximate_order(self):
+        """
+        Compute and return the approximate order of ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.data_structures.stream import Stream_exact
+            sage: f = Stream_exact([0,3], True)
+            sage: f._approximate_order
+            1
+        """
         raise NotImplementedError
 
     def __ne__(self, other):
@@ -207,7 +217,7 @@ class Stream_inexact(Stream):
     def __init__(self, is_sparse, true_order):
         """
         Initialize the stream class for a stream whose
-        coefficients are not necessarily eventally constant.
+        coefficients are not necessarily eventually constant.
 
         TESTS::
 
@@ -227,9 +237,23 @@ class Stream_inexact(Stream):
 
     @lazy_attribute
     def _offset(self):
+        """
+        Return the offset of a stream with a dense cache.
+
+        EXAMPLES::
+
+            sage: from sage.data_structures.stream import Stream_function
+            sage: f = Stream_function(lambda n: n, False, -3)
+            sage: f._offset
+            -3
+            sage: [f[i] for i in range(-3, 5)]
+            [-3, -2, -1, 0, 1, 2, 3, 4]
+            sage: f._cache
+            [-3, -2, -1, 0, 1, 2, 3, 4]
+        """
         # self[n] = self._cache[n-self._offset]
         if self._is_sparse:
-            raise ValueError("_offset is only for sparse streams")
+            raise ValueError("_offset is only for dense streams")
         return self._approximate_order
 
     def is_nonzero(self):
@@ -1396,6 +1420,16 @@ class Stream_add(Stream_binaryCommutative):
 
     @lazy_attribute
     def _approximate_order(self):
+        """
+        Compute and return the approximate order of ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.data_structures.stream import Stream_exact
+            sage: h = Stream_exact([0,3], True)
+            sage: h._approximate_order
+            1
+        """
         # this is not the true order, because we may have cancellation
         return min(self._left._approximate_order, self._right._approximate_order)
 
@@ -1459,6 +1493,20 @@ class Stream_sub(Stream_binary):
 
     @lazy_attribute
     def _approximate_order(self):
+        """
+        Compute and return the approximate order of ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.data_structures.stream import Stream_exact, Stream_function, Stream_add
+            sage: f = Stream_exact([0,3], True)
+            sage: g = Stream_function(lambda n: -3*n, True, 1)
+            sage: h = Stream_add(f, g)
+            sage: h._approximate_order
+            1
+            sage: [h[i] for i in range(5)]
+            [0, 0, -6, -9, -12]
+        """
         # this is not the true order, because we may have cancellation
         return min(self._left._approximate_order, self._right._approximate_order)
 
@@ -1526,6 +1574,20 @@ class Stream_cauchy_mul(Stream_binary):
 
     @lazy_attribute
     def _approximate_order(self):
+        """
+        Compute and return the approximate order of ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.data_structures.stream import Stream_exact, Stream_function, Stream_cauchy_mul
+            sage: f = Stream_exact([0, Zmod(6)(2)], True)
+            sage: g = Stream_function(lambda n: Zmod(6)(3*n), True, 1)
+            sage: h = Stream_cauchy_mul(f, g)
+            sage: h._approximate_order
+            2
+            sage: [h[i] for i in range(5)]
+            [0, 0, 0, 0, 0]
+        """
         # this is not the true order, unless we have an integral domain
         return self._left._approximate_order + self._right._approximate_order
 
@@ -1628,6 +1690,20 @@ class Stream_dirichlet_convolve(Stream_binary):
 
     @lazy_attribute
     def _approximate_order(self):
+        """
+        Compute and return the approximate order of ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.data_structures.stream import Stream_exact, Stream_function, Stream_dirichlet_convolve
+            sage: f = Stream_exact([0, 2], True)
+            sage: g = Stream_function(lambda n: 3*n, True, 1)
+            sage: h = Stream_dirichlet_convolve(f, g)
+            sage: h._approximate_order
+            1
+            sage: [h[i] for i in range(5)]
+            [0, 6, 12, 18, 24]
+        """
         # this is not the true order, unless we have an integral domain
         if (self._left._approximate_order <= 0
             or self._right._approximate_order <= 0):
@@ -1702,6 +1778,19 @@ class Stream_dirichlet_invert(Stream_unary):
 
     @lazy_attribute
     def _approximate_order(self):
+        """
+        Compute and return the approximate order of ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.data_structures.stream import Stream_function, Stream_dirichlet_invert
+            sage: f = Stream_function(lambda n: n, True, 1)
+            sage: h = Stream_dirichlet_invert(f)
+            sage: h._approximate_order
+            1
+            sage: [h[i] for i in range(5)]
+            [0, -2, -8, -12, -48]
+        """
         # this is the true order, but we want to check first
         if self._series._approximate_order > 1:
             raise ZeroDivisionError("the Dirichlet inverse only exists if the "
@@ -1802,6 +1891,19 @@ class Stream_cauchy_compose(Stream_binary):
     @lazy_attribute
     def _approximate_order(self):
         """
+        Compute and return the approximate order of ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.data_structures.stream import Stream_function, Stream_cauchy_compose
+            sage: f = Stream_function(lambda n: n, True, 1)
+            sage: g = Stream_function(lambda n: n^2, True, 1)
+            sage: h = Stream_cauchy_compose(f, g)
+            sage: h._approximate_order
+            1
+            sage: [h[i] for i in range(5)]
+            [0, 1, 6, 28, 124]
+
         .. TODO::
 
             check similarities with :class:`Stream_plethysm`
@@ -1984,6 +2086,20 @@ class Stream_plethysm(Stream_binary):
 
     @lazy_attribute
     def _approximate_order(self):
+        """
+        Compute and return the approximate order of ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.data_structures.stream import Stream_function, Stream_plethysm
+            sage: p = SymmetricFunctions(QQ).p()
+            sage: f = Stream_function(lambda n: p[n], True, 1)
+            sage: h = Stream_plethysm(f, f, p)
+            sage: h._approximate_order
+            1
+            sage: [h[i] for i in range(5)]
+            [0, p[1], 2*p[2], 2*p[3], 3*p[4]]
+        """
         # this is very likely not the true order
 #        if self._right._approximate_order == 0 and self._degree_f is None:
 #            raise ValueError("can only compute plethysm with a series of "
@@ -2172,6 +2288,19 @@ class Stream_scalar(Stream_inexact):
 
     @lazy_attribute
     def _approximate_order(self):
+        """
+        Compute and return the approximate order of ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.data_structures.stream import Stream_function, Stream_rmul
+            sage: f = Stream_function(lambda n: Zmod(6)(n), True, 2)
+            sage: h = Stream_rmul(f, 3) # indirect doctest
+            sage: h._approximate_order
+            2
+            sage: [h[i] for i in range(5)]
+            [0, 0, 0, 3, 0]
+        """
         # this is not the true order, unless we have an integral domain
         return self._series._approximate_order
 
@@ -2352,6 +2481,19 @@ class Stream_neg(Stream_unary):
 
     @lazy_attribute
     def _approximate_order(self):
+        """
+        Compute and return the approximate order of ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.data_structures.stream import Stream_function, Stream_neg
+            sage: f = Stream_function(lambda n: Zmod(6)(n), True, 2)
+            sage: h = Stream_neg(f)
+            sage: h._approximate_order
+            2
+            sage: [h[i] for i in range(5)]
+            [0, 0, 4, 3, 2]
+        """
         # this is the true order
         return self._series._approximate_order
 
@@ -2434,6 +2576,21 @@ class Stream_cauchy_invert(Stream_unary):
 
     @lazy_attribute
     def _approximate_order(self):
+        """
+        Compute and return the approximate order of ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.data_structures.stream import Stream_function, Stream_cauchy_invert
+            sage: f = Stream_function(lambda n: GF(7)(n), True, 0)
+            sage: [f[i] for i in range(5)]
+            [0, 1, 2, 3, 4]
+            sage: h = Stream_cauchy_invert(f)
+            sage: h._approximate_order
+            -1
+            sage: [h[i] for i in range(-2, 5)]
+            [0, 1, 5, 1, 0, 0, 0]
+        """
         try:
             return -self._series.order()
         except RecursionError:
@@ -2587,6 +2744,19 @@ class Stream_map_coefficients(Stream_inexact):
 
     @lazy_attribute
     def _approximate_order(self):
+        """
+        Compute and return the approximate order of ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.data_structures.stream import Stream_function, Stream_map_coefficients
+            sage: f = Stream_function(lambda n: Zmod(6)(n), True, 2)
+            sage: h = Stream_map_coefficients(f, lambda c: 3*c)
+            sage: h._approximate_order
+            2
+            sage: [h[i] for i in range(5)]
+            [0, 0, 0, 3, 0]
+        """
         # this is not the true order
         return self._series._approximate_order
 
@@ -2684,6 +2854,19 @@ class Stream_shift(Stream_inexact):
 
     @lazy_attribute
     def _approximate_order(self):
+        """
+        Compute and return the approximate order of ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.data_structures.stream import Stream_function, Stream_shift
+            sage: f = Stream_function(lambda n: Zmod(6)(n), True, 2)
+            sage: h = Stream_shift(f, -2)
+            sage: h._approximate_order
+            0
+            sage: [h[i] for i in range(5)]
+            [2, 3, 4, 5, 0]
+        """
         # this is the true order
         return self._series._approximate_order + self._shift
 
@@ -2786,6 +2969,19 @@ class Stream_derivative(Stream_inexact):
 
     @lazy_attribute
     def _approximate_order(self):
+        """
+        Compute and return the approximate order of ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.data_structures.stream import Stream_function, Stream_derivative
+            sage: f = Stream_function(lambda n: Zmod(6)(n), True, 2)
+            sage: h = Stream_derivative(f, 3)
+            sage: h._approximate_order
+            0
+            sage: [h[i] for i in range(5)]
+            [0, 0, 0, 0, 0]
+        """
         # this is not the true order, unless multiplying by an
         # integer cannot give 0
         if 0 <= self._series._approximate_order <= self._shift:

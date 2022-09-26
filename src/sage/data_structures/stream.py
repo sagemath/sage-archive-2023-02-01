@@ -2434,7 +2434,10 @@ class Stream_cauchy_invert(Stream_unary):
 
     @lazy_attribute
     def _approximate_order(self):
-        return -self._series.order()
+        try:
+            return -self._series.order()
+        except RecursionError:
+            raise ValueError("inverse does not exist")
 
     @lazy_attribute
     def _ainv(self):

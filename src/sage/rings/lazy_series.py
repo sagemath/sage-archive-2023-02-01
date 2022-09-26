@@ -1158,7 +1158,7 @@ class LazyModuleElement(Element):
             sage: f[0]
             Traceback (most recent call last):
             ...
-            RecursionError: maximum recursion depth exceeded ...
+            ValueError: inverse does not exist
 
         Check that reversion is lazy enough::
 
@@ -3705,17 +3705,19 @@ class LazyLaurentSeries(LazyCauchyProductSeries):
 
             sage: s = L(lambda n: 2 if n == 0 else 3 if n == 1 else 0, valuation=0); s
             2 + 3*z + O(z^7)
-            sage: s.revert()
+            sage: f = s.revert()
+            sage: f[1]
             Traceback (most recent call last):
             ...
-            ValueError: cannot determine whether the compositional inverse exists
+            ValueError: inverse does not exist
 
             sage: s = L(lambda n: 1, valuation=-2); s
             z^-2 + z^-1 + 1 + z + z^2 + z^3 + z^4 + O(z^5)
-            sage: s.revert()
+            sage: f = s.revert()
+            sage: f[1]
             Traceback (most recent call last):
             ...
-            ValueError: compositional inverse does not exist
+            ValueError: inverse does not exist
 
             sage: R.<q,t> = QQ[]
             sage: L.<z> = LazyLaurentSeriesRing(R.fraction_field())

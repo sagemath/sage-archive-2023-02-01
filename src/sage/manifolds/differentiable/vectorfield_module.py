@@ -731,7 +731,7 @@ class VectorFieldModule(UniqueRepresentation, Parent):
             self._general_linear_group = AutomorphismFieldGroup(self)
         return self._general_linear_group
 
-    def _tensor(self, tensor_type, name=None, latex_name=None, sym=None,
+    def tensor(self, tensor_type, name=None, latex_name=None, sym=None,
                antisym=None, specific_type=None):
         r"""
         Construct a tensor on ``self``.
@@ -823,8 +823,6 @@ class VectorFieldModule(UniqueRepresentation, Parent):
         return self.tensor_module(*tensor_type).element_class(
             self, tensor_type, name=name, latex_name=latex_name,
             sym=sym, antisym=antisym)
-
-    tensor = FiniteRankFreeModule.tensor
 
     def alternating_contravariant_tensor(self, degree, name=None,
                                          latex_name=None):

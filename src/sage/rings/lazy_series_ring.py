@@ -986,7 +986,7 @@ class LazySeriesRing(UniqueRepresentation, Parent):
                 raise AssertionError("compositional inverse of %s should exist: %s" % (x, error))
             try:
                 vy = y.valuation()
-                m = y[vy]
+                _ = y[vy]
             except NotImplementedError:
                 pass
             except (ValueError, TypeError):

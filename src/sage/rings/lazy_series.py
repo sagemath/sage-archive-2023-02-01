@@ -217,7 +217,6 @@ from sage.arith.power import generic_power
 from sage.arith.functions import lcm
 from sage.arith.misc import divisors, moebius
 from sage.combinat.partition import Partition, Partitions
-from sage.misc.misc_c import prod
 from sage.misc.derivative import derivative_parse
 from sage.categories.integral_domains import IntegralDomains
 from sage.rings.infinity import infinity
@@ -3815,26 +3814,6 @@ class LazyLaurentSeries(LazyCauchyProductSeries):
                 if coeff_stream.order() != 1:
                     raise ValueError("compositional inverse does not exist")
 
-        # TODO: coefficients should not be checked here, it prevents
-        # us from using self.define in some cases!
-        # if any(coeff_stream[i] for i in range(coeff_stream._approximate_order, -1)):
-        #     raise ValueError("compositional inverse does not exist")
-        #
-        # if coeff_stream[-1]:
-        #     if coeff_stream[0] or coeff_stream[1]:
-        #         raise ValueError("compositional inverse does not exist")
-        #     raise ValueError("cannot determine whether the compositional inverse exists")
-
-        # if coeff_stream._approximate_order > 1:
-        #     raise ValueError("compositional inverse does not exist")
-
-        # if not coeff_stream[1]:
-        #     raise ValueError("compositional inverse does not exist")
-
-        # if coeff_stream[0]:
-        #     raise ValueError("cannot determine whether the compositional inverse exists")
-
-        z = P.gen()
         g = P.undefined(valuation=1)
         # the following is mathematically equivalent to
         # z / ((self / z)(g))
@@ -4636,13 +4615,9 @@ class LazyPowerSeries(LazyCauchyProductSeries):
 
         # TODO: coefficients should not be checked here, it prevents
         # us from using self.define in some cases!
-        # if not coeff_stream[1]:
-        #     raise ValueError("compositional inverse does not exist")
-
         if coeff_stream[0]:
             raise ValueError("cannot determine whether the compositional inverse exists")
 
-        z = P.gen()
         g = P.undefined(valuation=1)
         # the following is mathematically equivalent to
         # z / ((self / z)(g))
@@ -5469,9 +5444,6 @@ class LazySymmetricFunction(LazyCompletionGradedAlgebraElement):
 
         # TODO: coefficients should not be checked here, it prevents
         # us from using self.define in some cases!
-        # if not coeff_stream[1]:
-        #     raise ValueError("compositional inverse does not exist")
-
         if coeff_stream[0]:
             raise ValueError("cannot determine whether the compositional inverse exists")
 

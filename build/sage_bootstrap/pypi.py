@@ -68,7 +68,6 @@ class PyPiVersion(object):
         """
         Return the source url
         """
-        print(self.json['urls'])
         for download in self.json['urls']:
             if download['python_version'] == self.python_version:
                 return download['url']

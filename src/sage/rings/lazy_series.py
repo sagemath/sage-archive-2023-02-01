@@ -1139,13 +1139,6 @@ class LazyModuleElement(Element):
             sage: f
             1 - x - x^2 - 2*x^3 - 5*x^4 - 14*x^5 - 42*x^6 + O(x^7)
 
-        Check that this also works using division::
-
-            sage: f = P.undefined()
-            sage: f.define(1 - x / f)
-            sage: f
-            1 - x - x^2 - 2*x^3 - 5*x^4 - 14*x^5 - 42*x^6 + O(x^7)
-
             sage: D = LazyDirichletSeriesRing(QQ, "s")
             sage: g = D([0, 1])
             sage: f = D.undefined()
@@ -1155,6 +1148,17 @@ class LazyModuleElement(Element):
 
             sage: oeis(f[:30])                                                  # optional, internet
             0: A122698: a(1)=a(2)=1 then a(n) = Sum_{d|n, 1<d<n} a(d)*a(n/d).
+
+        Note that we cannot use division in the examples above.
+        Since we allow division by series with positive valuation,
+        the valuation of `x / f` might be zero::
+
+            sage: f = P.undefined()
+            sage: f.define(1 - x / f)
+            sage: f[0]
+            Traceback (most recent call last):
+            ...
+            RecursionError: maximum recursion depth exceeded ...
 
         Check that reversion is lazy enough::
 
@@ -2901,14 +2905,13 @@ class LazyCauchyProductSeries(LazyModuleElement):
         if isinstance(coeff_stream, Stream_cauchy_invert):
             return P.element_class(P, coeff_stream._series)
 
-        # if P._minimal_valuation == 0, then this is the true order
-        # of coeff_stream, otherwise P._minimal_valuation is None
         coeff_stream_inverse = Stream_cauchy_invert(coeff_stream,
-                                                    approximate_order_upper_bound=P._minimal_valuation)
+                                                    approximate_order=P._minimal_valuation)
         return P.element_class(P, coeff_stream_inverse)
 
     def _div_(self, other):
-        r"""Return ``self`` divided by ``other``.
+        r"""
+        Return ``self`` divided by ``other``.
 
         INPUT:
 
@@ -3089,10 +3092,10 @@ class LazyCauchyProductSeries(LazyModuleElement):
                                                        degree=v,
                                                        constant=constant))
 
-        # if P._minimal_valuation == 0, then this is the true order
-        # of coeff_stream, otherwise P._minimal_valuation is None
-        right_inverse = Stream_cauchy_invert(right,
-                                             approximate_order_upper_bound=P._minimal_valuation)
+        # we cannot pass the approximate order here, even when
+        # P._minimal_valuation is zero, because we allow division by
+        # series of positive valuation
+        right_inverse = Stream_cauchy_invert(right)
         return P.element_class(P, Stream_cauchy_mul(left, right_inverse))
 
 

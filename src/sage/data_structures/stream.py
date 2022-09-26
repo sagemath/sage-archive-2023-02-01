@@ -2405,8 +2405,8 @@ class Stream_cauchy_invert(Stream_unary):
 
     - ``series`` -- a :class:`Stream`
 
-    - ``approximate_order_upper_bound`` -- ``None``, or an upper bound on the
-      order of ``series``
+    - ``approximate_order`` -- ``None``, or a lower bound on the
+      order of ``Stream_cauchy_invert(series)``
 
     EXAMPLES::
 
@@ -2415,8 +2415,9 @@ class Stream_cauchy_invert(Stream_unary):
         sage: g = Stream_cauchy_invert(f)
         sage: [g[i] for i in range(10)]
         [-1, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+
     """
-    def __init__(self, series, approximate_order_upper_bound=None):
+    def __init__(self, series, approximate_order=None):
         """
         Initialize ``self``.
 
@@ -2426,16 +2427,14 @@ class Stream_cauchy_invert(Stream_unary):
             sage: f = Stream_exact([1, -1], False)
             sage: g = Stream_cauchy_invert(f)
         """
-        self._approximate_order_upper_bound = approximate_order_upper_bound
         super().__init__(series, series._is_sparse)
+        if approximate_order is not None:
+            self._approximate_order = approximate_order
         self._zero = ZZ.zero()
 
     @lazy_attribute
     def _approximate_order(self):
-        if self._approximate_order_upper_bound is None:
-            return -self._series.order()
-        # this is not the true order
-        return -self._approximate_order_upper_bound
+        return -self._series.order()
 
     @lazy_attribute
     def _ainv(self):

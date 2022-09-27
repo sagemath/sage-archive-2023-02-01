@@ -144,10 +144,12 @@ cdef class ntl_ZZX():
 
     def __reduce__(self):
         """
-        sage: from sage.libs.ntl.ntl_ZZX import ntl_ZZX
-        sage: f = ntl_ZZX([1,2,0,4])
-        sage: loads(dumps(f)) == f
-        True
+        EXAMPLES::
+
+            sage: from sage.libs.ntl.ntl_ZZX import ntl_ZZX
+            sage: f = ntl_ZZX([1,2,0,4])
+            sage: loads(dumps(f)) == f
+            True
         """
         return unpickle_class_value, (ntl_ZZX, self.list())
 
@@ -183,6 +185,8 @@ cdef class ntl_ZZX():
 
     def __setitem__(self, long i, a):
         """
+        EXAMPLES::
+
             sage: n=ntl.ZZX([1,2,3])
             sage: n
             [1 2 3]

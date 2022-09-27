@@ -164,6 +164,8 @@ cdef class ntl_GF2E():
 
     def __reduce__(self):
         """
+        EXAMPLES::
+
             sage: ctx = ntl.GF2EContext( ntl.GF2X([1,1,0,1,1,0,0,0,1]) )
             sage: a = ntl.GF2E(ntl.ZZ_pX([1,1,3],2), ctx)
             sage: loads(dumps(a)) == a

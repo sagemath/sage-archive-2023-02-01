@@ -28,9 +28,14 @@ REFERENCES:
 """
 
 # ******************************************************************************
-#       Copyright (C) 2015 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
-#       Copyright (C) 2015 Michal Bejger <bejger@camk.edu.pl>
-#       Copyright (C) 2016 Travis Scrimshaw <tscrimsh@umn.edu>
+#       Copyright (C) 2015-2021 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
+#                     2015      Michal Bejger <bejger@camk.edu.pl>
+#                     2016      Travis Scrimshaw <tscrimsh@umn.edu>
+#                     2018      Florentin Jaffredo
+#                     2019      Hans Fotsing Tetsing
+#                     2020      Michael Jung
+#                     2020-2022 Matthias Koeppe
+#                     2021-2022 Tobias Diez
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
@@ -1780,6 +1785,8 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
         except KeyError:
             if (k, l) == (1, 0):
                 T = self
+            elif (k, l) == (0, 1):
+                T = self.dual()
             else:
                 from sage.manifolds.differentiable.tensorfield_module import \
                                                           TensorFieldFreeModule
@@ -1879,8 +1886,7 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
             Free module Omega^2(M) of 2-forms on the 2-dimensional
              differentiable manifold M
             sage: XM.dual_exterior_power(1)
-            Free module Omega^1(M) of 1-forms on the 2-dimensional
-             differentiable manifold M
+            Free module Omega^1(M) of 1-forms on the 2-dimensional differentiable manifold M
             sage: XM.dual_exterior_power(1) is XM.dual()
             True
             sage: XM.dual_exterior_power(0)
@@ -1900,6 +1906,10 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
         except KeyError:
             if p == 0:
                 L = self._ring
+            elif p == 1:
+                from sage.manifolds.differentiable.diff_form_module import \
+                                                      VectorFieldDualFreeModule
+                L = VectorFieldDualFreeModule(self)
             else:
                 from sage.manifolds.differentiable.diff_form_module import \
                                                       DiffFormFreeModule

@@ -47,10 +47,10 @@ from sage.tensor.modules.ext_pow_free_module import ExtPowerDualFreeModule
 from sage.manifolds.differentiable.diff_form import DiffForm, DiffFormParal
 from sage.manifolds.differentiable.tensorfield import TensorField
 from sage.manifolds.differentiable.tensorfield_paral import TensorFieldParal
-from sage.manifolds.differentiable.vectorfield_module import VectorFieldModule
+from sage.manifolds.differentiable.vectorfield_module import VectorFieldModule_abstract
 
 
-class DiffFormModule(UniqueRepresentation, Parent):
+class DiffFormModule(VectorFieldModule_abstract):
     r"""
     Module of differential forms of a given degree `p` (`p`-forms) along a
     differentiable manifold `U` with values on a differentiable manifold `M`.
@@ -557,10 +557,6 @@ class DiffFormModule(UniqueRepresentation, Parent):
         if self._degree == 1:
             return (0, 1)
         raise NotImplementedError
-
-    tensor_power = VectorFieldModule.tensor_power
-
-    tensor = tensor_product = VectorFieldModule.tensor_product
 
     def degree(self):
         r"""

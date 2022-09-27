@@ -53,14 +53,29 @@ from sage.misc.cachefunc import cached_method
 from sage.rings.integer import Integer
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.tensor.modules.finite_rank_free_module import FiniteRankFreeModule
+from sage.tensor.modules.finite_rank_free_module import (
+    FiniteRankFreeModule_abstract,
+    FiniteRankFreeModule,
+)
 
 if TYPE_CHECKING:
     from sage.manifolds.differentiable.diff_map import DiffMap
     from sage.manifolds.differentiable.manifold import DifferentiableManifold
 
 
-class VectorFieldModule(UniqueRepresentation, Parent):
+class VectorFieldModule_abstract(UniqueRepresentation, Parent):
+    r"""
+    Abstract base class for modules of vector fields.
+    """
+
+    tensor_power = FiniteRankFreeModule_abstract.tensor_power
+
+    tensor_product = FiniteRankFreeModule_abstract.tensor_product
+
+    tensor = FiniteRankFreeModule_abstract.tensor
+
+
+class VectorFieldModule(VectorFieldModule_abstract):
     r"""
     Module of vector fields along a differentiable manifold `U`
     with values on a differentiable manifold `M`, via a differentiable
@@ -847,10 +862,6 @@ class VectorFieldModule(UniqueRepresentation, Parent):
         return self.tensor_module(*tensor_type).element_class(
             self, tensor_type, name=name, latex_name=latex_name,
             sym=sym, antisym=antisym)
-
-    tensor_power = FiniteRankFreeModule.tensor_power
-
-    tensor_product = FiniteRankFreeModule.tensor_product
 
     def tensor(self, *args, **kwds):
         r"""

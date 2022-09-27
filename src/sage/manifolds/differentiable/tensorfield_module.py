@@ -50,10 +50,10 @@ from sage.manifolds.differentiable.multivectorfield import (MultivectorField,
                                                             MultivectorFieldParal)
 from sage.manifolds.differentiable.automorphismfield import (AutomorphismField,
                                                              AutomorphismFieldParal)
-from sage.manifolds.differentiable.vectorfield_module import VectorFieldModule
+from sage.manifolds.differentiable.vectorfield_module import VectorFieldModule_abstract
 
 
-class TensorFieldModule(UniqueRepresentation, Parent):
+class TensorFieldModule(VectorFieldModule_abstract):
     r"""
     Module of tensor fields of a given type `(k,l)` along a differentiable
     manifold `U` with values on a differentiable manifold `M`, via a
@@ -562,10 +562,6 @@ class TensorFieldModule(UniqueRepresentation, Parent):
 
         """
         return self._tensor_type
-
-    tensor_power = VectorFieldModule.tensor_power
-
-    tensor = tensor_product = VectorFieldModule.tensor_product
 
     @cached_method
     def zero(self):

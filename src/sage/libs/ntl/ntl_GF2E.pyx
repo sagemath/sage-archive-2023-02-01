@@ -439,17 +439,20 @@ cdef class ntl_GF2E():
         return l
 
     def _sage_(ntl_GF2E self, k=None):
-        """
-        Returns a \class{FiniteFieldElement} representation
-        of this element. If a \class{FiniteField} k is provided
-        it is constructed in this field if possible. A \class{FiniteField}
-        will be constructed if none is provided.
+        r"""
+        Returns a \class{FiniteFieldElement} representation of this element.
+
+        If a \class{FiniteField} k is provided it is constructed in
+        this field if possible. A \class{FiniteField} will be
+        constructed if none is provided.
 
         INPUT:
-            k     -- optional GF(2**deg)
+
+        k     -- optional GF(2**deg)
 
         OUTPUT:
-            FiniteFieldElement over k
+
+        FiniteFieldElement over k
 
         EXAMPLES::
 

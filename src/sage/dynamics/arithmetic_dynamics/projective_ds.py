@@ -1230,9 +1230,9 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: # If all archimedean absolute values of a have modulus > 2,
             sage: # then the pairing should be h(a).
             sage: f.arakelov_zhang_pairing(g, n=6)
-            3.46979800225000
+            1.93846423207664
             sage: _ - a.global_height()
-            1.52388785319469
+            -0.00744591697867292
         """
         n = kwds.pop('n', 5)
         f_starting_point = kwds.pop('f_starting_point', None)
@@ -1333,11 +1333,12 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                 temp = (ZZ(1)/2) * (-f_disc.ord(p)) * Real(p).log() / (f_deg**2)
                 if abs(temp) > noise_multiplier * Real(f_deg).log() / Real(f_deg):
                     AZ_pairing += temp
-                AZ_pairing -= (-res.ord(p)) * Real(p).log() / (f_deg * g_deg)
 
                 temp = (ZZ(1)/2) * (-g_disc.ord(p)) * Real(p).log() / (g_deg**2)
                 if abs(temp) > noise_multiplier * Real(g_deg).log() / Real(g_deg):
                     AZ_pairing += temp
+
+                AZ_pairing -= (-res.ord(p)) * Real(p).log() / (f_deg * g_deg)
 
             temp = (ZZ(1)/2) * (Real(f_disc).abs().log()) / (f_deg**2)
             if abs(temp) > noise_multiplier * Real(f_deg).log() / Real(f_deg):
@@ -1356,11 +1357,16 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
             for v in bad_primes:
                 Nv = v.absolute_ramification_index() * v.residue_class_degree() / d
-                if abs(Nv) > noise_multiplier * Real(f_deg).log() / Real(f_deg):
-                    AZ_pairing += Nv
-                AZ_pairing += Nv * ((ZZ(1)/2) * K(f_disc).abs_non_arch(v, prec=prec).log() / (f_deg**2)
-                           + (ZZ(1)/2) * K(g_disc).abs_non_arch(v, prec=prec).log() / (g_deg**2))
-                           - K(res).abs_non_arch(v, prec=prec).log() / (f_deg * g_deg)
+
+                temp = Nv * ((ZZ(1)/2) * K(f_disc).abs_non_arch(v, prec=prec).log() / (f_deg**2))
+                if abs(temp) > noise_multiplier * Real(f_deg).log() / Real(f_deg):
+                    AZ_pairing += temp
+
+                temp = Nv * ((ZZ(1)/2) * K(g_disc).abs_non_arch(v, prec=prec).log() / (g_deg**2))
+                if abs(temp) > noise_multiplier * Real(g_deg).log() / Real(g_deg):
+                    AZ_pairing += temp
+
+                AZ_pairing -= Nv * (K(res).abs_non_arch(v, prec=prec).log() / (f_deg * g_deg))
 
             if f_disc.is_rational():
                 f_disc = QQ(f_disc)

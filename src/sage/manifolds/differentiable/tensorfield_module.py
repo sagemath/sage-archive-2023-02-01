@@ -228,6 +228,12 @@ class TensorFieldModule(VectorFieldModule_abstract):
         [1 0]
         [0 1]
 
+    TESTS::
+
+        sage: T11.tensor_factors()
+        [Module X(M) of vector fields on the 2-dimensional differentiable manifold M,
+        Module Omega^1(M) of 1-forms on the 2-dimensional differentiable manifold M]
+
     """
     Element = TensorField
 
@@ -287,6 +293,8 @@ class TensorFieldModule(VectorFieldModule_abstract):
         self._domain = domain
         self._dest_map = dest_map
         self._ambient_domain = vector_field_module._ambient_domain
+
+    tensor_factors = TensorFreeModule.tensor_factors
 
     #### Parent methods
 

@@ -666,7 +666,7 @@ class CliffordAlgebra(CombinatorialFreeModule):
         # if the input is a tuple, assume that it has
         # entries in {0, ..., 2**Q.dim()-1}
         if isinstance(x, tuple):
-            return FrozenBitset(x, capacity = Q.dim())
+            return FrozenBitset(x, capacity=Q.dim())
 
         # slice the output of format in order to make conventions
         # of format and FrozenBitset agree.

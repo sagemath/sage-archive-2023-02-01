@@ -506,7 +506,7 @@ class VectorFieldModule(UniqueRepresentation, Parent):
         """
         return self._dest_map
 
-    def tensor_module(self, k, l):
+    def tensor_module(self, k, l, *, sym=None, antisym=None):
         r"""
         Return the module of type-`(k,l)` tensors on ``self``.
 
@@ -552,6 +552,8 @@ class VectorFieldModule(UniqueRepresentation, Parent):
         for more examples and documentation.
 
         """
+        if sym or antisym:
+            raise NotImplementedError
         try:
             return self._tensor_modules[(k,l)]
         except KeyError:
@@ -1731,7 +1733,7 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
         """
         return self._dest_map
 
-    def tensor_module(self, k, l):
+    def tensor_module(self, k, l, *, sym=None, antisym=None):
         r"""
         Return the free module of all tensors of type `(k, l)` defined
         on ``self``.
@@ -1780,6 +1782,8 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
             for more examples and documentation.
 
         """
+        if sym or antisym:
+            raise NotImplementedError
         try:
             return self._tensor_modules[(k,l)]
         except KeyError:
@@ -2031,7 +2035,7 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
                            symbol_dual=symbol_dual,
                            latex_symbol_dual=latex_symbol_dual)
 
-    def tensor(self, tensor_type, name=None, latex_name=None, sym=None,
+    def _tensor(self, tensor_type, name=None, latex_name=None, sym=None,
                antisym=None, specific_type=None):
         r"""
         Construct a tensor on ``self``.

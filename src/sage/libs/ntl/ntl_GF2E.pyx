@@ -5,7 +5,7 @@
 # distutils: extra_link_args = NTL_LIBEXTRA
 # distutils: language = c++
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #       Copyright (C) 2007 Martin Albrecht <malb@informatik.uni-bremen.de>
 #
@@ -18,8 +18,8 @@
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from sage.ext.cplusplus cimport ccrepr
 
@@ -73,7 +73,7 @@ def ntl_GF2E_random(ntl_GF2EContext_class ctx):
 
 cdef class ntl_GF2E():
     r"""
-    The \\class{GF2E} represents a finite extension field over GF(2)
+    The :class:`GF2E` represents a finite extension field over GF(2)
     using NTL. Elements are represented as polynomials over GF(2)
     modulo a modulus.
 
@@ -442,19 +442,19 @@ cdef class ntl_GF2E():
 
     def _sage_(ntl_GF2E self, k=None):
         r"""
-        Returns a \class{FiniteFieldElement} representation of this element.
+        Return a :class:`FiniteFieldElement` representation of this element.
 
-        If a \class{FiniteField} k is provided it is constructed in
-        this field if possible. A \class{FiniteField} will be
+        If a :class:`FiniteField` `k` is provided, it is constructed
+        in this field if possible. A :class:`FiniteField` will be
         constructed if none is provided.
 
         INPUT:
 
-        k     -- optional GF(2**deg)
+        - `k` -- (optional) a field `\GF{2^d}`
 
         OUTPUT:
 
-        FiniteFieldElement over k
+        :class:`FiniteFieldElement` over `k`
 
         EXAMPLES::
 

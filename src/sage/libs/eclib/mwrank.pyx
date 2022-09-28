@@ -83,7 +83,7 @@ mwrank_set_precision(150)
 
 def get_precision():
     """
-    Returns the working floating point bit precision of mwrank, which is
+    Return the working floating point bit precision of mwrank, which is
     equal to the global NTL real number precision.
 
     OUTPUT:
@@ -119,7 +119,7 @@ def set_precision(n):
        This change is global and affects *all* future calls of eclib
        functions by Sage.
 
-    .. note::
+    .. NOTE::
 
         The minimal value to which the precision may be set is 53.
         Lower values will be increased to 53.
@@ -345,7 +345,7 @@ cdef class _Curvedata:   # cython class wrapping eclib's Curvedata class
         + B`, where `h(P)` is the naive height and `\hat{h}(P)` the
         canonical height.
 
-        .. note::
+        .. NOTE::
 
             Since eclib can compute this to arbitrary precision, we
             could return a Sage real, but this is only a bound and in
@@ -374,7 +374,7 @@ cdef class _Curvedata:   # cython class wrapping eclib's Curvedata class
         + B`, where `h(P)` is the naive height and `\hat{h}(P)` the
         canonical height.
 
-        .. note::
+        .. NOTE::
 
             Since ``eclib`` can compute this to arbitrary precision, we
             could return a Sage real, but this is only a bound and in
@@ -409,7 +409,7 @@ cdef class _Curvedata:   # cython class wrapping eclib's Curvedata class
         canonical height.  This is the minimum of the Silverman and
         Cremona_Prickett-Siksek height bounds.
 
-        .. note::
+        .. NOTE::
 
             Since ``eclib`` can compute this to arbitrary precision, we
             could return a Sage real, but this is only a bound and in
@@ -702,10 +702,10 @@ cdef class _mw:
 
         .. NOTE::
 
-           The eclib function which implements this only carries out
-           any saturation if the rank of the points increases upon
-           adding the new point.  This is because it is assumed that
-           one saturates as ones goes along.
+            The eclib function which implements this only carries out
+            any saturation if the rank of the points increases upon
+            adding the new point.  This is because it is assumed that
+            one saturates as ones goes along.
 
         EXAMPLES::
 
@@ -751,7 +751,7 @@ cdef class _mw:
 
     def getbasis(self):
         """
-        Returns the current basis of the mw structure.
+        Return the current basis of the mw structure.
 
         OUTPUT:
 
@@ -776,7 +776,7 @@ cdef class _mw:
 
     def regulator(self):
         """
-        Returns the regulator of the current basis of the mw group.
+        Return the regulator of the current basis of the mw group.
 
         OUTPUT:
 
@@ -808,7 +808,7 @@ cdef class _mw:
 
     def rank(self):
         """
-        Returns the rank of the current basis of the mw group.
+        Return the rank of the current basis of the mw group.
 
         OUTPUT:
 
@@ -1066,7 +1066,7 @@ cdef class _two_descent:
 
     def getrank(self):
         """
-        Returns the rank (after doing a 2-descent).
+        Return the rank (after doing a 2-descent).
 
         OUTPUT:
 
@@ -1099,7 +1099,7 @@ cdef class _two_descent:
 
     def getrankbound(self):
         """
-        Returns the rank upper bound (after doing a 2-descent).
+        Return the rank upper bound (after doing a 2-descent).
 
         OUTPUT:
 
@@ -1132,7 +1132,7 @@ cdef class _two_descent:
 
     def getselmer(self):
         """
-        Returns the 2-Selmer rank (after doing a 2-descent).
+        Return the 2-Selmer rank (after doing a 2-descent).
 
         OUTPUT:
 
@@ -1164,7 +1164,7 @@ cdef class _two_descent:
 
     def ok(self):
         """
-        Returns the success flag (after doing a 2-descent).
+        Return the success flag (after doing a 2-descent).
 
         OUTPUT:
 
@@ -1193,7 +1193,7 @@ cdef class _two_descent:
 
     def getcertain(self):
         """
-        Returns the certainty flag (after doing a 2-descent).
+        Return the certainty flag (after doing a 2-descent).
 
         OUTPUT:
 
@@ -1271,7 +1271,7 @@ cdef class _two_descent:
 
     def getbasis(self):
         r"""
-        Returns the basis of points found by doing a 2-descent.
+        Return the basis of points found by doing a 2-descent.
 
         If the success and certain flags are 1, this will be a
         `\ZZ/2\ZZ`-basis for `E(\QQ)/2E(\QQ)` (modulo torsion),
@@ -1279,7 +1279,8 @@ cdef class _two_descent:
 
         .. NOTE::
 
-           You must call ``saturate()`` first, or a RunTimeError will be raised.
+            You must call ``saturate()`` first, or a ``RunTimeError``
+            will be raised.
 
         OUTPUT:
 
@@ -1317,7 +1318,7 @@ cdef class _two_descent:
 
     def regulator(self):
         """
-        Returns the regulator of the points found by doing a 2-descent.
+        Return the regulator of the points found by doing a 2-descent.
 
         OUTPUT:
 

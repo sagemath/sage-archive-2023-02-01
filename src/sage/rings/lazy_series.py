@@ -168,7 +168,6 @@ from sage.arith.misc import divisors, moebius
 from sage.combinat.partition import Partition, Partitions
 from sage.misc.misc_c import prod
 from sage.misc.derivative import derivative_parse
-from sage.combinat.partition import Partition
 from sage.rings.infinity import infinity
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
@@ -4336,7 +4335,7 @@ class LazySymmetricFunction(LazyCompletionGradedAlgebraElement):
         sage: s = SymmetricFunctions(ZZ).s()
         sage: L = LazySymmetricFunctions(s)
     """
-    def __call__(self, *g, check=True):
+    def __call__(self, *args, check=True):
         r"""
         Return the composition of ``self`` with ``g``.
 
@@ -4468,13 +4467,13 @@ class LazySymmetricFunction(LazyCompletionGradedAlgebraElement):
             3
         """
         fP = parent(self)
-        if len(g) != fP._arity:
+        if len(args) != fP._arity:
             raise ValueError("arity must be equal to the number of arguments provided")
 
         # Find a good parent for the result
         from sage.structure.element import get_coercion_model
         cm = get_coercion_model()
-        P = cm.common_parent(self.base_ring(), *[parent(h) for h in g])
+        P = cm.common_parent(self.base_ring(), *[parent(h) for h in args])
 
         # f = 0
         if isinstance(self._coeff_stream, Stream_zero):
@@ -4484,15 +4483,15 @@ class LazySymmetricFunction(LazyCompletionGradedAlgebraElement):
         if all((not isinstance(h, LazyModuleElement) and not h)
                or (isinstance(h, LazyModuleElement)
                    and isinstance(h._coeff_stream, Stream_zero))
-               for h in g):
+               for h in args):
             f = self[0]
             # FIXME: TypeError: unable to convert 0 to a rational
             if f:
                 return P(f.leading_coefficient())
             return P.zero()
 
-        if len(g) == 1:
-            g = g[0]
+        if len(args) == 1:
+            g = args[0]
             if (isinstance(self._coeff_stream, Stream_exact)
                 and not self._coeff_stream._constant):
 
@@ -4699,8 +4698,7 @@ class LazySymmetricFunction(LazyCompletionGradedAlgebraElement):
         return P.element_class(P, coeff_stream)
 
     def functorial_composition(self, *args):
-        r"""
-        Return the functorial composition of ``self`` and ``g``.
+        r"""Return the functorial composition of ``self`` and ``g``.
 
         Let `X` be a finite set of cardinality `m`.  For a group
         action of the symmetric group `g: S_n \to S_X` and a
@@ -4721,10 +4719,10 @@ class LazySymmetricFunction(LazyCompletionGradedAlgebraElement):
 
         .. MATH::
 
-            Z_{F} \Box Z_{G} = \sum_{n \geq 0} \frac{1}{n!}
-            \sum_{\sigma \in \mathfrak{S}_{n}}
-            \operatorname{fix} F[ (G[\sigma])_{1}, (G[\sigma])_{2}, \ldots ]
-            \, p_{1}^{\sigma_{1}} p_{2}^{\sigma_{2}} \cdots.
+            \sum_{n \geq 0} \frac{1}{n!} \sum_{\sigma \in
+            \mathfrak{S}_{n}} \operatorname{fix} F[ (G[\sigma])_{1},
+            (G[\sigma])_{2}, \ldots ] \, p_{1}^{\sigma_{1}}
+            p_{2}^{\sigma_{2}} \cdots.
 
         .. WARNING::
 
@@ -4763,9 +4761,8 @@ class LazySymmetricFunction(LazyCompletionGradedAlgebraElement):
 
         labellings of their vertices with two 1's and two 2's.
 
-        The derivative of the symmetric function `\sum_n h_n`, times
-        `p_1` is the neutral element with respect to functorial
-        composition::
+        The symmetric function `h_1 \sum_n h_n` is the neutral
+        element with respect to functorial composition::
 
             sage: p = SymmetricFunctions(QQ).p()
             sage: h = SymmetricFunctions(QQ).h()
@@ -4807,6 +4804,7 @@ class LazySymmetricFunction(LazyCompletionGradedAlgebraElement):
             Traceback (most recent call last):
             ...
             ValueError: the argument is not the Frobenius character of a permutation representation
+
         """
         if len(args) != self.parent()._arity:
             raise ValueError("arity must be equal to the number of arguments provided")
@@ -4875,6 +4873,226 @@ class LazySymmetricFunction(LazyCompletionGradedAlgebraElement):
 
                     terms[s] = t.aut() * f_t.coefficient(t) / s.aut()
                 return R(p.element_class(p, terms))
+
+            coeff_stream = Stream_function(coefficient, P._sparse, 0)
+            return P.element_class(P, coeff_stream)
+        else:
+            raise NotImplementedError("only implemented for arity 1")
+
+    def arithmetic_product(self, *args, check=True):
+        r"""
+        Return the arithmetic product of ``self`` with ``g``.
+
+        The arithmetic product is a binary operation `\boxdot` on the
+        ring of symmetric functions which is bilinear in its two
+        arguments and satisfies
+
+        .. MATH::
+
+            p_{\lambda} \boxdot p_{\mu} = \prod\limits_{i \geq 1, j \geq 1}
+            p_{\mathrm{lcm}(\lambda_i, \mu_j)}^{\mathrm{gcd}(\lambda_i, \mu_j)}
+
+        for any two partitions `\lambda = (\lambda_1, \lambda_2, \lambda_3,
+        \dots )` and `\mu = (\mu_1, \mu_2, \mu_3, \dots )` (where `p_{\nu}`
+        denotes the power-sum symmetric function indexed by the partition
+        `\nu`, and `p_i` denotes the `i`-th power-sum symmetric function).
+        This is enough to define the arithmetic product if the base ring
+        is torsion-free as a `\ZZ`-module; for all other cases the
+        arithmetic product is uniquely determined by requiring it to be
+        functorial in the base ring. See
+        http://mathoverflow.net/questions/138148/ for a discussion of
+        this arithmetic product.
+
+        .. WARNING::
+
+            The operation `f \boxdot g` was originally defined only
+            for symmetric functions `f` and `g` without constant
+            term.  We extend this definition using the convention
+            that the least common multiple of any integer with `0` is
+            `0`.
+
+        If `f` and `g` are two symmetric functions which are homogeneous
+        of degrees `a` and `b`, respectively, then `f \boxdot g` is
+        homogeneous of degree `ab`.
+
+        The arithmetic product is commutative and associative and has
+        unity `e_1 = p_1 = h_1`.
+
+        For species `M` and `N` such that `M[\varnothing] =
+        N[\varnothing] = \varnothing`, their arithmetic product is
+        the species `M \boxdot N` of "`M`-assemblies of cloned
+        `N`-structures".  This operation is defined and several
+        examples are given in [MM2008]_.
+
+        INPUT:
+
+        - ``g`` -- a cycle index series having the same parent as ``self``
+
+        - ``check`` -- (default: ``True``) a Boolean which, when set
+          to ``False``, will cause input checks to be skipped
+
+        OUTPUT:
+
+        The arithmetic product of ``self`` with ``g``.
+
+        .. SEEALSO::
+
+          :meth:`sage.combinat.sf.sfa.SymmetricFunctionAlgebra_generic_Element.arithmetic_product`
+
+        EXAMPLES:
+
+        For `C` the species of (oriented) cycles and `L_{+}` the
+        species of nonempty linear orders, `C \boxdot L_{+}`
+        corresponds to the species of "regular octopuses"; a `(C
+        \boxdot L_{+})`-structure is a cycle of some length, each of
+        whose elements is an ordered list of a length which is
+        consistent for all the lists in the structure. ::
+
+            sage: R.<q> = QQ[]
+            sage: p = SymmetricFunctions(R).p()
+            sage: m = SymmetricFunctions(R).m()
+            sage: L = LazySymmetricFunctions(m)
+
+            sage: C = species.CycleSpecies().cycle_index_series()
+            sage: c = L(lambda n: C[n])
+            sage: Lplus = L(lambda n: p([1]*n), valuation=1)
+            sage: r = c.arithmetic_product(Lplus); r
+            m[1] + (3*m[1,1]+2*m[2])
+             + (8*m[1,1,1]+4*m[2,1]+2*m[3])
+             + (42*m[1,1,1,1]+21*m[2,1,1]+12*m[2,2]+7*m[3,1]+3*m[4])
+             + (144*m[1,1,1,1,1]+72*m[2,1,1,1]+36*m[2,2,1]+24*m[3,1,1]+12*m[3,2]+6*m[4,1]+2*m[5])
+             + ...
+             + O^7
+
+        In particular, the number of regular octopuses is::
+
+            sage: [r[n].coefficient([1]*n) for n in range(8)]
+            [0, 1, 3, 8, 42, 144, 1440, 5760]
+
+        It is shown in [MM2008]_ that the exponential generating
+        function for regular octopuses satisfies `(C \boxdot L_{+})
+        (x) = \sum_{n \geq 1} \sigma (n) (n - 1)! \frac{x^{n}}{n!}`
+        (where `\sigma (n)` is the sum of the divisors of `n`). ::
+
+            sage: [sum(divisors(i))*factorial(i-1) for i in range(1,8)]
+            [1, 3, 8, 42, 144, 1440, 5760]
+
+        AUTHORS:
+
+        - Andrew Gainer-Dewar (2013)
+
+        REFERENCES:
+
+        - [MM2008]_
+
+        TESTS:
+
+        Check that the product with zero works::
+
+            sage: s = SymmetricFunctions(QQ).s()
+            sage: L = LazySymmetricFunctions(s)
+            sage: L(0).arithmetic_product(s[2])
+            0
+            sage: L(s[2]).arithmetic_product(0)
+            0
+
+        Check that the arithmetic product of symmetric functions of
+        finite support works::
+
+            sage: L(s([2])).arithmetic_product(s([1,1,1]))
+            s[2, 2, 1, 1] + s[3, 1, 1, 1] + s[3, 2, 1] + s[3, 3] + 2*s[4, 1, 1]
+
+            sage: f = 1/(1-L(s[1]))
+            sage: f.arithmetic_product(s[1]) - f
+            O^7
+
+        Check that the arithmetic product of symmetric functions with
+        constant a term works as advertised::
+
+            sage: p = SymmetricFunctions(QQ).p()
+            sage: L = LazySymmetricFunctions(p)
+            sage: L(5).arithmetic_product(3*p[2,1])
+            15*p[]
+
+        Check the arithmetic product of symmetric functions over a
+        finite field works::
+
+            sage: s = SymmetricFunctions(FiniteField(2)).s()
+            sage: L = LazySymmetricFunctions(s)
+            sage: L(s([2])).arithmetic_product(s([1,1,1]))
+            s[2, 2, 1, 1] + s[3, 1, 1, 1] + s[3, 2, 1] + s[3, 3]
+
+        """
+        if len(args) != self.parent()._arity:
+            raise ValueError("arity must be equal to the number of arguments provided")
+        from sage.combinat.sf.sfa import is_SymmetricFunction
+        if not all(isinstance(g, LazySymmetricFunction)
+                   or is_SymmetricFunction(g)
+                   or not g for g in args):
+            raise ValueError("all arguments must be (possibly lazy) symmetric functions")
+
+        if len(args) == 1:
+            g = args[0]
+            P = g.parent()
+
+            # f = 0 or g = (0, ..., 0)
+            if (isinstance(self._coeff_stream, Stream_zero)
+                or (not isinstance(g, LazyModuleElement) and not g)
+                or (isinstance(g, LazyModuleElement)
+                    and isinstance(g._coeff_stream, Stream_zero))):
+                return P.zero()
+
+            if (isinstance(self._coeff_stream, Stream_exact)
+                and not self._coeff_stream._constant):
+
+                if not isinstance(g, LazySymmetricFunction):
+                    f = self.symmetric_function()
+                    return f.arithmetic_product(g)
+
+                if (isinstance(g._coeff_stream, Stream_exact)
+                    and not g._coeff_stream._constant):
+                    f = self.symmetric_function()
+                    gs = g.symmetric_function()
+                    return P(f.arithmetic_product(gs))
+
+            if isinstance(g, LazySymmetricFunction):
+                R = P._laurent_poly_ring
+            else:
+                from sage.rings.lazy_series_ring import LazySymmetricFunctions
+                R = g.parent()
+                P = LazySymmetricFunctions(R)
+                g = P(g)
+
+            # compute the constant term in the case where not both f
+            # and g have finite support
+            # TODO: this should be done lazily if possible
+            c = R.zero()
+            if self[0]:
+                if (isinstance(g._coeff_stream, Stream_exact)
+                    and not g._coeff_stream._constant):
+                    gs = g.symmetric_function()
+                    c += self[0].arithmetic_product(gs)
+                elif check:
+                    raise ValueError("can only take the arithmetic product with a positive valuation series")
+            if g[0]:
+                if (isinstance(self._coeff_stream, Stream_exact)
+                    and not self._coeff_stream._constant):
+                    fs = self.symmetric_function()
+                    c += fs.arithmetic_product(g[0])
+                elif check:
+                    raise ValueError("can only take the arithmetic product with a positive valuation series")
+
+            p = R.realization_of().p()
+            # TODO: does the following introduce a memory leak?
+            g = Stream_map_coefficients(g._coeff_stream, p)
+            f = Stream_map_coefficients(self._coeff_stream, p)
+
+            def coefficient(n):
+                if not n:
+                    return c
+                index_set = ((d, n // d) for d in divisors(n))
+                return sum(f[i].arithmetic_product(g[j])
+                           for i, j in index_set if f[i] and g[j])
 
             coeff_stream = Stream_function(coefficient, P._sparse, 0)
             return P.element_class(P, coeff_stream)

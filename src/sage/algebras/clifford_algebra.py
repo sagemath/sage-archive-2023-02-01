@@ -2994,4 +2994,3 @@ class ExteriorAlgebraIdeal(Ideal_nc):
         self._groebner_strategy.compute_groebner(reduced=reduced)
         self._reduced = reduced
         return self._groebner_strategy.groebner_basis
-

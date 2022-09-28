@@ -125,8 +125,8 @@ class TensorFieldModule(VectorFieldModule_abstract):
     `T^{(2,0)}(M)` is a module over the algebra `C^k(M)`::
 
         sage: T20.category()
-        Category of modules over Algebra of differentiable scalar fields on the
-         2-dimensional differentiable manifold M
+        Category of tensor products of modules over Algebra of differentiable scalar fields
+         on the 2-dimensional differentiable manifold M
         sage: T20.base_ring() is M.scalar_field_algebra()
         True
 
@@ -237,7 +237,7 @@ class TensorFieldModule(VectorFieldModule_abstract):
     """
     Element = TensorField
 
-    def __init__(self, vector_field_module, tensor_type):
+    def __init__(self, vector_field_module, tensor_type, category=None):
         r"""
         Construct a module of tensor fields taking values on a (a priori) not
         parallelizable differentiable manifold.
@@ -289,7 +289,8 @@ class TensorFieldModule(VectorFieldModule_abstract):
         # the member self._ring is created for efficiency (to avoid calls to
         # self.base_ring()):
         self._ring = domain.scalar_field_algebra()
-        Parent.__init__(self, base=self._ring, category=Modules(self._ring))
+        category = Modules(self._ring).TensorProducts().or_subcategory(category)
+        Parent.__init__(self, base=self._ring, category=category)
         self._domain = domain
         self._dest_map = dest_map
         self._ambient_domain = vector_field_module._ambient_domain

@@ -288,7 +288,7 @@ def variety(ideal, ring, *, proof=True):
         variety = []
         for rt in elim_roots:
             den_of_rt = den(rt)
-            point = [-p(rt)/den_of_rt for p in param]
+            point = [-p(rt) / den_of_rt for p in param]
             if len(param) != len(vars):
                 point.append(rt)
             assert len(point) == len(vars)
@@ -311,4 +311,3 @@ def variety(ideal, ring, *, proof=True):
                    for point in l]
 
     return [KeyConvertingDict(out_ring, zip(vars, point)) for point in variety]
-

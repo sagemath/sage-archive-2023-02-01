@@ -5458,4 +5458,3 @@ class MPolynomialIdeal_quotient(MPolynomialIdeal):
                 return not (contained and contains)
             else:  # remaining case <
                 return contained and not contains
-

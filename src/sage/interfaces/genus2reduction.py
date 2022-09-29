@@ -242,17 +242,7 @@ class Genus2reduction(SageObject):
         sage: factor(R.conductor)
         5^4 * 2267
 
-    This means that only the odd part of the conductor is known.
-
-    ::
-
-        sage: R.prime_to_2_conductor_only
-        True
-
-    The discriminant is always minimal away from 2, but possibly not at
-    2.
-
-    ::
+    The discriminant is always minimal::
 
         sage: factor(R.minimal_disc)
         2^3 * 5^5 * 2267
@@ -264,10 +254,10 @@ class Genus2reduction(SageObject):
         sage: R
         Reduction data about this proper smooth genus 2 curve:
             y^2 + (x^3 - 2*x^2 - 2*x + 1)*y = -5*x^5
-        A Minimal Equation (away from 2):
-            y^2 = x^6 - 240*x^4 - 2550*x^3 - 11400*x^2 - 24100*x - 19855
-        Minimal Discriminant (away from 2):  56675000
-        Conductor (away from 2): 1416875
+        A Minimal Equation:
+            y^2 ...
+        Minimal Discriminant: 56675000
+        Conductor: 1416875
         Local Data:
             p=2
             (potential) stable reduction:  (II), j=1
@@ -293,10 +283,10 @@ class Genus2reduction(SageObject):
         sage: genus2reduction(0, x^6 + 3*x^3 + 63)
         Reduction data about this proper smooth genus 2 curve:
                 y^2 = x^6 + 3*x^3 + 63
-        A Minimal Equation (away from 2):
-                y^2 = x^6 + 3*x^3 + 63
-        Minimal Discriminant (away from 2):  10628388316852992
-        Conductor (away from 2): 2893401
+        A Minimal Equation:
+                y^2 ...
+        Minimal Discriminant: -10628388316852992
+        Conductor: 2893401
         Local Data:
                 p=2
                 (potential) stable reduction:  (V), j1+j2=0, j1*j2=0
@@ -327,9 +317,9 @@ class Genus2reduction(SageObject):
         sage: genus2reduction(x^3-x^2-1, x^2 - x)
         Reduction data about this proper smooth genus 2 curve:
                 y^2 + (x^3 - x^2 - 1)*y = x^2 - x
-        A Minimal Equation (away from 2):
-                y^2 = x^6 + 58*x^5 + 1401*x^4 + 18038*x^3 + 130546*x^2 + 503516*x + 808561
-        Minimal Discriminant (away from 2):  169
+        A Minimal Equation:
+                y^2 ...
+        Minimal Discriminant: -169
         Conductor: 169
         Local Data:
                 p=13
@@ -370,10 +360,10 @@ class Genus2reduction(SageObject):
             sage: genus2reduction(x^3 - 2*x^2 - 2*x + 1, -5*x^5)
             Reduction data about this proper smooth genus 2 curve:
                     y^2 + (x^3 - 2*x^2 - 2*x + 1)*y = -5*x^5
-            A Minimal Equation (away from 2):
-                    y^2 = x^6 - 240*x^4 - 2550*x^3 - 11400*x^2 - 24100*x - 19855
-            Minimal Discriminant (away from 2):  56675000
-            Conductor (away from 2): 1416875
+            A Minimal Equation:
+                    y^2 ...
+            Minimal Discriminant: 56675000
+            Conductor: 1416875
             Local Data:
                     p=2
                     (potential) stable reduction:  (II), j=1
@@ -389,9 +379,9 @@ class Genus2reduction(SageObject):
             sage: genus2reduction(x^2 + 1, -5*x^5)
             Reduction data about this proper smooth genus 2 curve:
                     y^2 + (x^2 + 1)*y = -5*x^5
-            A Minimal Equation (away from 2):
-                    y^2 = -20*x^5 + x^4 + 2*x^2 + 1
-            Minimal Discriminant (away from 2):  48838125
+            A Minimal Equation:
+                    y^2 ...
+            Minimal Discriminant: 48838125
             Conductor: 32025
             Local Data:
                     p=3
@@ -412,9 +402,9 @@ class Genus2reduction(SageObject):
             sage: genus2reduction(x^3 + x^2 + x,-2*x^5 + 3*x^4 - x^3 - x^2 - 6*x - 2)
             Reduction data about this proper smooth genus 2 curve:
                     y^2 + (x^3 + x^2 + x)*y = -2*x^5 + 3*x^4 - x^3 - x^2 - 6*x - 2
-            A Minimal Equation (away from 2):
-                    y^2 = x^6 + 18*x^3 + 36*x^2 - 27
-            Minimal Discriminant (away from 2):  1520984142
+            A Minimal Equation:
+                    y^2 ...
+            Minimal Discriminant: 1520984142
             Conductor: 954
             Local Data:
                     p=2

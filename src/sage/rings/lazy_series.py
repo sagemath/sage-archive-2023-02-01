@@ -1809,36 +1809,10 @@ class LazyModuleElement(Element):
 
         EXAMPLES::
 
-            sage: L.<z> = LazyLaurentSeriesRing(QQ)
-            sage: exp(z)
-            1 + z + 1/2*z^2 + 1/6*z^3 + 1/24*z^4 + 1/120*z^5 + 1/720*z^6 + O(z^7)
-            sage: exp(z + z^2)
-            1 + z + 3/2*z^2 + 7/6*z^3 + 25/24*z^4 + 27/40*z^5 + 331/720*z^6 + O(z^7)
-            sage: exp(0)
-            1
-            sage: exp(1 + z)
-            Traceback (most recent call last):
-            ...
-            ValueError: can only compose with a positive valuation series
-
-            sage: L.<x,y> = LazyPowerSeriesRing(QQ)
-            sage: exp(x+y)[4].factor()
-            (1/24) * (x + y)^4
-            sage: exp(x/(1-y)).polynomial(3)
-            1/6*x^3 + x^2*y + x*y^2 + 1/2*x^2 + x*y + x + 1
-
-        TESTS::
-
-            sage: L.<z> = LazyLaurentSeriesRing(QQ); x = var("x")
-            sage: exp(z)[0:6] == exp(x).series(x, 6).coefficients(sparse=False)
-            True
-
-        Check the exponential when the base ring is a lazy ring::
-
-            sage: L.<t> = LazyPowerSeriesRing(QQ)
-            sage: M.<x> = LazyPowerSeriesRing(L)
-            sage: exp(x)
-            1 + x + 1/2*x^2 + 1/6*x^3 + 1/24*x^4 + 1/120*x^5 + 1/720*x^6 + O(x^7)
+            sage: L = LazyDirichletSeriesRing(QQ, "s")
+            sage: Z = L(constant=1, valuation=2)
+            sage: exp(Z)
+            1 + 1/(2^s) + 1/(3^s) + 3/2/4^s + 1/(5^s) + 2/6^s + 1/(7^s) + O(1/(8^s))
         """
         from .lazy_series_ring import LazyLaurentSeriesRing
         P = LazyLaurentSeriesRing(self.base_ring(), "z", sparse=self.parent()._sparse)
@@ -1851,24 +1825,10 @@ class LazyModuleElement(Element):
 
         EXAMPLES::
 
-            sage: L.<z> = LazyLaurentSeriesRing(QQ)
-            sage: log(1/(1-z))
-            z + 1/2*z^2 + 1/3*z^3 + 1/4*z^4 + 1/5*z^5 + 1/6*z^6 + 1/7*z^7 + O(z^8)
-
-            sage: L.<x, y> = LazyPowerSeriesRing(QQ)
-            sage: log((1 + x/(1-y))).polynomial(3)
-            1/3*x^3 - x^2*y + x*y^2 - 1/2*x^2 + x*y + x
-
-        TESTS::
-
-            sage: L.<z> = LazyLaurentSeriesRing(QQ); x = var("x")
-            sage: log(1+z)[0:6] == log(1+x).series(x, 6).coefficients(sparse=False)
-            True
-
-            sage: log(z)
-            Traceback (most recent call last):
-            ...
-            ValueError: can only compose with a positive valuation series
+            sage: L = LazyDirichletSeriesRing(QQ, "s")
+            sage: Z = L(constant=1)
+            sage: log(Z)
+            1/(2^s) + 1/(3^s) + 1/2/4^s + 1/(5^s) + 1/(7^s) + O(1/(8^s))
         """
         from .lazy_series_ring import LazyLaurentSeriesRing
         P = LazyLaurentSeriesRing(self.base_ring(), "z", sparse=self.parent()._sparse)
@@ -3135,6 +3095,12 @@ class LazyCauchyProductSeries(LazyModuleElement):
         r"""
         Return the exponential series of ``self``.
 
+        We use the identity
+
+        .. MATH::
+
+            \exp(s) = 1 + \int s' \exp(s).
+
         EXAMPLES::
 
             sage: L.<z> = LazyLaurentSeriesRing(QQ)
@@ -3171,6 +3137,8 @@ class LazyCauchyProductSeries(LazyModuleElement):
         P = self.parent()
         R = self.base_ring()
         coeff_stream = self._coeff_stream
+        # TODO: coefficients should not be checked here, it prevents
+        # us from using self.define in some cases!
         if any(coeff_stream[i] for i in range(coeff_stream._approximate_order, 1)):
             raise ValueError("can only compose with a positive valuation series")
         # WARNING: d_self need not be a proper element of P, e.g. for
@@ -3183,6 +3151,55 @@ class LazyCauchyProductSeries(LazyModuleElement):
                                        P.is_sparse(), 0)
         f._coeff_stream._target = int_d_self_f
         return f
+
+    def log(self):
+        r"""
+        Return the series for the natural logarithm of ``self``.
+
+        We use the identity
+
+        .. MATH::
+
+            \log(s) = \int s' / s.
+
+        EXAMPLES::
+
+            sage: L.<z> = LazyLaurentSeriesRing(QQ)
+            sage: log(1/(1-z))
+            z + 1/2*z^2 + 1/3*z^3 + 1/4*z^4 + 1/5*z^5 + 1/6*z^6 + 1/7*z^7 + O(z^8)
+
+            sage: L.<x, y> = LazyPowerSeriesRing(QQ)
+            sage: log((1 + x/(1-y))).polynomial(3)
+            1/3*x^3 - x^2*y + x*y^2 - 1/2*x^2 + x*y + x
+
+        TESTS::
+
+            sage: L.<z> = LazyLaurentSeriesRing(QQ); x = var("x")
+            sage: log(1+z)[0:6] == log(1+x).series(x, 6).coefficients(sparse=False)
+            True
+
+            sage: log(z)
+            Traceback (most recent call last):
+            ...
+            ValueError: can only compose with a positive valuation series
+        """
+        P = self.parent()
+        R = self.base_ring()
+        coeff_stream = self._coeff_stream
+        # TODO: coefficients should not be checked here, it prevents
+        # us from using self.define in some cases!
+        if (any(coeff_stream[i] for i in range(coeff_stream._approximate_order, 0))
+            or coeff_stream[0] != R.one()):
+            raise ValueError("can only compose with a positive valuation series")
+        # WARNING: d_self need not be a proper element of P, e.g. for
+        # multivariate power series
+        d_self = Stream_function(lambda n: (n + 1) * coeff_stream[n + 1],
+                                 P.is_sparse(), 0)
+        d_self_quo_self = Stream_cauchy_mul(d_self,
+                                            Stream_cauchy_invert(coeff_stream))
+        int_d_self_quo_self = Stream_function(lambda n: d_self_quo_self[n-1] / R(n),
+                                              P.is_sparse(), 1)
+        return P.element_class(P, int_d_self_quo_self)
 
 
 class LazyLaurentSeries(LazyCauchyProductSeries):

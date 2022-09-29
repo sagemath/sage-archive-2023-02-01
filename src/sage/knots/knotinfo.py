@@ -117,7 +117,7 @@ too::
     sage: l6sn.sage_link().is_isotopic(l6)     # optional - snappy
     True
 
-But observe that the name conversion to SnapPy does not distingiush orientation
+But observe that the name conversion to SnapPy does not distinguish orientation
 types::
 
     sage: L6b = KnotInfo.L6a1_1

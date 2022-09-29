@@ -4219,7 +4219,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                     f_deformed = DynamicalSystem(deformed_polys)
 
                     # after deforming by the parameter, the preperiodic points with multiplicity
-                    # will seperate into different points. we can now calculate the minimal preperiodic
+                    # will separate into different points. we can now calculate the minimal preperiodic
                     # points with the parameter, and then specialize to get the formal preperiodic points
                     ideal = f_deformed.preperiodic_points(m, n, return_scheme=True).defining_ideal()
                     L = [poly.specialization({t:0}) for poly in ideal.gens()]
@@ -4569,7 +4569,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                             f_deformed = DynamicalSystem(deformed_polys)
 
                             # after deforming by the parameter, the preperiodic points with multiplicity
-                            # will seperate into different points. we can now calculate the minimal preperiodic
+                            # will separate into different points. we can now calculate the minimal preperiodic
                             # points with the parameter, and then specialize to get the formal periodic points
                             ideal = f_deformed.periodic_points(n, return_scheme=True).defining_ideal()
                             L = [poly.specialization({t:0}) for poly in ideal.gens()]
@@ -4901,7 +4901,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
         - ``n`` periodic points are repeated, multipliers are all distinct -- to deal
           with this case, we deform the map by a formal parameter `k`. The deformation
-          seperates the ``n`` periodic points, making them distinct, and we can recover
+          separates the ``n`` periodic points, making them distinct, and we can recover
           the ``n`` periodic points of the original map by specializing `k` to 0.
           This corresponds to ``deform=True``.
 
@@ -4952,7 +4952,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
         - ``check`` -- (default: ``True``) boolean; when ``True`` the degree of
           the sigma polynomial is checked against the expected degree. This is
-          done as the sigma polynomial may drop degree if multiplicites of periodic
+          done as the sigma polynomial may drop degree if multiplicities of periodic
           points or multipliers are not correctly accounted for using ``chow`` or
           ``deform``.
 
@@ -5236,8 +5236,8 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                     # create polynomial ring for result
                     R2 = PolynomialRing(F, var[:N] + var[-2:])
                     psi = R2.hom(N*[0]+list(newR.gens()), newR)
-                    # create substition to set extra variables to 0
-                    R_zero = {R.gen(N):1}
+                    # create substitution to set extra variables to 0
+                    R_zero = {R.gen(N): 1}
                     for j in range(N+1, 2*N+1):
                         R_zero[R.gen(j)] = 0
                     t = var.pop()
@@ -5251,7 +5251,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                     w = var.pop()
                 sigma_polynomial = 1
                 # go through each affine patch to avoid repeating periodic points
-                # setting the visited coordiantes to 0 as we go
+                # setting the visited coordinates to 0 as we go
                 for j in range(N,-1,-1):
                     Xa = X.affine_patch(j)
                     fa = Fn.dehomogenize(j)
@@ -5308,7 +5308,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                                      'try setting chow=True and/or deform=True')
             if return_polynomial:
                 return sigma_polynomial
-            # if we are returing a numerical list, read off the coefficients
+            # if we are returning a numerical list, read off the coefficients
             # in order of degree adjusting sign appropriately
             sigmas = []
             sigma_dictionary = dict([list(reversed(i)) for i in list(sigma_polynomial)])
@@ -6833,7 +6833,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
         by taking the fixed points of one map and mapping
         them to permutations of the fixed points of the other map.
         As conjugacy preserves the multipliers as a set, fixed points
-        are only maped to fixed points with the same multiplier.
+        are only mapped to fixed points with the same multiplier.
         If there are not enough fixed points the
         function compares the mapping between rational preimages of
         fixed points and the rational preimages of the preimages of

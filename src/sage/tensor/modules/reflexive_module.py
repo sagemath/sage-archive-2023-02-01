@@ -167,7 +167,7 @@ class ReflexiveModule_abstract(Parent):
         return result
 
 
-class ReflexiveModule_base:
+class ReflexiveModule_base(ReflexiveModule_abstract):
 
     def base_module(self):
         r"""
@@ -216,7 +216,7 @@ class ReflexiveModule_base:
         """
 
 
-class ReflexiveModule_dual:
+class ReflexiveModule_dual(ReflexiveModule_abstract):
 
     def tensor_type(self):
         r"""
@@ -248,7 +248,7 @@ class ReflexiveModule_dual:
         return None
 
 
-class ReflexiveModule_tensor:
+class ReflexiveModule_tensor(ReflexiveModule_abstract):
 
     def tensor_factors(self):
         r"""

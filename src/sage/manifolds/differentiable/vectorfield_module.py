@@ -53,9 +53,10 @@ from sage.misc.cachefunc import cached_method
 from sage.rings.integer import Integer
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.tensor.modules.finite_rank_free_module import (
-    FiniteRankFreeModule_abstract,
-    FiniteRankFreeModule,
+from sage.tensor.modules.finite_rank_free_module import FiniteRankFreeModule
+from sage.tensor.modules.reflexive_module import (
+    ReflexiveModule_abstract,
+    ReflexiveModule_base
 )
 
 if TYPE_CHECKING:
@@ -63,19 +64,13 @@ if TYPE_CHECKING:
     from sage.manifolds.differentiable.manifold import DifferentiableManifold
 
 
-class VectorFieldModule_abstract(UniqueRepresentation, Parent):
+class VectorFieldModule_abstract(UniqueRepresentation, ReflexiveModule_abstract):
     r"""
     Abstract base class for modules of vector fields.
     """
 
-    tensor_power = FiniteRankFreeModule_abstract.tensor_power
 
-    tensor_product = FiniteRankFreeModule_abstract.tensor_product
-
-    tensor = FiniteRankFreeModule_abstract.tensor
-
-
-class VectorFieldModule(VectorFieldModule_abstract):
+class VectorFieldModule(ReflexiveModule_base, VectorFieldModule_abstract):
     r"""
     Module of vector fields along a differentiable manifold `U`
     with values on a differentiable manifold `M`, via a differentiable
@@ -520,34 +515,6 @@ class VectorFieldModule(VectorFieldModule_abstract):
 
         """
         return self._dest_map
-
-    def base_module(self):
-        r"""
-        Return the module on which ``self`` is constructed, namely ``self`` itself.
-
-        EXAMPLES::
-
-            sage: M = Manifold(2, 'M')
-            sage: XM = M.vector_field_module()
-            sage: XM.base_module() is XM
-            True
-
-        """
-        return self
-
-    def tensor_type(self):
-        r"""
-        Return the tensor type of ``self``, the pair `(1, 0)`.
-
-        EXAMPLES::
-
-            sage: M = Manifold(2, 'M')
-            sage: XM = M.vector_field_module()
-            sage: XM.tensor_type()
-            (1, 0)
-
-        """
-        return (1, 0)
 
     def tensor_module(self, k, l, *, sym=None, antisym=None):
         r"""
@@ -1305,7 +1272,7 @@ class VectorFieldModule(VectorFieldModule_abstract):
 
 #******************************************************************************
 
-class VectorFieldFreeModule(FiniteRankFreeModule):
+class VectorFieldFreeModule(FiniteRankFreeModule, VectorFieldModule_abstract):
     r"""
     Free module of vector fields along a differentiable manifold `U` with
     values on a parallelizable manifold `M`, via a differentiable map

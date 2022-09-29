@@ -43,6 +43,7 @@ from sage.misc.cachefunc import cached_method
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.categories.modules import Modules
+from sage.tensor.modules.reflexive_module import ReflexiveModule_tensor
 from sage.tensor.modules.tensor_free_module import TensorFreeModule
 from sage.manifolds.differentiable.tensorfield import TensorField
 from sage.manifolds.differentiable.tensorfield_paral import TensorFieldParal
@@ -55,7 +56,7 @@ from sage.manifolds.differentiable.automorphismfield import (AutomorphismField,
 from sage.manifolds.differentiable.vectorfield_module import VectorFieldModule_abstract
 
 
-class TensorFieldModule(VectorFieldModule_abstract):
+class TensorFieldModule(ReflexiveModule_tensor, VectorFieldModule_abstract):
     r"""
     Module of tensor fields of a given type `(k,l)` along a differentiable
     manifold `U` with values on a differentiable manifold `M`, via a
@@ -296,8 +297,6 @@ class TensorFieldModule(VectorFieldModule_abstract):
         self._domain = domain
         self._dest_map = dest_map
         self._ambient_domain = vector_field_module._ambient_domain
-
-    tensor_factors = TensorFreeModule.tensor_factors
 
     #### Parent methods
 
@@ -601,7 +600,7 @@ class TensorFieldModule(VectorFieldModule_abstract):
 
 #***********************************************************************
 
-class TensorFieldFreeModule(TensorFreeModule):
+class TensorFieldFreeModule(TensorFreeModule, VectorFieldModule_abstract):
     r"""
     Free module of tensor fields of a given type `(k,l)` along a
     differentiable manifold `U` with values on a parallelizable manifold `M`,

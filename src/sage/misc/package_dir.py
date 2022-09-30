@@ -1,9 +1,122 @@
+# sage_setup: distribution = sagemath-environment
 """
 Recognizing package directories
 """
 import os
 import glob
 from contextlib import contextmanager
+
+
+class SourceDistributionFilter:
+    r"""
+    A :class:`collections.abc.Container` for source files in distributions.
+
+    INPUT:
+
+    - ``include_distributions`` -- (default: ``None``) if not ``None``,
+      should be a sequence or set of strings: include files whose
+      ``distribution`` (from a ``# sage_setup: distribution = PACKAGE``
+      directive in the source file) is an element of ``distributions``.
+
+    - ``exclude_distributions`` -- (default: ``None``) if not ``None``,
+      should be a sequence or set of strings: exclude files whose
+      ``distribution`` (from a ``# sage_setup: distribution = PACKAGE``
+      directive in the module source file) is in ``exclude_distributions``.
+
+    EXAMPLES::
+
+        sage: from sage.misc.package_dir import SourceDistributionFilter
+        sage: F = SourceDistributionFilter()
+        sage: sage.misc.package_dir.__file__ in F
+        True
+        sage: F = SourceDistributionFilter(include_distributions=['sagemath-environment'])
+        sage: sage.misc.package_dir.__file__ in F
+        True
+        sage: F = SourceDistributionFilter(exclude_distributions=['sagemath-environment'])
+        sage: sage.misc.package_dir.__file__ in F
+        False
+    """
+    def __init__(self, include_distributions=None, exclude_distributions=None):
+        r"""
+        TESTS:
+
+        ``exclude_distributions=None`` is normalized to the empty tuple::
+
+            sage: from sage.misc.package_dir import SourceDistributionFilter
+            sage: F = SourceDistributionFilter()
+            sage: F._exclude_distributions
+            ()
+        """
+        self._include_distributions = include_distributions
+        if exclude_distributions is None:
+            exclude_distributions = ()
+        self._exclude_distributions = exclude_distributions
+
+    def __contains__(self, filename):
+        r"""
+        TESTS:
+
+        No file access is used when neither ``include_distributions`` nor
+        ``exclude_distributions`` is given::
+
+            sage: from sage.misc.package_dir import SourceDistributionFilter
+            sage: F = SourceDistributionFilter()
+            sage: '/doesnotexist' in F
+            True
+
+        ``exclude_distributions`` can also be an empty container::
+
+            sage: F = SourceDistributionFilter(exclude_distributions=())
+            sage: '/doesnotexist' in F
+            True
+        """
+        if self._include_distributions is None and not self._exclude_distributions:
+            return True
+        distribution = read_distribution(filename)
+        if self._include_distributions is not None:
+            if distribution not in self._include_distributions:
+                return False
+            return distribution not in self._exclude_distributions
+
+
+def read_distribution(src_file):
+    """
+    Parse ``src_file`` for a ``# sage_setup: distribution = PKG`` directive.
+
+    INPUT:
+
+    - ``src_file`` -- file name of a Python or Cython source file
+
+    OUTPUT:
+
+    - a string, the name of the distribution package (``PKG``); or the empty
+      string if no directive was found.
+
+    EXAMPLES::
+
+        sage: from sage.env import SAGE_SRC
+        sage: from sage_setup.find import read_distribution
+        sage: read_distribution(os.path.join(SAGE_SRC, 'sage', 'graphs', 'graph_decompositions', 'tdlib.pyx'))
+        'sagemath-tdlib'
+        sage: read_distribution(os.path.join(SAGE_SRC, 'sage', 'graphs', 'graph_decompositions', 'modular_decomposition.py'))
+        ''
+    """
+    from Cython.Utils import open_source_file
+    with open_source_file(src_file, error_handling='ignore') as fh:
+        for line in fh:
+            # Adapted from Cython's Build/Dependencies.py
+            line = line.lstrip()
+            if not line:
+                continue
+            if line[0] != '#':
+                break
+            line = line[1:].lstrip()
+            kind = "sage_setup:"
+            if line.startswith(kind):
+                key, _, value = [s.strip() for s in line[len(kind):].partition('=')]
+                if key == "distribution":
+                    return value
+    return ''
 
 
 def is_package_or_sage_namespace_package_dir(path):

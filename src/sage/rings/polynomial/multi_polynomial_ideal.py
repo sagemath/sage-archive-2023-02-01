@@ -2835,8 +2835,8 @@ class MPolynomialIdeal_singular_repr(
             s = denom.valuation(t - 1)
             numerator = hilbert_poincare.numerator()
             # we assume the denominator of the Hilbert series is of
-            # the form (1 - t)^s, need to scale numerator by denom[0]
-            scalar = ~denom[0] / (s - 1).factorial()
+            # the form (1 - t)^s, need to scale numerator
+            scalar = ~(denom[0] * (s - 1).factorial())
             st = s - 1 + t
             out = scalar * sum(c * prod(st - n - nu for nu in range(s - 1))
                                for n, c in enumerate(numerator))

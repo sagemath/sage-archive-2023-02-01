@@ -327,7 +327,7 @@ def lfun_eta_quotient(scalings, exponents):
         sage: L(1)
         0.0374412812685155
 
-        sage: lfun_eta_quotient([6],[4])
+        sage: lfun_eta_quotient([6], [4])
         [[Vecsmall([7]), [Vecsmall([6]), Vecsmall([4]), 0]], 0, [0, 1], 2, 36, 1]
 
         sage: lfun_eta_quotient([2, 1, 4], [5, -2, -2])

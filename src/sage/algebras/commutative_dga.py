@@ -968,12 +968,12 @@ class GCAlgebra(UniqueRepresentation, QuotientRing_nc):
                     # The entries of degrees are not iterables, so
                     # treat as singly-graded.
                     pass
-                if multigrade:
-                    if sorted(map(sum, degrees)) != list(map(sum, degrees)):
-                        raise ValueError("the generators should be ordered in increased total degree")
-                else:
-                    if sorted(degrees) != list(degrees):
-                        raise ValueError("the generators should be ordered in increasing degree")
+                #if multigrade:
+                    #if sorted(map(sum, degrees)) != list(map(sum, degrees)):
+                        #raise ValueError("the generators should be ordered in increased total degree")
+                #else:
+                    #if sorted(degrees) != list(degrees):
+                        #raise ValueError("the generators should be ordered in increasing degree")
             degrees = tuple(degrees)
         if not R or not I:
             if n > 1:

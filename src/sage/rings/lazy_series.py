@@ -217,7 +217,6 @@ from sage.arith.power import generic_power
 from sage.arith.functions import lcm
 from sage.arith.misc import divisors, moebius
 from sage.combinat.partition import Partition, Partitions
-from sage.misc.misc_c import prod
 from sage.misc.derivative import derivative_parse
 from sage.rings.infinity import infinity
 from sage.rings.integer_ring import ZZ
@@ -3899,7 +3898,7 @@ class LazyPowerSeries(LazyCauchyProductSeries):
 
     def _im_gens_(self, codomain, im_gens, base_map=None):
         """
-        Returns the image of ``self`` under the map that sends the
+        Return the image of ``self`` under the map that sends the
         generators of the parent of ``self`` to the elements of the
         tuple ``im_gens``.
 

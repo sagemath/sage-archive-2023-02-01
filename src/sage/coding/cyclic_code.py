@@ -334,7 +334,7 @@ class CyclicCode(AbstractLinearCode):
             ...
             ValueError: The code is not cyclic.
 
-        If the `primitive_root` does not lie in an extension of `field`,
+        If the ``primitive_root`̀  does not lie in an extension of ``field``,
         or is not a primitive `n`-th root of unity, then
         an exception is raised::
 

@@ -2,7 +2,12 @@
 Recursive Directory Contents
 """
 # ****************************************************************************
-#       Copyright (C) 2014 Volker Braun <vbraun.name@gmail.com>
+#       Copyright (C) 2014      Volker Braun <vbraun.name@gmail.com>
+#                     2014      R. Andrew Ohana
+#                     2015-2018 Jeroen Demeyer
+#                     2017      Erik M. Bray
+#                     2021      Tobias Diez
+#                     2020-2022 Matthias Koeppe
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by

@@ -2,7 +2,10 @@
 Clean the Install Dir
 """
 #*****************************************************************************
-#       Copyright (C) 2014 Volker Braun <vbraun.name@gmail.com>
+#       Copyright (C) 2014      Volker Braun <vbraun.name@gmail.com>
+#                     2015      Jeroen Demeyer
+#                     2017      Erik M. Bray
+#                     2020-2022 Matthias Koeppe
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by

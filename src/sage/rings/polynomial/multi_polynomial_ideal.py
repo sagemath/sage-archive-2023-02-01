@@ -2833,15 +2833,13 @@ class MPolynomialIdeal_singular_repr(
                 return denom.parent().zero()
             t = denom.parent().gen()
             s = denom.valuation(t - 1)
-            second_hilbert = hilbert_poincare.numerator()
+            numerator = hilbert_poincare.numerator()
             # we assume the denominator of the Hilbert series is of
-            # the form (1-t)^s, scale if needed
-            if denom[0] == -1:
-                second_hilbert = -second_hilbert
-            denom = (s - 1).factorial()
+            # the form (1 - t)^s, need to scale numerator by denom[0]
+            scalar = ~denom[0] / (s - 1).factorial()
             st = s - 1 + t
-            out = sum(c / denom * prod(st - n - nu for nu in range(s - 1))
-                      for n, c in enumerate(second_hilbert))
+            out = scalar * sum(c * prod(st - n - nu for nu in range(s - 1))
+                               for n, c in enumerate(numerator))
             return t.parent().zero() + out
         if algorithm == 'singular':
             from sage.libs.singular.function_factory import ff

@@ -69,13 +69,14 @@ cdef class GabowEdgeConnectivity:
         sage: GabowEdgeConnectivity(D, use_rec = True).edge_connectivity()
         9
     
-    ::
+    Check that we get the same result when with and without the DFS-based
+    speed-up initialization proposed in [GKLP2021]_::
 
         sage: G = graphs.RandomBarabasiAlbert(100, 2)
         sage: D = DiGraph(G)
-        sage: GabowEdgeConnectivity(D).edge_connectivity()
-        2
         sage: GabowEdgeConnectivity(D, dfs_preprocessing=False).edge_connectivity()
+        2
+        sage: GabowEdgeConnectivity(D, dfs_preprocessing=True).edge_connectivity()
         2
         sage: GabowEdgeConnectivity(D, dfs_preprocessing=True, use_rec=True).edge_connectivity()
         2
@@ -203,11 +204,11 @@ cdef class GabowEdgeConnectivity:
 
         - ``G`` -- a :class:`~sage.graphs.digraph.DiGraph`
 
-        - ``dfs_preprocessing`` -- boolean (default: ``True``); indicates whether to
-          use the DFS-based speed-up initialization proposed in [GKLP2021]_
+        - ``dfs_preprocessing`` -- boolean (default: ``True``); whether to use
+          the DFS-based speed-up initialization proposed in [GKLP2021]_
 
-        - ``use_rec`` -- boolean (default: ``False``); indicates whether to use
-          a recursive or non-recursive DFS for ``dfs_preprocessing``. The
+        - ``use_rec`` -- boolean (default: ``False``); whether to use a
+          recursive or non-recursive DFS for ``dfs_preprocessing``. The
           recursive DFS tends to be faster than the non-recursive version on
           complete digraphs and slower on other graphs. This parameter is
           ignored when ``dfs_preprocessing`` is ``False``.

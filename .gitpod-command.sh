@@ -5,7 +5,7 @@ set -e
 
 # Activate conda environment
 conda config --append envs_dirs $(pwd)
-conda activate $(pwd)/venv || exit 1
+conda activate $(pwd)/venv
 
 # RestructuredText extension recommends python extension, although we have already installed it
 ## So disable the recommendation dialog
@@ -15,7 +15,7 @@ echo "{\"restructuredtext.pythonRecommendation.disabled\": true}" > /workspace/.
 ## In order to push to trac, generate a new key with `ssh-keygen -f tempkey` and save the private key to gitpod `gp env PRIVATE_SSH_KEY="$(<tempkey)"` (or by following https://www.gitpod.io/docs/environment-variables#using-the-account-settings)
 ## then follow https://doc.sagemath.org/html/en/developer/trac.html#linking-your-public-key-to-your-trac-account to register the public key with trac.
 ## Afterwards, create a new gitpod workspace.
-git remote remove trac 2> /dev/null # might still exists from a previous run/prebuild
+git remote remove trac 2> /dev/null || true # might still exists from a previous run/prebuild
 if [[ -n "${PRIVATE_SSH_KEY}" ]]; then
   # Setup ssh key for authentication with trac
   mkdir -p ~/.ssh

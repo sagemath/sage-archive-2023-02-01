@@ -16,9 +16,9 @@ tasks:
       && pip install --no-build-isolation -v -v -e ./pkgs/sage-conf ./pkgs/sage-setup
       && pip install --no-build-isolation -v -v -e ./src
     # Activate conda environment, set up Trac remote
+    # RestructuredText extension recommends python extension, although we have already installed it
+    # So disable the recommendation dialog
     command: >-
-      # RestructuredText extension recommends python extension, although we have already installed it
-      ## So disable the recommendation dialog
       echo "{\"restructuredtext.pythonRecommendation.disabled\": true}" > /workspace/.vscode-remote/data/Machine/settings.json
       && conda config --append envs_dirs $(pwd)
       && conda activate $(pwd)/venv

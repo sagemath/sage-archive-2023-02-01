@@ -194,7 +194,7 @@ def cython_namespace_package_support():
     import Cython.Build.Cythonize
     import Cython.Utils
     orig_is_package_dir = Cython.Utils.is_package_dir
-    Cython.Utils.is_package_dir = Cython.Build.Cythonize.is_package_dir = Cython.Build.Dependencies.is_package_dir = is_package_or_sage_namespace_package_dir
+    Cython.Utils.is_package_dir = Cython.Build.Cythonize.is_package_dir = Cython.Build.Dependencies.is_package_dir = Cython.Utils.cached_function(is_package_or_sage_namespace_package_dir)
     try:
         yield
     finally:

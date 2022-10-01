@@ -5,8 +5,24 @@ image:
 # Start up tasks. https://www.gitpod.io/docs/config-start-tasks/
 tasks:
   - name: Setup
-    init: ./.gitpod-init.sh
-    command: ./.gitpod-command.sh
+    # Create conda environment, then configure and build sage
+    init: >-
+      ./bootstrap-conda
+      && mamba env create --file src/environment-dev.yml --prefix venv
+      && conda config --append envs_dirs $(pwd)
+      && conda activate $(pwd)/venv
+      && ./bootstrap
+      && ./configure --enable-build-as-root --with-python=$CONDA_PREFIX/bin/python --prefix=$CONDA_PREFIX
+      && pip install --no-build-isolation -v -v -e ./pkgs/sage-conf ./pkgs/sage-setup
+      && pip install --no-build-isolation -v -v -e ./src
+    # Activate conda environment, set up Trac remote
+    command: >-
+      # RestructuredText extension recommends python extension, although we have already installed it
+      ## So disable the recommendation dialog
+      echo "{\"restructuredtext.pythonRecommendation.disabled\": true}" > /workspace/.vscode-remote/data/Machine/settings.json
+      && conda config --append envs_dirs $(pwd)
+      && conda activate $(pwd)/venv
+      && ./.gitpod-setup-trac-remote.sh
     env:
       SAGE_NUM_THREADS: 8
 

@@ -189,11 +189,11 @@ cdef class GabowEdgeConnectivity:
 
     cdef int num_start_f_trees  # number of f-trees at the beginning of an iteration
     cdef int num_joins  # number of joined vertices from dfs
-    cdef bint* T  # whether the an edge is in the proven k-intersection
+    cdef bint* T  # whether an edge is in the proven k-intersection
     cdef bint* visited  # for method find_dfs_tree
-    cdef bint dfs_preprocessing  # whether or not we should use DFS-based fast initialization
     cdef int * incident_edge_index  # used for DFS initialization
-    cdef bint use_rec  # variable to remove, used for development
+    cdef bint dfs_preprocessing  # whether to use DFS-based fast initialization
+    cdef bint use_rec  # whether to use the recursive DFS initialization
 
     def __init__(self, G, dfs_preprocessing=True, use_rec=False):
         r"""
@@ -202,11 +202,15 @@ cdef class GabowEdgeConnectivity:
         INPUT:
 
         - ``G`` -- a :class:`~sage.graphs.digraph.DiGraph`
+
         - ``dfs_preprocessing`` -- boolean (default: ``True``); indicates whether to
-          use the DFS-based "Fast initialization" provided in [GKLP2021]_
-        - ``use_rec`` -- boolean (default: ``False``); indicates whether to use a 
-          recursive or non-recursive DFS for ``dfs_preprocessing``. The recursive DFS
-          tends to be faster than the non-recursive version on complete digraphs
+          use the DFS-based speed-up initialization proposed in [GKLP2021]_
+
+        - ``use_rec`` -- boolean (default: ``False``); indicates whether to use
+          a recursive or non-recursive DFS for ``dfs_preprocessing``. The
+          recursive DFS tends to be faster than the non-recursive version on
+          complete digraphs and slower on other graphs. This parameter is
+          ignored when ``dfs_preprocessing`` is ``False``.
 
         EXAMPLES::
 
@@ -240,9 +244,11 @@ cdef class GabowEdgeConnectivity:
         self.m = G.size()
         self.mem = MemoryAllocator()
         
-        # Build compact graph data structure with out and in adjacencies
+        # Build compact graph data structure with out and in adjacencies.
+        # Loops are removed from the graph.
         self.build_graph_data_structure()
         # From now on, vertices are numbered in [0..n-1] and edges in [0..m-1]
+        # where m is the number of edges after the removal of the loops
 
         # Set upper bound on the edge connectivity
         cdef int i, d
@@ -408,7 +414,7 @@ cdef class GabowEdgeConnectivity:
         cdef int z
 
         self.num_start_f_trees = self.n - self.num_joins
-        # There are fewer than n f-trees. We prepare to join them.  If there's
+        # There are fewer than n f-trees. We prepare to join them. If there's
         # only one f-tree, we just save the edges and advance to the next
         # iteration
         if self.dfs_preprocessing and self.num_start_f_trees < self.n - 1:
@@ -489,17 +495,23 @@ cdef class GabowEdgeConnectivity:
         r"""
         Find a DFS spanning forest of `G \backslash T`.
 
+        This is the DFS-based speed-up initialization proposed in [GKLP2021]_.
+
         EXAMPLES::
 
             sage: from sage.graphs.edge_connectivity import GabowEdgeConnectivity
             sage: D = digraphs.Complete(5)
-            sage: GabowEdgeConnectivity(D).edge_connectivity()
+            sage: GabowEdgeConnectivity(D, dfs_preprocessing=True).edge_connectivity()
+            4
+            sage: GabowEdgeConnectivity(D, dfs_preprocessing=False).edge_connectivity()
             4
         """
         # Mark all vertices as unvisited
+        cdef int i
         for i in range(self.n):
             self.visited[i] = False
 
+        cdef int r
         for r in range(self.n):
             if not self.visited[r]:
                 # Make this vertex the root of the following dfs tree
@@ -517,6 +529,9 @@ cdef class GabowEdgeConnectivity:
     cdef void find_dfs_tree(self, int r):
         r"""
         Find more vertices of the f-tree rooted at `r`.
+
+        This is part of the DFS-based speed-up initialization proposed in
+        [GKLP2021]_.
 
         EXAMPLES::
 
@@ -562,6 +577,9 @@ cdef class GabowEdgeConnectivity:
         r"""
         Find more vertices of the f-tree rooted at `r`.
 
+        This is part of the DFS-based speed-up initialization proposed in
+        [GKLP2021]_.
+
         EXAMPLES::
 
             sage: from sage.graphs.edge_connectivity import GabowEdgeConnectivity
@@ -573,6 +591,7 @@ cdef class GabowEdgeConnectivity:
         self.visited[u] = True
 
         # Visit outgoing arcs of current vertex
+        cdef int e_id, v
         for e_id in self.my_g_reversed[u]:
             v = self.my_to[e_id]
             # Ensure a vertex is not visited, is not a proven k-intersection edge

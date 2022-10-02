@@ -365,7 +365,7 @@ Here's an example.
 
 - Still, it seems reasonable that the command might start with ``pl``.
 
-- Then one can type ``pl`` in an input cell, and then press the tab key
+- Then one can type ``pl`` in an input cell, and then press the :kdb:`Tab` key
   to see all the commands that start with the letters ``pl``.
 
 Try tabbing after the ``pl`` in the following cell to see all the
@@ -379,7 +379,7 @@ commands that start with the letters ``pl``.  You should see that
     sage: pl
 
 To pick one, just click on it; to stop viewing them, press the
-Escape/esc key.
+:kbd:`Escape` key.
 
 You can also use this to see what you can do to an expression or
 mathematical object.
@@ -399,7 +399,7 @@ defined.
 
     sage: f(x)=x^2
 
-Now put your cursor after the period and press your tab key.
+Now put your cursor after the period and press your :kbd:`Tab` key.
 
 .. skip
 
@@ -407,7 +407,7 @@ Now put your cursor after the period and press your tab key.
 
     sage: f.
 
-Again, Escape should remove the list.
+Again, :kbd:`Escape` should remove the list.
 
 One of the things in that list above was ``integrate``.  Let's try it.
 
@@ -437,7 +437,7 @@ that can illustrate how to use the function.
 - Press tab  *or*  evaluate to see the documentation.
 
 To see how this help works, move your cursor after the question mark
-below and press tab.
+below and press :kbd:`Tab`.
 
 .. skip
 
@@ -450,7 +450,7 @@ not just ``f.integrate()``.  (After all, the latter could be ambiguous
 if several variables had already been defined).
 
 To stop viewing the documentation after pressing tab, you can press the
-Escape key, just like with the completion of options.
+:kbd:`Escape` key, just like with the completion of options.
 
 If you would like the documentation to be visible longer\-term, you can
 *evaluate* a command with the question mark (like below) to access the

@@ -484,7 +484,7 @@ class GraphGenerators():
 
     A list of all graphs and graph structures (other than isomorphism class
     representatives) in this database is available via tab completion. Type
-    "graphs." and then hit the tab key to see which graphs are available.
+    "graphs." and then hit the :kbd:`Tab` key to see which graphs are available.
 
     The docstrings include educational information about each named
     graph with the hopes that this class can be used as a reference.

@@ -229,9 +229,9 @@ Can I do X in Sage?
 """""""""""""""""""
 
 You are encouraged to use Sage's tab autocompletion. Just type a few
-characters, hit the tab key, and see if the command you want appears
+characters, hit the :kbd:`Tab` key, and see if the command you want appears
 in the list of tab autocompletion. If you have a command called
-``mycmd``, then type ``mycmd.`` and hit the tab key to get a list of
+``mycmd``, then type ``mycmd.`` and hit the :kbd:`Tab` key to get a list of
 functionalities that are supported by that command. To read the
 documentation of ``mycmd``, type ``mycmd?`` and press the enter key to
 read the documentation for that command. Similarly, type ``mycmd??``

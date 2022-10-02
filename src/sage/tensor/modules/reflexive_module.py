@@ -1,5 +1,5 @@
 r"""
-Base class for reflexive modules
+Base classes for reflexive modules
 """
 
 from sage.misc.abstract_method import abstract_method
@@ -9,6 +9,51 @@ from sage.structure.parent import Parent
 class ReflexiveModule_abstract(Parent):
     r"""
     Abstract base class for reflexive modules.
+
+    An `R`-module `M` is *reflexive* if the natural map from `M` to its double
+    dual `M^{**}` is an isomorphism.
+
+    In the category of `R`-modules, the dual module `M^*` is
+    the `R`-module of linear functionals $\phi:\ M \longrightarrow R$.
+    However, we do not make the assumption that the dual module
+    (obtained by :meth:`dual`) is in the category :class:`Homsets`.
+
+    We identify the double dual `M^{**}` with `M`.
+
+    Tensor products of reflexive modules are reflexive. We identify all
+    tensor products of `k` copies of `M` and `l` copies of `M^*` and
+    denote it by `T^{(k,l)}(M)`. The :meth:`tensor_type` of such a tensor
+    product is the pair `(k, l)`, and `M` is called its :meth:`base_module`.
+
+    There are three abstract subclasses:
+
+    - :class:`ReflexiveModule_base` is the base class for implementations
+      of base modules `M`.
+
+    - :class:`ReflexiveModule_dual` is the base class for implementations
+      of duals `M^*`.
+
+    - :class:`ReflexiveModule_tensor` is the base class for implementations
+      of tensor modules `T^{(k,l)}(M)`.
+
+    TESTS::
+
+        sage: from sage.tensor.modules.reflexive_module import (
+        ....:     ReflexiveModule_abstract, ReflexiveModule_base,
+        ....:     ReflexiveModule_dual, ReflexiveModule_tensor)
+        sage: M = FiniteRankFreeModule(ZZ, 3)
+        sage: isinstance(M, ReflexiveModule_abstract)
+        True
+        sage: isinstance(M, ReflexiveModule_base)
+        True
+        sage: isinstance(M.dual(), ReflexiveModule_abstract)
+        True
+        sage: isinstance(M.dual(), ReflexiveModule_dual)
+        True
+        sage: isinstance(M.tensor_module(1, 1), ReflexiveModule_abstract)
+        True
+        sage: isinstance(M.tensor_module(1, 1), ReflexiveModule_tensor)
+        True
     """
 
     @abstract_method(optional=True)
@@ -33,11 +78,33 @@ class ReflexiveModule_abstract(Parent):
     def base_module(self):
         r"""
         Return the module on which ``self`` is constructed.
+
+        EXAMPLES::
+
+            sage: M = FiniteRankFreeModule(ZZ, 3)
+            sage: M.base_module() is M
+            True
+            sage: M.dual().base_module() is M
+            True
+            sage: M.tensor_module(1, 2).base_module() is M
+            True
         """
 
     def dual(self):
         r"""
         Return the dual module.
+
+        EXAMPLES::
+
+            sage: M = FiniteRankFreeModule(ZZ, 3)
+            sage: M.dual()
+            Dual of the Rank-3 free module over the Integer Ring
+            sage: M.dual().dual()
+            Rank-3 free module over the Integer Ring
+            sage: M.tensor_module(1, 2)
+            Free module of type-(1,2) tensors on the Rank-3 free module over the Integer Ring
+            sage: M.tensor_module(1, 2).dual()
+            Free module of type-(2,1) tensors on the Rank-3 free module over the Integer Ring
         """
         k, l = self.tensor_type()
         return self.base_module().tensor_module(l, k)
@@ -168,6 +235,16 @@ class ReflexiveModule_abstract(Parent):
 
 
 class ReflexiveModule_base(ReflexiveModule_abstract):
+    r"""
+    Abstract base class for reflexive modules that are base modules.
+
+    TESTS::
+
+        sage: from sage.tensor.modules.reflexive_module import ReflexiveModule_base
+        sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+        sage: isinstance(M, ReflexiveModule_base)
+        True
+    """
 
     def base_module(self):
         r"""
@@ -206,6 +283,12 @@ class ReflexiveModule_base(ReflexiveModule_abstract):
     def dual(self):
         r"""
         Return the dual module.
+
+        EXAMPLES::
+
+            sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+            sage: M.dual()
+            Dual of the Rank-3 free module M over the Integer Ring
         """
         return self.tensor_module(0, 1)
 
@@ -213,10 +296,26 @@ class ReflexiveModule_base(ReflexiveModule_abstract):
     def tensor_module(self, k, l, **kwds):
         r"""
         Return the module of all tensors of type `(k, l)` defined on ``self``.
+
+        EXAMPLES::
+
+            sage: M = FiniteRankFreeModule(ZZ, 3)
+            sage: M.tensor_module(1, 2)
+            Free module of type-(1,2) tensors on the Rank-3 free module over the Integer Ring
         """
 
 
 class ReflexiveModule_dual(ReflexiveModule_abstract):
+    r"""
+    Abstract base class for reflexive modules that are the duals of base modules.
+
+    TESTS::
+
+        sage: from sage.tensor.modules.reflexive_module import ReflexiveModule_dual
+        sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+        sage: isinstance(M.dual(), ReflexiveModule_dual)
+        True
+    """
 
     def tensor_type(self):
         r"""
@@ -227,7 +326,6 @@ class ReflexiveModule_dual(ReflexiveModule_abstract):
             sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
             sage: M.dual().tensor_type()
             (0, 1)
-
         """
         return (0, 1)
 
@@ -245,10 +343,21 @@ class ReflexiveModule_dual(ReflexiveModule_abstract):
             sage: A.construction() is None
             True
         """
+        # Until https://trac.sagemath.org/ticket/34605 is done
         return None
 
 
 class ReflexiveModule_tensor(ReflexiveModule_abstract):
+    r"""
+    Abstract base class for reflexive modules that are tensor products of base modules.
+
+    TESTS::
+
+        sage: from sage.tensor.modules.reflexive_module import ReflexiveModule_tensor
+        sage: M = FiniteRankFreeModule(ZZ, 3, name='M')
+        sage: isinstance(M.tensor_module(1, 1), ReflexiveModule_tensor)
+        True
+    """
 
     def tensor_factors(self):
         r"""

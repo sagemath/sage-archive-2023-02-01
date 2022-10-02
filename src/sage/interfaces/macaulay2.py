@@ -216,14 +216,14 @@ class Macaulay2(ExtraTabCompletion, Expect):
             )
         command = "%s --no-debug --no-readline --silent -e '%s'" % (command, init_str)
         Expect.__init__(self,
-                        name = 'macaulay2',
-                        prompt = PROMPT,
-                        command = command,
-                        server = server,
-                        server_tmpdir = server_tmpdir,
-                        script_subdirectory = script_subdirectory,
-                        verbose_start = False,
-                        logfile = logfile,
+                        name='macaulay2',
+                        prompt=PROMPT,
+                        command=command,
+                        server=server,
+                        server_tmpdir=server_tmpdir,
+                        script_subdirectory=script_subdirectory,
+                        verbose_start=False,
+                        logfile=logfile,
                         eval_using_file_cutoff=500)
 
     # Macaulay2 provides no "clear" function. However, Macaulay2 does provide
@@ -1866,7 +1866,6 @@ def macaulay2_console():
     os.system('M2')
 
 
-
 def reduce_load_macaulay2():
     """
     Used for reconstructing a copy of the Macaulay2 interpreter from a pickle.
@@ -1878,4 +1877,3 @@ def reduce_load_macaulay2():
         Macaulay2
     """
     return macaulay2
-

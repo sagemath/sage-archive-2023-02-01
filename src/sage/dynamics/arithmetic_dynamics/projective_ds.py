@@ -1103,6 +1103,303 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             raise TypeError("must be a forward orbit")
         return self.orbit(P, [n,n+1], **kwds)[0]
 
+    def arakelov_zhang_pairing(self, g, **kwds):
+        r"""
+        Return an estimate of the Arakelov-Zhang pairing of the rational
+        maps ``self`` and ``g`` on `\mathbb{P}^1` over a number field.
+
+        The Arakelov-Zhang pairing was introduced by Petsche, Szpiro, and
+        Tucker in 2012, which measures the dynamical closeness of two rational
+        maps. They prove inter alia that if one takes a sequence of small points
+        for one map (for example, preperiodic points for ``self``) and measure
+        their dynamical height with respect to the other map (say, ``g``), then
+        the values of the height will tend to the value of the Arakelov-Zhang pairing.
+
+        The Arakelov-Zhang pairing involves mutual energy integrals between dynamical
+        measures, which are in the case of polynomials, the equilibrium measures
+        of the associated Julia sets at each place. As a result, these pairings
+        are very difficult to compute exactly via analytic methods. We use a
+        discrete approximation to these energy integrals.
+
+        ALGORITHM:
+
+        We select periodic points of order `n`, or ``n``-th preimages of a
+        specified starting value given by ``f_starting_point`` and ``g_starting_point``.
+        At the archimedean places and the places of bad reduction of the two maps,
+        we compute the discrete approximations to the energy integrals involved
+        using these points.
+
+        INPUT:
+
+        - ``g`` - a rational map of `\mathbb{P}^1` given as a projective morphism.
+          ``g`` and ``self`` should have the same field of definition.
+
+        kwds:
+
+        - ``n`` - (default: 5) a positive integer
+          Order of periodic points to use or preimages to take if starting points are specified.
+
+        - ``f_starting_point`` - (optional, default: ``None``) value in the base number field or None.
+          If ``f_starting_point`` is None, we solve for points of period ``n`` for ``self``.
+          Otherwise, we take ``n``-th preimages of the point given by ``f_starting_point``
+          under ``f`` on the affine line.
+
+        - ``g_starting_point`` - (optional, default: ``None``) value in the base number field or None.
+          If ``g_starting_point`` is None, we solve for points of period ``n`` for ``g``.
+          Otherwise, we take ``n``-th preimages of the point given by ``g_starting_point``
+          under ``g`` on the affine line.
+
+        - ``check_primes_of_bad_reduction`` - (optional, default: ``False``) boolean.
+          Passed to the ``primes_of_bad_reduction`` function for ``self`` and ``g``.
+
+        - ``prec`` - (optional, default: ``RealField`` default)
+          default precision for RealField values which are returned.
+
+        - ``noise_multiplier`` - (default: 2) a real number.
+          Discriminant terms involved in the computation at the archimedean places
+          are often not needed, particularly if the capacity of the Julia sets is 1,
+          and introduce a lot of error. By a well-known result of Mahler (see
+          also M. Baker, ""A lower bound for averages of dynamical Green's
+          functions") such error (for a set of `N` points) is on the order of
+          `\log(N)/N` after our normalization. We check if the value of the
+          archimedean discriminant terms is within ``2*noise_multiplier`` of
+          `\log(N)/N`. If so, we discard it. In practice this greatly improves
+          the accuracy of the estimate of the pairing. If desired,
+          ``noise_multiplier`` can be set to 0, and no terms will be ignored.
+
+        OUTPUT:
+
+        - a real number estimating the Arakelov-Zhang pairing of the two rational maps.
+
+        EXAMPLES::
+
+            sage: K.<k> = CyclotomicField(3)
+            sage: P.<x,y> = ProjectiveSpace(K, 1)
+            sage: f = DynamicalSystem_projective([x^2 + (2*k + 2)*y^2, y^2])
+            sage: g = DynamicalSystem_projective([x^2, y^2])
+            sage: pairingval = f.arakelov_zhang_pairing(g, n=5); pairingval
+            0.409598197761958
+
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: f = DynamicalSystem_projective([x^2 + 4*y^2, y^2])
+            sage: g = DynamicalSystem_projective([x^2, y^2])
+            sage: pairingval = f.arakelov_zhang_pairing(g, n=6); pairingval
+            0.750178391443644
+            sage: # Compare to the exact value:
+            sage: dynheight = f.canonical_height(P(0, 1)); dynheight
+            0.75017839144364417318023000563
+            sage: dynheight - pairingval
+            0.000000000000000
+
+        Notice that if we set the noise_multiplier to 0, the accuracy is diminished::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: f = DynamicalSystem_projective([x^2 + 4*y^2, y^2])
+            sage: g = DynamicalSystem_projective([x^2, y^2])
+            sage: pairingval = f.arakelov_zhang_pairing(g, n=6, noise_multiplier=0)
+            sage: pairingval
+            0.650660018921632
+            sage: dynheight = f.canonical_height(P(0, 1)); dynheight
+            0.75017839144364417318023000563
+            sage: pairingval - dynheight
+            -0.0995183725220122
+
+        We compute the example of Prop. 18(d) from Petsche, Szpiro and Tucker::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: f = DynamicalSystem_projective([y^2 - (y - x)^2, y^2])
+            sage: g = DynamicalSystem_projective([x^2, y^2])
+            sage: f.arakelov_zhang_pairing(g)
+            0.326954667248466
+            sage: # Correct value should be = 0.323067...
+            sage: f.arakelov_zhang_pairing(g, n=9)
+            0.323091061918965
+            sage: _ - 0.323067
+            0.0000240619189654789
+
+        Also from Prop. 18 of Petsche, Szpiro and Tucker, includes places of bad reduction::
+
+            sage: R.<z> = PolynomialRing(ZZ)
+            sage: K.<b> = NumberField(z^3 - 11)
+            sage: P.<x,y> = ProjectiveSpace(K,1)
+            sage: a = 7/(b - 1)
+            sage: f = DynamicalSystem_projective([a*y^2 - (a*y - x)^2, y^2])
+            sage: g = DynamicalSystem_projective([x^2, y^2])
+            sage: # If all archimedean absolute values of a have modulus > 2,
+            sage: # then the pairing should be h(a).
+            sage: f.arakelov_zhang_pairing(g, n=6)
+            1.93846423207664
+            sage: _ - a.global_height()
+            -0.00744591697867292
+        """
+        n = kwds.pop('n', 5)
+        f_starting_point = kwds.pop('f_starting_point', None)
+        g_starting_point = kwds.pop('g_starting_point', None)
+        check_primes_of_bad_reduction = kwds.pop('check_primes_of_bad_reduction', False)
+        prec = kwds.pop('prec', None)
+        noise_multiplier = kwds.pop('noise_multiplier', 2)
+
+        f_domain = self.domain()
+        R = f_domain.base_ring()
+        g_domain = g.domain()
+
+        if f_domain != g_domain:
+            raise TypeError("Implemented only for rational maps of the same projective line.")
+
+        if n <= 0:
+            raise ValueError("Period must be a positive integer.")
+
+        if not (is_ProjectiveSpace(f_domain) and is_ProjectiveSpace(g_domain)):
+            raise NotImplementedError("Not implemented for subschemes.")
+
+        if f_domain.dimension_relative() > 1:
+            raise NotImplementedError("Only implemented for dimension 1.")
+
+        if not self.is_endomorphism():
+            raise TypeError("Self must be an endomorphism.")
+
+        if R not in NumberFields() and R is not QQbar:
+            raise NotImplementedError("Only implemented for number fields.")
+
+        f_iterate_map = self.nth_iterate_map(n)
+        f_iter_map_poly = f_iterate_map.defining_polynomials()
+        if f_starting_point is None:
+            f_poly_hom = f_iter_map_poly[0] * f_domain.gens()[1] - f_iter_map_poly[1] * f_domain.gens()[0]
+        else:
+            f_poly_hom = f_iter_map_poly[0] - f_starting_point * f_iter_map_poly[1]
+
+        g_iterate_map = g.nth_iterate_map(n)
+        g_iter_map_poly = g_iterate_map.defining_polynomials()
+        if g_starting_point is None:
+            g_poly_hom = g_iter_map_poly[0] * g_domain.gens()[1] - g_iter_map_poly[1] * g_domain.gens()[0]
+        else:
+            g_poly_hom = g_iter_map_poly[0] - g_starting_point * g_iter_map_poly[1]
+
+        f_poly = f_poly_hom([(f_domain.gens()[0]), 1]).univariate_polynomial().monic()
+        g_poly = g_poly_hom([(g_domain.gens()[0]), 1]).univariate_polynomial().monic()
+
+        # If f_poly and g_poly are not square-free, make them square-free.
+        if not f_poly.is_squarefree():
+            f_poly = f_poly.quo_rem(gcd(f_poly, f_poly.derivative()))[0]
+        if not g_poly.is_squarefree():
+            g_poly = g_poly.quo_rem(gcd(g_poly, g_poly.derivative()))[0]
+
+        if f_poly.degree() <= 2 or g_poly.degree() <= 2:
+            # f_point or g_point is exceptional
+            raise ValueError("One of the starting points is exceptional. \
+                              Please specify a non-exceptional initial point.")
+
+        if gcd(f_poly, g_poly).degree() > 0:
+            if f_poly.degree() > g_poly.degree():
+                f_poly = f_poly.quo_rem(gcd(f_poly, g_poly))[0]
+            else:
+                g_poly = g_poly.quo_rem(gcd(f_poly, g_poly))[0]
+
+            if f_poly.degree() <= 2 or g_poly.degree() <= 2:
+                raise ValueError("After removing common factors, the n-th \
+                                  iterates of 'self' and 'g' have too many \
+                                  roots in common. Try another 'n' or starting \
+                                  values.")
+
+        # We want higher precision here temporarily, since resultants are
+        # usually very large. This is not to say that the computation is
+        # very accurate, merely that we want to keep track of potentially
+        # very large height integers/rationals.
+        old_prec = prec
+        if prec is None:
+            Real = RealField(512)
+        elif prec < 512:
+            prec = 512
+            Real = RealField(prec)
+
+        bad_primes = list(set(self.primes_of_bad_reduction(check=check_primes_of_bad_reduction))
+                    .union(g.primes_of_bad_reduction(check=check_primes_of_bad_reduction)))
+
+        f_deg = f_poly.degree()
+        g_deg = g_poly.degree()
+
+        f_disc = f_poly.discriminant()
+        g_disc = g_poly.discriminant()
+
+        res = f_poly.resultant(g_poly)
+
+        # The code below actually computes -( mu_f - mu_g, mu_f - mu_g ),
+        # so flip the sign at the end.
+        AZ_pairing = Real(0)
+        if R is QQ:
+            for p in bad_primes:
+                temp = (ZZ(1)/2) * (-f_disc.ord(p)) * Real(p).log() / (f_deg**2)
+                if abs(temp) > noise_multiplier * Real(f_deg).log() / Real(f_deg):
+                    AZ_pairing += temp
+
+                temp = (ZZ(1)/2) * (-g_disc.ord(p)) * Real(p).log() / (g_deg**2)
+                if abs(temp) > noise_multiplier * Real(g_deg).log() / Real(g_deg):
+                    AZ_pairing += temp
+
+                AZ_pairing -= (-res.ord(p)) * Real(p).log() / (f_deg * g_deg)
+
+            temp = (ZZ(1)/2) * (Real(f_disc).abs().log()) / (f_deg**2)
+            if abs(temp) > noise_multiplier * Real(f_deg).log() / Real(f_deg):
+                AZ_pairing += temp
+
+            temp = (ZZ(1)/2) * (Real(g_disc).abs().log()) / (g_deg**2)
+            if abs(temp) > noise_multiplier * Real(g_deg).log() / Real(g_deg):
+                AZ_pairing += temp
+
+            AZ_pairing -= Real(res).abs().log() / (f_deg * g_deg)
+
+        # For number fields
+        else:
+            K = self.base_ring()
+            d = K.absolute_degree()
+
+            for v in bad_primes:
+                Nv = v.absolute_ramification_index() * v.residue_class_degree() / d
+
+                temp = Nv * ((ZZ(1)/2) * K(f_disc).abs_non_arch(v, prec=prec).log() / (f_deg**2))
+                if abs(temp) > noise_multiplier * Real(f_deg).log() / Real(f_deg):
+                    AZ_pairing += temp
+
+                temp = Nv * ((ZZ(1)/2) * K(g_disc).abs_non_arch(v, prec=prec).log() / (g_deg**2))
+                if abs(temp) > noise_multiplier * Real(g_deg).log() / Real(g_deg):
+                    AZ_pairing += temp
+
+                AZ_pairing -= Nv * (K(res).abs_non_arch(v, prec=prec).log() / (f_deg * g_deg))
+
+            if f_disc.is_rational():
+                f_disc = QQ(f_disc)
+                temp = (ZZ(1)/2) * (Real(f_disc).abs().log()) / (f_deg**2)
+                if abs(temp) > noise_multiplier * Real(f_deg).log() / Real(f_deg):
+                    AZ_pairing += temp
+            else:
+                temp = (ZZ(1)/d) * (ZZ(1)/2) * (Real(K(f_disc).norm()).abs().log()) / (f_deg**2)
+                if abs(temp) > noise_multiplier * Real(f_deg).log() / Real(f_deg):
+                    AZ_pairing += temp
+
+            if g_disc.is_rational():
+                g_disc = QQ(g_disc)
+                temp = (ZZ(1)/2) * (Real(g_disc).abs().log()) / (g_deg**2)
+                if abs(temp) > noise_multiplier * Real(g_deg).log() / Real(g_deg):
+                    AZ_pairing += temp
+            else:
+                temp = (ZZ(1)/d) * (ZZ(1)/2) * (Real(K(g_disc).norm()).abs().log()) / (g_deg**2)
+                if abs(temp) > noise_multiplier * Real(g_deg).log() / Real(g_deg):
+                    AZ_pairing += temp
+
+            if res.is_rational():
+                AZ_pairing -= (Real(res).abs().log()) / (f_deg * g_deg)
+            else:
+                AZ_pairing -= (ZZ(1)/d) * (Real(K(res).norm()).abs().log()) / (f_deg * g_deg)
+
+        if old_prec is None:
+            Real = RealField()
+        else:
+            Real = RealField(old_prec)
+
+        return Real(-AZ_pairing)
+
     def degree_sequence(self, iterates=2):
         r"""
         Return sequence of degrees of normalized iterates starting with
@@ -2104,36 +2401,31 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
         EXAMPLES::
 
-            sage: P.<x,y> = ProjectiveSpace(QQ,1)
-            sage: f = DynamicalSystem_projective([x^2+y^2, x*y])
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: f = DynamicalSystem_projective([x^2 + y^2, x*y])
             sage: f.height_difference_bound()
             1.38629436111989
 
-        This function does not automatically normalize. ::
-
-            sage: P.<x,y,z> = ProjectiveSpace(ZZ,2)
-            sage: f = DynamicalSystem_projective([4*x^2+100*y^2, 210*x*y, 10000*z^2])
+            sage: P.<x,y,z> = ProjectiveSpace(ZZ, 2)
+            sage: f = DynamicalSystem_projective([4*x^2 + 100*y^2, 210*x*y, 10000*z^2])
             sage: f.height_difference_bound()
-            12.1007121298723
-            sage: f.normalize_coordinates()
-            sage: f.height_difference_bound()
-            11.4075649493124
+            10.3089526606443
 
-       A number field example::
+        A number field example::
 
             sage: R.<x> = QQ[]
             sage: K.<c> = NumberField(x^3 - 2)
-            sage: P.<x,y,z> = ProjectiveSpace(K,2)
-            sage: f = DynamicalSystem_projective([1/(c+1)*x^2+c*y^2, 210*x*y, 10000*z^2])
+            sage: P.<x,y,z> = ProjectiveSpace(K, 2)
+            sage: f = DynamicalSystem_projective([1/(c+1)*x^2 + c*y^2, 210*x*y, 10000*z^2])
             sage: f.height_difference_bound()
-            12.1007121298723
+            11.3683039374269
 
         ::
 
-            sage: P.<x,y,z> = ProjectiveSpace(QQbar,2)
+            sage: P.<x,y,z> = ProjectiveSpace(QQbar, 2)
             sage: f = DynamicalSystem_projective([x^2, QQbar(sqrt(-1))*y^2, QQbar(sqrt(3))*z^2])
             sage: f.height_difference_bound()
-            3.43967790223022
+            2.89037175789616
 
         ::
 
@@ -2167,7 +2459,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         maxh = 0
         for k in range(N + 1):
             CoeffPolys = (CR.gen(k) ** D).lift(I)
-            h = max([c.global_height(prec) for g in CoeffPolys for c in (g).coefficients()])
+            h = max([g.global_height(prec) for g in CoeffPolys])
             maxh = max(maxh, h)
         L = R((N + 1) * binomial(N + D - d, D - d)).log() + maxh
         C = max(U, L) #height difference dh(P) - L <= h(f(P)) <= dh(P) +U
@@ -4847,7 +5139,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         Computes the values of the elementary symmetric polynomials evaluated
         on the ``n`` multiplier spectra of this dynamical system.
 
-        The sigma invariants are the symetric polynomials evaluated on the
+        The sigma invariants are the symmetric polynomials evaluated on the
         characteristic polynomial of the multipliers. See [Hutz2019]_ for
         the full definition. Spepcifically, this function returns either
         the following polynomial or its coefficients (with signs
@@ -5726,7 +6018,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                     pp_d = pts_poly.degree()
                     pts_poly_CF = pts_poly_CF.subs({pts_poly_CF.parent().gen(1):1}).univariate_polynomial()
                     max_mult = max([pp_d - pts_poly_CF.degree()] + [ex for p,ex in pts_poly_CF.roots()])
-            assert(n<=4), "n > 4, failed to find usable poly"
+            assert (n<=4), "n > 4, failed to find usable poly"
             G,m = pts_poly.reduced_form(prec=prec, emb=emb, smallest_coeffs=False)
             sm_f = self.conjugate(m)
 
@@ -5913,7 +6205,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         post_critical_list = []
         for point in critical_points:
             next_point = f(point)
-            while not(next_point in post_critical_list):
+            while next_point not in post_critical_list:
                 post_critical_list.append(next_point)
                 next_point = f(next_point)
         return post_critical_list

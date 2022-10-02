@@ -1,5 +1,13 @@
 r"""
-Counting Primes
+Counting primes
+
+EXAMPLES::
+
+    sage: z = sage.functions.prime_pi.PrimePi()
+    sage: loads(dumps(z))
+    prime_pi
+    sage: loads(dumps(z)) == z
+    True
 
 AUTHORS:
 
@@ -12,14 +20,6 @@ AUTHORS:
 - Dima Pasechnik (2021): removed buggy cython code, replaced it with
   calls to primecount/primecountpy spkg
 
-
-EXAMPLES::
-
-    sage: z = sage.functions.prime_pi.PrimePi()
-    sage: loads(dumps(z))
-    prime_pi
-    sage: loads(dumps(z)) == z
-    True
 """
 
 # ****************************************************************************
@@ -192,7 +192,7 @@ cdef class PrimePi(BuiltinFunction):
             return plot_step_function([(xmin,0),(xmax,0)], **kwds)
         y = self(xmin)
         v = [(xmin, y)]
-        from sage.rings.all import prime_range
+        from sage.rings.fast_arith import prime_range
         for p in prime_range(xmin+1, xmax+1, py_ints=True):
             y += 1
             v.append((p,y))

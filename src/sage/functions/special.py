@@ -1,20 +1,5 @@
 r"""
-Miscellaneous Special Functions
-
-AUTHORS:
-
-- David Joyner (2006-13-06): initial version
-
-- David Joyner (2006-30-10): bug fixes to pari wrappers of Bessel
-  functions, hypergeometric_U
-
-- William Stein (2008-02): Impose some sanity checks.
-
-- David Joyner (2008-04-23): addition of elliptic integrals
-
-- Eviatar Bach (2013): making elliptic integrals symbolic
-
-- Eric Gourgoulhon (2022): add Condon-Shortley phase to spherical harmonics
+Miscellaneous special functions
 
 This module provides easy access to many of Maxima and PARI's
 special functions.
@@ -104,6 +89,11 @@ implemented here.
 
   and the complete ones are obtained by taking `\phi =\pi/2`.
 
+.. WARNING::
+
+    SciPy's versions are poorly documented and seem less accurate than the
+    Maxima and PARI versions. Typically they are limited by hardware floats
+    precision.
 
 REFERENCES:
 
@@ -118,16 +108,20 @@ REFERENCES:
 
 AUTHORS:
 
-- David Joyner and William Stein
+- David Joyner (2006-13-06): initial version
 
-Added 16-02-2008 (wdj): optional calls to scipy and replace all
-'#random' by '...' (both at the request of William Stein)
+- David Joyner (2006-30-10): bug fixes to pari wrappers of Bessel
+  functions, hypergeometric_U
 
-.. warning::
+- William Stein (2008-02): Impose some sanity checks.
 
-    SciPy's versions are poorly documented and seem less
-    accurate than the Maxima and PARI versions; typically they are limited
-    by hardware floats precision.
+- David Joyner (2008-02-16): optional calls to scipy and replace all ``#random`` by ``...``
+
+- David Joyner (2008-04-23): addition of elliptic integrals
+
+- Eviatar Bach (2013): making elliptic integrals symbolic
+
+- Eric Gourgoulhon (2022): add Condon-Shortley phase to spherical harmonics
 """
 
 # ****************************************************************************
@@ -506,6 +500,21 @@ class EllipticE(BuiltinFunction):
             sage: fricas(elliptic_e(x, y)).D(x).sage()/elliptic_e(x, y).diff(x) # optional - fricas
             cos(x)/sqrt(-sin(x)^2 + 1)
 
+        Numerically::
+
+            sage: f = lambda x, y: elliptic_e(arcsin(x), y).subs(x=x, y=y)      # optional - fricas
+            sage: g = lambda x, y: fricas.ellipticE(x, y).sage()                # optional - fricas
+            sage: d = lambda x, y: f(x, y) - g(x, y)                            # optional - fricas
+            sage: [d(N(-pi/2+x), y) for x in range(1, 3) for y in range(-2,2)]  # optional - fricas tol 1e-8
+            [0.000000000000000,
+             0.000000000000000,
+             0.000000000000000,
+             0.000000000000000,
+             5.55111512312578e-17,
+             0.000000000000000,
+             0.000000000000000,
+             0.000000000000000]
+
         """
         BuiltinFunction.__init__(self, 'elliptic_e', nargs=2,
                                  # Maple conversion left out since it uses
@@ -834,18 +843,46 @@ class EllipticF(BuiltinFunction):
     - :wikipedia:`Elliptic_integral#Incomplete_elliptic_integral_of_the_first_kind`
     """
     def __init__(self):
-        """
+        r"""
         EXAMPLES::
 
             sage: loads(dumps(elliptic_f))
             elliptic_f
             sage: elliptic_f(x, 2)._sympy_()
             elliptic_f(x, 2)
+
+        Check that :trac:`34186` is fixed::
+
+            sage: _ = var("x y")
+            sage: fricas(elliptic_f(x, y))                                      # optional - fricas
+            ellipticF(sin(x),y)
+
+        However, the conversion is only correct in the interval
+        `[-\pi/2, \pi/2]`::
+
+            sage: fricas(elliptic_f(x, y)).D(x).sage()/elliptic_f(x, y).diff(x) # optional - fricas
+            cos(x)/sqrt(-sin(x)^2 + 1)
+
+        Numerically::
+
+            sage: f = lambda x, y: elliptic_f(arcsin(x), y).subs(x=x, y=y)      # optional - fricas
+            sage: g = lambda x, y: fricas.ellipticF(x, y).sage()                # optional - fricas
+            sage: d = lambda x, y: f(x, y) - g(x, y)                            # optional - fricas
+            sage: [d(N(-pi/2+x), y) for x in range(1, 3) for y in range(-2,2)]  # optional - fricas tol 1e-8
+            [0.000000000000000,
+             0.000000000000000,
+             0.000000000000000,
+             0.000000000000000,
+             5.55111512312578e-17,
+             0.000000000000000,
+             0.000000000000000,
+             0.000000000000000]
+
         """
         BuiltinFunction.__init__(self, 'elliptic_f', nargs=2,
                                  conversions=dict(mathematica='EllipticF',
                                                   maxima='elliptic_f',
-                                                  # fricas='ellipticF', buggy
+                                                  fricas='((x,y)+->ellipticF(sin(x), y))',
                                                   sympy='elliptic_f'))
 
     def _eval_(self, z, m):

@@ -130,7 +130,8 @@ class TensorFieldModule(UniqueRepresentation, Parent):
 
     `T^{(2,0)}(M)` is not a free module::
 
-        sage: isinstance(T20, FiniteRankFreeModule)
+        sage: from sage.tensor.modules.finite_rank_free_module import FiniteRankFreeModule_abstract
+        sage: isinstance(T20, FiniteRankFreeModule_abstract)
         False
 
     because `M = S^2` is not parallelizable::
@@ -142,7 +143,7 @@ class TensorFieldModule(UniqueRepresentation, Parent):
     free module, since `U` is parallelizable (being a coordinate domain)::
 
         sage: T20U = U.tensor_field_module((2,0))
-        sage: isinstance(T20U, FiniteRankFreeModule)
+        sage: isinstance(T20U, FiniteRankFreeModule_abstract)
         True
         sage: U.is_manifestly_parallelizable()
         True
@@ -651,14 +652,15 @@ class TensorFieldFreeModule(TensorFreeModule):
     `T^{(2,0)}(\RR^3)` is a module over the algebra `C^k(\RR^3)`::
 
         sage: T20.category()
-        Category of finite dimensional modules over Algebra of differentiable
-         scalar fields on the 3-dimensional differentiable manifold R^3
+        Category of tensor products of finite dimensional modules over
+         Algebra of differentiable scalar fields on the 3-dimensional differentiable manifold R^3
         sage: T20.base_ring() is M.scalar_field_algebra()
         True
 
     `T^{(2,0)}(\RR^3)` is a free module::
 
-        sage: isinstance(T20, FiniteRankFreeModule)
+        sage: from sage.tensor.modules.finite_rank_free_module import FiniteRankFreeModule_abstract
+        sage: isinstance(T20, FiniteRankFreeModule_abstract)
         True
 
     because `M = \RR^3` is parallelizable::

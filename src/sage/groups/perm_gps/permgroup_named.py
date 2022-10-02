@@ -272,8 +272,8 @@ class SymmetricGroup(PermutationGroup_symalt):
         gens = [tuple(self._domain)]
         if len(self._domain) > 2:
             gens.append(tuple(self._domain[:2]))
-        self._gens = [self.element_class(g, self, check=False)
-                      for g in gens]
+        self._gens = tuple([self.element_class(g, self, check=False)
+                            for g in gens])
 
     def _gap_init_(self, gap=None):
         """
@@ -1745,7 +1745,7 @@ class MathieuGroup(PermutationGroup_unique):
         """
         n = Integer(n)
         self._n = n
-        if not(n in [9, 10, 11, 12, 21, 22, 23, 24]):
+        if n not in [9, 10, 11, 12, 21, 22, 23, 24]:
             raise ValueError("argument must belong to {9, 10, 11, 12, 21, 22, 23, 24}")
         id = 'MathieuGroup(%s)' % n
         PermutationGroup_generic.__init__(self, gap_group=id)
@@ -2702,7 +2702,7 @@ class PSL(PermutationGroup_plg):
         if q in FiniteFields():
             name = q.gen()
             q = q.cardinality()
-        if not(q in NonNegativeIntegers()):
+        if q not in NonNegativeIntegers():
             raise ValueError('q must be a prime power or a finite field')
         if n == 1:
             id = 'Group([()])'

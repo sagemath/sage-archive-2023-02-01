@@ -30,6 +30,7 @@ AUTHORS:
 
 from sage.combinat.integer_lists import IntegerListsLex
 from itertools import product
+from collections.abc import Sequence
 import numbers
 
 from sage.structure.parent import Parent
@@ -453,10 +454,60 @@ class IntegerVector(ClonableArray):
             sage: IV = IntegerVectors()
             sage: elt = IV([1,2,1])
             sage: elt.check()
+
+        Check :trac:`34510`::
+
+            sage: IV3 = IntegerVectors(n=3)
+            sage: IV3([2,2])
+            Traceback (most recent call last):
+            ...
+            ValueError: [2, 2] doesn't satisfy correct constraints
+            sage: IVk3 = IntegerVectors(k=3)
+            sage: IVk3([2,2])
+            Traceback (most recent call last):
+            ...
+            ValueError: [2, 2] doesn't satisfy correct constraints
+            sage: IV33 = IntegerVectors(n=3, k=3)
+            sage: IV33([2,2])
+            Traceback (most recent call last):
+            ...
+            ValueError: [2, 2] doesn't satisfy correct constraints
         """
         if any(x < 0 for x in self):
             raise ValueError("all entries must be non-negative")
+        if self not in self.parent():
+            raise ValueError(f"{self} doesn't satisfy correct constraints")
 
+
+    def trim(self):
+        """
+        Remove trailing zeros from the integer vector.
+
+        EXAMPLES::
+
+            sage: IV = IntegerVectors()
+            sage: IV([5,3,5,1,0,0]).trim()
+            [5, 3, 5, 1]
+            sage: IV([5,0,5,1,0]).trim()
+            [5, 0, 5, 1]
+            sage: IV([4,3,3]).trim()
+            [4, 3, 3]
+            sage: IV([0,0,0]).trim()
+            []
+
+            sage: IV = IntegerVectors(k=4)
+            sage: v = IV([4,3,2,0]).trim(); v
+            [4, 3, 2]
+            sage: v.parent()
+            Integer vectors
+        """
+        P = IntegerVectors()
+        v = list(self)
+        if all(i == 0 for i in v):
+            return P.element_class(P, [], check=False)
+        while not v[-1]:
+            v = v[:-1]
+        return P.element_class(P, v, check=False)
 
 class IntegerVectors(Parent, metaclass=ClasscallMetaclass):
     """
@@ -676,7 +727,7 @@ class IntegerVectors(Parent, metaclass=ClasscallMetaclass):
         if isinstance(x, IntegerVector):
             return True
 
-        if not isinstance(x, (list, tuple)):
+        if not isinstance(x, Sequence):
             return False
 
         for i in x:
@@ -1015,10 +1066,15 @@ class IntegerVectors_nk(UniqueRepresentation, IntegerVectors):
             False
             sage: [3,2,2,1] in IntegerVectors(8, 4)
             True
-        """
-        if isinstance(x, IntegerVector) and x.parent() is self:
-            return True
 
+        Check :trac:`34510`::
+
+            sage: IV33 = IntegerVectors(n=3, k=3)
+            sage: IV33([0])
+            Traceback (most recent call last):
+            ...
+            ValueError: [0] doesn't satisfy correct constraints
+        """
         if not IntegerVectors.__contains__(self, x):
             return False
 

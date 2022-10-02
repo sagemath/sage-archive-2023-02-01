@@ -16,7 +16,7 @@ Arithmetic subgroups (finite index subgroups of `\SL_2(\ZZ)`)
 from sage.groups.old import Group
 from sage.categories.groups import Groups
 from sage.rings.integer_ring import ZZ
-from sage.arith.all import lcm
+from sage.arith.functions import lcm
 from sage.misc.cachefunc import cached_method
 from copy import copy # for making copies of lists of cusps
 from sage.modular.modsym.p1list import lift_to_sl2z
@@ -744,7 +744,7 @@ class ArithmeticSubgroup(Group):
         so this should usually be overridden in subclasses; but it doesn't have
         to be.
         """
-        i = Cusp([1,0])
+        i = Cusp([1, 0])
         L = [i]
         for a in self.coset_reps():
             ai = i.apply([a.a(), a.b(), a.c(), a.d()])
@@ -757,11 +757,12 @@ class ArithmeticSubgroup(Group):
                 L.append(ai)
         return L
 
-    def are_equivalent(self, x, y, trans = False):
+    def are_equivalent(self, x, y, trans=False):
         r"""
-        Test whether or not cusps x and y are equivalent modulo self.  If self
-        has a reduce_cusp() method, use that; otherwise do a slow explicit
-        test.
+        Test whether or not cusps x and y are equivalent modulo self.
+
+        If self has a reduce_cusp() method, use that; otherwise do a
+        slow explicit test.
 
         If trans = False, returns True or False. If trans = True, then return
         either False or an element of self mapping x onto y.

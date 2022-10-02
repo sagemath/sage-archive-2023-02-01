@@ -160,7 +160,7 @@ class LinearTensorConstraint(Element):
             sage: b[2] * vector([1,2]) + 2*b[3] <= 0
             (1.0, 2.0)*x_0 + (2.0, 2.0)*x_1 <= (0.0, 0.0)
         """
-        super(LinearTensorConstraint, self).__init__(parent)
+        super().__init__(parent)
         self._lhs = lhs
         self._rhs = rhs
         self._equality = equality
@@ -446,7 +446,7 @@ class LinearTensorConstraintsParent_class(Parent):
 
     def _an_element_(self):
         """
-        Returns an element
+        Return an element.
 
         EXAMPLES::
 
@@ -457,4 +457,3 @@ class LinearTensorConstraintsParent_class(Parent):
         """
         LT = self.linear_tensors()
         return LT.an_element() >= 0
-

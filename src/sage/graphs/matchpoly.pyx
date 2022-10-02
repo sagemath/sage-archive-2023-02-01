@@ -1,6 +1,6 @@
 # cython: binding=True
 """
-Matching Polynomial
+Matching polynomial
 
 This module contains the following methods:
 
@@ -50,7 +50,7 @@ x = polygen(ZZ, 'x')
 
 
 def matching_polynomial(G, complement=True, name=None):
-    """
+    r"""
     Computes the matching polynomial of the graph `G`.
 
     If `p(G, k)` denotes the number of `k`-matchings (matchings with `k` edges)

@@ -1,5 +1,5 @@
 r"""
-Graphics 3D Object for Representing and Triangulating Isosurfaces.
+Graphics 3D object for representing and triangulating isosurfaces
 
 AUTHORS:
 
@@ -1153,7 +1153,7 @@ cdef class ImplicitSurface(IndexFaceSet):
 
     def threejs_repr(self, render_params):
         r"""
-        Return a represention of the surface suitable for plotting with three.js.
+        Return a representation of the surface suitable for plotting with three.js.
 
         EXAMPLES::
 

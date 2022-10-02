@@ -450,7 +450,7 @@ The examples illustrate that the syntax requires ``f.integrate(x)`` and
 not just ``f.integrate()``.  (After all, the latter could be ambiguous
 if several variables had already been defined).
 
-To stop viewing the documentation after pressing tab, you can press the
+To stop viewing the documentation after pressing :kbd:`Tab`, you can press the
 :kbd:`Escape` key, just like with the completion of options.
 
 If you would like the documentation to be visible longer\-term, you can

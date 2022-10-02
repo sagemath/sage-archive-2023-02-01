@@ -75,8 +75,9 @@ To do math in a Jupyter cell, one must do two things.
   .. image:: media/RunCellIcon.png
       :align: center
 
-  Or one can use the keyboard shortcut of holding down the Shift key
-  while you press the Enter key.  We call this "Shift\-Enter".
+  Or one can use the keyboard shortcut of holding down the :kbd:`Shift` key
+  while you press the :kbd:`Enter` key.
+  We call this :kbd:`Shift` + :kbd:`Enter`.
 
 Sage prints out its response just below the cell (that's the ``4``
 below, so Sage confirms that :math:`2+2=4`).  Note also that Sage has

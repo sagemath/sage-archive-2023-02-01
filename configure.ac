@@ -134,7 +134,7 @@ AC_ARG_ENABLE([editable],
 
 AC_ARG_ENABLE([wheels],
               [AS_HELP_STRING([--enable-wheels],
-                              [build and update wheels for the Sage library])],
+                              [build wheels for the Sage library and update them on "sage -b"; if disabled, use "make wheels" to build wheels])],
               [AC_SUBST([SAGE_WHEELS], [$enableval])],
               [])
 

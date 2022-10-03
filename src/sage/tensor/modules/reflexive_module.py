@@ -14,7 +14,7 @@ class ReflexiveModule_abstract(Parent):
     dual `M^{**}` is an isomorphism.
 
     In the category of `R`-modules, the dual module `M^*` is
-    the `R`-module of linear functionals $\phi:\ M \longrightarrow R$.
+    the `R`-module of linear functionals `\phi:\ M \longrightarrow R`.
     However, we do not make the assumption that the dual module
     (obtained by :meth:`dual`) is in the category :class:`Homsets`.
 

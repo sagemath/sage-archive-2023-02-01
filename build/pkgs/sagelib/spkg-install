@@ -79,9 +79,6 @@ else
         # Compiling sage/interfaces/sagespawn.pyx because it depends on /private/var/folders/38/wnh4gf1552g_crsjnv2vmmww0000gp/T/pip-build-env-609n5985/overlay/lib/python3.10/site-packages/Cython/Includes/posix/unistd.pxd
         time sdh_pip_install --no-build-isolation .
     else
-        # We no longer use the install-cleaner for installation directory cleaning.
-        # So uninstall first.
-        time sdh_pip_uninstall sagemath-standard
         time python3 -u setup.py --no-user-cfg build install || exit 1
     fi
 fi

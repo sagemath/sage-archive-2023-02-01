@@ -1024,7 +1024,7 @@ class SageOutputChecker(doctest.OutputChecker):
 
         if "insufficient permissions" in got:
             sympow_cache_warning_regex = re.compile(r'\*\*WARNING\*\* /var/cache/sympow/datafiles/le64 yields insufficient permissions')
-            got = sympow_cache_warning_regex.sub('', g)
+            got = sympow_cache_warning_regex.sub('', got)
             did_fixup = True
 
         if "dylib" in got:

@@ -29,34 +29,7 @@ from collections import defaultdict
 from sage.repl.preparse import preparse, strip_string_literals
 from functools import reduce
 
-
 from .external import available_software
-
-float_regex = re.compile(r'\s*([+-]?\s*((\d*\.?\d+)|(\d+\.?))([eE][+-]?\d+)?)')
-optional_regex = re.compile(r'(arb216|arb218|py2|long time|not implemented|not tested|known bug)|([^ a-z]\s*optional\s*[:-]*((\s|\w|[.])*))')
-# Version 4.65 of glpk prints the warning "Long-step dual simplex will
-# be used" frequently. When Sage uses a system installation of glpk
-# which has not been patched, we need to ignore that message.
-# See :trac:`29317`.
-glpk_simplex_warning_regex = re.compile(r'(Long-step dual simplex will be used)')
-# :trac:`31204` -- suppress warning about ld and OS version for dylib files.
-ld_warning_regex = re.compile(r'^.*dylib.*was built for newer macOS version.*than being linked.*')
-# :trac:`30845` -- suppress warning on conda about ld
-ld_pie_warning_regex = re.compile(r'ld: warning: -pie being ignored. It is only used when linking a main executable')
-# :trac:`34533` -- suppress warning on OS X 12.6 about chained fixups
-chained_fixup_warning_regex = re.compile(r'ld: warning: -undefined dynamic_lookup may not work with chained fixups')
-sympow_cache_warning_regex = re.compile(r'\*\*WARNING\*\* /var/cache/sympow/datafiles/le64 yields insufficient permissions')
-find_sage_prompt = re.compile(r"^(\s*)sage: ", re.M)
-find_sage_continuation = re.compile(r"^(\s*)\.\.\.\.:", re.M)
-find_python_continuation = re.compile(r"^(\s*)\.\.\.([^\.])", re.M)
-python_prompt = re.compile(r"^(\s*)>>>", re.M)
-# The following are used to allow ... at the beginning of output
-ellipsis_tag = "<TEMP_ELLIPSIS_TAG>"
-continuation_tag = "<TEMP_CONTINUATION_TAG>"
-random_marker = re.compile('.*random', re.I)
-tolerance_pattern = re.compile(r'\b((?:abs(?:olute)?)|(?:rel(?:ative)?))? *?tol(?:erance)?\b( +[0-9.e+-]+)?')
-backslash_replacer = re.compile(r"""(\s*)sage:(.*)\\\ *
-\ *(((\.){4}:)|((\.){3}))?\ *""")
 
 _RIFtol = None
 
@@ -164,6 +137,8 @@ def parse_optional_tags(string):
     # strip_string_literals replaces comments
     comment = "#" + (literals[comment]).lower()
 
+    optional_regex = re.compile(r'(arb216|arb218|py2|long time|not implemented|not tested|known bug)|([^ a-z]\s*optional\s*[:-]*((\s|\w|[.])*))')
+
     tags = []
     for m in optional_regex.finditer(comment):
         cmd = m.group(1)
@@ -205,6 +180,10 @@ def parse_tolerance(source, want):
         sage: marked.abs_tol
         0.010000000000000000000...?
     """
+    # regular expressions
+    random_marker = re.compile('.*random', re.I)
+    tolerance_pattern = re.compile(r'\b((?:abs(?:olute)?)|(?:rel(?:ative)?))? *?tol(?:erance)?\b( +[0-9.e+-]+)?')
+
     safe, literals, state = strip_string_literals(source)
     first_line = safe.split('\n', 1)[0]
     if '#' not in first_line:
@@ -618,6 +597,17 @@ class SageDocTestParser(doctest.DocTestParser):
             sage: dte.want
             '...00010\n'
         """
+        # Regular expressions
+        find_sage_prompt = re.compile(r"^(\s*)sage: ", re.M)
+        find_sage_continuation = re.compile(r"^(\s*)\.\.\.\.:", re.M)
+        find_python_continuation = re.compile(r"^(\s*)\.\.\.([^\.])", re.M)
+        python_prompt = re.compile(r"^(\s*)>>>", re.M)
+        backslash_replacer = re.compile(r"""(\s*)sage:(.*)\\\ *
+\ *(((\.){4}:)|((\.){3}))?\ *""")
+
+        # The following are used to allow ... at the beginning of output
+        ellipsis_tag = "<TEMP_ELLIPSIS_TAG>"
+
         # Hack for non-standard backslash line escapes accepted by the current
         # doctest system.
         m = backslash_replacer.search(string)
@@ -916,6 +906,9 @@ class SageOutputChecker(doctest.OutputChecker):
             sage: OC.check_output(ex.want, 'Long-step dual simplex will be used\n1.3090169943749475', optflag)
             True
         """
+        # Regular expression for floats
+        float_regex = re.compile(r'\s*([+-]?\s*((\d*\.?\d+)|(\d+\.?))([eE][+-]?\d+)?)')
+
         got = self.human_readable_escape_sequences(got)
 
         if isinstance(want, MarkedOutput):
@@ -1015,22 +1008,35 @@ class SageOutputChecker(doctest.OutputChecker):
         # and/or actual output to determine if a fixup should be applied.
 
         if "Long-step" in got:
+            # Version 4.65 of glpk prints the warning "Long-step dual
+            # simplex will be used" frequently. When Sage uses a system
+            # installation of glpk which has not been patched, we need to
+            # ignore that message. See :trac:`29317`.
+            glpk_simplex_warning_regex = re.compile(r'(Long-step dual simplex will be used)')
             got = glpk_simplex_warning_regex.sub('', got)
             did_fixup = True
 
         if "chained fixups" in got:
+            # :trac:`34533` -- suppress warning on OS X 12.6 about chained fixups
+            chained_fixup_warning_regex = re.compile(r'ld: warning: -undefined dynamic_lookup may not work with chained fixups')
             got = chained_fixup_warning_regex.sub('', got)
             did_fixup = True
 
         if "insufficient permissions" in got:
+            sympow_cache_warning_regex = re.compile(r'\*\*WARNING\*\* /var/cache/sympow/datafiles/le64 yields insufficient permissions')
             got = sympow_cache_warning_regex.sub('', g)
             did_fixup = True
 
         if "dylib" in got:
+            # :trac:`31204` -- suppress warning about ld and OS version for
+            # dylib files.
+            ld_warning_regex = re.compile(r'^.*dylib.*was built for newer macOS version.*than being linked.*')
             got = ld_warning_regex.sub('', got)
             did_fixup = True
 
         if "pie being ignored" in got:
+            # :trac:`30845` -- suppress warning on conda about ld
+            ld_pie_warning_regex = re.compile(r'ld: warning: -pie being ignored. It is only used when linking a main executable')
             got = ld_pie_warning_regex.sub('', got)
             did_fixup = True
 
@@ -1165,6 +1171,9 @@ class SageOutputChecker(doctest.OutputChecker):
             Tolerance exceeded:
                 0.0 vs 10.05, tolerance +infinity > 1e-1
         """
+        # Regular expression for floats
+        float_regex = re.compile(r'\s*([+-]?\s*((\d*\.?\d+)|(\d+\.?))([eE][+-]?\d+)?)')
+
         got = self.human_readable_escape_sequences(got)
         want = example.want
         diff = doctest.OutputChecker.output_difference(self, example, got, optionflags)

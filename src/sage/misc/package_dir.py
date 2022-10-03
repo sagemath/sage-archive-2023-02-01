@@ -133,7 +133,7 @@ def is_package_or_sage_namespace_package_dir(path):
     r"""
     Return whether ``path`` is a directory that contains a Python package.
 
-    Ordinary Python packages are recognized by the presence of `__init__.py`.
+    Ordinary Python packages are recognized by the presence of ``__init__.py``.
 
     Implicit namespace packages (PEP 420) are only recognized if they
     follow the conventions of the Sage library, i.e., the directory contains

@@ -129,7 +129,7 @@ def read_distribution(src_file):
     return ''
 
 
-def is_package_or_sage_namespace_package_dir(path):
+def is_package_or_sage_namespace_package_dir(path, *, distribution_filter=None):
     r"""
     Return whether ``path`` is a directory that contains a Python package.
 
@@ -139,6 +139,15 @@ def is_package_or_sage_namespace_package_dir(path):
     follow the conventions of the Sage library, i.e., the directory contains
     a file ``all.py`` or a file matching the pattern ``all__*.py``
     such as ``all__sagemath_categories.py``.
+
+    INPUT:
+
+    - ``path`` -- a directory name.
+
+    - ``distribution_filter`` -- (optional, default: ``None``)
+      only consider ``all*.py`` files whose distribution (from a
+      ``# sage_setup: distribution = PACKAGE`` directive in the source file)
+      is an element of ``distribution_filter``.
 
     EXAMPLES:
 
@@ -172,14 +181,17 @@ def is_package_or_sage_namespace_package_dir(path):
         sage: is_package_or_sage_namespace_package_dir(directory)
         False
     """
-    if os.path.exists(os.path.join(path, '__init__.py')):   # ordinary package
+    if os.path.exists(os.path.join(path, '__init__.py')):                # ordinary package
         return True
-    if os.path.exists(os.path.join(path, '__init__.pxd')):  # for consistency with Cython
+    if os.path.exists(os.path.join(path, '__init__.pxd')):               # for consistency with Cython
         return True
-    if os.path.exists(os.path.join(path, 'all.py')):        # complete namespace package
-        return True
-    for _ in glob.iglob(os.path.join(path, 'all__*.py')):
-        return True                                         # partial namespace package
+    fname = os.path.join(path, 'all.py')
+    if os.path.exists(fname):
+        if distribution_filter is None or fname in distribution_filter:  # complete namespace package
+            return True
+    for fname in glob.iglob(os.path.join(path, 'all__*.py')):
+        if distribution_filter is None or fname in distribution_filter:  # partial namespace package
+            return True
     return False
 
 

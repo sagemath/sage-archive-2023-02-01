@@ -233,9 +233,9 @@ characters, hit the :kbd:`Tab` key, and see if the command you want appears
 in the list of tab autocompletion. If you have a command called
 ``mycmd``, then type ``mycmd.`` and hit the :kbd:`Tab` key to get a list of
 functionalities that are supported by that command. To read the
-documentation of ``mycmd``, type ``mycmd?`` and press the enter key to
+documentation of ``mycmd``, type ``mycmd?`` and press the :kbd:`Enter` key to
 read the documentation for that command. Similarly, type ``mycmd??``
-and hit the enter key to get the source code of that command. You are
+and hit the :kbd:`Enter` key to get the source code of that command. You are
 also encouraged to search through the source code and documentation of
 the Sage library. To search through the source code of the Sage
 library, use the command ``search_src("<search-keyword>")`` where you

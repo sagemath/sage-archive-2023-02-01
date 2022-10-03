@@ -365,7 +365,7 @@ to scroll down to see the whole list).  As before,
 
 Here is another couple of ways to experiment and explore.  Find a
 function that looks interesting, say ``is_abelian()``.  Type
-``H.is_abelian?`` (note the question mark) followed by the enter key.
+``H.is_abelian?`` (note the question mark) followed by the :kbd:`Enter` key.
 This will display a portion of the source code for the
 ``is_abelian()`` function, describing the inputs and output, possibly
 illustrated with example uses.

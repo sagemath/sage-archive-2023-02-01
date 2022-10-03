@@ -366,7 +366,7 @@ Here's an example.
 
 - Still, it seems reasonable that the command might start with ``pl``.
 
-- Then one can type ``pl`` in an input cell, and then press the :kdb:`Tab` key
+- Then one can type ``pl`` in an input cell, and then press the :kbd:`Tab` key
   to see all the commands that start with the letters ``pl``.
 
 Try tabbing after the ``pl`` in the following cell to see all the

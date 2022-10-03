@@ -132,6 +132,12 @@ AC_ARG_ENABLE([editable],
               [AC_SUBST([SAGE_EDITABLE], [$enableval])],
               [AC_SUBST([SAGE_EDITABLE], [yes])])
 
+AC_ARG_ENABLE([wheels],
+              [AS_HELP_STRING([--enable-wheels],
+                              [build and update wheels for the Sage library])],
+              [AC_SUBST([SAGE_WHEELS], [$enableval])],
+              [])
+
 # Check whether we are on a supported platform
 AC_CANONICAL_BUILD()
 AC_CANONICAL_HOST()

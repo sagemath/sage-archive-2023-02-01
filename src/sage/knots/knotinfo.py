@@ -1692,7 +1692,7 @@ class KnotInfoBase(Enum):
     def khovanov_polynomial(self, var1='q', var2='t', base_ring=ZZ, original=False):
         r"""
         Return the Khovanov polynomial according to the value of column
-        ``khovnov_polynomial`` for this knot or link as an instance of
+        ``khovanov_polynomial`` for this knot or link as an instance of
         :class:`~sage.rings.polynomial.laurent_polynomial.LaurentPolynomial_mpair`.
 
         INPUT:

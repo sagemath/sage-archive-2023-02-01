@@ -53,10 +53,9 @@ from sage.manifolds.differentiable.multivectorfield import (MultivectorField,
                                                             MultivectorFieldParal)
 from sage.manifolds.differentiable.automorphismfield import (AutomorphismField,
                                                              AutomorphismFieldParal)
-from sage.manifolds.differentiable.vectorfield_module import VectorFieldModule_abstract
 
 
-class TensorFieldModule(ReflexiveModule_tensor, VectorFieldModule_abstract):
+class TensorFieldModule(UniqueRepresentation, ReflexiveModule_tensor):
     r"""
     Module of tensor fields of a given type `(k,l)` along a differentiable
     manifold `U` with values on a differentiable manifold `M`, via a
@@ -600,7 +599,7 @@ class TensorFieldModule(ReflexiveModule_tensor, VectorFieldModule_abstract):
 
 #***********************************************************************
 
-class TensorFieldFreeModule(TensorFreeModule, VectorFieldModule_abstract):
+class TensorFieldFreeModule(TensorFreeModule):
     r"""
     Free module of tensor fields of a given type `(k,l)` along a
     differentiable manifold `U` with values on a parallelizable manifold `M`,

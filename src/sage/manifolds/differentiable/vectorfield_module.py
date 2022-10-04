@@ -64,13 +64,7 @@ if TYPE_CHECKING:
     from sage.manifolds.differentiable.manifold import DifferentiableManifold
 
 
-class VectorFieldModule_abstract(UniqueRepresentation, ReflexiveModule_abstract):
-    r"""
-    Abstract base class for modules of vector fields.
-    """
-
-
-class VectorFieldModule(ReflexiveModule_base, VectorFieldModule_abstract):
+class VectorFieldModule(UniqueRepresentation, ReflexiveModule_base):
     r"""
     Module of vector fields along a differentiable manifold `U`
     with values on a differentiable manifold `M`, via a differentiable
@@ -1272,7 +1266,7 @@ class VectorFieldModule(ReflexiveModule_base, VectorFieldModule_abstract):
 
 #******************************************************************************
 
-class VectorFieldFreeModule(FiniteRankFreeModule, VectorFieldModule_abstract):
+class VectorFieldFreeModule(FiniteRankFreeModule):
     r"""
     Free module of vector fields along a differentiable manifold `U` with
     values on a parallelizable manifold `M`, via a differentiable map

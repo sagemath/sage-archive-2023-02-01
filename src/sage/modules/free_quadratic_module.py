@@ -420,10 +420,10 @@ class FreeQuadraticModule_generic(free_module.FreeModule_generic):
 
         TESTS::
 
-            sage: M = FreeQuadraticModule(ZZ,2,matrix.identity(2))
+            sage: M = FreeQuadraticModule(ZZ, 2, matrix.identity(2))
             sage: M.discriminant()
             -1
-            sage: M = FreeQuadraticModule(QQ,3,matrix.identity(3))
+            sage: M = FreeQuadraticModule(QQ, 3, matrix.identity(3))
             sage: M.discriminant()
             -1
         """
@@ -602,13 +602,13 @@ class FreeQuadraticModule_generic_pid(free_module.FreeModule_generic_pid,
 
     def span(self, gens, check=True, already_echelonized=False):
         """
-        Return the R-span of the given list of gens, where R
+        Return the `R`-span of the given list of gens, where `R`
         is the base ring of ``self``.
 
-        Note that this span need not be a submodule of self, nor even
+        Note that this span need not be a submodule of ``self``, nor even
         of the ambient space.  It must, however, be contained in the
         ambient vector space, i.e., the ambient space tensored with
-        the fraction field of R.
+        the fraction field of `R`.
 
         EXAMPLES::
 
@@ -629,13 +629,13 @@ class FreeQuadraticModule_generic_pid(free_module.FreeModule_generic_pid,
 
     def span_of_basis(self, basis, check=True, already_echelonized=False):
         r"""
-        Return the free R-module with the given basis, where R
+        Return the free `R`-module with the given basis, where `R`
         is the base ring of ``self``.
 
-        Note that this R-module need not be a submodule of ``self``, nor
+        Note that this `R`-module need not be a submodule of ``self``, nor
         even of the ambient space.  It must, however, be contained in
         the ambient vector space, i.e., the ambient space tensored
-        with the fraction field of R.
+        with the fraction field of `R`.
 
         EXAMPLES::
 
@@ -721,7 +721,7 @@ class FreeQuadraticModule_generic_field(free_module.FreeModule_generic_field,
 
     def span(self, gens, check=True, already_echelonized=False):
         """
-        Return the K-span of the given list of gens, where K is the
+        Return the `K`-span of the given list of gens, where `K` is the
         base field of ``self``.
 
         Note that this span is a subspace of the ambient vector space,
@@ -761,7 +761,7 @@ class FreeQuadraticModule_generic_field(free_module.FreeModule_generic_field,
 
     def span_of_basis(self, basis, check=True, already_echelonized=False):
         r"""
-        Return the free K-module with the given basis, where K
+        Return the free `K`-module with the given basis, where `K`
         is the base field of ``self``.
 
         Note that this span is a subspace of the ambient vector space,
@@ -924,7 +924,8 @@ class FreeQuadraticModule_ambient(free_module.FreeModule_ambient,
             True
         """
         return FreeQuadraticModule(base_ring=self.base_ring(), rank=self.rank(),
-            inner_product_matrix=self.inner_product_matrix(), sparse=True)
+                                   inner_product_matrix=self.inner_product_matrix(),
+                                   sparse=True)
 
 
 # #############################################################################
@@ -1265,7 +1266,7 @@ class FreeQuadraticModule_submodule_with_basis_pid(free_module.FreeModule_submod
 
         We test that :trac:`23703` is fixed::
 
-            sage: A = FreeQuadraticModule(ZZ,1,matrix.identity(1))
+            sage: A = FreeQuadraticModule(ZZ, 1, matrix.identity(1))
             sage: B = A.span([[1/2]])
             sage: C = B.span([[1]])
             sage: B.intersection(C) == C.intersection(B)
@@ -1336,9 +1337,9 @@ class FreeQuadraticModule_submodule_with_basis_pid(free_module.FreeModule_submod
 
     def change_ring(self, R):
         """
-        Return the free module over R obtained by coercing each
-        element of ``self`` into a vector over the fraction field of R,
-        then taking the resulting R-module.
+        Return the free module over `R` obtained by coercing each
+        element of ``self`` into a vector over the fraction field of `R`,
+        then taking the resulting `R`-module.
 
         This raises a ``TypeError`` if coercion is not possible.
 
@@ -1598,7 +1599,8 @@ class FreeQuadraticModule_submodule_field(free_module.FreeModule_submodule_field
     EXAMPLES:
 
     Since this is an embedded vector subspace with echelonized basis,
-    the methods ``echelon_coordinates`` and user ``coordinates`` agree::
+    the methods :meth:`echelon_coordinates` and :meth:`coordinates` return the same
+    coordinates::
 
         sage: V = QQ^3
         sage: W = V.span([[1,2,3],[4,5,6]])

@@ -41,8 +41,7 @@ EOF
         ])
     ])
     dnl Recent versions (>= 0.94k) of cddlib put cddlib's headers in
-    dnl a "cddlib" subdirectory, and Debian currently relocates them
-    dnl under "cdd". See trac #34634 for the latter.
+    dnl a "cddlib" subdirectory.
     AC_CHECK_HEADER([cddlib/cdd.h],[],[sage_spkg_install_cddlib=yes],[
       #include <cddlib/setoper.h>
       #include <cddlib/cddmp.h>

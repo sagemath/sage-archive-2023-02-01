@@ -195,7 +195,6 @@ def points_of_bounded_height(PN, K, dim, bound, prec=53):
     else:
         K_degree = K.degree()
 
-    K_embeddings = K.places(prec=prec)
     roots_of_unity = K.roots_of_unity()
     unit_tuples = list(itertools.product(roots_of_unity, repeat=dim))
 
@@ -203,8 +202,6 @@ def points_of_bounded_height(PN, K, dim, bound, prec=53):
 
     Reals = RealField(prec)
     logB = Reals(bound).log()
-
-    points_of_bdd_height = []
 
     class_group_ideals = [c.ideal() for c in K.class_group()]
     class_number = len(class_group_ideals)

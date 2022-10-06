@@ -80,7 +80,6 @@ AUTHORS:
 # ****************************************************************************
 
 from sage.arith.misc import gcd, binomial
-from sage.arith.srange import srange
 
 from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
 from sage.rings.integer import Integer

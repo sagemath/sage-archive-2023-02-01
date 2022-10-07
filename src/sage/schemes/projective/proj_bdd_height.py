@@ -78,6 +78,7 @@ def QQ_points_of_bounded_height(dim, bound):
                         points_of_bounded_height.add(point)
                         yield point
 
+
 def IQ_points_of_bounded_height(PN, K, dim, bound):
     r"""
     Return an iterator of the points in ``self`` of absolute multiplicative
@@ -151,6 +152,7 @@ def IQ_points_of_bounded_height(PN, K, dim, bound):
                             points_in_class_a.add(point)
                             yield point
 
+
 def points_of_bounded_height(PN, K, dim, bound, prec=53):
     r"""
     Return an iterator of the points in ``K`` with dimension ``dim`` of
@@ -218,9 +220,9 @@ def points_of_bounded_height(PN, K, dim, bound, prec=53):
 
     test_matrix = mat
     try:
-       test_matrix.change_ring(QQ)
+        test_matrix.change_ring(QQ)
     except ValueError:
-       raise ValueError('prec too low.')
+        raise ValueError('prec too low.')
 
     cut_fund_unit_logs = mat.delete_rows([r])
     lll_fund_units = []

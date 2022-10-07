@@ -99,6 +99,14 @@ since this appears to be the most relevant application for the
     ...
     NotImplementedError: only implemented for elliptic curves over finite fields
 
+.. NOTE::
+
+    Some of the methods inherited from :class:`EllipticCurveHom` compute data
+    whose size is linear in the degree; this includes kernel polynomial and
+    rational maps. In consequence, those methods cannot possibly run in the
+    otherwise advertised square-root complexity, as merely storing the result
+    already takes linear time.
+
 AUTHORS:
 
 - Lorenz Panny (2022)

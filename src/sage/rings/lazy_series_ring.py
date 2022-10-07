@@ -473,18 +473,18 @@ class LazySeriesRing(UniqueRepresentation, Parent):
                         raise ValueError("you must specify the degree for the polynomial 0")
                     degree = valuation
                 if x == R.zero():
-                    coeff_stream = Stream_exact([], self._sparse, order=degree, constant=constant)
+                    coeff_stream = Stream_exact([], order=degree, constant=constant)
                     return self.element_class(self, coeff_stream)
                 initial_coefficients = [x[i] for i in range(x.valuation(), x.degree() + 1)]
-                coeff_stream = Stream_exact(initial_coefficients, self._sparse,
+                coeff_stream = Stream_exact(initial_coefficients,
                                             order=x.valuation(), degree=degree, constant=constant)
                 return self.element_class(self, coeff_stream)
 
             # Handle when it is a lazy series
             if isinstance(x, self.Element):
-                if x._coeff_stream._is_sparse is not self._sparse:
+                # if x._coeff_stream._is_sparse is not self._sparse:
                     # TODO: Implement a way to make a self._sparse copy
-                    raise NotImplementedError("cannot convert between sparse and dense")
+                #    raise NotImplementedError("cannot convert between sparse and dense")
 
                 # If x is known to be 0
                 if isinstance(x._coeff_stream, Stream_zero):
@@ -496,8 +496,7 @@ class LazySeriesRing(UniqueRepresentation, Parent):
                         if valuation is None:
                             raise ValueError("you must specify the degree for the polynomial 0")
                         degree = valuation
-                    coeff_stream = Stream_exact([], self._sparse, order=degree,
-                                                constant=constant)
+                    coeff_stream = Stream_exact([], order=degree, constant=constant)
                     return self.element_class(self, coeff_stream)
 
                 # Make the result exact
@@ -513,7 +512,7 @@ class LazySeriesRing(UniqueRepresentation, Parent):
                         # We learned some stuff about x; pass it along
                         x._coeff_stream._approximate_order += len(initial_coefficients)
                         initial_coefficients = []
-                    coeff_stream = Stream_exact(initial_coefficients, self._sparse,
+                    coeff_stream = Stream_exact(initial_coefficients,
                                                 order=valuation, degree=degree, constant=constant)
                     return self.element_class(self, coeff_stream)
 
@@ -577,8 +576,7 @@ class LazySeriesRing(UniqueRepresentation, Parent):
                 p = [BR(c) for c, _ in zip(_skip_leading_zeros(x), range(valuation, degree))]
             if not any(p) and not constant:
                 return self.zero()
-            coeff_stream = Stream_exact(p, self._sparse, order=valuation,
-                                        constant=constant, degree=degree)
+            coeff_stream = Stream_exact(p, order=valuation, constant=constant, degree=degree)
             return self.element_class(self, coeff_stream)
 
         raise ValueError(f"unable to convert {x} into {self}")
@@ -700,7 +698,7 @@ class LazySeriesRing(UniqueRepresentation, Parent):
 
         """
         R = self.base_ring()
-        coeff_stream = Stream_exact([R.one()], self._sparse, constant=R.zero(), order=0)
+        coeff_stream = Stream_exact([R.one()], constant=R.zero(), order=0)
         return self.element_class(self, coeff_stream)
 
     @cached_method
@@ -1269,8 +1267,7 @@ class LazyLaurentSeriesRing(LazySeriesRing):
         if n != 0:
             raise IndexError("there is only one generator")
         R = self.base_ring()
-        coeff_stream = Stream_exact([R.one()], self._sparse,
-                                    constant=R.zero(), order=1)
+        coeff_stream = Stream_exact([R.one()], constant=R.zero(), order=1)
         return self.element_class(self, coeff_stream)
 
     def ngens(self):
@@ -1430,7 +1427,7 @@ class LazyLaurentSeriesRing(LazySeriesRing):
                 constant = self.base_ring().zero()
             if degree is None:
                 degree = valuation + len(coefficient)
-            coeff_stream = Stream_exact(coefficient, self._sparse, order=valuation,
+            coeff_stream = Stream_exact(coefficient, order=valuation,
                                         constant=constant, degree=degree)
             return self.element_class(self, coeff_stream)
 
@@ -1678,9 +1675,9 @@ class LazyPowerSeriesRing(LazySeriesRing):
         R = self._laurent_poly_ring
         BR = self.base_ring()
         if len(self.variable_names()) == 1:
-            coeff_stream = Stream_exact([BR.one()], self._sparse, constant=BR.zero(), order=1)
+            coeff_stream = Stream_exact([BR.one()], constant=BR.zero(), order=1)
         else:
-            coeff_stream = Stream_exact([R.gen(n)], self._sparse, constant=BR.zero(), order=1)
+            coeff_stream = Stream_exact([R.gen(n)], constant=BR.zero(), order=1)
         return self.element_class(self, coeff_stream)
 
     def ngens(self):
@@ -1853,7 +1850,7 @@ class LazyPowerSeriesRing(LazySeriesRing):
                 coeff_stream = Stream_zero(self._sparse)
             else:
                 if not x:
-                    coeff_stream = Stream_exact([], self._sparse,
+                    coeff_stream = Stream_exact([],
                                                 order=valuation,
                                                 degree=degree,
                                                 constant=constant)
@@ -1871,14 +1868,14 @@ class LazyPowerSeriesRing(LazySeriesRing):
                     d = max(p_dict.keys())
                     p_list = [p_dict.get(i, 0) for i in range(v, d + 1)]
 
-                coeff_stream = Stream_exact(p_list, self._sparse,
+                coeff_stream = Stream_exact(p_list,
                                             order=v,
                                             constant=constant,
                                             degree=degree)
             return self.element_class(self, coeff_stream)
 
         if isinstance(x, LazyPowerSeries):
-            if x._coeff_stream._is_sparse is self._sparse:
+            # if x._coeff_stream._is_sparse is self._sparse:
                 stream = x._coeff_stream
                 if isinstance(stream, Stream_exact):
                     if self._arity == 1:
@@ -1901,7 +1898,7 @@ class LazyPowerSeriesRing(LazySeriesRing):
                                 valuation=valuation)
                 return self.element_class(self, stream)
             # TODO: Implement a way to make a self._sparse copy
-            raise NotImplementedError("cannot convert between sparse and dense")
+            # raise NotImplementedError("cannot convert between sparse and dense")
 
         if callable(x) or isinstance(x, (GeneratorType, map, filter)):
             if valuation is None:
@@ -1920,7 +1917,7 @@ class LazyPowerSeriesRing(LazySeriesRing):
                     if not all(e.is_homogeneous() and e.degree() == i
                                for i, e in enumerate(p, valuation)):
                         raise ValueError("coefficients must be homogeneous polynomials of the correct degree")
-                coeff_stream = Stream_exact(p, self._sparse,
+                coeff_stream = Stream_exact(p,
                                             order=valuation,
                                             constant=constant,
                                             degree=degree)
@@ -2336,17 +2333,17 @@ class LazyCompletionGradedAlgebra(LazySeriesRing):
                 d = max(p_dict)
                 p_list = [p_dict.get(i, 0) for i in range(v, d + 1)]
 
-                coeff_stream = Stream_exact(p_list, self._sparse,
+                coeff_stream = Stream_exact(p_list,
                                             order=v,
                                             constant=0,
                                             degree=degree)
             return self.element_class(self, coeff_stream)
 
         if isinstance(x, self.Element):
-            if x._coeff_stream._is_sparse is self._sparse:
+            # if x._coeff_stream._is_sparse is self._sparse:
                 return self.element_class(self, x._coeff_stream)
             # TODO: Implement a way to make a self._sparse copy
-            raise NotImplementedError("cannot convert between sparse and dense")
+            # raise NotImplementedError("cannot convert between sparse and dense")
 
         if self._arity == 1:
             def check_homogeneous_of_degree(f, d):
@@ -2383,7 +2380,7 @@ class LazyCompletionGradedAlgebra(LazySeriesRing):
             p = [R(e) for e in x]
             for i, e in enumerate(p, valuation):
                 check_homogeneous_of_degree(e, i)
-            coeff_stream = Stream_exact(p, self._sparse,
+            coeff_stream = Stream_exact(p,
                                         order=valuation,
                                         constant=0,
                                         degree=degree)
@@ -2393,7 +2390,7 @@ class LazyCompletionGradedAlgebra(LazySeriesRing):
                 p = [R(x(i)) for i in range(valuation, degree)]
                 for i, e in enumerate(p, valuation):
                     check_homogeneous_of_degree(e, i)
-                coeff_stream = Stream_exact(p, self._sparse,
+                coeff_stream = Stream_exact(p,
                                             order=valuation,
                                             constant=0,
                                             degree=degree)
@@ -2622,7 +2619,7 @@ class LazyDirichletSeriesRing(LazySeriesRing):
             1 + O(1/(8^z))
         """
         R = self.base_ring()
-        coeff_stream = Stream_exact([R.one()], self._sparse, constant=R.zero(), order=1)
+        coeff_stream = Stream_exact([R.one()], constant=R.zero(), order=1)
         return self.element_class(self, coeff_stream)
 
     def _coerce_map_from_(self, S):
@@ -2766,7 +2763,7 @@ class LazyDirichletSeriesRing(LazySeriesRing):
             1/(4^z) + 1/(5^z) + 1/(6^z) + O(1/(7^z))
         """
         c = self.base_ring().an_element()
-        return self.element_class(self, Stream_exact([], self._sparse, constant=c, order=4))
+        return self.element_class(self, Stream_exact([], constant=c, order=4))
 
     def some_elements(self):
         """

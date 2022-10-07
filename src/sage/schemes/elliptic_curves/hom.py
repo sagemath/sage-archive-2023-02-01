@@ -651,6 +651,36 @@ class EllipticCurveHom(Morphism):
         """
         return hash((self.domain(), self.codomain(), self.kernel_polynomial()))
 
+    def as_morphism(self):
+        r"""
+        Return ``self`` as a morphism of projective schemes.
+
+        EXAMPLES::
+
+            sage: k = GF(11)
+            sage: E = EllipticCurve(k, [1,1])
+            sage: Q = E(6,5)
+            sage: phi = E.isogeny(Q)
+            sage: mor = phi.as_morphism()
+            sage: mor.domain() == E
+            True
+            sage: mor.codomain() == phi.codomain()
+            True
+            sage: mor(Q) == phi(Q)
+            True
+
+        TESTS::
+
+            sage: mor(0*Q)
+            (0 : 1 : 0)
+            sage: mor(1*Q)
+            (0 : 1 : 0)
+        """
+        from sage.schemes.curves.constructor import Curve
+        X_affine = Curve(self.domain()).affine_patch(2)
+        Y_affine = Curve(self.codomain()).affine_patch(2)
+        return X_affine.hom(self.rational_maps(), Y_affine).homogenize(2)
+
 
 def compare_via_evaluation(left, right):
     r"""
@@ -707,7 +737,6 @@ def compare_via_evaluation(left, right):
         EE = E.base_extend(F.extension(e))
         Ps = EE.gens()
         return all(left._eval(P) == right._eval(P) for P in Ps)
-
     elif isinstance(F, number_field_base.NumberField):
         for _ in range(100):
             P = E.lift_x(F.random_element(), extend=True)
@@ -715,6 +744,6 @@ def compare_via_evaluation(left, right):
                 return left._eval(P) == right._eval(P)
         else:
             assert False, "couldn't find a point of infinite order"
-
     else:
         raise NotImplementedError('not implemented for this base field')
+

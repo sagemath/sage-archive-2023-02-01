@@ -1,23 +1,18 @@
 r"""
-√élu Algorithm for Elliptic-Curve Isogenies
+√élu algorithm for elliptic-curve isogenies
 
-The √élu algorithm computes isogenies of elliptic curves in time
-`\tilde O(\sqrt\ell)` rather than naïvely `O(\ell)`, where `\ell`
-is the degree.
+The √élu algorithm computes isogenies of elliptic curves in time `\tilde
+O(\sqrt\ell)` rather than naïvely `O(\ell)`, where `\ell` is the degree.
 
-The core idea is to reindex the points in the kernel subgroup in
-a baby-step-giant-step manner, then use fast resultant computations
-to evaluate "elliptic polynomials"
-(see :class:`FastEllipticPolynomial`)
-in essentially square-root time.
+The core idea is to reindex the points in the kernel subgroup in a
+baby-step-giant-step manner, then use fast resultant computations to evaluate
+"elliptic polynomials" (see :class:`FastEllipticPolynomial`) in essentially
+square-root time.
 
-Based on experiments with Sage version 9.7,
-the isogeny degree where
-:class:`EllipticCurveHom_velusqrt`
-begins to outperform
+Based on experiments with Sage version 9.7, the isogeny degree where
+:class:`EllipticCurveHom_velusqrt` begins to outperform
 :class:`~sage.schemes.elliptic_curves.ell_curve_isogeny.EllipticCurveIsogeny`
-can be as low as `\approx 100`,
-but is typically closer to `\approx 1000`,
+can be as low as `\approx 100`, but is typically closer to `\approx 1000`,
 depending on the exact situation.
 
 REFERENCES: [BDLS2020]_
@@ -135,7 +130,7 @@ from sage.schemes.elliptic_curves.ell_finite_field import EllipticCurve_finite_f
 from sage.schemes.elliptic_curves.hom import EllipticCurveHom, compare_via_evaluation
 
 
-#TODO: This is general. It should be elsewhere.
+# TODO: This is general. It should be elsewhere.
 class ProductTree:
     r"""
     A simple product tree.
@@ -264,7 +259,7 @@ class ProductTree:
             X = [X[i//2] % V[i] for i in range(len(V))]
         return X
 
-#TODO: This is general. It should be elsewhere.
+# TODO: This is general. It should be elsewhere.
 def prod_with_derivative(pairs):
     r"""
     Given a list of pairs `(f, \partial f)` of ring elements, return
@@ -327,7 +322,6 @@ def prod_with_derivative(pairs):
             yield self.df
 
     return tuple(prod(_aux(*tup) for tup in pairs))
-
 
 def _choose_IJK(n):
     r"""
@@ -407,6 +401,7 @@ def _points_range(rr, P, Q=None):
     sP = s*P
     for _ in range(a+s, b, s):
         yield (R := R + sP)
+
 
 class FastEllipticPolynomial:
     r"""
@@ -736,13 +731,14 @@ def _point_outside_subgroup(P):
         F = E.base_field().extension(d)
         E = E.base_extend(F)
         P = E(P)
-#    assert E.cardinality() > n
+    # assert E.cardinality() > n
     for _ in range(1000):
         Q = E.random_point()
         if n*Q or not P.weil_pairing(Q,n).is_one():
             return Q
     else:
         raise NotImplementedError('could not find a point outside the kernel')
+
 
 class EllipticCurveHom_velusqrt(EllipticCurveHom):
     r"""
@@ -1224,9 +1220,9 @@ class EllipticCurveHom_velusqrt(EllipticCurveHom):
             sage: phi.kernel_polynomial().parent()
             Univariate Polynomial Ring in x over Finite Field in a of size 65537^2
         """
-        R,x = self._domain.base_ring()['x'].objgen()
-        h = self._h0(x)
-        h = h(self._pre_iso.x_rational_map())
+        R, x = self._domain.base_ring()['x'].objgen()
+        h0 = self._h0(x)
+        h = h0(self._pre_iso.x_rational_map())
         return R(h).monic()
 
     @cached_method
@@ -1241,8 +1237,8 @@ class EllipticCurveHom_velusqrt(EllipticCurveHom):
 
         EXAMPLES::
 
-            sage: E = EllipticCurve(GF(101^2), [1,1,1,1,1])
-            sage: K = E.cardinality()//11 * E.gens()[0]
+            sage: E = EllipticCurve(GF(101^2), [1, 1, 1, 1, 1])
+            sage: K = E.cardinality() // 11 * E.gens()[0]
             sage: phi = E.isogeny(K, algorithm='velusqrt'); phi
             Elliptic-curve isogeny (using √élu) of degree 11:
               From: Elliptic Curve defined by y^2 + x*y + y = x^3 + x^2 + x + 1 over Finite Field in z2 of size 101^2
@@ -1254,7 +1250,7 @@ class EllipticCurveHom_velusqrt(EllipticCurveHom):
             sage: phi * phi.dual() == phi.codomain().multiplication_by_m_isogeny(11)
             True
         """
-        #FIXME This code fails if the degree is divisible by the characteristic.
+        # FIXME: This code fails if the degree is divisible by the characteristic.
         F = self._raw_domain.base_ring()
         from sage.schemes.elliptic_curves.weierstrass_morphism import WeierstrassIsomorphism
         isom = ~WeierstrassIsomorphism(self._raw_domain, (~F(self._degree), 0, 0, 0))
@@ -1274,8 +1270,8 @@ class EllipticCurveHom_velusqrt(EllipticCurveHom):
 
         EXAMPLES::
 
-            sage: E = EllipticCurve(GF(101^2), [1,1,1,1,1])
-            sage: K = E.cardinality()//11 * E.gens()[0]
+            sage: E = EllipticCurve(GF(101^2), [1, 1, 1, 1, 1])
+            sage: K = (E.cardinality() // 11) * E.gens()[0]
             sage: phi = E.isogeny(K, algorithm='velusqrt'); phi
             Elliptic-curve isogeny (using √élu) of degree 11:
               From: Elliptic Curve defined by y^2 + x*y + y = x^3 + x^2 + x + 1 over Finite Field in z2 of size 101^2
@@ -1303,7 +1299,7 @@ class EllipticCurveHom_velusqrt(EllipticCurveHom):
     def x_rational_map(self):
         r"""
         Return the `x`-coordinate rational map of this √élu isogeny
-        as a univariate rational expression in `x`.
+        as a univariate rational function in `x`.
 
         .. NOTE::
 
@@ -1311,8 +1307,8 @@ class EllipticCurveHom_velusqrt(EllipticCurveHom):
 
         EXAMPLES::
 
-            sage: E = EllipticCurve(GF(101^2), [1,1,1,1,1])
-            sage: K = E.cardinality()//11 * E.gens()[0]
+            sage: E = EllipticCurve(GF(101^2), [1, 1, 1, 1, 1])
+            sage: K = (E.cardinality() // 11) * E.gens()[0]
             sage: phi = E.isogeny(K, algorithm='velusqrt'); phi
             Elliptic-curve isogeny (using √élu) of degree 11:
               From: Elliptic Curve defined by y^2 + x*y + y = x^3 + x^2 + x + 1 over Finite Field in z2 of size 101^2
@@ -1348,8 +1344,8 @@ class EllipticCurveHom_velusqrt(EllipticCurveHom):
 
         EXAMPLES::
 
-            sage: E = EllipticCurve(GF(101^2), [1,1,1,1,1])
-            sage: K = E.cardinality()//11 * E.gens()[0]
+            sage: E = EllipticCurve(GF(101^2), [1, 1, 1, 1, 1])
+            sage: K = (E.cardinality() // 11) * E.gens()[0]
             sage: phi = E.isogeny(K, algorithm='velusqrt', model='montgomery'); phi
             Elliptic-curve isogeny (using √élu) of degree 11:
               From: Elliptic Curve defined by y^2 + x*y + y = x^3 + x^2 + x + 1 over Finite Field in z2 of size 101^2

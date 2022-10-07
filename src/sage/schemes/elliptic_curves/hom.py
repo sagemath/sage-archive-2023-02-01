@@ -20,7 +20,6 @@ AUTHORS:
 - Lorenz Panny (2021): Refactor isogenies and isomorphisms into
   the common :class:`EllipticCurveHom` interface.
 """
-
 from sage.misc.cachefunc import cached_method
 from sage.structure.richcmp import richcmp_not_equal, richcmp, op_EQ, op_NE
 
@@ -92,7 +91,6 @@ class EllipticCurveHom(Morphism):
 
         from sage.schemes.elliptic_curves.hom_composite import EllipticCurveHom_composite
         return EllipticCurveHom_composite.from_factors([other, self])
-
 
     @staticmethod
     def _comparison_impl(left, right, op):
@@ -193,7 +191,6 @@ class EllipticCurveHom(Morphism):
         # If not, fall back to comparing rational maps; cf. Trac #11327
 
         return richcmp(self.rational_maps(), other.rational_maps(), op)
-
 
     def degree(self):
         r"""
@@ -327,10 +324,9 @@ class EllipticCurveHom(Morphism):
             ...
             NotImplementedError: ...
         """
-        #TODO: could have a default implementation that simply
-        #      returns the first component of rational_maps()
+        # TODO: could have a default implementation that simply
+        # returns the first component of rational_maps()
         raise NotImplementedError('children must implement')
-
 
     def scaling_factor(self):
         r"""
@@ -408,7 +404,6 @@ class EllipticCurveHom(Morphism):
         th = -fh/gh
         assert th.valuation() == +1, f"th has valuation {th.valuation()} (should be +1)"
         return th
-
 
     def is_normalized(self):
         r"""
@@ -488,7 +483,6 @@ class EllipticCurveHom(Morphism):
         ALGORITHM: We check if :meth:`scaling_factor` returns `1`.
         """
         return self.scaling_factor() == 1
-
 
     def is_separable(self):
         r"""

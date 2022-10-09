@@ -294,9 +294,9 @@ class RibbonTableaux_shape_weight_length(RibbonTableaux):
             shape = SkewPartition(shape)
 
         if shape.size() != length * sum(weight):
-            raise ValueError("Incompatible shape and weight")
+            raise ValueError("incompatible shape and weight")
 
-        return super(RibbonTableaux, cls).__classcall__(cls, shape, tuple(weight), length)
+        return super().__classcall__(cls, shape, tuple(weight), length)
 
     def __init__(self, shape, weight, length):
         """

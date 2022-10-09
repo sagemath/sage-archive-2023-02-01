@@ -5949,7 +5949,6 @@ class FiniteWord_class(Word_class):
                     desubstitued_word = desubstitued_word + w_running ** (current_run_length - min_run)
             return desubstitued_word.sturmian_desubstitute_as_possible()
 
-
     def is_sturmian_factor(self):
         r"""
         Tell whether ``self`` is a factor of a Sturmian word.
@@ -6009,7 +6008,6 @@ class FiniteWord_class(Word_class):
         -   Thierry Monteil
         """
         return self.sturmian_desubstitute_as_possible().is_empty()
-
 
     def is_tangent(self):
         r"""
@@ -6079,7 +6077,6 @@ class FiniteWord_class(Word_class):
                 height = height - 1
                 mini = min(mini , height)
         return (maxi - mini <= 2)
-
 
     # TODO.
     # 1. Those three swap functions should use the cmp of python.
@@ -7175,7 +7172,6 @@ class FiniteWord_class(Word_class):
             if end >= p.length():
                 return factor ** q
 
-#######################################################################
 
 class CallableFromListOfWords(tuple):
     r"""
@@ -7222,6 +7218,7 @@ class CallableFromListOfWords(tuple):
             j -= c.length()
         raise IndexError("index (=%s) out of range" % i)
 
+
 class Factorization(list):
     r"""
     A list subclass having a nicer representation for factorization of words.
@@ -7244,6 +7241,7 @@ class Factorization(list):
             (ab, ba)
         """
         return '(%s)' % ', '.join(w.string_rep() for w in self)
+
 
 #######################################################################
 
@@ -7270,12 +7268,12 @@ def evaluation_dict(w):
 
         sage: evaluation_dict('1213121') # keys appear in random order
         {'1': 4, '2': 2, '3': 1}
-
     """
     d = defaultdict(int)
     for a in w:
         d[a] += 1
     return dict(d)
+
 
 def word_to_ordered_set_partition(w):
     r"""

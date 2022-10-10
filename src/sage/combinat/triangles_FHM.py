@@ -34,7 +34,6 @@ simplicial complexes.
 """
 from sage.matrix.constructor import matrix
 from sage.rings.integer_ring import ZZ
-from sage.rings.polynomial.polynomial_ring import polygen
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.structure.sage_object import SageObject
 
@@ -320,7 +319,7 @@ class M_triangle(Triangle):
                      for (dx, dy), coeff in self._poly.dict().items()}
         return M_triangle(A(dict_dual), variables=(x, y))
 
-    def transpose(self):
+    def transmute(self):
         """
         Return the image of ``self`` by an involution.
 
@@ -337,9 +336,9 @@ class M_triangle(Triangle):
             sage: x, y = polygens(ZZ, 'x,y')
             sage: nc3 = x^2*y^2 - 3*x*y^2 + 3*x*y + 2*y^2 - 3*y + 1
             sage: m = M_triangle(nc3)
-            sage: m2 = m.transpose(); m2
+            sage: m2 = m.transmute(); m2
             2*x^2*y^2 - 3*x*y^2 + 2*x*y + y^2 - 2*y + 1
-            sage: m2.transpose() == m
+            sage: m2.transmute() == m
             True
         """
         return self.h().transpose().m()
@@ -620,7 +619,6 @@ class F_triangle(Triangle):
         anneau = PolynomialRing(ZZ, 'x')
         x = anneau.gen()
         return anneau(self._poly(y=x))
-
 
 
 class Gamma_triangle(Triangle):

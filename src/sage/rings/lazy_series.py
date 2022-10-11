@@ -578,7 +578,8 @@ class LazyModuleElement(Element):
                                         degree=coeff_stream._degree,
                                         constant=P.base_ring()(c))
             return P.element_class(P, coeff_stream)
-        coeff_stream = Stream_map_coefficients(self._coeff_stream, func)
+        coeff_stream = Stream_map_coefficients(self._coeff_stream, func,
+                                               P.is_sparse())
         return P.element_class(P, coeff_stream)
 
     def truncate(self, d):
@@ -1732,8 +1733,10 @@ class LazyModuleElement(Element):
                                                    constant=c,
                                                    degree=coeff_stream._degree))
         if self_on_left or R.is_commutative():
-            return P.element_class(P, Stream_lmul(coeff_stream, scalar))
-        return P.element_class(P, Stream_rmul(coeff_stream, scalar))
+            return P.element_class(P, Stream_lmul(coeff_stream, scalar,
+                                                  P.is_sparse()))
+        return P.element_class(P, Stream_rmul(coeff_stream, scalar,
+                                              P.is_sparse()))
 
     def _neg_(self):
         """
@@ -1796,7 +1799,7 @@ class LazyModuleElement(Element):
         # -(-f) = f
         if isinstance(coeff_stream, Stream_neg):
             return P.element_class(P, coeff_stream._series)
-        return P.element_class(P, Stream_neg(coeff_stream))
+        return P.element_class(P, Stream_neg(coeff_stream, P.is_sparse()))
 
     # === special functions ===
 
@@ -3903,10 +3906,12 @@ class LazyLaurentSeries(LazyCauchyProductSeries):
                                         constant=coeff_stream._constant)
             return P.element_class(P, coeff_stream)
 
-        coeff_stream = Stream_derivative(self._coeff_stream, order)
+        coeff_stream = Stream_derivative(self._coeff_stream, order,
+                                         P.is_sparse())
         if vars:
             coeff_stream = Stream_map_coefficients(coeff_stream,
-                                                   lambda c: c.derivative(vars))
+                                                   lambda c: c.derivative(vars),
+                                                   P.is_sparse())
         return P.element_class(P, coeff_stream)
 
     def approximate_series(self, prec, name=None):
@@ -4679,7 +4684,8 @@ class LazyPowerSeries(LazyCauchyProductSeries):
             v = gen_vars + vars
             d = -len(gen_vars)
             coeff_stream = Stream_map_coefficients(coeff_stream,
-                                                   lambda c: R(c).derivative(v))
+                                                   lambda c: R(c).derivative(v),
+                                                   P.is_sparse())
             coeff_stream = Stream_shift(coeff_stream, d)
             return P.element_class(P, coeff_stream)
 
@@ -4700,10 +4706,12 @@ class LazyPowerSeries(LazyCauchyProductSeries):
                                         constant=coeff_stream._constant)
             return P.element_class(P, coeff_stream)
 
-        coeff_stream = Stream_derivative(self._coeff_stream, order)
+        coeff_stream = Stream_derivative(self._coeff_stream, order,
+                                         P.is_sparse())
         if vars:
             coeff_stream = Stream_map_coefficients(coeff_stream,
-                                                   lambda c: c.derivative(vars))
+                                                   lambda c: c.derivative(vars),
+                                                   P.is_sparse())
         return P.element_class(P, coeff_stream)
 
     def _format_series(self, formatter, format_strings=False):
@@ -5508,7 +5516,8 @@ class LazySymmetricFunction(LazyCompletionGradedAlgebraElement):
             raise ValueError("arity must be equal to 1")
 
         coeff_stream = Stream_map_coefficients(self._coeff_stream,
-                                               lambda c: c.derivative_with_respect_to_p1(n))
+                                               lambda c: c.derivative_with_respect_to_p1(n),
+                                               P.is_sparse())
         coeff_stream = Stream_shift(coeff_stream, -n)
         return P.element_class(P, coeff_stream)
 
@@ -5643,8 +5652,8 @@ class LazySymmetricFunction(LazyCompletionGradedAlgebraElement):
 
             p = R.realization_of().p()
             # TODO: does the following introduce a memory leak?
-            g = Stream_map_coefficients(g._coeff_stream, p)
-            f = Stream_map_coefficients(self._coeff_stream, p)
+            g = Stream_map_coefficients(g._coeff_stream, p, P.is_sparse())
+            f = Stream_map_coefficients(self._coeff_stream, p, P.is_sparse())
 
             def g_cycle_type(s, n):
                 # the cycle type of G[sigma] of any permutation sigma
@@ -5900,8 +5909,8 @@ class LazySymmetricFunction(LazyCompletionGradedAlgebraElement):
 
             p = R.realization_of().p()
             # TODO: does the following introduce a memory leak?
-            g = Stream_map_coefficients(g._coeff_stream, p)
-            f = Stream_map_coefficients(self._coeff_stream, p)
+            g = Stream_map_coefficients(g._coeff_stream, p, P.is_sparse())
+            f = Stream_map_coefficients(self._coeff_stream, p, P.is_sparse())
 
             def coefficient(n):
                 if not n:
@@ -6162,7 +6171,8 @@ class LazyDirichletSeries(LazyModuleElement):
             ZeroDivisionError: rational division by zero
         """
         P = self.parent()
-        return P.element_class(P, Stream_dirichlet_invert(self._coeff_stream))
+        return P.element_class(P, Stream_dirichlet_invert(self._coeff_stream,
+                                                          P.is_sparse()))
 
     def __call__(self, p, *, check=True):
         r"""

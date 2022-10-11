@@ -725,7 +725,7 @@ class LazySeriesRing(UniqueRepresentation, Parent):
             sage: L.zero()
             0
         """
-        return self.element_class(self, Stream_zero(self._sparse))
+        return self.element_class(self, Stream_zero())
 
     def characteristic(self):
         """
@@ -1847,7 +1847,7 @@ class LazyPowerSeriesRing(LazySeriesRing):
 
         if x in R:
             if not x and not constant:
-                coeff_stream = Stream_zero(self._sparse)
+                coeff_stream = Stream_zero()
             else:
                 if not x:
                     coeff_stream = Stream_exact([],
@@ -2314,7 +2314,7 @@ class LazyCompletionGradedAlgebra(LazySeriesRing):
             pass
         if x in R:
             if not x:
-                coeff_stream = Stream_zero(self._sparse)
+                coeff_stream = Stream_zero()
             else:
                 p_dict = {}
                 if self._arity == 1:

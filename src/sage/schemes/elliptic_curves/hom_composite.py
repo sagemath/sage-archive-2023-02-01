@@ -769,48 +769,17 @@ class EllipticCurveHom_composite(EllipticCurveHom):
     @staticmethod
     def make_default():
         r"""
-        Calling this method will override the composition method
-        of :class:`EllipticCurveHom` such that it constructs a
-        :class:`EllipticCurveHom_composite` object by default,
-        rather than a :class:`sage.categories.map.FormalCompositeMap`.
+        This method does nothing and will be removed.
 
-        .. WARNING::
-
-            This method exists only temporarily to make testing more
-            convenient while :class:`EllipticCurveHom_composite` is
-            not yet the default.
+        (It is a leftover from the time when :class:`EllipticCurveHom_composite`
+        wasn't the default yet.)
 
         EXAMPLES::
 
             sage: from sage.schemes.elliptic_curves.hom_composite import EllipticCurveHom_composite
-            sage: E = EllipticCurve(GF(587), [1,0])
-            sage: P = E(3,404)
-            sage: phi = E.isogeny(7*P)
-            sage: psi = phi.codomain().isogeny(phi(P))
-            sage: psi * phi
-            Composite map:
-              From: Elliptic Curve defined by y^2 = x^3 + x over Finite Field of size 587
-              To:   Elliptic Curve defined by y^2 = x^3 + 296*x + 164 over Finite Field of size 587
-              Defn:   Isogeny of degree 7 from Elliptic Curve defined by y^2 = x^3 + x over Finite Field of size 587 to Elliptic Curve defined by y^2 = x^3 + 126*x + 500 over Finite Field of size 587
-                    then
-                      Isogeny of degree 7 from Elliptic Curve defined by y^2 = x^3 + 126*x + 500 over Finite Field of size 587 to Elliptic Curve defined by y^2 = x^3 + 296*x + 164 over Finite Field of size 587
             sage: EllipticCurveHom_composite.make_default()
-            sage: psi * phi
-            Composite morphism of degree 49 = 7^2:
-              From: Elliptic Curve defined by y^2 = x^3 + x over Finite Field of size 587
-              To:   Elliptic Curve defined by y^2 = x^3 + 296*x + 164 over Finite Field of size 587
-            sage: (psi * phi).factors()
-            (Isogeny of degree 7 from Elliptic Curve defined by y^2 = x^3 + x over Finite Field of size 587 to Elliptic Curve defined by y^2 = x^3 + 126*x + 500 over Finite Field of size 587,
-             Isogeny of degree 7 from Elliptic Curve defined by y^2 = x^3 + 126*x + 500 over Finite Field of size 587 to Elliptic Curve defined by y^2 = x^3 + 296*x + 164 over Finite Field of size 587)
+            doctest:warning ...
         """
-        def _composition_(self, other, homset):
-            if not isinstance(self, EllipticCurveHom) or not isinstance(other, EllipticCurveHom):
-                raise TypeError(f'cannot compose {type(self)} with {type(other)}')
-            ret = self._composition_impl(self, other)
-            if ret is not NotImplemented:
-                return ret
-            ret = other._composition_impl(self, other)
-            if ret is not NotImplemented:
-                return ret
-            return EllipticCurveHom_composite.from_factors([other, self])
-        EllipticCurveHom._composition_ = _composition_
+        from sage.misc.superseded import deprecation
+        deprecation(34410, 'calling EllipticCurveHom_composite.make_default() is no longer necessary')
+

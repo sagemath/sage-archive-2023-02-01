@@ -188,12 +188,12 @@ and the description web-pages of the properties::
     True
 
 To see all the properties available in this interface you can use "tab-completion".
-For example type ``K.items.`` and than hit the "tab-key". You can select the item
+For example type ``K.items.`` and than hit the :kbd:`Tab` key. You can select the item
 you want from the list. If you know some first letters type them first to obtain a
 reduced selection list.
 
 In a similar way you may select the knots and links. Here you have to type ``KnotInfo.``
-or ``KnotInfo.L7`` before stroking the "tab-key". In the latter case  the selection list
+or ``KnotInfo.L7`` before stroking the :kbd:`Tab` key. In the latter case  the selection list
 will be reduced to proper links with 7 crossings.
 
 Finally there is a method :meth:`Link.get_knotinfo` of class :class:`Link` to find an instance

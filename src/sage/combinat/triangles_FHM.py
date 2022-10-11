@@ -13,6 +13,11 @@ for graded posets. A typical example is::
     sage: posets.NoncrossingPartitions(W).M_triangle()
     x^3*y^3 - 6*x^2*y^3 + 6*x^2*y^2 + 10*x*y^3 - 16*x*y^2 - 5*y^3
     + 6*x*y + 10*y^2 - 6*y + 1
+    sage: unicode_art(_)
+    ⎛ -5  10  -6   1⎞
+    ⎜ 10 -16   6   0⎟
+    ⎜ -6   6   0   0⎟
+    ⎝  1   0   0   0⎠
 
 The F-triangle class is motivated by the generating series of pure
 simplicial complexes endowed with a distinguished facet. One can also
@@ -23,6 +28,11 @@ cone. A typical example is::
     sage: f = C.greedy_facet()
     sage: C.F_triangle(f)
     5*x^3 + 5*x^2*y + 3*x*y^2 + y^3 + 10*x^2 + 8*x*y + 3*y^2 + 6*x + 3*y + 1
+    sage: unicode_art(_)
+    ⎛ 1  0  0  0⎞
+    ⎜ 3  3  0  0⎟
+    ⎜ 3  8  5  0⎟
+    ⎝ 1  6 10  5⎠
 
 The H-triangles are related to the F-triangles by a relationship
 similar to the classical link between the f-vector and the h-vector of a
@@ -40,7 +50,7 @@ from sage.structure.sage_object import SageObject
 
 def _matrix_display(self, variables=None):
     """
-    Return the 2-variables polynomial ``self`` as a matrix for display.
+    Return the 2-variable polynomial ``self`` as a matrix for display.
 
     INPUT:
 
@@ -79,9 +89,9 @@ def _matrix_display(self, variables=None):
     else:
         x, y = variables
         ring = self.parent()
-        toutes_vars = x.parent().gens()
-        ix = toutes_vars.index(x)
-        iy = toutes_vars.index(y)
+        all_vars = x.parent().gens()
+        ix = all_vars.index(x)
+        iy = all_vars.index(y)
     minx = min(u[ix] for u in support)
     maxy = max(u[iy] for u in support)
     deltax = max(u[ix] for u in support) - minx + 1

@@ -11,8 +11,8 @@ for graded posets. A typical example is::
 
     sage: W = SymmetricGroup(4)
     sage: posets.NoncrossingPartitions(W).M_triangle()
-    x^3*y^3 - 6*x^2*y^3 + 6*x^2*y^2 + 10*x*y^3 - 16*x*y^2 - 5*y^3
-    + 6*x*y + 10*y^2 - 6*y + 1
+    M: x^3*y^3 - 6*x^2*y^3 + 6*x^2*y^2 + 10*x*y^3 - 16*x*y^2
+    - 5*y^3 + 6*x*y + 10*y^2 - 6*y + 1
     sage: unicode_art(_)
     ⎛ -5  10  -6   1⎞
     ⎜ 10 -16   6   0⎟
@@ -27,7 +27,7 @@ cone. A typical example is::
     sage: C = ClusterComplex(['A',3])
     sage: f = C.greedy_facet()
     sage: C.F_triangle(f)
-    5*x^3 + 5*x^2*y + 3*x*y^2 + y^3 + 10*x^2 + 8*x*y + 3*y^2 + 6*x + 3*y + 1
+    F: 5*x^3 + 5*x^2*y + 3*x*y^2 + y^3 + 10*x^2 + 8*x*y + 3*y^2 + 6*x + 3*y + 1
     sage: unicode_art(_)
     ⎛ 1  0  0  0⎞
     ⎜ 3  3  0  0⎟
@@ -168,9 +168,9 @@ class Triangle(SageObject):
             sage: x, y = polygens(ZZ, 'x,y')
             sage: ht = H_triangle(1+2*x*y)
             sage: ht
-            2*x*y + 1
+            H: 2*x*y + 1
         """
-        return repr(self._poly)
+        return self._prefix + repr(self._poly)
 
     def __eq__(self, other) -> bool:
         """
@@ -283,7 +283,7 @@ class Triangle(SageObject):
             sage: x, y = polygens(ZZ, 'x,y')
             sage: h = H_triangle(1+2*x*y)
             sage: h.truncate(2)
-            2*x*y + 1
+            H: 2*x*y + 1
         """
         p = self._poly
         for v in self._vars:
@@ -302,8 +302,10 @@ class M_triangle(Triangle):
         sage: x, y = polygens(ZZ, 'x,y')
         sage: P = Poset({2:[1]})
         sage: P.M_triangle()
-        x*y - y + 1
+        M: x*y - y + 1
     """
+    _prefix = 'M: '
+
     def dual(self):
         """
         Return the dual M-triangle.
@@ -347,7 +349,7 @@ class M_triangle(Triangle):
             sage: nc3 = x^2*y^2 - 3*x*y^2 + 3*x*y + 2*y^2 - 3*y + 1
             sage: m = M_triangle(nc3)
             sage: m2 = m.transmute(); m2
-            2*x^2*y^2 - 3*x*y^2 + 2*x*y + y^2 - 2*y + 1
+            M: 2*x^2*y^2 - 3*x*y^2 + 2*x*y + y^2 - 2*y + 1
             sage: m2.transmute() == m
             True
         """
@@ -362,7 +364,7 @@ class M_triangle(Triangle):
             sage: from sage.combinat.triangles_FHM import M_triangle
             sage: x, y = polygens(ZZ,'x,y')
             sage: M_triangle(1-y+x*y).h()
-            x*y + 1
+            H: x*y + 1
 
         TESTS::
 
@@ -370,7 +372,7 @@ class M_triangle(Triangle):
             sage: x, y = polygens(h.parent(),'x,y')
             sage: mt = x**2*y**2+(-2*h+2)*x*y**2+(2*h-2)*x*y+(2*h-3)*y**2+(-2*h+2)*y+1
             sage: M_triangle(mt, [x,y]).h()
-            x^2*y^2 + 2*x*y + (2*h - 4)*x + 1
+            H: x^2*y^2 + 2*x*y + (2*h - 4)*x + 1
         """
         x, y = self._vars
         n = self._n
@@ -388,7 +390,7 @@ class M_triangle(Triangle):
             sage: from sage.combinat.triangles_FHM import M_triangle
             sage: x, y = polygens(ZZ,'x,y')
             sage: M_triangle(1-y+x*y).f()
-            x + y + 1
+            F: x + y + 1
 
         TESTS::
 
@@ -396,7 +398,7 @@ class M_triangle(Triangle):
             sage: x, y = polygens(h.parent(),'x,y')
             sage: mt = x**2*y**2+(-2*h+2)*x*y**2+(2*h-2)*x*y+(2*h-3)*y**2+(-2*h+2)*y+1
             sage: M_triangle(mt, [x,y]).f()
-            (2*h - 3)*x^2 + 2*x*y + y^2 + (2*h - 2)*x + 2*y + 1
+            F: (2*h - 3)*x^2 + 2*x*y + y^2 + (2*h - 2)*x + 2*y + 1
         """
         return self.h().f()
 
@@ -405,6 +407,8 @@ class H_triangle(Triangle):
     """
     Class for the H-triangles.
     """
+    _prefix = 'H: '
+
     def transpose(self):
         """
         Return the transposed H-triangle.
@@ -422,9 +426,9 @@ class H_triangle(Triangle):
             sage: from sage.combinat.triangles_FHM import H_triangle
             sage: x, y = polygens(ZZ,'x,y')
             sage: H_triangle(1+x*y).transpose()
-            x*y + 1
+            H: x*y + 1
             sage: H_triangle(x^2*y^2 + 2*x*y + x + 1).transpose()
-            x^2*y^2 + x^2*y + 2*x*y + 1
+            H: x^2*y^2 + x^2*y + 2*x*y + 1
         """
         x, y = self._vars
         n = self._n
@@ -445,8 +449,8 @@ class H_triangle(Triangle):
             sage: x, y = polygens(h.parent(),'x,y')
             sage: ht = H_triangle(x^2*y^2 + 2*x*y + 2*x*h - 4*x + 1, variables=[x,y])
             sage: ht.m()
-            x^2*y^2 + (-2*h + 2)*x*y^2 + (2*h - 2)*x*y + (2*h - 3)*y^2 +
-            (-2*h + 2)*y + 1
+            M: x^2*y^2 + (-2*h + 2)*x*y^2 + (2*h - 2)*x*y
+            + (2*h - 3)*y^2 + (-2*h + 2)*y + 1
         """
         x, y = self._vars
         n = self._n
@@ -463,13 +467,14 @@ class H_triangle(Triangle):
             sage: from sage.combinat.triangles_FHM import H_triangle
             sage: x, y = polygens(ZZ,'x,y')
             sage: H_triangle(1+x*y).f()
-            x + y + 1
+            F: x + y + 1
             sage: H_triangle(x^2*y^2 + 2*x*y + x + 1).f()
-            2*x^2 + 2*x*y + y^2 + 3*x + 2*y + 1
+            F: 2*x^2 + 2*x*y + y^2 + 3*x + 2*y + 1
             sage: flo = H_triangle(1+4*x+2*x**2+x*y*(4+8*x)+
             ....:   x**2*y**2*(6+4*x)+4*(x*y)**3+(x*y)**4).f(); flo
-            7*x^4 + 12*x^3*y + 10*x^2*y^2 + 4*x*y^3 + y^4 + 20*x^3 + 28*x^2*y
-            + 16*x*y^2 + 4*y^3 + 20*x^2 + 20*x*y + 6*y^2 + 8*x + 4*y + 1
+            F: 7*x^4 + 12*x^3*y + 10*x^2*y^2 + 4*x*y^3 + y^4 + 20*x^3
+            + 28*x^2*y + 16*x*y^2 + 4*y^3 + 20*x^2 + 20*x*y
+            + 6*y^2 + 8*x + 4*y + 1
             sage: flo(-1-x,-1-y) == flo
             True
 
@@ -478,7 +483,7 @@ class H_triangle(Triangle):
             sage: x,y,h = polygens(ZZ,'x,y,h')
             sage: ht = x^2*y^2 + 2*x*y + 2*x*h - 4*x + 1
             sage: H_triangle(ht,[x,y]).f()
-            2*x^2*h - 3*x^2 + 2*x*y + y^2 + 2*x*h - 2*x + 2*y + 1
+            F: 2*x^2*h - 3*x^2 + 2*x*y + y^2 + 2*x*h - 2*x + 2*y + 1
         """
         x, y = self._vars
         n = self._n
@@ -500,12 +505,12 @@ class H_triangle(Triangle):
             sage: x, y = polygen(ZZ,'x,y')
             sage: ht = x**2*y**2 + 2*x*y + x + 1
             sage: H_triangle(ht).gamma()
-            y^2 + x
+            Γ: y^2 + x
 
             sage: W = SymmetricGroup(5)
             sage: P = posets.NoncrossingPartitions(W)
             sage: P.M_triangle().h().gamma()
-            y^4 + 3*x*y^2 + 2*x^2 + 2*x*y + x
+            Γ: y^4 + 3*x*y^2 + 2*x^2 + 2*x*y + x
         """
         x, y = self._vars
         n = self._n
@@ -539,6 +544,8 @@ class F_triangle(Triangle):
     """
     Class for the F-triangles.
     """
+    _prefix = 'F: '
+
     def h(self):
         """
         Return the associated H-triangle.
@@ -549,7 +556,7 @@ class F_triangle(Triangle):
             sage: x,y = polygens(ZZ,'x,y')
             sage: ft = F_triangle(1+x+y)
             sage: ft.h()
-            x*y + 1
+            H: x*y + 1
 
         TESTS::
 
@@ -557,7 +564,7 @@ class F_triangle(Triangle):
             sage: x, y = polygens(h.parent(),'x,y')
             sage: ft = 1+2*y+(2*h-2)*x+y**2+2*x*y+(2*h-3)*x**2
             sage: F_triangle(ft, [x,y]).h()
-            x^2*y^2 + 2*x*y + (2*h - 4)*x + 1
+            H: x^2*y^2 + 2*x*y + (2*h - 4)*x + 1
         """
         x, y = self._vars
         n = self._n
@@ -574,36 +581,35 @@ class F_triangle(Triangle):
             sage: from sage.combinat.triangles_FHM import H_triangle
             sage: x, y = polygens(ZZ,'x,y')
             sage: H_triangle(1+x*y).f()
-            x + y + 1
+            F: x + y + 1
             sage: _.m()
-            x*y - y + 1
+            M: x*y - y + 1
 
             sage: H_triangle(x^2*y^2 + 2*x*y + x + 1).f()
-            2*x^2 + 2*x*y + y^2 + 3*x + 2*y + 1
+            F: 2*x^2 + 2*x*y + y^2 + 3*x + 2*y + 1
             sage: _.m()
-            x^2*y^2 - 3*x*y^2 + 3*x*y + 2*y^2 - 3*y + 1
+            M: x^2*y^2 - 3*x*y^2 + 3*x*y + 2*y^2 - 3*y + 1
 
         TESTS::
 
             sage: p = 1+4*x+2*x**2+x*y*(4+8*x)
             sage: p += x**2*y**2*(6+4*x)+4*(x*y)**3+(x*y)**4
             sage: flo = H_triangle(p).f(); flo
-            7*x^4 + 12*x^3*y + 10*x^2*y^2 + 4*x*y^3 + y^4 + 20*x^3
-            + 28*x^2*y + 16*x*y^2 + 4*y^3 + 20*x^2 + 20*x*y + 6*y^2
-            + 8*x + 4*y + 1
+            F: 7*x^4 + 12*x^3*y + 10*x^2*y^2 + 4*x*y^3 + y^4 + 20*x^3
+            + 28*x^2*y + 16*x*y^2 + 4*y^3 + 20*x^2 + 20*x*y
+            + 6*y^2 + 8*x + 4*y + 1
             sage: flo.m()
-            x^4*y^4 - 8*x^3*y^4 + 8*x^3*y^3 + 20*x^2*y^4
-            - 36*x^2*y^3 - 20*x*y^4
-            + 16*x^2*y^2 + 48*x*y^3 + 7*y^4 - 36*x*y^2 - 20*y^3 + 8*x*y
-            + 20*y^2 - 8*y + 1
+            M: x^4*y^4 - 8*x^3*y^4 + 8*x^3*y^3 + 20*x^2*y^4 - 36*x^2*y^3
+            - 20*x*y^4 + 16*x^2*y^2 + 48*x*y^3 + 7*y^4 - 36*x*y^2 - 20*y^3
+            + 8*x*y + 20*y^2 - 8*y + 1
 
             sage: from sage.combinat.triangles_FHM import F_triangle
             sage: h = polygen(ZZ, 'h')
             sage: x, y = polygens(h.parent(),'x,y')
             sage: ft = F_triangle(1+2*y+(2*h-2)*x+y**2+2*x*y+(2*h-3)*x**2,(x,y))
             sage: ft.m()
-            x^2*y^2 + (-2*h + 2)*x*y^2 + (2*h - 2)*x*y + (2*h - 3)*y^2
-            + (-2*h + 2)*y + 1
+            M: x^2*y^2 + (-2*h + 2)*x*y^2 + (2*h - 2)*x*y
+            + (2*h - 3)*y^2 + (-2*h + 2)*y + 1
         """
         x, y = self._vars
         n = self._n
@@ -635,6 +641,8 @@ class Gamma_triangle(Triangle):
     """
     Class for the Gamma-triangles.
     """
+    _prefix = 'Γ: '
+
     def h(self):
         r"""
         Return the associated H-triangle.
@@ -652,7 +660,7 @@ class Gamma_triangle(Triangle):
             sage: x, y = polygen(ZZ,'x,y')
             sage: g = y**2 + x
             sage: Gamma_triangle(g).h()
-            x^2*y^2 + 2*x*y + x + 1
+            H: x^2*y^2 + 2*x*y + x + 1
 
             sage: a, b = polygen(ZZ, 'a, b')
             sage: x, y = polygens(a.parent(),'x,y')

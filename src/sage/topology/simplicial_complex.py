@@ -1602,7 +1602,8 @@ class SimplicialComplex(Parent, GenericCellComplex):
 
             sage: cs = simplicial_complexes.Torus()
             sage: cs.F_triangle(cs.facets()[0])
-            x^3 + 9*x^2*y + 3*x*y^2 + y^3 + 6*x^2 + 12*x*y + 3*y^2 + 4*x + 3*y + 1
+            F: x^3 + 9*x^2*y + 3*x*y^2 + y^3 + 6*x^2 + 12*x*y
+            + 3*y^2 + 4*x + 3*y + 1
         """
         x, y = polygens(ZZ, 'x, y')
         from sage.combinat.triangles_FHM import F_triangle

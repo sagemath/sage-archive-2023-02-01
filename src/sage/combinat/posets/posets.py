@@ -7280,7 +7280,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
             sage: P = posets.DiamondPoset(5)
             sage: P.M_triangle()
-            x^2*y^2 - 3*x*y^2 + 3*x*y + 2*y^2 - 3*y + 1
+            M: x^2*y^2 - 3*x*y^2 + 3*x*y + 2*y^2 - 3*y + 1
 
         TESTS::
 

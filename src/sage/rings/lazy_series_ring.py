@@ -426,11 +426,6 @@ class LazySeriesRing(UniqueRepresentation, Parent):
 
             sage: L(filter(is_odd, NN), -3)
             z^-3 + 3*z^-2 + 5*z^-1 + 7 + 9*z + 11*z^2 + 13*z^3 + O(z^4)
-
-        .. TODO::
-
-            Add a method to change the sparse/dense implementation.
-
         """
         if valuation is not None and valuation not in ZZ:
             raise ValueError("the valuation must be an integer")
@@ -482,10 +477,6 @@ class LazySeriesRing(UniqueRepresentation, Parent):
 
             # Handle when it is a lazy series
             if isinstance(x, self.Element):
-                # if x._coeff_stream._is_sparse is not self._sparse:
-                    # TODO: Implement a way to make a self._sparse copy
-                #    raise NotImplementedError("cannot convert between sparse and dense")
-
                 # If x is known to be 0
                 if isinstance(x._coeff_stream, Stream_zero):
                     if not constant:
@@ -1769,10 +1760,6 @@ class LazyPowerSeriesRing(LazySeriesRing):
             sage: g = L([1,3,5,7,9], 5, -1); g
             z^5 + 3*z^6 + 5*z^7 + 7*z^8 + 9*z^9 - z^10 - z^11 - z^12 + O(z^13)
 
-        .. TODO::
-
-            Add a method to change the sparse/dense implementation.
-
         Finally, ``x`` can be a polynomial::
 
             sage: P.<x> = QQ[]
@@ -1875,30 +1862,27 @@ class LazyPowerSeriesRing(LazySeriesRing):
             return self.element_class(self, coeff_stream)
 
         if isinstance(x, LazyPowerSeries):
-            # if x._coeff_stream._is_sparse is self._sparse:
-                stream = x._coeff_stream
-                if isinstance(stream, Stream_exact):
-                    if self._arity == 1:
-                        BR = self.base_ring()
-                    else:
-                        BR = self._laurent_poly_ring
-                    coeffs = [BR(val) for val in stream._initial_coefficients]
-                    valuation = stream._approximate_order
-                    for i, c in enumerate(coeffs):
-                        if c:
-                            valuation += i
-                            coeffs = coeffs[i:]
-                            break
-                    else:
-                        valuation += len(coeffs)
-                        coeffs = []
-                    return self(coeffs,
-                                degree=stream._degree,
-                                constant=self.base_ring()(stream._constant),
-                                valuation=valuation)
-                return self.element_class(self, stream)
-            # TODO: Implement a way to make a self._sparse copy
-            # raise NotImplementedError("cannot convert between sparse and dense")
+            stream = x._coeff_stream
+            if isinstance(stream, Stream_exact):
+                if self._arity == 1:
+                    BR = self.base_ring()
+                else:
+                    BR = self._laurent_poly_ring
+                coeffs = [BR(val) for val in stream._initial_coefficients]
+                valuation = stream._approximate_order
+                for i, c in enumerate(coeffs):
+                    if c:
+                        valuation += i
+                        coeffs = coeffs[i:]
+                        break
+                else:
+                    valuation += len(coeffs)
+                    coeffs = []
+                return self(coeffs,
+                            degree=stream._degree,
+                            constant=self.base_ring()(stream._constant),
+                            valuation=valuation)
+            return self.element_class(self, stream)
 
         if callable(x) or isinstance(x, (GeneratorType, map, filter)):
             if valuation is None:
@@ -2259,10 +2243,6 @@ class LazyCompletionGradedAlgebra(LazySeriesRing):
             sage: f = L([m[1],m[2],m[3]], valuation=1); f
             m[1] + m[2] + m[3]
 
-        .. TODO::
-
-            Add a method to change the sparse/dense implementation.
-
         Finally, ``x`` can be a symmetric function::
 
             sage: m = SymmetricFunctions(ZZ).m()
@@ -2340,10 +2320,7 @@ class LazyCompletionGradedAlgebra(LazySeriesRing):
             return self.element_class(self, coeff_stream)
 
         if isinstance(x, self.Element):
-            # if x._coeff_stream._is_sparse is self._sparse:
-                return self.element_class(self, x._coeff_stream)
-            # TODO: Implement a way to make a self._sparse copy
-            # raise NotImplementedError("cannot convert between sparse and dense")
+            return self.element_class(self, x._coeff_stream)
 
         if self._arity == 1:
             def check_homogeneous_of_degree(f, d):
@@ -2712,10 +2689,6 @@ class LazyDirichletSeriesRing(LazySeriesRing):
             sage: D = LazyDirichletSeriesRing(QQ, 't')
             sage: D(m)
             -1/(2^t) - 1/(3^t) - 1/(5^t) + 1/(6^t) - 1/(7^t) + O(1/(9^t))
-
-        .. TODO::
-
-            Add a method to make a copy of ``self._sparse``.
         """
         if isinstance(x, (list, tuple)):
             p = self._internal_poly_ring(x)

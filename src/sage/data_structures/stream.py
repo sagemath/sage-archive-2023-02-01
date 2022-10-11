@@ -1390,19 +1390,6 @@ class Stream_add(Stream_binaryCommutative):
         sage: [u[i] for i in range(10)]
         [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
     """
-    def __init__(self, left, right, is_sparse):
-        """
-        Initialize ``self``.
-
-        TESTS::
-
-            sage: from sage.data_structures.stream import (Stream_function, Stream_add)
-            sage: f = Stream_function(lambda n: 1, True, 0)
-            sage: g = Stream_function(lambda n: n^2, True, 0)
-            sage: h = Stream_add(f, g, True)
-        """
-        super().__init__(left, right, is_sparse)
-
     @lazy_attribute
     def _approximate_order(self):
         """
@@ -1461,19 +1448,6 @@ class Stream_sub(Stream_binary):
         sage: [u[i] for i in range(10)]
         [1, 0, -1, -2, -3, -4, -5, -6, -7, -8]
     """
-    def __init__(self, left, right, is_sparse):
-        """
-        initialize ``self``.
-
-        TESTS::
-
-            sage: from sage.data_structures.stream import (Stream_function, Stream_sub)
-            sage: f = Stream_function(lambda n: 1, True, 0)
-            sage: g = Stream_function(lambda n: n^2, True, 0)
-            sage: h = Stream_sub(f, g, True)
-        """
-        super().__init__(left, right, is_sparse)
-
     @lazy_attribute
     def _approximate_order(self):
         """
@@ -1540,19 +1514,6 @@ class Stream_cauchy_mul(Stream_binary):
         sage: [u[i] for i in range(10)]
         [0, 1, 3, 6, 10, 15, 21, 28, 36, 45]
     """
-    def __init__(self, left, right, is_sparse):
-        """
-        initialize ``self``.
-
-        TESTS::
-
-            sage: from sage.data_structures.stream import (Stream_function, Stream_cauchy_mul)
-            sage: f = Stream_function(lambda n: 1, True, 0)
-            sage: g = Stream_function(lambda n: n^2, True, 0)
-            sage: h = Stream_cauchy_mul(f, g, True)
-        """
-        super().__init__(left, right, is_sparse)
-
     @lazy_attribute
     def _approximate_order(self):
         """
@@ -1647,26 +1608,6 @@ class Stream_dirichlet_convolve(Stream_binary):
         sage: [u[i] for i in range(1, 10)]
         [1, 3, 4, 7, 6, 12, 8, 15, 13]
     """
-    def __init__(self, left, right, is_sparse):
-        """
-        Initialize ``self``.
-
-            sage: from sage.data_structures.stream import (Stream_dirichlet_convolve, Stream_function, Stream_exact)
-            sage: f = Stream_function(lambda n: n, True, 1)
-            sage: g = Stream_exact([1], constant=0)
-            sage: h = Stream_dirichlet_convolve(f, g, True)
-            sage: h[1]
-            Traceback (most recent call last):
-            ...
-            ValueError: Dirichlet convolution is only defined for coefficient streams with minimal index of nonzero coefficient at least 1
-            sage: h = Stream_dirichlet_convolve(g, f, True)
-            sage: h[1]
-            Traceback (most recent call last):
-            ...
-            ValueError: Dirichlet convolution is only defined for coefficient streams with minimal index of nonzero coefficient at least 1
-        """
-        super().__init__(left, right, is_sparse)
-
     @lazy_attribute
     def _approximate_order(self):
         """
@@ -2448,6 +2389,9 @@ class Stream_neg(Stream_unary):
         sage: [g[i] for i in range(10)]
         [0, -1, -1, -1, -1, -1, -1, -1, -1, -1]
     """
+    # TODO: maybe we should just inherit from `Stream` instead of
+    # inheriting from `Stream_unary` and do not create a copy of the
+    # cache
     def __init__(self, series, is_sparse):
         """
         Initialize ``self``.

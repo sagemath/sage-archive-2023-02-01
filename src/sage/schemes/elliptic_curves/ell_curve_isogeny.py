@@ -18,14 +18,18 @@ the following example::
     sage: Q = E(6,5)
     sage: phi = E.isogeny(Q)
     sage: phi
-    Isogeny of degree 7 from Elliptic Curve defined by y^2 = x^3 + x + 1 over Finite Field of size 11 to Elliptic Curve defined by y^2 = x^3 + 7*x + 8 over Finite Field of size 11
+    Isogeny of degree 7 from Elliptic Curve defined by y^2 = x^3 + x + 1 over
+    Finite Field of size 11 to Elliptic Curve defined by y^2 = x^3 + 7*x + 8
+    over Finite Field of size 11
     sage: P = E(4,5)
     sage: phi(P)
     (10 : 0 : 1)
     sage: phi.codomain()
     Elliptic Curve defined by y^2 = x^3 + 7*x + 8 over Finite Field of size 11
     sage: phi.rational_maps()
-    ((x^7 + 4*x^6 - 3*x^5 - 2*x^4 - 3*x^3 + 3*x^2 + x - 2)/(x^6 + 4*x^5 - 4*x^4 - 5*x^3 + 5*x^2), (x^9*y - 5*x^8*y - x^7*y + x^5*y - x^4*y - 5*x^3*y - 5*x^2*y - 2*x*y - 5*y)/(x^9 - 5*x^8 + 4*x^6 - 3*x^4 + 2*x^3))
+    ((x^7 + 4*x^6 - 3*x^5 - 2*x^4 - 3*x^3 + 3*x^2 + x - 2)/(x^6 + 4*x^5 - 4*x^4
+    - 5*x^3 + 5*x^2), (x^9*y - 5*x^8*y - x^7*y + x^5*y - x^4*y - 5*x^3*y -
+    5*x^2*y - 2*x*y - 5*y)/(x^9 - 5*x^8 + 4*x^6 - 3*x^4 + 2*x^3))
 
 The methods directly accessible from an elliptic curve ``E`` over a
 field are
@@ -337,7 +341,6 @@ def compute_vw_kohel_even_deg3(b2, b4, s1, s2, s3):
     w = 3*(s1**3 - 3*s1*s2 + 3*s3) + (b2*temp1 + b4*s1)/2
     return v, w
 
-
 def compute_vw_kohel_odd(b2, b4, b6, s1, s2, s3, n):
     r"""
     Compute Vélu's `(v,w)` using Kohel's formulas for isogenies of odd
@@ -373,7 +376,6 @@ def compute_vw_kohel_odd(b2, b4, b6, s1, s2, s3, n):
     v = 6*(s1**2 - 2*s2) + b2*s1 + n*b4
     w = 10*(s1**3 - 3*s1*s2 + 3*s3) + 2*b2*(s1**2 - 2*s2) + 3*b4*s1 + n*b6
     return v, w
-
 
 def compute_codomain_kohel(E, kernel):
     r"""
@@ -481,7 +483,6 @@ def compute_codomain_kohel(E, kernel):
 
     return compute_codomain_formula(E, v, w)
 
-
 def two_torsion_part(E, psi):
     r"""
     Return the greatest common divisor of ``psi`` and the 2-torsion
@@ -515,6 +516,7 @@ def two_torsion_part(E, psi):
     x = psi.parent().gen() # NB psi is univariate but could be constant
     psi_2 = E.two_division_polynomial(x)
     return psi.gcd(psi_2)
+
 
 class EllipticCurveIsogeny(EllipticCurveHom):
     r"""
@@ -1739,7 +1741,6 @@ class EllipticCurveIsogeny(EllipticCurveHom):
         post_isom = oldE2.isomorphism_to(codomain)
         self.__set_post_isomorphism(codomain, post_isom)
 
-
     ###########################
     # Velu's Formula Functions
     ###########################
@@ -1873,7 +1874,6 @@ class EllipticCurveIsogeny(EllipticCurveHom):
         """
         return compute_codomain_formula(self._domain, self.__v, self.__w)
 
-
     @staticmethod
     def __velu_sum_helper(xQ, Qvalues, a1, a3, x, y):
         r"""
@@ -1922,7 +1922,6 @@ class EllipticCurveIsogeny(EllipticCurveHom):
 
         return tX, tY
 
-
     def __compute_via_velu_numeric(self, xP, yP):
         r"""
         Private function that sorts the list of points in the kernel
@@ -1951,7 +1950,6 @@ class EllipticCurveIsogeny(EllipticCurveHom):
             return ()
 
         return self.__compute_via_velu(xP,yP)
-
 
     def __compute_via_velu(self, xP, yP):
         r"""
@@ -2018,7 +2016,6 @@ class EllipticCurveIsogeny(EllipticCurveHom):
 
         return X, Y
 
-
     def __initialize_rational_maps_via_velu(self):
         r"""
         Private function for Vélu's formulas, helper function to
@@ -2039,7 +2036,6 @@ class EllipticCurveIsogeny(EllipticCurveHom):
         x = self.__poly_ring.gen()
         y = self.__mpoly_ring.gen(1)
         return self.__compute_via_velu(x,y)
-
 
     def __init_kernel_polynomial_velu(self):
         r"""
@@ -2069,7 +2065,6 @@ class EllipticCurveIsogeny(EllipticCurveHom):
             psi *= x - invX(xQ)
 
         self.__kernel_polynomial = psi
-
 
     ###################################
     # Kohel's Variant of Velu's Formula
@@ -2262,7 +2257,6 @@ class EllipticCurveIsogeny(EllipticCurveHom):
 
         return phi, omega, v, w, n, d
 
-
     def __init_odd_kernel_polynomial(self, E, psi):
         r"""
         Return the isogeny parameters for a cyclic isogeny of odd degree.
@@ -2362,7 +2356,6 @@ class EllipticCurveIsogeny(EllipticCurveHom):
             omega = self.__compute_omega_general(E, psi, psi_pr, phi, phi_pr)
 
         return phi, omega, v, w, n, d
-
 
     #
     # This is the fast omega computation that works when characteristic is not 2
@@ -2691,36 +2684,6 @@ class EllipticCurveIsogeny(EllipticCurveHom):
         if self.__post_isomorphism is not None:
             sc *= self.__post_isomorphism.scaling_factor()
         return sc
-
-    def as_morphism(self):
-        r"""
-        Return this isogeny as a morphism of projective schemes.
-
-        EXAMPLES::
-
-            sage: k = GF(11)
-            sage: E = EllipticCurve(k, [1,1])
-            sage: Q = E(6,5)
-            sage: phi = E.isogeny(Q)
-            sage: mor = phi.as_morphism()
-            sage: mor.domain() == E
-            True
-            sage: mor.codomain() == phi.codomain()
-            True
-            sage: mor(Q) == phi(Q)
-            True
-
-        TESTS::
-
-            sage: mor(0*Q)
-            (0 : 1 : 0)
-            sage: mor(1*Q)
-            (0 : 1 : 0)
-        """
-        from sage.schemes.curves.constructor import Curve
-        X_affine = Curve(self.domain()).affine_patch(2)
-        Y_affine = Curve(self.codomain()).affine_patch(2)
-        return X_affine.hom(self.rational_maps(), Y_affine).homogenize(2)
 
     def kernel_polynomial(self):
         r"""
@@ -3246,7 +3209,6 @@ def split_kernel_polynomial(poly):
     from sage.misc.misc_c import prod
     return prod([p for p,e in poly.squarefree_decomposition()])
 
-
 def compute_isogeny_kernel_polynomial(E1, E2, ell, algorithm="starks"):
     r"""
     Return the kernel polynomial of an isogeny of degree ``ell``
@@ -3486,7 +3448,6 @@ def compute_sequence_of_maps(E1, E2, ell):
     ker_poly = compute_isogeny_kernel_polynomial(E1pr, E2pr, ell)
 
     return pre_isom, post_isom, E1pr, E2pr, ker_poly
-
 
 # Utility functions for manipulating isogeny degree matrices
 

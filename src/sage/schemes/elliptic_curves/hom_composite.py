@@ -24,7 +24,9 @@ decomposing into prime steps is exponentially faster::
     sage: EllipticCurveHom_composite(E, P)
     Composite morphism of degree 11150372599265311570767859136324180752990208 = 2^143:
       From: Elliptic Curve defined by y^2 = x^3 + x over Finite Field in z2 of size 33451117797795934712303577408972542258970623^2
-      To:   Elliptic Curve defined by y^2 = x^3 + (18676616716352953484576727486205473216172067*z2+32690199585974925193292786311814241821808308)*x + (3369702436351367403910078877591946300201903*z2+15227558615699041241851978605002704626689722) over Finite Field in z2 of size 33451117797795934712303577408972542258970623^2
+      To:   Elliptic Curve defined by y^2 = x^3 + (18676616716352953484576727486205473216172067*z2+32690199585974925193292786311814241821808308)*x
+    + (3369702436351367403910078877591946300201903*z2+15227558615699041241851978605002704626689722)
+    over Finite Field in z2 of size 33451117797795934712303577408972542258970623^2
 
 Yet, the interface provided by :class:`EllipticCurveHom_composite`
 is identical to :class:`EllipticCurveIsogeny` and other instantiations
@@ -40,10 +42,15 @@ of :class:`EllipticCurveHom`::
     sage: psi(E.lift_x(11))
     (352 : 73 : 1)
     sage: psi.rational_maps()
-    ((x^35 + 162*x^34 + 186*x^33 + 92*x^32 - ... + 44*x^3 + 190*x^2 + 80*x - 72)/(x^34 + 162*x^33 - 129*x^32 + 41*x^31 + ... + 66*x^3 - 191*x^2 + 119*x + 21),
-     (x^51*y - 176*x^50*y + 115*x^49*y - 120*x^48*y + ... + 72*x^3*y + 129*x^2*y + 163*x*y + 178*y)/(x^51 - 176*x^50 + 11*x^49 + 26*x^48 - ... - 77*x^3 + 185*x^2 + 169*x - 128))
+    ((x^35 + 162*x^34 + 186*x^33 + 92*x^32 - ... + 44*x^3 + 190*x^2 + 80*x -
+    72)/(x^34 + 162*x^33 - 129*x^32 + 41*x^31 + ... + 66*x^3 - 191*x^2 + 119*x
+    + 21), (x^51*y - 176*x^50*y + 115*x^49*y - 120*x^48*y + ... + 72*x^3*y +
+    129*x^2*y + 163*x*y + 178*y)/(x^51 - 176*x^50 + 11*x^49 + 26*x^48 - ... -
+    77*x^3 + 185*x^2 + 169*x - 128))
     sage: psi.kernel_polynomial()
-    x^17 + 81*x^16 + 7*x^15 + 82*x^14 + 49*x^13 + 68*x^12 + 109*x^11 + 326*x^10 + 117*x^9 + 136*x^8 + 111*x^7 + 292*x^6 + 55*x^5 + 389*x^4 + 175*x^3 + 43*x^2 + 149*x + 373
+    x^17 + 81*x^16 + 7*x^15 + 82*x^14 + 49*x^13 + 68*x^12 + 109*x^11 + 326*x^10
+    + 117*x^9 + 136*x^8 + 111*x^7 + 292*x^6 + 55*x^5 + 389*x^4 + 175*x^3 +
+    43*x^2 + 149*x + 373
     sage: psi.dual()
     Composite morphism of degree 35 = 7*5:
       From: Elliptic Curve defined by y^2 = x^3 + 101*x + 285 over Finite Field of size 419
@@ -82,7 +89,7 @@ from sage.schemes.elliptic_curves.hom import EllipticCurveHom, compare_via_evalu
 from sage.schemes.elliptic_curves.ell_curve_isogeny import EllipticCurveIsogeny
 from sage.schemes.elliptic_curves.weierstrass_morphism import WeierstrassIsomorphism
 
-#TODO: implement sparse strategies? (cf. the SIKE cryptosystem)
+# TODO: Implement sparse strategies? (cf. the SIKE cryptosystem)
 
 def _eval_factored_isogeny(phis, P):
     """
@@ -468,7 +475,6 @@ class EllipticCurveHom_composite(EllipticCurveHom):
         """
         return self._phis
 
-
     # EllipticCurveHom methods
 
     @staticmethod
@@ -764,7 +770,6 @@ class EllipticCurveHom_composite(EllipticCurveHom):
             True
         """
         return all(phi.is_injective() for phi in self._phis)
-
 
     @staticmethod
     def make_default():

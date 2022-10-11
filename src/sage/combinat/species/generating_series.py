@@ -143,8 +143,11 @@ class OrdinaryGeneratingSeriesRing(LazyPowerSeriesRing):
         TESTS::
 
             sage: from sage.combinat.species.generating_series import OrdinaryGeneratingSeriesRing
+            sage: OrdinaryGeneratingSeriesRing.options.halting_precision(15)
             sage: R = OrdinaryGeneratingSeriesRing(QQ)
-            sage: TestSuite(R).run(skip=["_test_associativity", "_test_distributivity", "_test_elements"])
+            sage: TestSuite(R).run()
+
+            sage: OrdinaryGeneratingSeriesRing.options._reset()  # reset options
         """
         super().__init__(base_ring, names="z")
 
@@ -264,8 +267,11 @@ class ExponentialGeneratingSeriesRing(LazyPowerSeriesRing):
         TESTS::
 
             sage: from sage.combinat.species.generating_series import ExponentialGeneratingSeriesRing
+            sage: ExponentialGeneratingSeriesRing.options.halting_precision(15)
             sage: R = ExponentialGeneratingSeriesRing(QQ)
-            sage: TestSuite(R).run(skip=["_test_associativity", "_test_distributivity", "_test_elements"])
+            sage: TestSuite(R).run()
+
+            sage: ExponentialGeneratingSeriesRing.options._reset()  # reset options
         """
         super().__init__(base_ring, names="z")
 
@@ -546,8 +552,11 @@ class CycleIndexSeriesRing(LazySymmetricFunctions):
         TESTS::
 
             sage: from sage.combinat.species.generating_series import CycleIndexSeriesRing
+            sage: CycleIndexSeriesRing.options.halting_precision(12)
             sage: R = CycleIndexSeriesRing(QQ)
-            sage: TestSuite(R).run(skip=["_test_elements", "_test_quo_rem"])
+            sage: TestSuite(R).run()
+
+            sage: CycleIndexSeriesRing.options._reset()  # reset options
         """
         p = SymmetricFunctions(base_ring).power()
         super().__init__(p)
@@ -659,4 +668,3 @@ def LogarithmCycleIndexSeries(R=QQ):
     """
     CIS = CycleIndexSeriesRing(R)
     return CIS(_cl_term)
-

@@ -3369,13 +3369,18 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: g = f.affine_preperiodic_model(0, 1); g
             Dynamical System of Projective Space of dimension 2 over Rational Field
               Defn: Defined on coordinates by sending (x : y : z) to
-                    (-x^2 : 2*x^2 + 2*x*y + y^2 : 2*x^2 + 2*x*y + 2*y^2 - 2*y*z + z^2)
+                    (-x^2 : -2*x^2 + 2*x*y - y^2 : 2*x^2 - 2*x*y + 2*y^2 + 2*y*z + z^2)
 
         We can check that ``g`` has affine fixed points::
 
             sage: g.periodic_points(1)
-            [(-1 : 1 : 1), (-1/2 : 1/2 : 1), (-1/2 : 1 : 1), (-1/3 : 2/3 : 1), (0 : 0 : 1),
-            (0 : 1/2 : 1), (0 : 1 : 1)]
+            [(-1 : -1 : 1),
+            (-1/2 : -1 : 1),
+            (-1/2 : -1/2 : 1),
+            (-1/3 : -2/3 : 1),
+            (0 : -1 : 1),
+            (0 : -1/2 : 1),
+            (0 : 0 : 1)]
 
         ::
 
@@ -3384,8 +3389,8 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: f.affine_preperiodic_model(0, 1)
             Dynamical System of Projective Space of dimension 2 over Finite Field in z2 of size 3^2
                   Defn: Defined on coordinates by sending (x : y : z) to
-                        ((z2 + 1)*x^2 : (z2 + 1)*x^2 + (z2 + 1)*x*y + (-z2 - 1)*y^2 :
-                        (z2 - 1)*x^2 + (z2 - 1)*x*y - y^2 + (-z2)*y*z + z^2)
+                        ((-z2)*x^2 : z2*x^2 + (-z2)*x*y + (-z2)*y^2 :
+                        (-z2)*x^2 + z2*x*y + (z2 + 1)*y^2 - y*z + z^2)
 
         ::
 
@@ -3396,9 +3401,8 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             Dynamical System of Projective Space of dimension 2 over
             Univariate Polynomial Ring in c over Finite Field of size 3
               Defn: Defined on coordinates by sending (x : y : z) to
-                    ((2*c^4 + c^3)*x^2 : (2*c^4 + c^3)*x^2 + (2*c^4 + c^3)*x*y + (c^4 + 2*c^3)*y^2 :
-                    c^3*x^2 + c^3*x*y + (2*c^3 + 2*c^2)*y^2 + (c^3 + 2*c^2)*y*z + (2*c^4 + 2*c^3 +
-                    2*c^2)*z^2)
+                    (2*c^3*x^2 : c^3*x^2 + 2*c^3*x*y + 2*c^3*y^2 :
+                    2*c^3*x^2 + c^3*x*y + (c^3 + c^2)*y^2 + 2*c^2*y*z + c^2*z^2)
 
         ::
 
@@ -3409,8 +3413,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             Dynamical System of Projective Space of dimension 2
             over Cyclotomic Field of order 3 and degree 2
               Defn: Defined on coordinates by sending (x : y : z) to
-                    (x^2 + y^2 + (-k + 2)*x*z - 2*y*z + (-k + 3)*z^2 :
-                    -2*x^2 + (k - 4)*x*z + (k - 3)*z^2 : -x^2 + (k - 2)*x*z + (k - 2)*z^2)
+                    (-y^2 : x^2 : x^2 + (-k)*x*z + z^2)
 
         ::
 
@@ -3429,8 +3432,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             Dynamical System of Closed subscheme of Projective Space of dimension 2 over Rational Field defined by:
               2*y - z
               Defn: Defined on coordinates by sending (x : y : z) to
-                    (2*x^2 + y^2 + 4*x*z - 2*y*z + 4*z^2 : -x^2 - y^2 - 2*x*z + 2*y*z - 3*z^2 :
-                    -x^2 - 2*x*z - 2*z^2)
+                    (-x^2 - y^2 : y^2 : x^2 + z^2)
 
         TESTS::
 

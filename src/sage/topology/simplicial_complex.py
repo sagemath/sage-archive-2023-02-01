@@ -1584,7 +1584,8 @@ class SimplicialComplex(Parent, GenericCellComplex):
 
     def F_triangle(self, S):
         """
-        Return the F-triangle of ``self`` w.r.t one maximal simplex ``S``.
+        Return the F-triangle of ``self`` with respect
+        to one maximal simplex ``S``.
 
         This is the bivariate generating polynomial of all faces,
         according to the number of elements in ``S`` and outside ``S``.

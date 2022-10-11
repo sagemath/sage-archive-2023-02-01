@@ -41,6 +41,7 @@ from sage.monoids.free_monoid_element import FreeMonoidElement
 # TODO. Word needs to be replaced by Word. Consider renaming
 # Word_class to Word and imbedding Word as its __call__ method.
 
+
 def Word(data=None, alphabet=None, length=None, datatype=None, caching=True, RSK_data=None):
     r"""
     Construct a word.
@@ -218,6 +219,7 @@ def Word(data=None, alphabet=None, length=None, datatype=None, caching=True, RSK
 
 ##### Finite Words #####
 
+
 class FiniteWord_char(WordDatatype_char, FiniteWord_class):
     r"""
     Finite word represented by an array ``unsigned char *`` (i.e. integers
@@ -279,6 +281,7 @@ class FiniteWord_char(WordDatatype_char, FiniteWord_class):
     """
     pass
 
+
 class FiniteWord_list(WordDatatype_list, FiniteWord_class):
     r"""
     Finite word represented by a Python list.
@@ -299,6 +302,7 @@ class FiniteWord_list(WordDatatype_list, FiniteWord_class):
         True
     """
     pass
+
 
 class FiniteWord_str(WordDatatype_str, FiniteWord_class):
     r"""
@@ -321,6 +325,7 @@ class FiniteWord_str(WordDatatype_str, FiniteWord_class):
     """
     pass
 
+
 class FiniteWord_tuple(WordDatatype_tuple, FiniteWord_class):
     r"""
     Finite word represented by a Python tuple.
@@ -341,6 +346,7 @@ class FiniteWord_tuple(WordDatatype_tuple, FiniteWord_class):
         True
     """
     pass
+
 
 class FiniteWord_iter_with_caching(WordDatatype_iter_with_caching, FiniteWord_class):
     r"""
@@ -367,6 +373,7 @@ class FiniteWord_iter_with_caching(WordDatatype_iter_with_caching, FiniteWord_cl
         <class 'sage.combinat.words.word.FiniteWord_list'>
     """
     pass
+
 
 class FiniteWord_iter(WordDatatype_iter, FiniteWord_class):
     r"""
@@ -395,6 +402,7 @@ class FiniteWord_iter(WordDatatype_iter, FiniteWord_class):
         <class 'sage.combinat.words.word.FiniteWord_list'>
     """
     pass
+
 
 class FiniteWord_callable_with_caching(WordDatatype_callable_with_caching, FiniteWord_class):
     r"""
@@ -447,6 +455,7 @@ class FiniteWord_callable_with_caching(WordDatatype_callable_with_caching, Finit
     """
     pass
 
+
 class FiniteWord_callable(WordDatatype_callable, FiniteWord_class):
     r"""
     Finite word represented by a callable.
@@ -475,6 +484,7 @@ class FiniteWord_callable(WordDatatype_callable, FiniteWord_class):
         <class 'sage.combinat.words.word.FiniteWord_callable'>
     """
     pass
+
 
 ##### Infinite Words #####
 
@@ -516,6 +526,7 @@ class InfiniteWord_iter_with_caching(WordDatatype_iter_with_caching, InfiniteWor
     """
     pass
 
+
 class InfiniteWord_iter(WordDatatype_iter, InfiniteWord_class):
     r"""
     Infinite word represented by an iterable.
@@ -554,6 +565,7 @@ class InfiniteWord_iter(WordDatatype_iter, InfiniteWord_class):
     """
     pass
 
+
 class InfiniteWord_callable_with_caching(WordDatatype_callable_with_caching, InfiniteWord_class):
     r"""
     Infinite word represented by a callable (with caching).
@@ -583,6 +595,7 @@ class InfiniteWord_callable_with_caching(WordDatatype_callable_with_caching, Inf
         <class 'sage.combinat.words.word.InfiniteWord_callable_with_caching'>
     """
     pass
+
 
 class InfiniteWord_callable(WordDatatype_callable, InfiniteWord_class):
     r"""
@@ -614,6 +627,7 @@ class InfiniteWord_callable(WordDatatype_callable, InfiniteWord_class):
         <class 'sage.combinat.words.word.InfiniteWord_callable'>
     """
     pass
+
 
 ##### Words of unknown length #####
 
@@ -653,6 +667,7 @@ class Word_iter_with_caching(WordDatatype_iter_with_caching, Word_class):
     """
     pass
 
+
 class Word_iter(WordDatatype_iter, Word_class):
     r"""
     Word of unknown length (finite or infinite) represented by an
@@ -689,7 +704,9 @@ class Word_iter(WordDatatype_iter, Word_class):
     """
     pass
 
+
 ##### Morphic Words #####
+
 class FiniteWord_morphic(WordDatatype_morphic, FiniteWord_class):
     r"""
     Finite morphic word.
@@ -713,9 +730,9 @@ class FiniteWord_morphic(WordDatatype_morphic, FiniteWord_class):
         <class 'sage.combinat.words.word.FiniteWord_morphic'>
         sage: loads(dumps(w))
         word: ab
-
     """
     pass
+
 
 class InfiniteWord_morphic(WordDatatype_morphic, InfiniteWord_class):
     r"""
@@ -740,6 +757,5 @@ class InfiniteWord_morphic(WordDatatype_morphic, InfiniteWord_class):
 
         sage: loads(dumps(w))
         word: abaababaabaababaababaabaababaabaababaaba...
-
     """
     pass

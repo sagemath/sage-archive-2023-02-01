@@ -104,6 +104,7 @@ def _build_tab(sym, tab, W):
         res.append((w[-1] % c) + 1)
     return res
 
+
 class LowerChristoffelWord(FiniteWord_list):
     r"""
     Returns the lower Christoffel word of slope `p/q`, where `p` and
@@ -309,6 +310,7 @@ class LowerChristoffelWord(FiniteWord_list):
             (<class 'sage.combinat.words.word_generators.LowerChristoffelWord'>, (5, 7, {0, 1}))
         """
         return self.__class__, (self.__p, self.__q, self.parent().alphabet())
+
 
 class WordGenerator():
     r"""
@@ -1275,7 +1277,7 @@ class WordGenerator():
         if not isinstance(directive_word, Word_class):
             raise TypeError("directive_word is not a word, so it cannot be used to build an episturmian word")
         epistandard = directive_word.parent()(\
-                self._StandardEpisturmianWord_LetterIterator(directive_word), \
+                self._StandardEpisturmianWord_LetterIterator(directive_word),
                 datatype='iter')
         return epistandard
 
@@ -2041,5 +2043,6 @@ class WordGenerator():
         outer = WordMorphism('a->00,b->01,c->10,d->11')
         inner = WordMorphism('a->aa,b->cb,c->ba,d->db')
         return outer(inner.fixed_point('d'))
+
 
 words = WordGenerator()

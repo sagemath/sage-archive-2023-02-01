@@ -7270,7 +7270,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         an :class:`~sage.combinat.triangles_FHM.M_triangle`
 
-        Thie M-triangle is the generating polynomial of the Möbius numbers
+        The M-triangle is the generating polynomial of the Möbius numbers
 
         .. MATH::
 

@@ -49,7 +49,7 @@ class Rings(CategoryWithAxiom):
 
     .. TODO::
 
-        (see: https://trac.sagemath.org/sage_trac/wiki/CategoriesRoadMap)
+        (see :trac:`sage_trac/wiki/CategoriesRoadMap`)
 
         - Make Rings() into a subcategory or alias of Algebras(ZZ);
 

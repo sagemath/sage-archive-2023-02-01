@@ -375,25 +375,27 @@ class KnotInfoBase(Enum):
     @cached_method
     def __getitem__(self, item):
         r"""
-        sage: from sage.knots.knotinfo import KnotInfo
-        sage: L = KnotInfo.L4a1_0
-        sage: L[L.items.alternating]
-        'Y'
-        sage: L[L.items.arc_notation]
-        '{{6, 4}, {3, 5}, {4, 2}, {1, 3}, {2, 6}, {5, 1}}'
-        sage: L[L.items.braid_notation]
-        '{3, {-2, -2, -1, 2, -1}}'
-        sage: L[0]
-        Traceback (most recent call last):
-        ...
-        KeyError: "Item must be an instance of <enum 'KnotInfoColumns'>"
+        EXAMPLES::
+
+            sage: from sage.knots.knotinfo import KnotInfo
+            sage: L = KnotInfo.L4a1_0
+            sage: L[L.items.alternating]
+            'Y'
+            sage: L[L.items.arc_notation]
+            '{{6, 4}, {3, 5}, {4, 2}, {1, 3}, {2, 6}, {5, 1}}'
+            sage: L[L.items.braid_notation]
+            '{3, {-2, -2, -1, 2, -1}}'
+            sage: L[0]
+            Traceback (most recent call last):
+            ...
+            KeyError: "Item must be an instance of <enum 'KnotInfoColumns'>"
         """
         if not isinstance(item, KnotInfoColumns):
-            raise KeyError('Item must be an instance of %s' %(KnotInfoColumns))
+            raise KeyError('Item must be an instance of %s' % (KnotInfoColumns))
         if item.column_type() == item.types.OnlyLinks and self.is_knot():
-            raise KeyError('Item not available for knots' %(KnotInfoColumns))
+            raise KeyError('Item not available for knots' % (KnotInfoColumns))
         if item.column_type() == item.types.OnlyKnots and not self.is_knot():
-            raise KeyError('Item not available for links' %(KnotInfoColumns))
+            raise KeyError('Item not available for links' % (KnotInfoColumns))
 
         l = db.read(item)
         ind = db.read_row_dict()[self.name][0]
@@ -401,7 +403,7 @@ class KnotInfoBase(Enum):
         if item.column_type() == item.types.OnlyLinks:
             offset = self._offset_knots()
 
-        return l[ind-offset]
+        return l[ind - offset]
 
     def _offset_knots(self):
         r"""

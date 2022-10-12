@@ -718,12 +718,12 @@ def _jordan_2_adic(G):
             # if it is the last 2 x 2 block, there is nothing to do.
             if cnt != n - 2:
                 content = R(2 ** minval)
-                eqn_mat = D[cnt:cnt + 2, cnt:cnt + 2].list()
+                eqn_mat = D[cnt:cnt+2, cnt:cnt+2].list()
                 eqn_mat = Matrix(R, 2, 2, [e // content for e in eqn_mat])
                 # calculate the inverse without using division
                 inv = eqn_mat.adjugate() * eqn_mat.det().inverse_of_unit()
-                B1 = B[cnt:cnt + 2, :]
-                B2 = D[cnt + 2:, cnt:cnt + 2] * inv
+                B1 = B[cnt:cnt+2, :]
+                B2 = D[cnt+2:, cnt:cnt+2] * inv
                 for i in range(B2.nrows()):
                     for j in range(B2.ncols()):
                         B2[i, j] = B2[i, j] // content
@@ -847,9 +847,9 @@ def _normalize(G, normal_odd=True):
         D = B * G * B.T
         for i in range(n - 1):
             if D[i, i + 1] != 0:    # there is a 2 x 2 block here
-                block = D[i:i + 2, i:i + 2]
+                block = D[i:i+2, i:i+2]
                 trafo = _normalize_2x2(block)
-                B[i:i + 2, :] = trafo * B[i:i + 2, :]
+                B[i:i+2, :] = trafo * B[i:i+2, :]
     D = B * G * B.T
     return D, B
 
@@ -1465,10 +1465,10 @@ def _two_adic_normal_forms(G, partial=False):
         UV = UVlist[k]
         UVm = UVlist[k - 1]
         V = UVlist[k][-2:]
-        if len(V) != 0 and D[V[0], V[0]] == 0:
+        if V and D[V[0], V[0]] == 0:
             V = []    # it is U not V
         # condition b)
-        if len(Wm) != 0:
+        if Wm:
             if len(V) == 2:
                 R = Wm[:1] + V
                 B[R, :] = _relations(D[R, R], 7) * B[R, :]
@@ -1497,10 +1497,10 @@ def _two_adic_normal_forms(G, partial=False):
             if x == [0, 3, 7]:
                 # relation 10 should be applied to 3 to stay in homogeneous normal form
                 w = W[0]
-            if len(UVm) > 0:
+            if UVm:
                 R = UVm[-2:] + [w]
                 B[R, :] = _relations(D[R, R], 8) * B[R, :]
-            elif len(Wmm) > 0:
+            elif Wmm:
                 R = Wmm[:1] + [w]
                 B[R, :] = _relations(D[R, R], 10) * B[R, :]
             elif len(Wm) == 2:

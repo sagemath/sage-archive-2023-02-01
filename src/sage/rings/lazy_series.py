@@ -978,6 +978,8 @@ class LazyModuleElement(Element):
             sage: C.define(1 + z*C^2)
             sage: C
             1 + z + 2*z^2 + 5*z^3 + 14*z^4 + 42*z^5 + 132*z^6 + O(z^7)
+            sage: binomial(2000, 1000) / C[1000]
+            1001
 
         The Catalan numbers but with a valuation 1::
 

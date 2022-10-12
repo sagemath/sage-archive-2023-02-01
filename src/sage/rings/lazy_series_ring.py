@@ -433,7 +433,7 @@ class LazySeriesRing(UniqueRepresentation, Parent):
         if x is None and coefficients is None:
             if valuation is None:
                 raise ValueError("the valuation must be specified")
-            return self.element_class(self, Stream_uninitialized(self._sparse, valuation))
+            return self.element_class(self, Stream_uninitialized(valuation))
 
         # WARNING: if x is not explicitly specified as None, it is
         # set to 0 by Parent.__call__
@@ -606,7 +606,7 @@ class LazySeriesRing(UniqueRepresentation, Parent):
         """
         if valuation is None:
             valuation = self._minimal_valuation
-        coeff_stream = Stream_uninitialized(self._sparse, valuation)
+        coeff_stream = Stream_uninitialized(valuation)
         return self.element_class(self, coeff_stream)
 
     unknown = undefined
@@ -1817,7 +1817,7 @@ class LazyPowerSeriesRing(LazySeriesRing):
         BR = self.base_ring()
         if x is None:
             assert degree is None
-            coeff_stream = Stream_uninitialized(self._sparse, valuation)
+            coeff_stream = Stream_uninitialized(valuation)
             return self.element_class(self, coeff_stream)
 
         try:
@@ -2285,7 +2285,7 @@ class LazyCompletionGradedAlgebra(LazySeriesRing):
         R = self._laurent_poly_ring
         if x is None:
             assert degree is None
-            coeff_stream = Stream_uninitialized(self._sparse, valuation)
+            coeff_stream = Stream_uninitialized(valuation)
             return self.element_class(self, coeff_stream)
         try:
             # Try to build stuff using the polynomial ring constructor

@@ -955,7 +955,7 @@ class Stream_function(Stream_inexact):
         [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
 
         sage: f = Stream_function(lambda n: n, True, 0)
-        sage: f.get_coefficient(4)
+        sage: f[4]
         4
     """
     def __init__(self, function, is_sparse, approximate_order, true_order=False):
@@ -979,57 +979,37 @@ class Stream_uninitialized(Stream_inexact):
 
     INPUT:
 
-    - ``is_sparse`` -- boolean; which specifies whether the stream is sparse
     - ``approximate_order`` -- integer; a lower bound for the order
       of the stream
+
+    Instances of this class are always dense.
 
     EXAMPLES::
 
         sage: from sage.data_structures.stream import Stream_uninitialized
         sage: from sage.data_structures.stream import Stream_exact
         sage: one = Stream_exact([1])
-        sage: C = Stream_uninitialized(True, 0)
+        sage: C = Stream_uninitialized(0)
         sage: C._target
         sage: C._target = one
-        sage: C.get_coefficient(4)
+        sage: C[4]
         0
     """
-    def __init__(self, is_sparse, approximate_order, true_order=False):
+    def __init__(self, approximate_order, true_order=False):
         """
         Initialize ``self``.
 
         TESTS::
 
             sage: from sage.data_structures.stream import Stream_uninitialized
-            sage: C = Stream_uninitialized(False, 0)
+            sage: C = Stream_uninitialized(0)
             sage: TestSuite(C).run(skip="_test_pickling")
         """
         self._target = None
         if approximate_order is None:
             raise ValueError("the valuation must be specified for undefined series")
-        super().__init__(is_sparse, true_order)
+        super().__init__(False, true_order)
         self._approximate_order = approximate_order
-
-    def get_coefficient(self, n):
-        """
-        Return the ``n``-th coefficient of ``self``.
-
-        INPUT:
-
-        - ``n`` -- integer; the degree for the coefficient
-
-        EXAMPLES::
-
-            sage: from sage.data_structures.stream import Stream_uninitialized
-            sage: from sage.data_structures.stream import Stream_exact
-            sage: one = Stream_exact([1])
-            sage: C = Stream_uninitialized(True, 0)
-            sage: C._target
-            sage: C._target = one
-            sage: C.get_coefficient(0)
-            1
-        """
-        return self._target[n]
 
     def iterate_coefficients(self):
         """
@@ -1040,7 +1020,7 @@ class Stream_uninitialized(Stream_inexact):
             sage: from sage.data_structures.stream import Stream_uninitialized
             sage: from sage.data_structures.stream import Stream_exact
             sage: z = Stream_exact([1], order=1)
-            sage: C = Stream_uninitialized(True, 0)
+            sage: C = Stream_uninitialized(0)
             sage: C._target
             sage: C._target = z
             sage: n = C.iterate_coefficients()
@@ -2520,7 +2500,7 @@ class Stream_cauchy_invert(Stream_unary):
         """
         try:
             return -self._series.order()
-        except RecursionError:
+        except (ValueError, RecursionError):
             raise ValueError("inverse does not exist")
 
     @lazy_attribute

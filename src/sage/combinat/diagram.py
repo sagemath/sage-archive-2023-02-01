@@ -1410,8 +1410,8 @@ def RotheDiagram(w):
         raise ValueError('w must be a Permutation')
 
     N = w.size()
-
+    winv = w.inverse()
     cells = [c for c in cartesian_product_iterator((range(N), range(N)))
-             if c[0]+1 < w.inverse()(c[1]+1) and c[1]+1 < w(c[0]+1)]
+             if c[0]+1 < winv(c[1]+1) and c[1]+1 < w(c[0]+1)]
 
     return NorthwestDiagram(cells, n_rows=N, n_cols=N, check=False)

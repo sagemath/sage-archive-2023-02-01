@@ -1,1 +1,2 @@
 python311
+python311-devel

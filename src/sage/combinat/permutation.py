@@ -220,8 +220,7 @@ AUTHORS:
 - Travis Scrimshaw (2014-02-05): Made :class:`StandardPermutations_n` a
   finite Weyl group to make it more uniform with :class:`SymmetricGroup`.
   Added ability to compute the conjugacy classes.
-- Trevor K. Karn (2022-08-05): Add :meth:`Permutation.n_reduced_words` and
-  :meth:`Permutation.stanley_symmetric_function`.
+- Trevor K. Karn (2022-08-05): Add :meth:`Permutation.n_reduced_words`
 - Amrutha P, Shriya M, Divya Aggarwal (2022-08-16): Added Multimajor Index.
 
 Classes and methods
@@ -3027,26 +3026,6 @@ class Permutation(CombinatorialElement):
         Tx = self.rothe_diagram().peelable_tableaux()
 
         return sum(map(_tableau_contribution, Tx))
-
-    def stanley_symmetric_function(self):
-        r"""
-        Return the Stanley symmetric function associated to ``self``.
-
-        EXAMPLES::
-
-            sage: p = Permutation([4,5,2,3,1])
-            sage: p.stanley_symmetric_function()
-            56*m[1, 1, 1, 1, 1, 1, 1, 1] + 30*m[2, 1, 1, 1, 1, 1, 1]
-             + 16*m[2, 2, 1, 1, 1, 1] + 9*m[2, 2, 2, 1, 1] + 6*m[2, 2, 2, 2]
-             + 10*m[3, 1, 1, 1, 1, 1] + 5*m[3, 2, 1, 1, 1] + 3*m[3, 2, 2, 1]
-             + m[3, 3, 1, 1] + m[3, 3, 2] + 2*m[4, 1, 1, 1, 1] + m[4, 2, 1, 1]
-             + m[4, 2, 2]
-        """
-        from sage.combinat.sf.sf import SymmetricFunctions
-        from sage.rings.rational_field import QQ
-        s = SymmetricFunctions(QQ).s()
-        m = SymmetricFunctions(QQ).m()
-        return m(sum(s[T.shape()] for T in self.rothe_diagram().peelable_tableaux()))
 
     ################
     # Fixed Points #

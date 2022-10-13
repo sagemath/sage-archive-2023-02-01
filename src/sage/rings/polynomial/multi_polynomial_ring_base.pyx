@@ -348,7 +348,7 @@ cdef class MPolynomialRing_base(sage.rings.ring.CommutativeRing):
         return self.remove_var(x)[str(x)]
 
     def multivariate_interpolation(self, bound, *args):
-        r"""
+        """
         Create a polynomial with specified evaluations.
 
         CALL FORMATS:
@@ -361,19 +361,24 @@ cdef class MPolynomialRing_base(sage.rings.ring.CommutativeRing):
 
         INPUT:
 
-        * "bound" -- either an integer bounding the total degree or a list/tuple of integers bounding the degree of the variables
+        * "bound" -- either an integer bounding the total degree or a
+          list/tuple of integers bounding the degree of the variables
 
         * "points" -- a list/tuple containing the evaluation points
 
         * "values" -- a list/tuple containing the desired values at "points"
 
-        * "function" -- a evaluable function in n variables, where n is the number of variables of the polynomial ring
+        * "function" -- a evaluable function in n variables, where n is the
+          number of variables of the polynomial ring
 
         OUTPUT:
 
-           1. A polynomial respecting the bounds and having "values" as values when evaluated at "points".
+           1. A polynomial respecting the bounds and having "values" as values
+              when evaluated at "points".
 
-           2. A polynomial respecting the bounds and having the same values as "function" at exactly so many points so that the polynomial is unique.
+           2. A polynomial respecting the bounds and having the same values as
+              "function" at exactly so many points so that the polynomial is
+              unique.
 
         EXAMPLES::
 
@@ -407,12 +412,14 @@ cdef class MPolynomialRing_base(sage.rings.ring.CommutativeRing):
         ALGORITHM:
 
             Solves a linear system of equations with the linear algebra module.
-            If the points are not specified, it samples exactly as many points as needed for a unique solution.
+            If the points are not specified, it samples exactly as many points
+            as needed for a unique solution.
 
         NOTE:
 
-            It will only run if the base ring is a field, even though it might work otherwise as well.
-            If your base ring is an integral domain, let it run over the fraction field.
+            It will only run if the base ring is a field, even though it might
+            work otherwise as well. If your base ring is an integral domain,
+            let it run over the fraction field.
 
         WARNING::
 

@@ -1197,8 +1197,7 @@ class LazyLaurentSeriesRing(LazySeriesRing):
             raise ValueError("only univariate lazy Laurent series are implemented")
         self._arity = 1
         self._minimal_valuation = None
-        # We always use the dense because our CS_exact is implemented densely
-        self._laurent_poly_ring = LaurentPolynomialRing(base_ring, names)
+        self._laurent_poly_ring = LaurentPolynomialRing(base_ring, names, sparse=sparse)
         self._internal_poly_ring = self._laurent_poly_ring
 
         category = Algebras(base_ring.category())
@@ -1563,12 +1562,13 @@ class LazyPowerSeriesRing(LazySeriesRing):
         """
         self._sparse = sparse
         self._minimal_valuation = 0
-        self._laurent_poly_ring = PolynomialRing(base_ring, names)
         self._arity = len(names)
         if self._arity == 1:
+            self._laurent_poly_ring = PolynomialRing(base_ring, names, sparse=sparse)
             self._internal_poly_ring = self._laurent_poly_ring
         else:
-            self._internal_poly_ring = PolynomialRing(self._laurent_poly_ring, "DUMMY_VARIABLE")
+            self._laurent_poly_ring = PolynomialRing(base_ring, names)
+            self._internal_poly_ring = PolynomialRing(self._laurent_poly_ring, "DUMMY_VARIABLE", sparse=sparse)
         category = Algebras(base_ring.category())
         mixin_gcd = False
         if self._arity == 1:
@@ -2160,7 +2160,7 @@ class LazyCompletionGradedAlgebra(LazySeriesRing):
             from sage.algebras.free_algebra import FreeAlgebra
             self._internal_poly_ring = FreeAlgebra(self._laurent_poly_ring, 1, "DUMMY_VARIABLE")
         else:
-            self._internal_poly_ring = PolynomialRing(self._laurent_poly_ring, "DUMMY_VARIABLE")
+            self._internal_poly_ring = PolynomialRing(self._laurent_poly_ring, "DUMMY_VARIABLE", sparse=sparse)
 
     def _repr_(self):
         """
@@ -2560,7 +2560,7 @@ class LazyDirichletSeriesRing(LazySeriesRing):
         self._minimal_valuation = 1
         self._arity = 1
         self._laurent_poly_ring = SR  # TODO: it would be good to have something better than the symbolic ring
-        self._internal_poly_ring = PolynomialRing(base_ring, names, sparse=True)
+        self._internal_poly_ring = PolynomialRing(base_ring, names, sparse=sparse)
 
         category = Algebras(base_ring.category())
         if base_ring in IntegralDomains():

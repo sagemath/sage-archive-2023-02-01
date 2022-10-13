@@ -34,7 +34,7 @@ on:
            "linuxmint-21",
            "fedora-29-python3.8",
            "fedora-30-python3.8",
-           "fedora-31-python3.8",
+           "fedora-31",
            "fedora-32",
            "fedora-33",
            "fedora-34",

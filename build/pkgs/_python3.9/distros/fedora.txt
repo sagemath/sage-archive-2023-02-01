@@ -1,1 +1,2 @@
-python3.9
+python39
+python39-devel

@@ -1,1 +1,2 @@
-python3.8
+python38
+python38-devel

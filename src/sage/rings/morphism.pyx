@@ -2939,6 +2939,44 @@ cdef class FrobeniusEndomorphism_generic(RingHomomorphism):
         self._q = self._p ** self._power
         RingHomomorphism.__init__(self, Hom(domain, domain))
 
+    cdef _update_slots(self, dict _slots):
+        """
+        Helper for copying and pickling.
+
+        EXAMPLES::
+
+            sage: K = Frac(GF(5)['T'])
+            sage: phi = K.frobenius_endomorphism()
+            sage: psi = copy(phi)
+            sage: phi == psi
+            True
+        """
+        self._p = _slots['prime']
+        self._power = _slots['power']
+        self._q = self._p ** self._power
+        RingHomomorphism._update_slots(self, _slots)
+
+    cdef dict _extra_slots(self):
+        """
+        Helper for copying and pickling.
+
+        EXAMPLES::
+
+            sage: K = Frac(GF(25)['T'])
+            sage: phi = K.frobenius_endomorphism(2)
+            sage: phi
+            Frobenius endomorphism x |--> x^(5^2) of Fraction Field of Univariate Polynomial Ring in T over Finite Field in z2 of size 5^2
+
+            sage: psi = loads(dumps(phi)); psi
+            Frobenius endomorphism x |--> x^(5^2) of Fraction Field of Univariate Polynomial Ring in T over Finite Field in z2 of size 5^2
+            sage: phi == psi
+            True
+        """
+        slots = RingHomomorphism._extra_slots(self)
+        slots['prime'] = self._p
+        slots['power'] = self._power
+        return slots
+
     def _repr_(self):
         """
         Return a string representation of this endomorphism.

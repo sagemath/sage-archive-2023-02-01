@@ -348,7 +348,7 @@ cdef class MPolynomialRing_base(sage.rings.ring.CommutativeRing):
         return self.remove_var(x)[str(x)]
 
     def multivariate_interpolation(self, bound, *args):
-        """
+        r"""
         Create a polynomial with specified evaluations.
 
         CALL FORMATS:
@@ -361,23 +361,19 @@ cdef class MPolynomialRing_base(sage.rings.ring.CommutativeRing):
 
         INPUT:
 
-        * "bound" -- either an integer bounding the total degree or a list/tuple of
-          integers bounding the degree of the variables
+        * "bound" -- either an integer bounding the total degree or a list/tuple of integers bounding the degree of the variables
 
         * "points" -- a list/tuple containing the evaluation points
 
         * "values" -- a list/tuple containing the desired values at "points"
 
-        * "function" -- a evaluable function in n variables, where n is the number
-          of variables of the polynomial ring
+        * "function" -- a evaluable function in n variables, where n is the number of variables of the polynomial ring
 
         OUTPUT:
 
-           1. A polynomial respecting the bounds and having "values" as values when
-              evaluated at "points".
+           1. A polynomial respecting the bounds and having "values" as values when evaluated at "points".
 
-           2. A polynomial respecting the bounds and having the same values as
-              "function" at exactly so many points so that the polynomial is unique.
+           2. A polynomial respecting the bounds and having the same values as "function" at exactly so many points so that the polynomial is unique.
 
         EXAMPLES::
 
@@ -385,8 +381,57 @@ cdef class MPolynomialRing_base(sage.rings.ring.CommutativeRing):
             ....:     return a^3*b + b + c^2 + 25
             ....:
             sage: R.<x,y,z> = PolynomialRing(QQ)
+            sage: R.multivariate_interpolation(4, F)
+            x^3*y + z^2 + y + 25
+
+
+            sage: def F(a,b,c):
+            ....:     return a^3*b + b + c^2 + 25
+            ....:
+            sage: R.<x,y,z> = PolynomialRing(QQ)
             sage: R.multivariate_interpolation([3,1,2], F)
             x^3*y + z^2 + y + 25
+
+
+            sage: def F(a,b,c):
+            ....:     return a^3*b + b + c^2 + 25
+            ....:
+            sage: R.<x,y,z> = PolynomialRing(QQ)
+            sage: points = [(5,1,1),(7,2,2),(8,5,-1),(2,5,3),(1,4,0),(5,9,0),
+            ....: (2,7,0),(1,10,13),(0,0,1),(-1,1,0),(2,5,3),(1,1,1),(7,4,11),
+            ....: (12,1,9),(1,1,3),(4,-1,2),(0,1,5),(5,1,3),(3,1,-2),(2,11,3),
+            ....: (4,12,19),(3,1,1),(5,2,-3),(12,1,1),(2,3,4)]
+            sage: R.multivariate_interpolation([3,1,2], points, [F(*x) for x in points])
+            x^3*y + z^2 + y + 25
+
+        ALGORITHM:
+
+            Solves a linear system of equations with the linear algebra module.
+            If the points are not specified, it samples exactly as many points as needed for a unique solution.
+
+        NOTE:
+
+            It will only run if the base ring is a field, even though it might work otherwise as well.
+            If your base ring is an integral domain, let it run over the fraction field.
+
+        WARNING::
+
+            If you don't provide point/value pairs but just a function, it
+            will only use as many points as needed for a unique solution with
+            the given bounds. In particular it will *not* notice or check
+            whether the result yields the correct evaluation for other points
+            as well. So if you give wrong bounds, you will get a wrong answer
+            without a warning.
+
+            sage: def F(a,b,c):
+            ....:     return a^3*b + b + c^2 + 25
+            ....:
+            sage: R.<x,y,z> = PolynomialRing(QQ)
+            sage: R.multivariate_interpolation(3,F)
+            1/2*x^3 + x*y + z^2 - 1/2*x + y + 25
+
+        SEEALSO:
+            :meth:`lagrange_polynomial<sage.rings.polynomial.polynomial_ring.PolynomialRing_field.lagrange_polynomial>`
         """
         # get ring and number of variables
         R = self.base_ring()

@@ -1213,12 +1213,13 @@ class LazyModuleElement(Element):
         if not isinstance(s, LazyModuleElement):
             s = self.parent()(s)
 
+        coeff_stream = s._coeff_stream
         # Special case when it has a trivial definition
-        if isinstance(s._coeff_stream, (Stream_zero, Stream_exact)):
-            self._coeff_stream = s._coeff_stream
+        if isinstance(coeff_stream, (Stream_zero, Stream_exact)):
+            self._coeff_stream = coeff_stream
             return
 
-        self._coeff_stream._target = s._coeff_stream
+        self._coeff_stream._target = coeff_stream
 
     # an alias for compatibility with padics
     set = define
@@ -3137,12 +3138,13 @@ class LazyCauchyProductSeries(LazyModuleElement):
             raise ValueError("can only compose with a positive valuation series")
         # WARNING: d_self need not be a proper element of P, e.g. for
         # multivariate power series
+        # We make the streams dense, because all coefficients have to be computed anyway
         d_self = Stream_function(lambda n: (n + 1) * coeff_stream[n + 1],
-                                 P.is_sparse(), 0)
+                                 False, 0)
         f = P.undefined(valuation=0)
-        d_self_f = Stream_cauchy_mul(d_self, f._coeff_stream)
+        d_self_f = Stream_cauchy_mul(d_self, f._coeff_stream, False)
         int_d_self_f = Stream_function(lambda n: d_self_f[n-1] / R(n) if n else R.one(),
-                                       P.is_sparse(), 0)
+                                       False, 0)
         f._coeff_stream._target = int_d_self_f
         return f
 
@@ -3190,7 +3192,8 @@ class LazyCauchyProductSeries(LazyModuleElement):
         d_self = Stream_function(lambda n: (n + 1) * coeff_stream[n + 1],
                                  P.is_sparse(), 0)
         d_self_quo_self = Stream_cauchy_mul(d_self,
-                                            Stream_cauchy_invert(coeff_stream))
+                                            Stream_cauchy_invert(coeff_stream),
+                                            P.is_sparse())
         int_d_self_quo_self = Stream_function(lambda n: d_self_quo_self[n-1] / R(n),
                                               P.is_sparse(), 1)
         return P.element_class(P, int_d_self_quo_self)

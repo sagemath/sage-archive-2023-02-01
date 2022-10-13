@@ -984,6 +984,11 @@ class Stream_uninitialized(Stream_inexact):
 
     Instances of this class are always dense.
 
+    .. TODO::
+
+        shouldn't instances of this class share the cache with its
+        ``_target``?
+
     EXAMPLES::
 
         sage: from sage.data_structures.stream import Stream_uninitialized
@@ -994,6 +999,7 @@ class Stream_uninitialized(Stream_inexact):
         sage: C._target = one
         sage: C[4]
         0
+
     """
     def __init__(self, approximate_order, true_order=False):
         """

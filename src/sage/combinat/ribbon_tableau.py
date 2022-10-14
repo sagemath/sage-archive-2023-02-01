@@ -23,7 +23,6 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.categories.sets_cat import Sets
 from sage.rings.integer_ring import ZZ
-from sage.rings.rational_field import QQ
 from sage.rings.integer import Integer
 from sage.combinat.combinat import CombinatorialElement
 from sage.combinat.skew_partition import SkewPartition, SkewPartitions
@@ -146,9 +145,9 @@ class RibbonTableau(SkewTableau):
         from sage.combinat.words.word import Word
         return Word([letter for row in reversed(self) for letter in row])
 
-# ####################
-# Ribbon Tableaux    #
-# ####################
+# ===================
+#   Ribbon Tableaux
+# ===================
 
 
 class RibbonTableaux(UniqueRepresentation, Parent):
@@ -567,9 +566,9 @@ def list_rec(nexts, current, part, weight, length):
             for curr_i in current]
 
 
-# #############################
-# Spin and Cospin Polynomials #
-# #############################
+# ===============================
+#   Spin and Cospin Polynomials
+# ===============================
 def spin_rec(t, nexts, current, part, weight, length):
     """
     Routine used for constructing the spin polynomial.
@@ -684,7 +683,7 @@ def spin_polynomial(part, weight, length):
     sp = spin_polynomial_square(part, weight, length)
     t = SR.var('t')
     coeffs = sp.list()
-    return sum(c * t**(QQ(i) / 2) for i, c in enumerate(coeffs))
+    return sum(c * t**(ZZ(i) / 2) for i, c in enumerate(coeffs))
 
 
 def cospin_polynomial(part, weight, length):
@@ -793,8 +792,6 @@ def graph_implementation_rec(skp, weight, length, function):
         a = [graph_implementation_rec([p[0], outer], weight[:-1], length, function)
              for p in selection]
         return function(a, selection, skp, weight, length)
-
-##############################################################
 
 
 class MultiSkewTableau(CombinatorialElement):

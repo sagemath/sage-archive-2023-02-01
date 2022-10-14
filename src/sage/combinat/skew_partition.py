@@ -740,13 +740,15 @@ class SkewPartition(CombinatorialElement):
 
     def outer_corners(self):
         """
-        Return a list of the outer corners of ``self``. These are corners
-        which are contained inside of the shape. For the corners which are
-        outside of the shape, use :meth:`outside_corners`.
+        Return a list of the outer corners of ``self``.
+
+        These are corners that are contained inside of the shape.
+        For the corners which are outside of the shape,
+        use :meth:`outside_corners`.
 
         .. WARNING::
 
-            In the case that `self` is an honest (rather than skew) partition,
+            In the case that ``self`` is an honest (rather than skew) partition,
             these are the :meth:`~sage.combinat.partition.Partition.corners`
             of the outer partition. In the language of [Sag2001]_ these would
             be the "inner corners" of the outer partition.
@@ -1965,3 +1967,4 @@ class SkewPartitions_rowlengths(SkewPartitions):
 
 from sage.misc.persist import register_unpickle_override
 register_unpickle_override('sage.combinat.skew_partition', 'SkewPartition_class', SkewPartition)
+

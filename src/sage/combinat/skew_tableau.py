@@ -910,9 +910,10 @@ class SkewTableau(ClonableList,
 
     def backward_slide(self, corner=None):
         r"""
-        Apply a backward jeu de taquin slide on the specified outside corner.
+        Apply a backward jeu de taquin slide on the specified outside
+        ``corner`` of ``self``.
 
-        Backward jeu de taquin slides are defined in section 3.7 of
+        Backward jeu de taquin slides are defined in Section 3.7 of
         [Sag2001]_.
 
         .. WARNING::
@@ -990,8 +991,8 @@ class SkewTableau(ClonableList,
         outer_outisde_corners = self.outer_shape().outside_corners()
         if corner is not None:
             if tuple(corner) not in outer_outisde_corners:
-                raise ValueError("corner must be an outside corner \
-                                  of the outer shape")
+                raise ValueError("corner must be an outside corner"
+                                 " of the outer shape")
         else:
             if not outer_outisde_corners:
                 return self
@@ -1006,8 +1007,6 @@ class SkewTableau(ClonableList,
         if not j:
             new_st.append(list())
         new_st[i].append(None)
-
-
 
         while (i, j) not in inner_outside_corners:
             # get the value of the cell above the temporarily empty cell (if

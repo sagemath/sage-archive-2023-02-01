@@ -24,7 +24,6 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-from sage.categories.sets_cat import Sets
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.combinat.composition import Composition
 from sage.combinat.partition import Partition
@@ -46,10 +45,10 @@ class Diagram(ClonableArray, metaclass=InheritComparisonClasscallMetaclass):
 
     The positions are indexed by rows and columns as in a matrix. For example,
     a Ferrer's diagram is a diagram obtained from a partition
-    `\lambda = (\lambda_0, \lambda_1, \ldots, \lambda_\ell)` where the cells are
-    in rows `i` for `0 \leq i \leq \ell` and the cells in row `i` consist of
-    `(i,j)` for `0 \leq j < \lambda_i`. In English notation, the indices are
-    read from top left to bottom right as in a matrix.
+    `\lambda = (\lambda_0, \lambda_1, \ldots, \lambda_{\ell})`, where the
+    cells are in rows `i` for `0 \leq i \leq \ell` and the cells in row `i`
+    consist of `(i,j)` for `0 \leq j < \lambda_i`. In English notation, the
+    indices are read from top left to bottom right as in a matrix.
 
     Indexing conventions are the same as
     :class:`~sage.combinat.partition.Partition`. Printing the diagram of a
@@ -100,12 +99,6 @@ class Diagram(ClonableArray, metaclass=InheritComparisonClasscallMetaclass):
         . . . . . .
         . . . . . .
         . . . . . .
-
-    TESTS::
-
-        sage: from sage.combinat.diagram import Diagrams
-        sage: D = Diagrams().an_element()
-        sage: TestSuite(D).run()
     """
     @staticmethod
     def __classcall_private__(self, cells, n_rows=None, n_cols=None, check=True):
@@ -123,6 +116,8 @@ class Diagram(ClonableArray, metaclass=InheritComparisonClasscallMetaclass):
 
     def __init__(self, parent, cells, n_rows=None, n_cols=None, check=True):
         r"""
+        Initialize ``self``.
+
         EXAMPLES::
 
             sage: from sage.combinat.diagram import Diagram
@@ -133,6 +128,7 @@ class Diagram(ClonableArray, metaclass=InheritComparisonClasscallMetaclass):
             4
             sage: D1.ncols()
             4
+            sage: TestSuite(D1).run()
 
         We can specify the number of rows and columns explicitly,
         in case they are supposed to be empty::
@@ -147,6 +143,7 @@ class Diagram(ClonableArray, metaclass=InheritComparisonClasscallMetaclass):
             . O . . .
             . . . . .
             . . O . .
+            sage: TestSuite(D2).run()
         """
         self._cells = frozenset(cells)
 
@@ -155,8 +152,8 @@ class Diagram(ClonableArray, metaclass=InheritComparisonClasscallMetaclass):
             N_rows = max(c[0] for c in self._cells)
             N_cols = max(c[1] for c in self._cells)
         else: # if there are no cells
-            N_rows = 0
-            N_cols = 0
+            N_rows = -1
+            N_cols = -1
 
         if n_rows is not None:
             if n_rows <= N_rows:
@@ -198,8 +195,13 @@ class Diagram(ClonableArray, metaclass=InheritComparisonClasscallMetaclass):
             . . . . . .
             . . . . . .
             . . . . . .
+            sage: Diagram([]).pp()
+            -
         """
-        print(self._pretty_print(), end='')
+        if self._n_rows == 0 or self._n_cols == 0:
+            print('-')
+            return
+        print("\n".join(self._pretty_print()))
 
     def _ascii_art_(self):
         r"""
@@ -223,9 +225,13 @@ class Diagram(ClonableArray, metaclass=InheritComparisonClasscallMetaclass):
             . . . . . .
             . . . . . .
             . . . . . .
+            sage: ascii_art(Diagram([]))
+            -
         """
         from sage.typeset.ascii_art import ascii_art
-        return ascii_art(self._pretty_print())
+        if self._n_rows == 0 or self._n_cols == 0:
+            return ascii_art("-")
+        return ascii_art("\n".join(self._pretty_print()))
 
     def _unicode_art_(self):
         r"""
@@ -239,19 +245,45 @@ class Diagram(ClonableArray, metaclass=InheritComparisonClasscallMetaclass):
 
             sage: from sage.combinat.diagram import Diagram
             sage: unicode_art(Diagram([(0,0), (0,3), (2,2), (2,4)]))
-            ☒☐☐☒☐
-            ☐☐☐☐☐
-            ☐☐☒☐☒
+            ┌─┬─┬─┬─┬─┐
+            │X│ │ │X│ │
+            ├─┼─┼─┼─┼─┤
+            │ │ │ │ │ │
+            ├─┼─┼─┼─┼─┤
+            │ │ │X│ │X│
+            └─┴─┴─┴─┴─┘
             sage: unicode_art(Diagram([(0,0), (0,3), (2,2), (2,4)], n_rows=6, n_cols=6))
-            ☒☐☐☒☐☐
-            ☐☐☐☐☐☐
-            ☐☐☒☐☒☐
-            ☐☐☐☐☐☐
-            ☐☐☐☐☐☐
-            ☐☐☐☐☐☐
+            ┌─┬─┬─┬─┬─┬─┐
+            │X│ │ │X│ │ │
+            ├─┼─┼─┼─┼─┼─┤
+            │ │ │ │ │ │ │
+            ├─┼─┼─┼─┼─┼─┤
+            │ │ │X│ │X│ │
+            ├─┼─┼─┼─┼─┼─┤
+            │ │ │ │ │ │ │
+            ├─┼─┼─┼─┼─┼─┤
+            │ │ │ │ │ │ │
+            ├─┼─┼─┼─┼─┼─┤
+            │ │ │ │ │ │ │
+            └─┴─┴─┴─┴─┴─┘
+            sage: unicode_art(Diagram([]))
+            ∅
         """
         from sage.typeset.unicode_art import unicode_art
-        return unicode_art(self._pretty_print('☒', '☐'))
+        if self._n_rows == 0 or self._n_cols == 0:
+            return unicode_art("∅")
+
+        ndivs = self._n_cols - 1
+        cell = "│X"
+        empty = "│ "
+        it = self._pretty_print(cell, empty)
+        ret = "┌─" + "┬─"*ndivs + "┐"
+        ret += "\n" + next(it) + "│"
+        for row in it:
+            ret += "\n├─" + "┼─"*ndivs + "┤"
+            ret += "\n" + row + "│"
+        ret += "\n└─" + "┴─"*ndivs + "┘"
+        return unicode_art(ret)
 
     def _pretty_print(self, cell='O ', empty='. '):
         r"""
@@ -264,25 +296,24 @@ class Diagram(ClonableArray, metaclass=InheritComparisonClasscallMetaclass):
         EXAMPLES::
 
             sage: from sage.combinat.diagram import Diagram
-            sage: Diagram([(0,0), (0,3), (2,2), (2,4)])._pretty_print('x ','. ')
-            'x . . x . \n. . . . . \n. . x . x \n'
-            sage: Diagram([(0,0), (0,3), (2,2), (2,4)], n_rows=6, n_cols=6)._pretty_print('x ','. ')
-            'x . . x . . \n. . . . . . \n. . x . x . \n. . . . . . \n. . . . . . \n. . . . . . \n'
+            sage: "\n".join(Diagram([(0,0), (0,3), (2,2), (2,4)])._pretty_print('x ','. '))
+            'x . . x . \n. . . . . \n. . x . x '
+            sage: "\n".join(Diagram([(0,0), (0,3), (2,2), (2,4)], n_rows=6, n_cols=6)._pretty_print('x ','. '))
+            'x . . x . . \n. . . . . . \n. . x . x . \n. . . . . . \n. . . . . . \n. . . . . . '
         """
-        output_str = ''
-
         for i in range(self._n_rows):
+            output_str = ''
             for j in range(self._n_cols):
                 if (i, j) in self:
                     output_str += cell
                 else:
                     output_str += empty
-            output_str += '\n'
-
-        return output_str
+            yield output_str
 
     def _latex_(self):
         r"""
+        Return a latex representation of ``self``.
+
         EXAMPLES::
 
             sage: from sage.combinat.diagram import Diagram
@@ -296,9 +327,8 @@ class Diagram(ClonableArray, metaclass=InheritComparisonClasscallMetaclass):
             &&\lr{\phantom{x}}&&\lr{\phantom{x}}\\\cline{3-3}\cline{5-5}
             \end{array}$}
             }
-
         """
-        if not self.cells():
+        if self._n_rows == 0 or self._n_cols == 0:
             return "{\\emptyset}"
 
         lr = r'\def\lr#1{\multicolumn{1}{|@{\hspace{.6ex}}c@{\hspace{.6ex}}|}{\raisebox{-.3ex}{$#1$}}}'
@@ -330,7 +360,7 @@ class Diagram(ClonableArray, metaclass=InheritComparisonClasscallMetaclass):
 
     def number_of_rows(self):
         r"""
-        Return the total number of rows of the cell.
+        Return the total number of rows of ``self``.
 
         EXAMPLES:
 
@@ -365,7 +395,7 @@ class Diagram(ClonableArray, metaclass=InheritComparisonClasscallMetaclass):
 
     def number_of_cols(self):
         r"""
-        Return the total number of rows of the cell.
+        Return the total number of rows of ``self``.
 
         EXAMPLES:
 
@@ -391,7 +421,6 @@ class Diagram(ClonableArray, metaclass=InheritComparisonClasscallMetaclass):
             . . . . . .
             . . O . . .
         """
-
         return self._n_cols
 
     ncols = number_of_cols
@@ -480,6 +509,8 @@ class Diagrams(UniqueRepresentation, Parent):
     """
     def __init__(self, category=None):
         r"""
+        Initialize ``self``.
+
         EXAMPLES::
 
             sage: from sage.combinat.diagram import Diagrams
@@ -490,11 +521,12 @@ class Diagrams(UniqueRepresentation, Parent):
 
             sage: TestSuite(Dgms).run()
         """
-
         Parent.__init__(self, category=InfiniteEnumeratedSets().or_subcategory(category))
 
     def __iter__(self):
         r"""
+        Iterate over ``self``.
+
         EXAMPLES::
 
             sage: from sage.combinat.diagram import Diagrams
@@ -558,6 +590,8 @@ class Diagrams(UniqueRepresentation, Parent):
 
     def _repr_(self):
         r"""
+        Return a string representation of ``self``.
+
         EXAMPLES::
 
             sage: from sage.combinat.diagram import Diagrams
@@ -568,6 +602,8 @@ class Diagrams(UniqueRepresentation, Parent):
 
     def _element_constructor_(self, cells, n_rows=None, n_cols=None, check=True):
         r"""
+        Cosntruct an element of ``self``.
+
         EXAMPLES::
 
             sage: from sage.combinat.diagram import Diagrams
@@ -616,6 +652,8 @@ class Diagrams(UniqueRepresentation, Parent):
 
     def _an_element_(self):
         r"""
+        Return an element of ``self``.
+
         EXAMPLES::
 
             sage: from sage.combinat.diagram import Diagrams
@@ -632,7 +670,7 @@ class Diagrams(UniqueRepresentation, Parent):
     def from_polyomino(self, p):
         r"""
         Create the diagram corresponding to a 2d
-        :class:`~sage.combinat.tiling.Polyomino.`
+        :class:`~sage.combinat.tiling.Polyomino`
 
         EXAMPLES::
 
@@ -649,22 +687,22 @@ class Diagrams(UniqueRepresentation, Parent):
             O . .
             O O O
 
-        The method only works for 2d `Polyomino`s::
+        This only works for a 2d :class:`~sage.combinat.tiling.Polyomino`::
 
             sage: p = Polyomino([(0,0,0), (0,1,0), (1,1,0), (1,1,1)], color='blue')
             sage: Diagrams().from_polyomino(p)
             Traceback (most recent call last):
             ...
-            ValueError: Dimension of the polyomino must be 2
+            ValueError: the polyomino must be 2 dimensional
         """
         if not p._dimension == 2:
-            raise ValueError("Dimension of the polyomino must be 2")
+            raise ValueError("the polyomino must be 2 dimensional")
         cells = list(map(tuple, p))
         return self.element_class(self, cells)
 
     def from_composition(self, alpha):
         r"""
-        Create the diagram corresponding to a weak composition `alpha \vDash n`.
+        Create the diagram corresponding to a weak composition `\alpha \vDash n`.
 
         EXAMPLES::
 
@@ -711,7 +749,6 @@ class Diagrams(UniqueRepresentation, Parent):
             O . .
             O . .
             . . .
-
         """
         # check matrix is zero-one
         n_rows, n_cols = M.dimensions()
@@ -759,8 +796,7 @@ class NorthwestDiagram(Diagram, metaclass=InheritComparisonClasscallMetaclass):
         O . .
     """
     @staticmethod
-    def __classcall_private__(self, cells, n_rows=None,
-                              n_cols=None, check=True):
+    def __classcall_private__(self, cells, n_rows=None, n_cols=None, check=True):
         """
         Normalize input to ensure a correct parent. This method also allows
         one to specify whether or not to check the northwest property for the
@@ -816,15 +852,16 @@ class NorthwestDiagram(Diagram, metaclass=InheritComparisonClasscallMetaclass):
 
     def peelable_tableaux(self):
         r"""
+        Return the set of peelable tableaux whose diagram is ``self``.
+
         For a fixed northwest diagram `D`, we say that a Young tableau `T` is
         `D`-peelable if:
-
-        - the row indices of the cells in the first column of `D` are
-        the entries in an initial segment in the first column of `T` and
-
-        - the tableau `Q` obtained by removing those cells from `T` and playing
-        jeu de taquin is `D-C`-peelable, where `D-C` is the diagram formed by
-        forgetting the first column of `D`.
+        
+        1. the row indices of the cells in the first column of `D` are
+           the entries in an initial segment in the first column of `T` and
+        2. the tableau `Q` obtained by removing those cells from `T` and playing
+           jeu de taquin is `(D-C)`-peelable, where `D-C` is the diagram formed
+           by forgetting the first column of `D`.
 
         Reiner and Shimozono [RS1995]_ showed that the number
         `\operatorname{red}(w)` of reduced words of a permutation `w` may be
@@ -833,7 +870,7 @@ class NorthwestDiagram(Diagram, metaclass=InheritComparisonClasscallMetaclass):
 
         .. MATH::
 
-            \operatorname{red}(w) = \sum_{T} f_{\operatorname{shape} T}
+            \operatorname{red}(w) = \sum_{T} f_{\operatorname{shape} T},
 
         where the sum runs over the `D(w)`-peelable tableaux `T` and `f_\lambda`
         is the number of standard Young tableaux of shape `\lambda` (which may
@@ -865,7 +902,7 @@ class NorthwestDiagram(Diagram, metaclass=InheritComparisonClasscallMetaclass):
             sage: NWD.peelable_tableaux()
             {[[1], [3]]}
 
-        From [RS1995]_ we know that there is only one peelable tableau for the
+        From [RS1995]_, we know that there is only one peelable tableau for the
         Rothe diagram of the permutation (in one line notation) `251643`::
 
             sage: D = NorthwestDiagram([(1, 2), (1, 3), (3, 2), (3, 3), (4, 2)])
@@ -1026,10 +1063,9 @@ class NorthwestDiagrams(Diagrams):
     r"""
     Diagrams satisfying the northwest property.
 
-    A diagram is a
-    *northwest diagram* if it satsifies the property that: the presence of two
-    cells `(i_1, j_1)` and `(i_2, j_2)` in a diagram `D` implies the presence of
-    the cell `(\min(i_1, i_2), \min(j_1, j_2))`.
+    A diagram `D` is a *northwest diagram* if for every two cells `(i_1, j_1)`
+    and `(i_2, j_2)` in `D` then there exists the cell
+    `(\min(i_1, i_2), \min(j_1, j_2)) \in D`.
 
     EXAMPLES::
 
@@ -1060,8 +1096,8 @@ class NorthwestDiagrams(Diagrams):
         ...
         ValueError: diagram is not northwest
 
-    However, this behavior can be turned off if you are confident that you are
-    providing a northwest diagram::
+    However, this behavior can be turned off if you are confident that
+    you are providing a northwest diagram::
 
         sage: N = NorthwestDiagram([(0, 0), (0, 10), (5, 0),
         ....:                      (1, 1), (0, 1), (1, 0)],
@@ -1074,8 +1110,8 @@ class NorthwestDiagrams(Diagrams):
         . . . . . . . . . . .
         O . . . . . . . . . .
 
-    Note that arbitrary diagrams which happen to be northwest diagrams only live
-    in the parent of :class:`Diagrams`::
+    Note that arbitrary diagrams which happen to be northwest diagrams
+    only live in the parent of :class:`Diagrams`::
 
         sage: D = Diagram([(0, 0), (0, 10), (5, 0), (1, 1), (0, 1), (1, 0)])
         sage: D.pp()
@@ -1115,8 +1151,8 @@ class NorthwestDiagrams(Diagrams):
 
         D(\omega) = \{(\omega_j, i) : i<j,\, \omega_i > \omega_j \}.
 
-    We can construct one by calling :meth:`rothe_diagram` method on the parent
-    class :class:`NorthwestDiagrams`::
+    We can construct one by calling :meth:`rothe_diagram` method on the set
+    of all :class:`~sage.combinat.diagram.NorthwestDiagrams`::
 
         sage: w = Permutations(4)([4,3,2,1])
         sage: NorthwestDiagrams().rothe_diagram(w).pp()
@@ -1125,9 +1161,9 @@ class NorthwestDiagrams(Diagrams):
         O . . .
         . . . .
 
-    To turn a Ferrers diagram into a northwest diagram, we may call the
-    :meth:`from_partition` method. This will return a Ferrer's diagram in the
-    parent of all northwest diagrams. For many use-cases it is probably better
+    To turn a Ferrers diagram into a northwest diagram, we may call
+    :meth:`from_partition`. This will return a Ferrer's diagram in the
+    set of all northwest diagrams. For many use-cases it is probably better
     to get Ferrer's diagrams by the corresponding method on partitons, namely
     :meth:`sage.combinat.partitions.Partitions.ferrers_diagram`::
 
@@ -1165,6 +1201,8 @@ class NorthwestDiagrams(Diagrams):
 
     def _repr_(self):
         r"""
+        Return a string representation of ``self``.
+
         EXAMPLES::
 
             sage: from sage.combinat.diagram import NorthwestDiagrams
@@ -1175,6 +1213,8 @@ class NorthwestDiagrams(Diagrams):
 
     def _an_element_(self):
         r"""
+        Return an element of ``self``.
+
         EXAMPLES::
 
             sage: from sage.combinat.diagram import NorthwestDiagrams
@@ -1194,8 +1234,9 @@ class NorthwestDiagrams(Diagrams):
         r"""
         Return the Rothe diagram of ``w``.
 
-        One particular way of constructing a northwest diagram from a permutation is
-        by constructing its Rothe diagram. Formally, if `\omega` is a permutation,
+        We construct a northwest diagram from a permutation by
+        constructing its Rothe diagram. Formally, if `\omega` is
+        a :class:`~sage.combinat.permutation.Permutation`
         then the Rothe diagram `D(\omega)` is the diagram whose cells are
 
         .. MATH::
@@ -1205,28 +1246,16 @@ class NorthwestDiagrams(Diagrams):
         Informally, one can construct the Rothe diagram by starting with all
         `n^2` possible cells, and then deleting the cells `(i, \omega(i))` as
         well as all cells to the right and below. (These are sometimes called
-        "death rays".) To compute a Rothe diagram in Sage, start with a
-        :class:`~sage.combinat.permutation.Permutation`::
+        "death rays".)
 
-            sage: w = Permutations(8)([2,5,4,1,3,6,7,8])
+        .. SEEALSO::
 
-        Then call :func:`RotheDiagram` on ``w``::
-
-            sage: from sage.combinat.diagram import RotheDiagram
-            sage: RotheDiagram(w).pp()
-            O . . . . . . .
-            O . O O . . . .
-            O . O . . . . .
-            . . . . . . . .
-            . . . . . . . .
-            . . . . . . . .
-            . . . . . . . .
-            . . . . . . . .
+            :func:`~sage.combinat.diagram.RotheDiagram`
 
         EXAMPLES::
 
-            sage: w = Permutations(3)([2,1,3])
             sage: from sage.combinat.diagram import NorthwestDiagrams
+            sage: w = Permutations(3)([2,1,3])
             sage: NorthwestDiagrams().rothe_diagram(w).pp()
             O . .
             . . .
@@ -1235,6 +1264,17 @@ class NorthwestDiagrams(Diagrams):
             O . .
             . . .
             . . .
+
+            sage: w = Permutations(8)([2,5,4,1,3,6,7,8])
+            sage: NorthwestDiagrams().rothe_diagram(w).pp()
+            O . . . . . . .
+            O . O O . . . .
+            O . O . . . . .
+            . . . . . . . .
+            . . . . . . . .
+            . . . . . . . .
+            . . . . . . . .
+            . . . . . . . .
         """
         return RotheDiagram(w)
 
@@ -1359,7 +1399,7 @@ class NorthwestDiagrams(Diagrams):
 
 def RotheDiagram(w):
     r"""
-    The Rothe diagram of a permutation ``w``
+    The Rothe diagram of a permutation ``w``.
 
     EXAMPLES::
 
@@ -1381,7 +1421,21 @@ def RotheDiagram(w):
         sage: D.parent()
         Combinatorial northwest diagrams
 
-    Currently, only elements of the parent
+    Some other examples::
+
+        sage: RotheDiagram([2, 1, 4, 3]).pp()
+        O . . .
+        . . . .
+        . . O .
+        . . . .
+
+        sage: RotheDiagram([4, 1, 3, 2]).pp()
+        O O O .
+        . . . .
+        . O . .
+        . . . .
+
+    Currently, only elements of the set of
     :class:`sage.combinat.permutations.Permutations` are supported. In
     particular, elements of permutation groups are not supported::
 
@@ -1389,8 +1443,7 @@ def RotheDiagram(w):
         sage: RotheDiagram(w)
         Traceback (most recent call last):
         ...
-        ValueError: w must be a Permutation
-
+        ValueError: w must be a permutation
 
     TESTS::
 
@@ -1403,15 +1456,16 @@ def RotheDiagram(w):
         . . . . .
         . . . . .
     """
-
-    from sage.misc.mrange import cartesian_product_iterator
-
-    if w not in Permutations():
-        raise ValueError('w must be a Permutation')
+    P = Permutations()
+    if w not in P:
+        raise ValueError('w must be a permutation')
+    w = P(w)
 
     N = w.size()
     winv = w.inverse()
+    from sage.misc.mrange import cartesian_product_iterator
     cells = [c for c in cartesian_product_iterator((range(N), range(N)))
              if c[0]+1 < winv(c[1]+1) and c[1]+1 < w(c[0]+1)]
 
     return NorthwestDiagram(cells, n_rows=N, n_cols=N, check=False)
+

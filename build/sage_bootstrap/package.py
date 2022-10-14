@@ -241,7 +241,7 @@ class Package(object):
             line = line.strip()
             if line.startswith('#'):
                 continue
-            for part in line.split(' '):
+            for part in line.split():
                 return part
         return None
 

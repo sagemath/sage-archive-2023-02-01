@@ -151,7 +151,7 @@ class Application(object):
         pkg = Package(package_name)
         dist_name = pkg.distribution_name
         if dist_name is None:
-            log.debug('Package %s does not have Python distribution info in install-requires.txt')
+            log.debug('%s does not have Python distribution info in install-requires.txt' % pkg)
             return
         if pkg.tarball_pattern.endswith('.whl'):
             source = 'wheel'

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 r"""
-Parametric Surface
+Parametric surface
 
 Graphics 3D object for triangulating surfaces, and a base class for many other
 objects that can be represented by a 2D parametrization.
@@ -369,7 +369,7 @@ cdef class ParametricSurface(IndexFaceSet):
 
     def threejs_repr(self, render_params):
         r"""
-        Return a represention of the surface suitable for plotting with three.js.
+        Return a representation of the surface suitable for plotting with three.js.
 
         EXAMPLES::
 

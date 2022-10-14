@@ -548,7 +548,7 @@ def union(x, y=None):
         True
     """
     from sage.misc.superseded import deprecation
-    deprecation(32096, "sage.misc.misc.union is deprecated, use 'list(set(x).union(y)' or a more suitable replacement")
+    deprecation(32096, "sage.misc.misc.union is deprecated, use 'list(set(x).union(y))' or a more suitable replacement")
     if y is None:
         return list(set(x))
     return list(set(x).union(y))
@@ -575,7 +575,7 @@ def uniq(x):
 def _stable_uniq(L):
     """
     Iterate over the elements of ``L``, yielding every element at most
-    once: keep only the first occurance of any item.
+    once: keep only the first occurrence of any item.
 
     The items must be hashable.
 

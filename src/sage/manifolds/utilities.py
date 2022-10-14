@@ -35,7 +35,8 @@ from sage.symbolic.constants import pi
 from sage.functions.other import abs_symbolic
 from sage.misc.functional import sqrt
 from sage.functions.trig import cos, sin
-from sage.rings.all import Rational
+from sage.rings.rational import Rational
+
 
 class SimplifySqrtReal(ExpressionTreeWalker):
     r"""
@@ -203,7 +204,8 @@ class SimplifySqrtReal(ExpressionTreeWalker):
                     simpl = SR(1)/simpl
                 return simpl
         # If operator is not a square root, we default to ExpressionTreeWalker:
-        return super(SimplifySqrtReal, self).arithmetic(ex, operator)
+        return super().arithmetic(ex, operator)
+
 
 class SimplifyAbsTrig(ExpressionTreeWalker):
     r"""
@@ -339,7 +341,7 @@ class SimplifyAbsTrig(ExpressionTreeWalker):
                     ex = -cos(x)
                 return ex
         # If no pattern is found, we default to ExpressionTreeWalker:
-        return super(SimplifyAbsTrig, self).composition(ex, operator)
+        return super().composition(ex, operator)
 
 
 def simplify_sqrt_real(expr):

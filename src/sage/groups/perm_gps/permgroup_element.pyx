@@ -88,7 +88,7 @@ We create element of a permutation group of large degree::
     (1,30)(2,29)(3,28)(4,27)(5,26)(6,25)(7,24)(8,23)(9,22)(10,21)(11,20)(12,19)(13,18)(14,17)(15,16)
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
 #       Copyright (C) 2006 David Joyner
 #       Copyright (C) 2019 Vincent Delecroix <20100.delecroix@gmail.com>
@@ -97,8 +97,8 @@ We create element of a permutation group of large degree::
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 import copy
 import random
@@ -944,7 +944,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
 
             sage: S = SymmetricGroup(['a', 'b'])
             sage: latex(S.gens())
-            \left[(\text{\texttt{a}},\text{\texttt{b}})\right]
+            \left((\text{\texttt{a}},\text{\texttt{b}})\right)
         """
         from sage.misc.latex import latex
         return "".join(("(" + ",".join(latex(x) for x in cycle) + ")")
@@ -1175,7 +1175,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
         return result
 
     cpdef _act_on_(self, x, bint self_on_left):
-        """
+        r"""
         Return the result of the action of ``self`` on ``x``.
 
         For example, if ``x=f(z)`` is a polynomial, then this function returns
@@ -1619,7 +1619,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
         return ~self
 
     def sign(self):
-        """
+        r"""
         Returns the sign of self, which is `(-1)^{s}`, where
         `s` is the number of swaps.
 
@@ -1849,20 +1849,20 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             [2, 1, 1]
         """
         cycle_type = [len(c) for c in self.cycle_tuples(singletons)]
-        cycle_type.sort(reverse = True)
+        cycle_type.sort(reverse=True)
         if as_list:
             return cycle_type
         else:
             from sage.combinat.partition import _Partitions
             return _Partitions(cycle_type)
 
-    def has_descent(self, i, side = "right", positive = False):
-        """
+    def has_descent(self, i, side="right", positive=False):
+        r"""
         INPUT:
 
-         - ``i``: an element of the index set
-         - ``side``: "left" or "right" (default: "right")
-         - ``positive``: a boolean (default: False)
+        - ``i`` -- an element of the index set
+        - ``side`` -- "left" or "right" (default: "right")
+        - ``positive`` -- a boolean (default: False)
 
         Returns whether ``self`` has a left (resp. right) descent at
         position ``i``. If ``positive`` is True, then test for a non

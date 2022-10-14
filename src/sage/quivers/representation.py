@@ -447,7 +447,7 @@ the ``*`` operator::
 #
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-
+from __future__ import annotations
 from sage.structure.factory import UniqueFactory
 from sage.modules.module import Module
 from sage.structure.element import ModuleElement
@@ -776,7 +776,7 @@ class QuiverRepFactory(UniqueFactory):
             Representation with dimension vector (0, 0)
         """
         if len(key) < 4:
-            raise ValueError("invalid key used in QuiverRepFactory!")
+            raise ValueError("invalid key used in QuiverRepFactory")
 
         # Get the quiver
         P = key[1]
@@ -807,8 +807,7 @@ class QuiverRepFactory(UniqueFactory):
             # Create and return the module
             return QuiverRep_with_dual_path_basis(key[0], P, key[3])
 
-        else:
-            raise ValueError("invalid key used in QuiverRepFactory!")
+        raise ValueError("invalid key used in QuiverRepFactory")
 
 
 QuiverRep = QuiverRepFactory("sage.quivers.representation.QuiverRep")
@@ -1916,9 +1915,9 @@ class QuiverRep_generic(WithEqualityById, Module):
 
         return sup
 
-    def gens(self, names='v'):
+    def gens(self, names='v') -> tuple:
         """
-        Return a list of generators of ``self`` as a `k`-module.
+        Return a tuple of generators of ``self`` as a `k`-module.
 
         INPUT:
 
@@ -1929,7 +1928,7 @@ class QuiverRep_generic(WithEqualityById, Module):
 
         OUTPUT:
 
-        - list of :class:`QuiverRepElement` objects, the linear generators
+        - tuple of :class:`QuiverRepElement` objects, the linear generators
           of the module (over the base ring)
 
         .. NOTE::
@@ -1943,14 +1942,14 @@ class QuiverRep_generic(WithEqualityById, Module):
             sage: Q = DiGraph({1:{2:['a', 'b']}}).path_semigroup()
             sage: M = Q.P(QQ, 1)
             sage: M.gens()
-            [v_0, v_1, v_2]
+            (v_0, v_1, v_2)
 
         If a string is given then it is used as the name of each generator,
         with the index of the generator appended in order to differentiate
         them::
 
             sage: M.gens('generator')
-            [generator_0, generator_1, generator_2]
+            (generator_0, generator_1, generator_2)
 
         If a list or other iterable variable is given then each generator
         is named using the appropriate entry.  The length of the variable
@@ -1961,14 +1960,14 @@ class QuiverRep_generic(WithEqualityById, Module):
             ...
             TypeError: can only concatenate list (not "str") to list
             sage: M.gens(['x', 'y', 'z'])
-            [x, y, z]
+            (x, y, z)
 
         Strings are iterable, so if the length of the string is equal to the
         number of generators then the characters of the string will be used
         as the names::
 
             sage: M.gens('xyz')
-            [x, y, z]
+            (x, y, z)
         """
         # Use names as a list if and only if it is the correct length
         uselist = (len(names) == self.dimension())
@@ -1987,7 +1986,7 @@ class QuiverRep_generic(WithEqualityById, Module):
                     basis.append(self({v: m}, names + "_" + str(i)))
                 i += 1
 
-        return basis
+        return tuple(basis)
 
     def coordinates(self, vector):
         """

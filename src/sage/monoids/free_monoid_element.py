@@ -21,7 +21,7 @@ pairs of integers.
 #  See the GNU General Public License for more details; the full text
 #  is available at:
 #
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #*****************************************************************************
 
 from sage.rings.integer import Integer
@@ -48,7 +48,7 @@ class FreeMonoidElement(MonoidElement):
         sage: x**(-1)
         Traceback (most recent call last):
         ...
-        TypeError: bad operand type for unary ~: 'FreeMonoid_with_category.element_class'
+        NotImplementedError
     """
     def __init__(self, F, x, check=True):
         """
@@ -99,7 +99,7 @@ class FreeMonoidElement(MonoidElement):
 
     def __iter__(self):
         """
-        Returns an iterator which yields tuples of variable and exponent.
+        Return an iterator which yields tuples of variable and exponent.
 
         EXAMPLES::
 
@@ -265,6 +265,19 @@ class FreeMonoidElement(MonoidElement):
                 z._element_list = x_elt[:k] + [ m ] + y_elt[1:]
         return z
 
+    def __invert__(self):
+        """
+        EXAMPLES::
+
+            sage: a = FreeMonoid(5, 'a').gens()
+            sage: x = a[0]*a[1]*a[4]**3
+            sage: x**(-1)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+        """
+        raise NotImplementedError
+
     def __len__(self):
         """
         Return the degree of the monoid element ``self``, where each
@@ -395,7 +408,6 @@ class FreeMonoidElement(MonoidElement):
             :meth:`to_word`
         """
         if not indices:
-            return sum( ([i[0]] * i[1] for i in list(self)), [])
+            return sum(([i[0]] * i[1] for i in list(self)), [])
         gens = self.parent().gens()
-        return sum( ([gens.index(i[0])] * i[1] for i in list(self)), [])
-
+        return sum(([gens.index(i[0])] * i[1] for i in list(self)), [])

@@ -4799,7 +4799,6 @@ class Partition(CombinatorialElement):
             return []
 
         shelf = []
-        res = []
         i = 0
         ell = len(self._list)
         while i < ell:
@@ -4856,7 +4855,6 @@ class Partition(CombinatorialElement):
             return list()
 
         L = self._list
-        res = []
         shelf = [k]  # the number of boxes which will fit in a row
         mapping = [0]  # a record of the rows
         for i in range(len(L)-1):

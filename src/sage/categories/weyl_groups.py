@@ -1,10 +1,5 @@
 r"""
 Weyl Groups
-
-REFERENCES:
-
-.. [Dye] Dyer. *Bruhat intervals, polyhedral cones and Kazhdan-Lusztig-Stanley polynomials*. Math.Z., 215(2):223-236, 1994.
-.. [JahStu] Jahn and Stump. *Bruhat intervals, subword complexes and brick polyhedra for finite Coxeter groups*. Preprint, available at :arxiv:`2103.03715`, 2021.
 """
 #*****************************************************************************
 #  Copyright (C) 2009    Nicolas M. Thiery <nthiery at users.sf.net>
@@ -207,8 +202,8 @@ class WeylGroups(Category_singleton):
 
             REFERENCES:
 
-            - [Dye]_
-            - [JahStu]_
+            - [Dy1994]_
+            - [JS2021]_
             """
             from sage.modules.free_module_element import vector
             if side == 'upper':

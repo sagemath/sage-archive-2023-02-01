@@ -127,6 +127,7 @@ jobs:
       FROM_DOCKER_REPOSITORY: ${{ inputs.from_docker_repository }}
       FROM_DOCKER_TARGET: ${{ inputs.from_docker_target }}
       FROM_DOCKER_TAG:    ${{ inputs.from_docker_tag }}
+      EXTRA_CONFIGURE_ARGS: --enable-fat-binary
 
     steps:
       - name: Check out SageMath

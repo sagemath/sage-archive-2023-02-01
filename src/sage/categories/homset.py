@@ -734,7 +734,7 @@ class Homset(Set_generic):
         """
         return hash((self._domain, self._codomain, self.base()))
 
-    def __bool__(self):
+    def __bool__(self) -> bool:
         """
         TESTS::
 
@@ -742,8 +742,6 @@ class Homset(Set_generic):
             True
         """
         return True
-
-    
 
     def homset_category(self):
         """
@@ -1083,7 +1081,7 @@ class Homset(Set_generic):
             True
         """
         return not (self == other)
-    
+
     def __contains__(self, x):
         """
         Test whether the parent of the argument is ``self``.

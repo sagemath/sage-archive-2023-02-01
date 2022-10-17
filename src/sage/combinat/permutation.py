@@ -2216,8 +2216,8 @@ class Permutation(CombinatorialElement):
 
     def longest_increasing_subsequences(self):
         r"""
-        Return the list of the longest increasing subsequences of ``self``
-        
+        Return the list of the longest increasing subsequences of ``self``.
+
         A theorem of Schensted ([Sch1961]_) states that an increasing
         subsequence of length `i` ends with the value entered in the `i`-th
         column of the p-tableau. The algorithm records which column of the
@@ -2247,9 +2247,9 @@ class Permutation(CombinatorialElement):
         # getting the column in which each element is inserted
         first_row_p_tableau = []
         columns = []
-        D = DiGraph(n+2)
+        D = DiGraph(n + 2)
         for x in self._list:
-            j = bisect(first_row_p_tableau, x) 
+            j = bisect(first_row_p_tableau, x)
             if j == len(first_row_p_tableau):
                 if columns:
                     for k in columns[-1]:

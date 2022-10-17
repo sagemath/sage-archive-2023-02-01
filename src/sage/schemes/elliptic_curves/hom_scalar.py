@@ -198,7 +198,7 @@ class EllipticCurveHom_scalar(EllipticCurveHom):
 
         INPUT: a sequence of 3 coordinates defining a point on ``self``
 
-        OUTPUT: the result of evaluating ``self'' at the given point
+        OUTPUT: the result of evaluating ``self`` at the given point
 
         EXAMPLES::
 
@@ -552,4 +552,3 @@ class EllipticCurveHom_scalar(EllipticCurveHom):
             w = negation_morphism(self._domain).rational_maps()
             result._rational_maps = tuple(f(*w) if f is not None else None for f in self._rational_maps)
         return result
-

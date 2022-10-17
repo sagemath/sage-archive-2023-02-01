@@ -252,7 +252,7 @@ class EllipticCurveHom_frobenius(EllipticCurveHom):
 
         INPUT: a sequence of 3 coordinates defining a point on ``self``
 
-        OUTPUT: the result of evaluating ``self'' at the given point
+        OUTPUT: the result of evaluating ``self`` at the given point
 
         EXAMPLES::
 
@@ -521,4 +521,3 @@ class EllipticCurveHom_frobenius(EllipticCurveHom):
             True
         """
         return True
-

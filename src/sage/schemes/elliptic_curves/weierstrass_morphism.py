@@ -956,4 +956,3 @@ def negation_morphism(E):
     """
     R = E.base_ring()
     return WeierstrassIsomorphism(E, (-R.one(), R.zero(), -E.a1(), -E.a3()))
-

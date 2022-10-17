@@ -2150,6 +2150,9 @@ REFERENCES:
 .. [Dy1993] \M. J. Dyer. *Hecke algebras and shellings of Bruhat
             intervals*. Compositio Mathematica, 1993, 89(1): 91-115.
 
+.. [Dy1994] \M. J. Dyer. *Bruhat intervals, polyhedral cones and 
+            Kazhdan-Lusztig-Stanley polynomials*. Math.Z., 215(2):223-236, 1994.
+
 .. _ref-E:
 
 **E**
@@ -2661,6 +2664,10 @@ REFERENCES:
 
 .. [Gop1981] \V. D. Goppa, “Codes on algebraic curves,” Sov. Math. Dokl., vol.
              24, no. 1, pp. 170–172, 1981.
+
+.. [Gor2016] \D. Gorodkov, *A 15-vertex triangulation of the quaternionic
+             projective plane*, Discrete & Computational Geometry, vol. 62,
+             pp. 348-373 (2019). :doi:`10.1007/s00454-018-00055-w`
 
 .. [Gos1972] Bill Gosper, "Continued Fraction Arithmetic"
              https://perl.plover.com/classes/cftalk/INFO/gosper.txt
@@ -3340,6 +3347,10 @@ REFERENCES:
             J. Algebra. **324** (2010). 2512-2542.
             :doi:`10.1016/j.bbr.2011.03.031`, :arxiv:`0909.2442`.
 
+.. [JS2021] \D. Jahn, C. Stump.
+            *Bruhat intervals, subword complexes and brick polyhedra for 
+            finite Coxeter groups*, 2021, :arxiv:`2103.03715`.
+
 .. [JV2000] \J. Justin, L. Vuillon, *Return words in Sturmian and
             episturmian words*, Theor. Inform. Appl. 34 (2000)
             343--356.
@@ -3667,6 +3678,10 @@ REFERENCES:
 .. [Kr2016] Stefan Kranich, An epsilon-delta bound for plane algebraic curves
             and its use for certified homotopy continuation of systems of plane
             algebraic curves, :arxiv:`1505.03432`
+
+.. [Krumm2016] Daid Krumm, *Computing Points of Bounded Height in Projective Space over a Number Field*,
+               MATHEMATICS OF COMPUTATION, Volume 85, Number 297, January 2016, Pages 423–447.
+               http://dx.doi.org/10.1090/mcom/2984
 
 .. [KR2001] \J. Kahane and A. Ryba. *The hexad game*, Electronic
             Journal of Combinatorics, **8**
@@ -4198,6 +4213,7 @@ REFERENCES:
 .. [MagmaHGM] *Hypergeometric motives* in Magma,
    http://magma.maths.usyd.edu.au/~watkins/papers/HGM-chapter.pdf
 
+
 .. [Mar1980] Jacques Martinet, Petits discriminants des corps de
              nombres, Journ. Arithm. 1980, Cambridge Univ. Press,
              1982, 151--193.
@@ -4383,6 +4399,11 @@ REFERENCES:
 .. [MM1998] Gunter Malle and Andrew Mathas.
             *Symmetric cyclotomic Hecke algebras* J. Algebra.
             **205** (1998) pp. 275-293.
+
+.. [MM2008] Manel Maia and Miguel Méndez.
+            On the arithmetic product of combinatorial species.
+            Discrete Mathematics (2008), Volume 308, Issue 23, pp. 5407-5427,
+            :arxiv:`math/0503436v2`.
 
 .. [MM2015] \J. Matherne and \G. Muller, *Computing upper cluster algebras*,
             Int. Math. Res. Not. IMRN, 2015, 3121-3149.

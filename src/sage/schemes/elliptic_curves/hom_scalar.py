@@ -198,7 +198,7 @@ class EllipticCurveHom_scalar(EllipticCurveHom):
 
         INPUT: a sequence of 3 coordinates defining a point on ``self``
 
-        OUTPUT: the result of evaluating ``self'' at the given point
+        OUTPUT: the result of evaluating ``self`` at the given point
 
         EXAMPLES::
 
@@ -307,12 +307,8 @@ class EllipticCurveHom_scalar(EllipticCurveHom):
         TESTS::
 
             sage: from sage.schemes.elliptic_curves.weierstrass_morphism import negation_morphism
-            sage: from sage.schemes.elliptic_curves.hom_composite import EllipticCurveHom_composite
-            doctest:warning ...
             sage: neg = negation_morphism(E)
-            sage: neg_psi = EllipticCurveHom_composite.from_factors([psi,neg])
-            sage: psi_neg = EllipticCurveHom_composite.from_factors([neg,psi])
-            sage: phi == neg_psi == psi_neg == -psi
+            sage: phi == neg*psi == psi*neg == -psi
             True
         """
         if isinstance(other, EllipticCurveHom_scalar):
@@ -552,4 +548,3 @@ class EllipticCurveHom_scalar(EllipticCurveHom):
             w = negation_morphism(self._domain).rational_maps()
             result._rational_maps = tuple(f(*w) if f is not None else None for f in self._rational_maps)
         return result
-

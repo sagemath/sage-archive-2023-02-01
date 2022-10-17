@@ -1365,6 +1365,22 @@ class EllipticCurveHom_velusqrt(EllipticCurveHom):
         """
         return self._pre_iso.scaling_factor() * self._post_iso.scaling_factor()
 
+    def is_separable(self):
+        r"""
+        Determine whether or not this isogeny is separable.
+
+        Since :class:`EllipticCurveHom_velusqrt` only implements
+        separable isogenies, this method always returns ``True``.
+
+        EXAMPLES::
+
+            sage: E = EllipticCurve(GF(17), [0,0,0,3,0])
+            sage: phi = E.isogeny(E((1,2)), algorithm='velusqrt')
+            sage: phi.is_separable()
+            True
+        """
+        return True
+
 
 def _random_example_for_testing():
     r"""

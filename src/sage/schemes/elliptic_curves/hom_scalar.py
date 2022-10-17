@@ -307,12 +307,8 @@ class EllipticCurveHom_scalar(EllipticCurveHom):
         TESTS::
 
             sage: from sage.schemes.elliptic_curves.weierstrass_morphism import negation_morphism
-            sage: from sage.schemes.elliptic_curves.hom_composite import EllipticCurveHom_composite
-            doctest:warning ...
             sage: neg = negation_morphism(E)
-            sage: neg_psi = EllipticCurveHom_composite.from_factors([psi,neg])
-            sage: psi_neg = EllipticCurveHom_composite.from_factors([neg,psi])
-            sage: phi == neg_psi == psi_neg == -psi
+            sage: phi == neg*psi == psi*neg == -psi
             True
         """
         if isinstance(other, EllipticCurveHom_scalar):

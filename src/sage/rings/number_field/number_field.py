@@ -153,6 +153,11 @@ from itertools import count
 from collections import Counter
 from builtins import zip
 
+from sage.categories.homset import Hom
+from sage.categories.sets_cat import Sets
+from sage.modules.free_module import VectorSpace
+from sage.modules.free_module_element import vector
+from sage.rings.real_mpfr import RR
 
 _NumberFields = NumberFields()
 
@@ -6002,12 +6007,21 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             2
             sage: M.decomposition_type(Q1)
             [(2, 5, 1)]
+
+        Check that :trac:`34514` is fixed::
+
+            sage: K.<a> = NumberField(x^4 + 18*x^2 - 1)
+            sage: R.<y> = K[]
+            sage: L.<b> = K.extension(y^2 + 9*a^3 - 2*a^2 + 162*a - 38)
+            sage: [L.decomposition_type(i) for i in K.primes_above(3)]
+            [[(1, 1, 2)], [(1, 1, 2)], [(1, 2, 1)]]
         """
         v0 = self.base_ring().valuation(p)
         e0 = v0.value_group().gen().denominator()
-        f0 = v0.residue_field().degree()
+        # Ideally we would compute f using the degree, but residue fields of relative extensions are currently implemented using polynomial quotient rings (this will hopefully be improved after #28485).
+        C0 = v0.residue_field().cardinality()
         valuations = v0.extensions(self)
-        ef = [(v.value_group().gen().denominator() // e0, v.residue_field().degree() // f0) for v in valuations]
+        ef = [(v.value_group().gen().denominator() // e0, v.residue_field().cardinality().exact_log(C0)) for v in valuations]
         return sorted([(e, f, g) for ((e, f), g) in Counter(ef).items()])
 
     def gen(self, n=0):
@@ -9296,6 +9310,78 @@ class NumberField_absolute(NumberField_generic):
                 d[(r+2*i+1,col)] = z.imag()*sqrt2
 
         return sage.matrix.all.matrix(d)
+
+    def logarithmic_embedding(self, prec=53):
+        r"""
+        Return the morphism of ``self`` under the logarithmic embedding
+        in the category Set.
+
+        The logarithmic embedding is defined as a map from the number field ``self`` to `\RR^n`.
+
+        It is defined under Definition 4.9.6 in [Coh1993]_.
+
+        INPUT:
+
+        - ``prec`` -- desired floating point precision.
+
+        OUTPUT:
+
+        - the morphism of ``self`` under the logarithmic embedding in the category Set.
+
+        EXAMPLES::
+
+            sage: CF.<a> = CyclotomicField(5)
+            sage: f = CF.logarithmic_embedding()
+            sage: f(0)
+            (-1, -1)
+            sage: f(7)
+            (3.89182029811063, 3.89182029811063)
+
+        ::
+
+            sage: K.<a> = NumberField(x^3 + 5)
+            sage: f = K.logarithmic_embedding()
+            sage: f(0)
+            (-1, -1)
+            sage: f(7)
+            (1.94591014905531, 3.89182029811063)
+
+        ::
+
+            sage: F.<a> = NumberField(x^4 - 8*x^2 + 3)
+            sage: f = F.logarithmic_embedding()
+            sage: f(0)
+            (-1, -1, -1, -1)
+            sage: f(7)
+            (1.94591014905531, 1.94591014905531, 1.94591014905531, 1.94591014905531)
+        """
+        def closure_map(x, prec=53):
+            """
+            The function closure of the logarithmic embedding.
+            """
+            K = self
+            K_embeddings = K.places(prec)
+            r1, r2 = K.signature()
+            r = r1 + r2 - 1
+
+            from sage.rings.all import RealField
+            Reals = RealField(prec)
+
+            if x == 0:
+                return vector([-1 for _ in range(r + 1)])
+
+            x_logs = []
+            for i in range(r1):
+                sigma = K_embeddings[i]
+                x_logs.append(Reals(abs(sigma(x))).log())
+            for i in range(r1, r + 1):
+                tau = K_embeddings[i]
+                x_logs.append(2 * Reals(abs(tau(x))).log())
+
+            return vector(x_logs)
+
+        hom = Hom(self, VectorSpace(RR, len(closure_map(self(0), prec))), Sets())
+        return hom(closure_map)
 
     def places(self, all_complex=False, prec=None):
         r"""

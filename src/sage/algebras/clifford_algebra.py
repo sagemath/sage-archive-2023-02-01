@@ -666,7 +666,7 @@ class CliffordAlgebra(CombinatorialFreeModule):
         # if the input is a tuple, assume that it has
         # entries in {0, ..., 2**Q.dim()-1}
         if isinstance(x, tuple):
-            return FrozenBitset(x, capacity = Q.dim())
+            return FrozenBitset(x, capacity=Q.dim())
 
         # slice the output of format in order to make conventions
         # of format and FrozenBitset agree.
@@ -2984,7 +2984,7 @@ class ExteriorAlgebraIdeal(Ideal_nc):
                 from sage.algebras.exterior_algebra_groebner import GroebnerStrategyDegLex as strategy
             else:
                 raise ValueError("invalid term order")
-        if strategy == type(self._groebner_strategy):
+        if isinstance(self._groebner_strategy, strategy):
             if self._reduced or not reduced:
                 return self._groebner_strategy.groebner_basis
             self._reduced = reduced
@@ -2994,4 +2994,3 @@ class ExteriorAlgebraIdeal(Ideal_nc):
         self._groebner_strategy.compute_groebner(reduced=reduced)
         self._reduced = reduced
         return self._groebner_strategy.groebner_basis
-

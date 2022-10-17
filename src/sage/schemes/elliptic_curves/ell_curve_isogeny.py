@@ -779,7 +779,6 @@ class EllipticCurveIsogeny(EllipticCurveHom):
         ...
         ValueError: the two curves are not linked by a cyclic normalized isogeny of degree 5
         sage: phihat = phi.dual(); phihat
-        doctest:warning ...
         Isogeny of degree 5 from Elliptic Curve defined by y^2 + y = x^3 - x^2 - 7820*x - 263580 over Rational Field to Elliptic Curve defined by y^2 + y = x^3 - x^2 - 10*x - 20 over Rational Field
         sage: phihat.is_normalized()
         False

@@ -71,7 +71,7 @@ class FusionRing(WeylCharacterRing):
 
     EXAMPLES::
 
-        sage: A22 = FusionRing("A2",2)
+        sage: A22 = FusionRing("A2", 2)
         sage: [f1, f2] = A22.fundamental_weights()
         sage: M = [A22(x) for x in [0*f1, 2*f1, 2*f2, f1+f2, f2, f1]]
         sage: [M[3] * x for x in M]
@@ -92,7 +92,7 @@ class FusionRing(WeylCharacterRing):
         [B22(0,0), B22(1,0), B22(0,1), B22(2,0), B22(1,1), B22(0,2)]
         sage: [x.weight() for x in b]
         [(0, 0), (1, 0), (1/2, 1/2), (2, 0), (3/2, 1/2), (1, 1)]
-        sage: B22.fusion_labels(['I0','Y1','X','Z','Xp','Y2'], inject_variables=True)
+        sage: B22.fusion_labels(['I0', 'Y1', 'X', 'Z', 'Xp', 'Y2'], inject_variables=True)
         sage: b = [B22(x) for x in B22.get_order()]; b
         [I0, Y1, X, Z, Xp, Y2]
         sage: [(x, x.weight()) for x in b]
@@ -111,7 +111,7 @@ class FusionRing(WeylCharacterRing):
     This is the order used by methods such as :meth:`s_matrix`. You may
     use :meth:`CombinatorialFreeModule.set_order` to reorder the basis::
 
-        sage: B22.set_order([x.weight() for x in [I0,Y1,Y2,X,Xp,Z]])
+        sage: B22.set_order([x.weight() for x in [I0, Y1, Y2, X, Xp, Z]])
         sage: [B22(x) for x in B22.get_order()]
         [I0, Y1, Y2, X, Xp, Z]
 
@@ -158,7 +158,7 @@ class FusionRing(WeylCharacterRing):
 
     .. MATH::
 
-        N^k_{ij} = \sum_l \frac{s(i,\ell)\,s(j,\ell)\,\overline{s(k,\ell)}}{s(I,\ell)},
+        N^k_{ij} = \sum_l \frac{s(i, \ell)\, s(j, \ell)\, \overline{s(k, \ell)}}{s(I, \ell)},
 
     where `N^k_{ij}` are the fusion coefficients, i.e. the structure
     constants of the fusion ring, and ``I`` is the unit object.
@@ -167,53 +167,53 @@ class FusionRing(WeylCharacterRing):
 
     .. MATH::
 
-        s(i*,j) = s(i,j*) = \overline{s(i,j)}.
+        s(i*, j) = s(i, j*) = \overline{s(i, j)}.
 
     This is equation (16.5) in [DFMS1996]_. Thus with `N_{ijk}=N^{k*}_{ij}`
     the Verlinde formula is equivalent to
 
     .. MATH::
 
-        N_{ijk} = \sum_l \frac{s(i,\ell)\,s(j,\ell)\,s(k,\ell)}{s(I,\ell)},
+        N_{ijk} = \sum_l \frac{s(i, \ell)\, s(j, \ell)\, s(k, \ell)}{s(I, \ell)},
 
     In this formula `s` is the normalized unitary S-matrix
     denoted `s` in [BaKi2001]_. We may define a function that
     corresponds to the right-hand side, except using
     `\tilde{s}` instead of `s`::
 
-        sage: def V(i,j,k):
+        sage: def V(i, j, k):
         ....:     R = i.parent()
-        ....:     return sum(R.s_ij(i,l) * R.s_ij(j,l) * R.s_ij(k,l) / R.s_ij(R.one(),l)
+        ....:     return sum(R.s_ij(i, l) * R.s_ij(j, l) * R.s_ij(k, l) / R.s_ij(R.one(), l)
         ....:                for l in R.basis())
 
-    This does not produce ``self.N_ijk(i,j,k)`` exactly, because of the
+    This does not produce ``self.N_ijk(i, j, k)`` exactly, because of the
     missing normalization factor. The following code to check the
     Verlinde formula takes this into account::
 
        sage: def test_verlinde(R):
        ....:     b0 = R.one()
        ....:     c = R.global_q_dimension()
-       ....:     return all(V(i,j,k) == c * R.N_ijk(i,j,k) for i in R.basis()
+       ....:     return all(V(i, j, k) == c * R.N_ijk(i, j, k) for i in R.basis()
        ....:                for j in R.basis() for k in R.basis())
 
     Every fusion ring should pass this test::
 
-        sage: test_verlinde(FusionRing("A2",1))
+        sage: test_verlinde(FusionRing("A2", 1))
         True
-        sage: test_verlinde(FusionRing("B4",2)) # long time (.56s)
+        sage: test_verlinde(FusionRing("B4", 2)) # long time (.56s)
         True
 
     As an exercise, the reader may verify the examples in
     Section 5.3 of [RoStWa2009]_. Here we check the example
     of the Ising modular tensor category, which is related
-    to the BPZ minimal model `M(4,3)` or to an `E_8` coset
+    to the BPZ minimal model `M(4, 3)` or to an `E_8` coset
     model. See [DFMS1996]_ Sections 7.4.2 and 18.4.1.
     [RoStWa2009]_ Example 5.3.4 tells us how to
     construct it as the conjugate of the `E_8` level 2
     :class:`FusionRing`::
 
-        sage: I = FusionRing("E8",2,conjugate=True)
-        sage: I.fusion_labels(["i0","p","s"],inject_variables=True)
+        sage: I = FusionRing("E8", 2, conjugate=True)
+        sage: I.fusion_labels(["i0", "p", "s"], inject_variables=True)
         sage: b = I.basis().list(); b
         [i0, p, s]
         sage: Matrix([[x*y for x in b] for y in b]) # long time (.93s)
@@ -224,7 +224,7 @@ class FusionRing(WeylCharacterRing):
         [0, 1, 1/8]
         sage: [x.ribbon() for x in b]
         [1, -1, zeta128^8]
-        sage: [I.r_matrix(i, j, k) for (i,j,k) in [(s,s,i0), (p,p,i0), (p,s,s), (s,p,s), (s,s,p)]]
+        sage: [I.r_matrix(i, j, k) for (i, j, k) in [(s, s, i0), (p, p, i0), (p, s, s), (s, p, s), (s, s, p)]]
         [-zeta128^56, -1, -zeta128^32, -zeta128^32, zeta128^24]
         sage: I.r_matrix(s, s, i0) == I.root_of_unity(-1/8)
         True
@@ -245,11 +245,11 @@ class FusionRing(WeylCharacterRing):
 
     The term *modular tensor category* refers to the fact that associated
     with the category there is a projective representation of the modular
-    group `SL(2,\ZZ)`. We recall that this group is generated by
+    group `SL(2, \ZZ)`. We recall that this group is generated by
 
     .. MATH::
 
-        S = \begin{pmatrix} & -1\\1\end{pmatrix},\qquad
+        S = \begin{pmatrix} & -1\\1\end{pmatrix}, \qquad
         T = \begin{pmatrix} 1 & 1\\ &1 \end{pmatrix}
 
     subject to the relations `(ST)^3 = S^2`, `S^2T = TS^2`, and `S^4 = I`.
@@ -281,7 +281,7 @@ class FusionRing(WeylCharacterRing):
     of `SL(2, \ZZ)`. Let us confirm these identities for the Fibonacci MTC
     ``FusionRing("G2", 1)``::
 
-        sage: R = FusionRing("G2",1)
+        sage: R = FusionRing("G2", 1)
         sage: S = R.s_matrix(unitary=True)
         sage: T = R.twists_matrix()
         sage: C = R.conj_matrix()
@@ -347,7 +347,7 @@ class FusionRing(WeylCharacterRing):
 
         EXAMPLES::
 
-            sage: G22 = FusionRing("G2",2)
+            sage: G22 = FusionRing("G2", 2)
             sage: G22._test_verlinde()
         """
         tester = self._tester(**options)
@@ -355,9 +355,9 @@ class FusionRing(WeylCharacterRing):
         i0 = self.one()
         from sage.misc.misc import some_tuples
         B = self.basis()
-        for x,y,z in some_tuples(B, 3, tester._max_runs):
-            v = sum(self.s_ij(x,w) * self.s_ij(y,w) * self.s_ij(z,w) / self.s_ij(i0,w) for w in B)
-            tester.assertEqual(v, c * self.N_ijk(x,y,z))
+        for x, y, z in some_tuples(B, 3, tester._max_runs):
+            v = sum(self.s_ij(x, w) * self.s_ij(y, w) * self.s_ij(z, w) / self.s_ij(i0, w) for w in B)
+            tester.assertEqual(v, c * self.N_ijk(x, y, z))
 
     def _test_total_q_order(self, **options):
         r"""
@@ -369,7 +369,7 @@ class FusionRing(WeylCharacterRing):
 
         EXAMPLES::
 
-            sage: G22 = FusionRing("G2",2)
+            sage: G22 = FusionRing("G2", 2)
             sage: G22._test_total_q_order()
         """
         tester = self._tester(**options)
@@ -397,10 +397,10 @@ class FusionRing(WeylCharacterRing):
 
         EXAMPLES::
 
-            sage: A21 = FusionRing("A2",1)
+            sage: A21 = FusionRing("A2", 1)
             sage: A21.test_braid_representation(max_strands=4)
             True
-            sage: F41 = FusionRing("F4",1)             # long time
+            sage: F41 = FusionRing("F4", 1)             # long time
             sage: F41.test_braid_representation()      # long time
             True
         """
@@ -409,7 +409,7 @@ class FusionRing(WeylCharacterRing):
         b = self.basis()
         results = []
         #Test with different numbers of strands
-        for n_strands in range(3,max_strands+1):
+        for n_strands in range(3, max_strands+1):
             #Randomly select a fusing anyon. Skip the identity element, since
             #its braiding matrices are trivial
             if anyon is not None:
@@ -426,7 +426,7 @@ class FusionRing(WeylCharacterRing):
                 if v > 1:
                     d = self(k)
                 break
-            comp_basis, sig = self.get_braid_generators(a,d,n_strands,verbose=False)
+            comp_basis, sig = self.get_braid_generators(a, d, n_strands, verbose=False)
             results.append(len(comp_basis) > 0)
             results.append(self.gens_satisfy_braid_gp_rels(sig))
         return all(results)
@@ -509,9 +509,9 @@ class FusionRing(WeylCharacterRing):
 
         EXAMPLES::
 
-            sage: FusionRing("A2",2).field()
+            sage: FusionRing("A2", 2).field()
             Cyclotomic Field of order 60 and degree 16
-            sage: FusionRing("B2",2).field()
+            sage: FusionRing("B2", 2).field()
             Cyclotomic Field of order 40 and degree 16
         """
         # if self._field is None:
@@ -550,14 +550,14 @@ class FusionRing(WeylCharacterRing):
 
         EXAMPLES::
 
-            sage: A13 = FusionRing("A1",3,fusion_labels="a",inject_variables=True)
+            sage: A13 = FusionRing("A1", 3, fusion_labels="a", inject_variables=True)
             sage: A13.fvars_field()
             Cyclotomic Field of order 40 and degree 16
             sage: A13.field()
             Cyclotomic Field of order 40 and degree 16
             sage: a2**4
             2*a0 + 3*a2
-            sage: comp_basis, sig = A13.get_braid_generators(a2,a2,3,verbose=False)    # long time (<3s)
+            sage: comp_basis, sig = A13.get_braid_generators(a2, a2, 3, verbose=False)    # long time (<3s)
             sage: A13.fvars_field()                                                    # long time
             Number Field in a with defining polynomial y^32 - ... - 500*y^2 + 25
             sage: a2.q_dimension().parent()                                            # long time
@@ -572,6 +572,8 @@ class FusionRing(WeylCharacterRing):
         """
         if self.is_multiplicity_free():
             return self.fmats.field()
+        else:
+            raise ValueError("Method is only available for multiplicity free fusion rings.")
 
     def root_of_unity(self, r, base_coercion=True):
         r"""
@@ -583,7 +585,7 @@ class FusionRing(WeylCharacterRing):
 
         EXAMPLES::
 
-            sage: A11 = FusionRing("A1",1)
+            sage: A11 = FusionRing("A1", 1)
             sage: A11.field()
             Cyclotomic Field of order 24 and degree 8
             sage: [A11.root_of_unity(2/x) for x in [1..7]]
@@ -606,10 +608,10 @@ class FusionRing(WeylCharacterRing):
 
         EXAMPLES::
 
-            sage: A15 = FusionRing("A1",5)
+            sage: A15 = FusionRing("A1", 5)
             sage: w = A15.get_order(); w
             [(0, 0), (1/2, -1/2), (1, -1), (3/2, -3/2), (2, -2), (5/2, -5/2)]
-            sage: A15.set_order([w[k] for k in [0,4,1,3,5,2]])
+            sage: A15.set_order([w[k] for k in [0, 4, 1, 3, 5, 2]])
             sage: [A15(x) for x in A15.get_order()]
             [A15(0), A15(4), A15(1), A15(3), A15(5), A15(2)]
 
@@ -645,7 +647,7 @@ class FusionRing(WeylCharacterRing):
 
         EXAMPLES::
 
-            sage: B22 = FusionRing('B2',2)
+            sage: B22 = FusionRing('B2', 2)
             sage: B22.fusion_level()
             2
         """
@@ -664,10 +666,10 @@ class FusionRing(WeylCharacterRing):
 
         EXAMPLES::
 
-            sage: B22 = FusionRing('B2',2)
+            sage: B22 = FusionRing('B2', 2)
             sage: B22.fusion_l()
             10
-            sage: D52 = FusionRing('D5',2)
+            sage: D52 = FusionRing('D5', 2)
             sage: D52.fusion_l()
             10
         """
@@ -721,7 +723,7 @@ class FusionRing(WeylCharacterRing):
 
         EXAMPLES::
 
-            sage: FusionRing("A2",1).conj_matrix()
+            sage: FusionRing("A2", 1).conj_matrix()
             [1 0 0]
             [0 0 1]
             [0 1 0]
@@ -736,7 +738,7 @@ class FusionRing(WeylCharacterRing):
 
         EXAMPLES::
 
-            sage: B21=FusionRing("B2",1)
+            sage: B21=FusionRing("B2", 1)
             sage: [x.twist() for x in B21.basis().list()]
             [0, 1, 5/8]
             sage: [B21.root_of_unity(x.twist()) for x in B21.basis().list()]
@@ -769,11 +771,11 @@ class FusionRing(WeylCharacterRing):
             sage: G23.fusion_labels("g")
             sage: b = G23.basis().list(); b
             [g0, g1, g2, g3, g4, g5]
-            sage: [(x,y,z) for x in b for y in b for z in b if G23.N_ijk(x,y,z) > 1]
+            sage: [(x, y, z) for x in b for y in b for z in b if G23.N_ijk(x, y, z) > 1]
             [(g3, g3, g3), (g3, g3, g4), (g3, g4, g3), (g4, g3, g3)]
-            sage: all(G23.N_ijk(x,y,z)==G23.N_ijk(y,z,x) for x in b for y in b for z in b)
+            sage: all(G23.N_ijk(x, y, z)==G23.N_ijk(y, z, x) for x in b for y in b for z in b)
             True
-            sage: all(G23.N_ijk(x,y,z)==G23.N_ijk(y,x,z) for x in b for y in b for z in b)
+            sage: all(G23.N_ijk(x, y, z)==G23.N_ijk(y, x, z) for x in b for y in b for z in b)
             True
         """
         return (elt_i * elt_j).monomial_coefficients().get(elt_k.dual().weight(), 0)
@@ -793,7 +795,7 @@ class FusionRing(WeylCharacterRing):
 
             sage: A22 = FusionRing("A2", 2)
             sage: b = A22.basis().list()
-            sage: all(x*y == sum(A22.Nk_ij(x,y,k)*k for k in b) for x in b for y in b)
+            sage: all(x*y == sum(A22.Nk_ij(x, y, k)*k for k in b) for x in b for y in b)
             True
         """
         return (elt_i * elt_j).monomial_coefficients(copy=False).get(elt_k.weight(), 0)
@@ -808,7 +810,7 @@ class FusionRing(WeylCharacterRing):
 
         .. MATH::
 
-            s_{i,j} = \frac{1}{\theta_i\theta_j} \sum_k N_{ik}^j d_k \theta_k,
+            s_{i, j} = \frac{1}{\theta_i\theta_j} \sum_k N_{ik}^j d_k \theta_k,
 
         where `\theta_k` is the twist and `d_k` is the quantum
         dimension. See [Row2006]_ Equation (2.2) or [EGNO2015]_
@@ -836,7 +838,7 @@ class FusionRing(WeylCharacterRing):
     def s_ijconj(self, elt_i, elt_j, base_coercion=True):
         """
         Return the conjugate of the element of the S-matrix given by
-        ``self.s_ij(elt_i,elt_j,base_coercion=base_coercion)``.
+        ``self.s_ij(elt_i, elt_j, base_coercion=base_coercion)``.
 
         See :meth:`s_ij`.
 
@@ -852,19 +854,19 @@ class FusionRing(WeylCharacterRing):
 
         TESTS::
 
-            sage: E62 = FusionRing("E6",2)
+            sage: E62 = FusionRing("E6", 2)
             sage: E62.fusion_labels("e", inject_variables=True)
-            sage: E62.s_ij(e8,e1).conjugate() == E62.s_ijconj(e8,e1)
+            sage: E62.s_ij(e8, e1).conjugate() == E62.s_ijconj(e8, e1)
             True
-            sage: F41 = FusionRing("F4",1)
+            sage: F41 = FusionRing("F4", 1)
             sage: F41.fmats.find_orthogonal_solution(verbose=False)
             sage: b = F41.basis()
-            sage: all(F41.s_ijconj(x,y) == F41._basecoer(F41.s_ij(x,y,base_coercion=False).conjugate()) for x in b for y in b)
+            sage: all(F41.s_ijconj(x, y) == F41._basecoer(F41.s_ij(x, y, base_coercion=False).conjugate()) for x in b for y in b)
             True
-            sage: G22 = FusionRing("G2",2)
+            sage: G22 = FusionRing("G2", 2)
             sage: G22.fmats.find_orthogonal_solution(verbose=False)     # long time (~11 s)
             sage: b = G22.basis()                                       # long time
-            sage: all(G22.s_ijconj(x,y) == G22.fmats.field()(G22.s_ij(x,y,base_coercion=False).conjugate()) for x in b for y in b)   # long time
+            sage: all(G22.s_ijconj(x, y) == G22.fmats.field()(G22.s_ij(x, y, base_coercion=False).conjugate()) for x in b for y in b)   # long time
             True
         """
         ret = self.s_ij(elt_i, elt_j, base_coercion=False).conjugate()
@@ -944,16 +946,16 @@ class FusionRing(WeylCharacterRing):
         EXAMPLES::
 
             sage: I = FusionRing("E8", 2, conjugate=True)  # Ising MTC
-            sage: I.fusion_labels(["i0","p","s"], inject_variables=True)
-            sage: I.r_matrix(s,s,i0) == I.root_of_unity(-1/8)
+            sage: I.fusion_labels(["i0", "p", "s"], inject_variables=True)
+            sage: I.r_matrix(s, s, i0) == I.root_of_unity(-1/8)
             True
-            sage: I.r_matrix(p,p,i0)
+            sage: I.r_matrix(p, p, i0)
             -1
-            sage: I.r_matrix(p,s,s) == I.root_of_unity(-1/2)
+            sage: I.r_matrix(p, s, s) == I.root_of_unity(-1/2)
             True
-            sage: I.r_matrix(s,p,s) == I.root_of_unity(-1/2)
+            sage: I.r_matrix(s, p, s) == I.root_of_unity(-1/2)
             True
-            sage: I.r_matrix(s,s,p) == I.root_of_unity(3/8)
+            sage: I.r_matrix(s, s, p) == I.root_of_unity(3/8)
             True
         """
         if self.Nk_ij(i, j, k) == 0:
@@ -964,8 +966,8 @@ class FusionRing(WeylCharacterRing):
             i0 = self.one()
             B = self.basis()
             ret = sum(y.ribbon(base_coercion=False)**2 / (i.ribbon(base_coercion=False) * x.ribbon(base_coercion=False)**2)
-                   * self.s_ij(i0,y,base_coercion=False) * self.s_ij(i,z,base_coercion=False) * self.s_ijconj(x,z,base_coercion=False)
-                   * self.s_ijconj(k,x,base_coercion=False) * self.s_ijconj(y,z,base_coercion=False) / self.s_ij(i0,z,base_coercion=False)
+                   * self.s_ij(i0, y, base_coercion=False) * self.s_ij(i, z, base_coercion=False) * self.s_ijconj(x, z, base_coercion=False)
+                   * self.s_ijconj(k, x, base_coercion=False) * self.s_ijconj(y, z, base_coercion=False) / self.s_ij(i0, z, base_coercion=False)
                    for x in B for y in B for z in B) / (self.total_q_order(base_coercion=False)**4)
         if (not base_coercion) or (self._basecoer is None):
             return ret
@@ -980,7 +982,7 @@ class FusionRing(WeylCharacterRing):
 
         EXAMPLES::
 
-            sage: FusionRing("E6",1).global_q_dimension()
+            sage: FusionRing("E6", 1).global_q_dimension()
             3
         """
         ret = sum(x.q_dimension(base_coercion=False)**2 for x in self.basis())
@@ -998,7 +1000,7 @@ class FusionRing(WeylCharacterRing):
 
         EXAMPLES::
 
-            sage: F = FusionRing("G2",1)
+            sage: F = FusionRing("G2", 1)
             sage: tqo=F.total_q_order(); tqo
             zeta60^15 - zeta60^11 - zeta60^9 + 2*zeta60^3 + zeta60
             sage: tqo.is_real_positive()
@@ -1007,7 +1009,7 @@ class FusionRing(WeylCharacterRing):
             True
         """
         c = self.virasoro_central_charge()
-        ret = self.D_plus(base_coercion=False) * self.root_of_unity(-c/4,base_coercion=False)
+        ret = self.D_plus(base_coercion=False) * self.root_of_unity(-c/4, base_coercion=False)
         if (not base_coercion) or (self._basecoer is None):
             return ret
         return self._basecoer(ret)
@@ -1021,7 +1023,7 @@ class FusionRing(WeylCharacterRing):
 
         EXAMPLES::
 
-            sage: B31 = FusionRing("B3",1)
+            sage: B31 = FusionRing("B3", 1)
             sage: Dp = B31.D_plus(); Dp
             2*zeta48^13 - 2*zeta48^5
             sage: Dm = B31.D_minus(); Dm
@@ -1047,8 +1049,8 @@ class FusionRing(WeylCharacterRing):
 
         EXAMPLES::
 
-            sage: E83 = FusionRing("E8",3,conjugate=True)
-            sage: [Dp,Dm] = [E83.D_plus(), E83.D_minus()]
+            sage: E83 = FusionRing("E8", 3, conjugate=True)
+            sage: [Dp, Dm] = [E83.D_plus(), E83.D_minus()]
             sage: Dp*Dm == E83.global_q_dimension()
             True
             sage: c = E83.virasoro_central_charge(); c
@@ -1071,7 +1073,7 @@ class FusionRing(WeylCharacterRing):
 
         EXAMPLES::
 
-            sage: [FusionRing(ct,k).is_multiplicity_free() for ct in ("A1","A2","B2","C3") for k in (1,2,3)]
+            sage: [FusionRing(ct, k).is_multiplicity_free() for ct in ("A1", "A2", "B2", "C3") for k in (1, 2, 3)]
             [True, True, True, True, True, False, True, True, False, True, False, False]
         """
         ct = self.cartan_type()
@@ -1080,8 +1082,8 @@ class FusionRing(WeylCharacterRing):
             if ct.n == 1:
                 return True
             return k <= 2
-        # if ct.letter in ['B','D','G','F','E']:
-        if ct.letter in ['B','D','F','G']:
+        # if ct.letter in ['B', 'D', 'G', 'F', 'E']:
+        if ct.letter in ['B', 'D', 'F', 'G']:
             return k <= 2
         if ct.letter == 'C':
             if ct.n == 2:
@@ -1096,7 +1098,7 @@ class FusionRing(WeylCharacterRing):
     ### Braid group representations ###
     ###################################
 
-    def get_computational_basis(self,a,b,n_strands):
+    def get_computational_basis(self, a, b, n_strands):
         r"""
         Return the so-called computational basis for `\text{Hom}(b, a^n)`.
 
@@ -1107,14 +1109,14 @@ class FusionRing(WeylCharacterRing):
         - ``n_strands`` -- the number of strands for a braid group
 
         Let `n=` ``n_strands`` and let `k` be the greatest integer `\leq n/2`.
-        The braid group acts on `\text{Hom}(b,a^n)`. This action
+        The braid group acts on `\text{Hom}(b, a^n)`. This action
         is computed in :meth:`get_braid_generators`. This method
         returns the computational basis in the form of a list of
         fusion trees. Each tree is represented by an `(n-2)`-tuple
 
         .. MATH::
 
-            (m_1,\ldots,m_k,l_1,\ldots,l_{k-2})
+            (m_1, \ldots, m_k, l_1, \ldots, l_{k-2})
 
         such that each `m_j` is an irreducible constituent in `a \otimes a`
         and
@@ -1122,10 +1124,10 @@ class FusionRing(WeylCharacterRing):
         .. MATH::
 
             \begin{array}{l}
-            b \in l_{k-2} \otimes m_{k},\\
-            l_{k-2} \in l_{k-3} \otimes m_{k-1},\\
-            \cdots,\\
-            l_2 \in l_1 \otimes m_3,\\
+            b \in l_{k-2} \otimes m_{k}, \\
+            l_{k-2} \in l_{k-3} \otimes m_{k-1}, \\
+            \cdots, \\
+            l_2 \in l_1 \otimes m_3, \\
             l_1 \in m_1 \otimes m_2,
             \end{array}
 
@@ -1139,28 +1141,28 @@ class FusionRing(WeylCharacterRing):
 
         EXAMPLES::
 
-            sage: A14 = FusionRing("A1",4)
+            sage: A14 = FusionRing("A1", 4)
             sage: A14.get_order()
             [(0, 0), (1/2, -1/2), (1, -1), (3/2, -3/2), (2, -2)]
-            sage: A14.fusion_labels(["zero","one","two","three","four"],inject_variables=True)
+            sage: A14.fusion_labels(["zero", "one", "two", "three", "four"], inject_variables=True)
             sage: [A14(x) for x in A14.get_order()]
             [zero, one, two, three, four]
-            sage: A14.get_computational_basis(one,two,4)
+            sage: A14.get_computational_basis(one, two, 4)
             [(two, two), (two, zero), (zero, two)]
         """
-        def _get_trees(fr,top_row,root):
+        def _get_trees(fr, top_row, root):
             if len(top_row) == 2:
                 m1, m2 = top_row
-                return [[]] if fr.Nk_ij(m1,m2,root) else []
+                return [[]] if fr.Nk_ij(m1, m2, root) else []
             else:
                 m1, m2 = top_row[:2]
-                return [tuple([l,*b]) for l in fr.basis() for b in _get_trees(fr,[l]+top_row[2:],root) if fr.Nk_ij(m1,m2,l)]
+                return [tuple([l, *b]) for l in fr.basis() for b in _get_trees(fr, [l]+top_row[2:], root) if fr.Nk_ij(m1, m2, l)]
 
         comp_basis = list()
-        for top in product((a*a).monomials(),repeat=n_strands//2):
+        for top in product((a*a).monomials(), repeat=n_strands//2):
             #If the n_strands is odd, we must extend the top row by a fusing anyon
             top_row = list(top)+[a]*(n_strands%2)
-            comp_basis.extend(tuple([*top,*levels]) for levels in _get_trees(self,top_row,b))
+            comp_basis.extend(tuple([*top, *levels]) for levels in _get_trees(self, top_row, b))
         return comp_basis
 
     @lazy_attribute
@@ -1173,7 +1175,7 @@ class FusionRing(WeylCharacterRing):
 
         EXAMPLES::
 
-            sage: A15 = FusionRing("A1",5)
+            sage: A15 = FusionRing("A1", 5)
             sage: A15.fmats
             F-Matrix factory for The Fusion Ring of Type A1 and level 5 with Integer Ring coefficients
         """
@@ -1206,27 +1208,27 @@ class FusionRing(WeylCharacterRing):
 
         EXAMPLES::
 
-            sage: FR = FusionRing("A1",4)
-            sage: FR.fusion_labels(['idd','one','two','three','four'], inject_variables=True)
+            sage: FR = FusionRing("A1", 4)
+            sage: FR.fusion_labels(['idd', 'one', 'two', 'three', 'four'], inject_variables=True)
             sage: FR.fmats.find_orthogonal_solution(verbose=False)      # long time
-            sage: len(FR._emap('sig_2k',(1,one,one,5)))                 # long time
+            sage: len(FR._emap('sig_2k', (1, one, one, 5)))                 # long time
             13
-            sage: FR = FusionRing("A1",2)
-            sage: FR.fusion_labels("a",inject_variables=True)
+            sage: FR = FusionRing("A1", 2)
+            sage: FR.fusion_labels("a", inject_variables=True)
             sage: FR.fmats.find_orthogonal_solution(verbose=False)
-            sage: len(FR._emap('odd_one_out',(a1,a1,7)))
+            sage: len(FR._emap('odd_one_out', (a1, a1, 7)))
             16
         """
         n_proc = worker_pool._processes if worker_pool is not None else 1
         input_iter = [(child_id, n_proc, input_args) for child_id in range(n_proc)]
         no_mp = worker_pool is None
         #Map phase
-        input_iter = zip_longest([],input_iter,fillvalue=(mapper,id(self)))
+        input_iter = zip_longest([], input_iter, fillvalue=(mapper, id(self)))
         results = list()
         if no_mp:
-            mapped = map(executor,input_iter)
+            mapped = map(executor, input_iter)
         else:
-            mapped = worker_pool.imap_unordered(executor,input_iter,chunksize=1)
+            mapped = worker_pool.imap_unordered(executor, input_iter, chunksize=1)
         #Reduce phase
         for worker_results in mapped:
             results.extend(worker_results)
@@ -1263,7 +1265,7 @@ class FusionRing(WeylCharacterRing):
           we don't run the solver again.
         - ``use_mp`` -- (default: ``True``) a boolean indicating whether
           to use multiprocessing to speed up the computation; this is
-          highly recommended. Python 3.8+ is required. 
+          highly recommended. Python 3.8+ is required.
         - ``verbose`` -- (default: ``True``) boolean indicating whether
           to be verbose with the computation
 
@@ -1279,7 +1281,7 @@ class FusionRing(WeylCharacterRing):
 
         OUTPUT:
 
-        The method outputs a pair of data ``(comp_basis,sig)`` where
+        The method outputs a pair of data ``(comp_basis, sig)`` where
         ``comp_basis`` is a list of basis elements of the braid group
         module, parametrized by a list of fusion ring elements describing
         a fusion tree. For example with 5 strands the fusion tree
@@ -1299,15 +1301,15 @@ class FusionRing(WeylCharacterRing):
 
         EXAMPLES::
 
-            sage: A14 = FusionRing("A1",4)
+            sage: A14 = FusionRing("A1", 4)
             sage: A14.get_order()
             [(0, 0), (1/2, -1/2), (1, -1), (3/2, -3/2), (2, -2)]
-            sage: A14.fusion_labels(["one","two","three","four","five"],inject_variables=True)
+            sage: A14.fusion_labels(["one", "two", "three", "four", "five"], inject_variables=True)
             sage: [A14(x) for x in A14.get_order()]
             [one, two, three, four, five]
             sage: two ** 5
             5*two + 4*four
-            sage: comp_basis, sig = A14.get_braid_generators(two,two,5,verbose=False) # long time
+            sage: comp_basis, sig = A14.get_braid_generators(two, two, 5, verbose=False) # long time
             sage: A14.gens_satisfy_braid_gp_rels(sig)                                 # long time
             True
             sage: len(comp_basis) == 5                                                # long time
@@ -1333,17 +1335,17 @@ class FusionRing(WeylCharacterRing):
 
         #Set up computational basis and compute generators one at a time
         a, b = fusing_anyon, total_charge_anyon
-        comp_basis = self.get_computational_basis(a,b,n_strands)
+        comp_basis = self.get_computational_basis(a, b, n_strands)
         d = len(comp_basis)
         if verbose:
             print("Computing an {}-dimensional representation of the Artin braid group on {} strands...".format(d, n_strands))
 
         #Compute diagonal odd-indexed generators using the 3j-symbols
-        gens = {2*i+1: diagonal_matrix(self.r_matrix(a,a,c[i]) for c in comp_basis) for i in range(n_strands//2)}
+        gens = {2*i+1: diagonal_matrix(self.r_matrix(a, a, c[i]) for c in comp_basis) for i in range(n_strands//2)}
 
         #Compute even-indexed generators using F-matrices
         for k in range(1, n_strands//2):
-            entries = self._emap('sig_2k',(k,a,b,n_strands),pool)
+            entries = self._emap('sig_2k', (k, a, b, n_strands), pool)
 
             #Build cyclotomic field element objects from tuple of rationals repn
             _unflatten_entries(self, entries)
@@ -1351,7 +1353,7 @@ class FusionRing(WeylCharacterRing):
 
         #If n_strands is odd, we compute the final generator
         if n_strands % 2:
-            entries = self._emap('odd_one_out',(a,b,n_strands),pool)
+            entries = self._emap('odd_one_out', (a, b, n_strands), pool)
 
             #Build cyclotomic field element objects from tuple of rationals repn
             _unflatten_entries(self, entries)
@@ -1371,16 +1373,16 @@ class FusionRing(WeylCharacterRing):
 
         EXAMPLES::
 
-            sage: F41 = FusionRing("F4",1,fusion_labels="f",inject_variables=True)
+            sage: F41 = FusionRing("F4", 1, fusion_labels="f", inject_variables=True)
             sage: f1*f1
             f0 + f1
-            sage: comp, sig = F41.get_braid_generators(f1,f0,4,verbose=False)
+            sage: comp, sig = F41.get_braid_generators(f1, f0, 4, verbose=False)
             sage: F41.gens_satisfy_braid_gp_rels(sig)
             True
         """
         n = len(sig)
         braid_rels = all(sig[i] * sig[i+1] * sig[i] == sig[i+1] * sig[i] * sig[i+1] for i in range(n-1))
-        far_comm = all(sig[i] * sig[j] == sig[j] * sig[i] for i, j in product(range(n),repeat=2) if abs(i-j) > 1 and i > j)
+        far_comm = all(sig[i] * sig[j] == sig[j] * sig[i] for i, j in product(range(n), repeat=2) if abs(i-j) > 1 and i > j)
         singular = any(s.is_singular() for s in sig)
         return braid_rels and far_comm and not singular
 
@@ -1395,7 +1397,7 @@ class FusionRing(WeylCharacterRing):
             EXAMPLES::
 
                 sage: A22 = FusionRing("A2", 2)
-                sage: x = A22(1,0); x
+                sage: x = A22(1, 0); x
                 A22(1,0)
                 sage: x.is_simple_object()
                 True
@@ -1414,7 +1416,7 @@ class FusionRing(WeylCharacterRing):
 
             EXAMPLES::
 
-                sage: A21 = FusionRing("A2",1)
+                sage: A21 = FusionRing("A2", 1)
                 sage: [x.weight() for x in A21.basis().list()]
                 [(0, 0, 0), (2/3, -1/3, -1/3), (1/3, 1/3, -2/3)]
             """
@@ -1477,7 +1479,7 @@ class FusionRing(WeylCharacterRing):
             else:
                 return twist
 
-        def ribbon(self,base_coercion=True):
+        def ribbon(self, base_coercion=True):
             r"""
             Return the twist or ribbon element of ``self``.
 
@@ -1490,15 +1492,15 @@ class FusionRing(WeylCharacterRing):
 
             EXAMPLES::
 
-                sage: F = FusionRing("A1",3)
+                sage: F = FusionRing("A1", 3)
                 sage: [x.twist() for x in F.basis()]
                 [0, 3/10, 4/5, 3/2]
                 sage: [x.ribbon(base_coercion=False) for x in F.basis()]
                 [1, zeta40^6, zeta40^12 - zeta40^8 + zeta40^4 - 1, -zeta40^10]
-                sage: [F.root_of_unity(x,base_coercion=False) for x in [0, 3/10, 4/5, 3/2]]
+                sage: [F.root_of_unity(x, base_coercion=False) for x in [0, 3/10, 4/5, 3/2]]
                 [1, zeta40^6, zeta40^12 - zeta40^8 + zeta40^4 - 1, -zeta40^10]
             """
-            ret = self.parent().root_of_unity(self.twist(),base_coercion=False)
+            ret = self.parent().root_of_unity(self.twist(), base_coercion=False)
             if (not base_coercion) or (self.parent()._basecoer is None):
                 return ret
             return self.parent()._basecoer(ret)
@@ -1508,13 +1510,13 @@ class FusionRing(WeylCharacterRing):
             r"""
             Return the quantum dimension as an element of the cyclotomic
             field of the `2\ell`-th roots of unity, where `l = m (k+h^\vee)`
-            with `m=1,2,3` depending on whether type is simply, doubly or
+            with `m=1, 2, 3` depending on whether type is simply, doubly or
             triply laced, `k` is the level and `h^\vee` is the dual
             Coxeter number.
 
             EXAMPLES::
 
-                sage: B22 = FusionRing("B2",2)
+                sage: B22 = FusionRing("B2", 2)
                 sage: [(b.q_dimension())^2 for b in B22.basis()]
                 [1, 4, 5, 1, 5, 4]
             """

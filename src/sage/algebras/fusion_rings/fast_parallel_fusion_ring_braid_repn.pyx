@@ -18,9 +18,9 @@ from sage.rings.qqbar import QQbar
 ### Mappers ###
 ###############
 
-cdef mid_sig_ij(fusion_ring,row,col,a,b):
+cdef mid_sig_ij(fusion_ring, row, col, a, b):
     r"""
-    Compute the (xi,yi), (xj,yj) entry of generator braiding the middle two
+    Compute the (xi, yi), (xj, yj) entry of generator braiding the middle two
     strands in the tree b -> xi # yi -> (a # a) # (a # a), which results in
     a sum over j of trees b -> xj # yj -> (a # a) # (a # a)
 
@@ -40,15 +40,15 @@ cdef mid_sig_ij(fusion_ring,row,col,a,b):
     for c in basis:
         for d in basis:
             ##Warning: We assume F-matrices are orthogonal!!! (using transpose for inverse)
-            f1 = _fmat(_fvars,_Nk_ij,one,a,a,yi,b,xi,c)
-            f2 = _fmat(_fvars,_Nk_ij,one,a,a,a,c,d,yi)
-            f3 = _fmat(_fvars,_Nk_ij,one,a,a,a,c,d,yj)
-            f4 = _fmat(_fvars,_Nk_ij,one,a,a,yj,b,xj,c)
-            r = fusion_ring.r_matrix(a,a,d)
+            f1 = _fmat(_fvars, _Nk_ij, one, a, a, yi, b, xi, c)
+            f2 = _fmat(_fvars, _Nk_ij, one, a, a, a, c, d, yi)
+            f3 = _fmat(_fvars, _Nk_ij, one, a, a, a, c, d, yj)
+            f4 = _fmat(_fvars, _Nk_ij, one, a, a, yj, b, xj, c)
+            r = fusion_ring.r_matrix(a, a, d)
             entry += f1 * f2 * r * f3 * f4
     return entry
 
-cdef odd_one_out_ij(fusion_ring,xi,xj,a,b):
+cdef odd_one_out_ij(fusion_ring, xi, xj, a, b):
     r"""
     Compute the `xi`, `xj` entry of the braid generator on the two right-most
     strands, corresponding to the tree b -> (xi # a) -> (a # a) # a, which
@@ -66,9 +66,9 @@ cdef odd_one_out_ij(fusion_ring,xi,xj,a,b):
     entry = 0
     for c in fusion_ring.basis():
         ##Warning: We assume F-matrices are orthogonal!!! (using transpose for inverse)
-        f1 = _fmat(_fvars,_Nk_ij,one,a,a,a,b,xi,c)
-        f2 = _fmat(_fvars,_Nk_ij,one,a,a,a,b,xj,c)
-        r = fusion_ring.r_matrix(a,a,c)
+        f1 = _fmat(_fvars, _Nk_ij, one, a, a, a, b, xi, c)
+        f2 = _fmat(_fvars, _Nk_ij, one, a, a, a, b, xj, c)
+        r = fusion_ring.r_matrix(a, a, c)
         entry += f1 * r * f2
     return entry
 
@@ -76,24 +76,24 @@ cdef odd_one_out_ij(fusion_ring,xi,xj,a,b):
 cdef odd_one_out_ij_cache = dict()
 cdef mid_sig_ij_cache = dict()
 
-cdef cached_mid_sig_ij(fusion_ring,row,col,a,b):
+cdef cached_mid_sig_ij(fusion_ring, row, col, a, b):
     r"""
     Cached version of :meth:`mid_sig_ij`.
     """
-    if (row,col,a,b) in mid_sig_ij_cache:
-        return mid_sig_ij_cache[row,col,a,b]
-    entry = mid_sig_ij(fusion_ring,row,col,a,b)
-    mid_sig_ij_cache[row,col,a,b] = entry
+    if (row, col, a, b) in mid_sig_ij_cache:
+        return mid_sig_ij_cache[row, col, a, b]
+    entry = mid_sig_ij(fusion_ring, row, col, a, b)
+    mid_sig_ij_cache[row, col, a, b] = entry
     return entry
 
-cdef cached_odd_one_out_ij(fusion_ring,xi,xj,a,b):
+cdef cached_odd_one_out_ij(fusion_ring, xi, xj, a, b):
     r"""
     Cached version of :meth:`odd_one_out_ij`.
     """
-    if (xi,xj,a,b) in odd_one_out_ij_cache:
-        return odd_one_out_ij_cache[xi,xj,a,b]
-    entry = odd_one_out_ij(fusion_ring,xi,xj,a,b)
-    odd_one_out_ij_cache[xi,xj,a,b] = entry
+    if (xi, xj, a, b) in odd_one_out_ij_cache:
+        return odd_one_out_ij_cache[xi, xj, a, b]
+    entry = odd_one_out_ij(fusion_ring, xi, xj, a, b)
+    odd_one_out_ij_cache[xi, xj, a, b] = entry
     return entry
 
 @cython.nonecheck(False)
@@ -113,7 +113,7 @@ cdef sig_2k(fusion_ring, tuple args):
     cdef int ctr = -1
     cdef list worker_results = list()
     #Get computational basis
-    cdef list comp_basis = fusion_ring.get_computational_basis(a,b,n_strands)
+    cdef list comp_basis = fusion_ring.get_computational_basis(a, b, n_strands)
     cdef dict basis_dict = {elt: i for i, elt in enumerate(comp_basis)}
     cdef int dim = len(comp_basis)
     cdef set coords = set()
@@ -140,7 +140,7 @@ cdef sig_2k(fusion_ring, tuple args):
                     nnz_pos = tuple(nnz_pos)
 
                     #Skip repeated entries when k = 1
-                    if nnz_pos in comp_basis and (basis_dict[nnz_pos],i) not in coords:
+                    if nnz_pos in comp_basis and (basis_dict[nnz_pos], i) not in coords:
                         m, l = comp_basis[i][:n_strands//2], comp_basis[i][n_strands//2:]
                         #A few special cases
                         top_left = m[0]
@@ -152,21 +152,21 @@ cdef sig_2k(fusion_ring, tuple args):
 
                         #Handle the special case k = 1
                         if k == 1:
-                            entry = cached_mid_sig_ij(fusion_ring,m[:2],(f,e),a,root)
+                            entry = cached_mid_sig_ij(fusion_ring, m[:2], (f, e), a, root)
 
                             #Avoid pickling cyclotomic field element objects
                             if must_flatten_coeff:
                                 entry = entry.list()
 
-                            worker_results.append(((basis_dict[nnz_pos],i), entry))
-                            coords.add((basis_dict[nnz_pos],i))
+                            worker_results.append(((basis_dict[nnz_pos], i), entry))
+                            coords.add((basis_dict[nnz_pos], i))
                             continue
 
                         entry = 0
                         for p in fusion_ring.basis():
-                            f1 = _fmat(_fvars,_Nk_ij,one,top_left,m[k-1],m[k],root,l[k-2],p)
-                            f2 = _fmat(_fvars,_Nk_ij,one,top_left,f,e,root,q,p)
-                            entry += f1 * cached_mid_sig_ij(fusion_ring,(m[k-1],m[k]),(f,e),a,p) * f2
+                            f1 = _fmat(_fvars, _Nk_ij, one, top_left, m[k-1], m[k], root, l[k-2], p)
+                            f2 = _fmat(_fvars, _Nk_ij, one, top_left, f, e, root, q, p)
+                            entry += f1 * cached_mid_sig_ij(fusion_ring, (m[k-1], m[k]), (f, e), a, p) * f2
 
                         #Avoid pickling cyclotomic field element objects
                         if must_flatten_coeff:
@@ -224,7 +224,7 @@ cdef odd_one_out(fusion_ring, tuple args):
 
                     #Handle a couple of small special cases
                     if n_strands == 3:
-                        entry = cached_odd_one_out_ij(fusion_ring,m[-1],f,a,b)
+                        entry = cached_odd_one_out_ij(fusion_ring, m[-1], f, a, b)
 
                         #Avoid pickling cyclotomic field element objects
                         if must_flatten_coeff:
@@ -240,15 +240,15 @@ cdef odd_one_out(fusion_ring, tuple args):
                     #Compute relevant entry
                     entry = 0
                     for p in basis:
-                        f1 = _fmat(_fvars,_Nk_ij,one,top_left,m[-1],a,root,l[-1],p)
-                        f2 = _fmat(_fvars,_Nk_ij,one,top_left,f,a,root,q,p)
-                        entry += f1 * cached_odd_one_out_ij(fusion_ring,m[-1],f,a,p) * f2
+                        f1 = _fmat(_fvars, _Nk_ij, one, top_left, m[-1], a, root, l[-1], p)
+                        f2 = _fmat(_fvars, _Nk_ij, one, top_left, f, a, root, q, p)
+                        entry += f1 * cached_odd_one_out_ij(fusion_ring, m[-1], f, a, p) * f2
 
                     #Avoid pickling cyclotomic field element objects
                     if must_flatten_coeff:
                         entry = entry.list()
 
-                    worker_results.append(((basis_dict[nnz_pos],i), entry))
+                    worker_results.append(((basis_dict[nnz_pos], i), entry))
     return worker_results
 
 ##############################
@@ -257,7 +257,7 @@ cdef odd_one_out(fusion_ring, tuple args):
 
 #Hard-coded module __dict__-style attribute with visible cdef methods
 cdef dict mappers = {
-    "sig_2k": sig_2k,
+    "sig_2k": sig_2k, 
     "odd_one_out": odd_one_out
 }
 
@@ -279,17 +279,17 @@ cpdef executor(tuple params):
     TESTS::
 
         sage: from sage.algebras.fusion_rings.fast_parallel_fusion_ring_braid_repn import executor
-        sage: FR = FusionRing("A1",4)
-        sage: FR.fusion_labels(['idd','one','two','three','four'],inject_variables=True)
+        sage: FR = FusionRing("A1", 4)
+        sage: FR.fusion_labels(['idd', 'one', 'two', 'three', 'four'], inject_variables=True)
         sage: FR.fmats.find_orthogonal_solution(verbose=False)    # long time
-        sage: params = (('sig_2k',id(FR)),(0,1,(1,one,one,5)))    # long time
+        sage: params = (('sig_2k', id(FR)), (0, 1, (1, one, one, 5)))    # long time
         sage: len(executor(params)) == 13                         # long time
         True
         sage: from sage.algebras.fusion_rings.fast_parallel_fusion_ring_braid_repn import executor
-        sage: FR = FusionRing("A1",2)
-        sage: FR.fusion_labels("a",inject_variables=True)
+        sage: FR = FusionRing("A1", 2)
+        sage: FR.fusion_labels("a", inject_variables=True)
         sage: FR.fmats.find_orthogonal_solution(verbose=False)
-        sage: params = (('odd_one_out',id(FR)),(0,1,(a2,a2,5)))
+        sage: params = (('odd_one_out', id(FR)), (0, 1, (a2, a2, 5)))
         sage: len(executor(params)) == 1
         True
     """
@@ -297,7 +297,7 @@ cpdef executor(tuple params):
     #Construct a reference to global FMatrix object in this worker's memory
     fusion_ring_obj = cast(fr_id, py_object).value
     #Bind module method to FMatrix object in worker process, and call the method
-    return mappers[fn_name](fusion_ring_obj,args)
+    return mappers[fn_name](fusion_ring_obj, args)
 
 ######################################
 ### Pickling circumvention helpers ###
@@ -314,10 +314,10 @@ cpdef _unflatten_entries(fusion_ring, list entries):
     EXAMPLES::
 
         sage: from sage.algebras.fusion_rings.fast_parallel_fusion_ring_braid_repn import _unflatten_entries
-        sage: fr = FusionRing("B2",2)
+        sage: fr = FusionRing("B2", 2)
         sage: F = fr.field()
         sage: coeff = [F.random_element() for i in range(2)]
-        sage: entries = [((0,0), coeff[0].list()), ((0,1), coeff[1].list())]
+        sage: entries = [((0, 0), coeff[0].list()), ((0, 1), coeff[1].list())]
         sage: _unflatten_entries(fr, entries)
         sage: all(cyc_elt_obj == c for (coord, cyc_elt_obj), c in zip(entries, coeff))
         True

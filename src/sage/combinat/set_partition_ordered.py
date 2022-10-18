@@ -154,7 +154,7 @@ class OrderedSetPartition(ClonableArray,
     :wikipedia:`Ordered_partition_of_a_set`
     """
     @staticmethod
-    def __classcall_private__(cls, parts=None, from_word=None):
+    def __classcall_private__(cls, parts=None, from_word=None, check=True):
         """
         Create a set partition from ``parts`` with the appropriate parent.
 
@@ -189,9 +189,9 @@ class OrderedSetPartition(ClonableArray,
         if parts in W or (parts and (parts[0] in ZZ or isinstance(parts[0], str))):
             return OrderedSetPartitions().from_finite_word(W(parts))
         P = OrderedSetPartitions(set(x for p in parts for x in p))
-        return P.element_class(P, parts)
+        return P.element_class(P, parts, check=check)
 
-    def __init__(self, parent, s):
+    def __init__(self, parent, s, check=True):
         """
         Initialize ``self``.
 
@@ -201,7 +201,7 @@ class OrderedSetPartition(ClonableArray,
             sage: s = OS([[1, 3], [2, 4]])
             sage: TestSuite(s).run()
         """
-        ClonableArray.__init__(self, parent, [Set(part) for part in s])
+        ClonableArray.__init__(self, parent, [Set(part) for part in s], check=check)
 
     def _repr_(self):
         """
@@ -1109,7 +1109,7 @@ class OrderedSetPartitions_s(OrderedSetPartitions):
         """
         for x in Compositions(len(self._set)):
             for z in OrderedSetPartitions(self._set, x):
-                yield self.element_class(self, z)
+                yield self.element_class(self, z, check=False)
 
 
 class OrderedSetPartitions_sn(OrderedSetPartitions):
@@ -1187,7 +1187,7 @@ class OrderedSetPartitions_sn(OrderedSetPartitions):
         """
         for x in Compositions(len(self._set), length=self.n):
             for z in OrderedSetPartitions_scomp(self._set, x):
-                yield self.element_class(self, z)
+                yield self.element_class(self, z, check=False)
 
 
 class OrderedSetPartitions_scomp(OrderedSetPartitions):
@@ -1304,7 +1304,7 @@ class OrderedSetPartitions_scomp(OrderedSetPartitions):
         part_sizes = self.c
         N = len(part_sizes)
         if not N:
-            yield self.element_class(self, [])
+            yield self.element_class(self, [], check=False)
             return
 
         l = []
@@ -1314,22 +1314,21 @@ class OrderedSetPartitions_scomp(OrderedSetPartitions):
 
         pi = multiset_permutation_to_ordered_set_partition(l, N)
         converted = [frozenset(lset[i] for i in part) for part in pi]
-        yield self.element_class(self, converted)
+        yield self.element_class(self, converted, check=False)
 
         while multiset_permutation_next_lex(l):
             pi = multiset_permutation_to_ordered_set_partition(l, N)
             converted = [frozenset(lset[i] for i in part) for part in pi]
-            yield self.element_class(self, converted)
+            yield self.element_class(self, converted, check=False)
 
 
 def multiset_permutation_to_ordered_set_partition(l, m):
-    """
+    r"""
     Convert a multiset permutation to an ordered set partition.
 
     INPUT:
 
     - ``l`` -- a multiset permutation
-
     - ``m`` -- number of parts
 
     EXAMPLES::
@@ -1432,7 +1431,7 @@ class OrderedSetPartitions_all(OrderedSetPartitions):
         n = 0
         while True:
             for X in OrderedSetPartitions(n):
-                yield self.element_class(self, list(X))
+                yield self.element_class(self, list(X), check=False)
             n += 1
 
     def _element_constructor_(self, s):

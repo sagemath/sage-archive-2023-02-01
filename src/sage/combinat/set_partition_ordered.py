@@ -202,7 +202,8 @@ class OrderedSetPartition(ClonableArray,
             sage: s = OS([[1, 3], [2, 4]])
             sage: TestSuite(s).run()
         """
-        ClonableArray.__init__(self, parent, [Set(part) for part in s], check=check)
+        ClonableArray.__init__(self, parent,
+                               [frozenset(part) for part in s], check=check)
 
     def _repr_(self):
         """
@@ -340,7 +341,7 @@ class OrderedSetPartition(ClonableArray,
 
         Any iterable can be provided as input::
 
-            sage: Composition.sum([OrderedSetPartition([[2*i,2*i+1]]) for i in [4,1,3]])
+            sage: OrderedSetPartition.sum([OrderedSetPartition([[2*i,2*i+1]]) for i in [4,1,3]])
             [{8, 9}, {2, 3}, {6, 7}]
 
         Empty inputs are handled gracefully::
@@ -494,9 +495,9 @@ class OrderedSetPartition(ClonableArray,
 
         i1 = 0
         for j2 in co2:
-            sum1 = Set()
+            sum1 = set()
             while len(sum1) < len(j2):
-                sum1 += co1[i1]
+                sum1 = sum1.union(co1[i1])
                 i1 += 1
             if not sum1.issubset(j2):
                 return False
@@ -550,7 +551,7 @@ class OrderedSetPartition(ClonableArray,
         result = [None] * len(grouping)
         j = 0
         for i in range(len(grouping)):
-            result[i] = sum(self[j:j+grouping[i]], Set())
+            result[i] = set().union(*self[j:j+grouping[i]])
             j += grouping[i]
         return parent(self)(result)
 
@@ -638,7 +639,7 @@ class OrderedSetPartition(ClonableArray,
         result = [None] * len(comp)
         j = 0
         for i in range(len(comp)):
-            result[i] = Set(xs[j:j+comp[i]])
+            result[i] = set(xs[j:j+comp[i]])
             j += comp[i]
         return OrderedSetPartitions(X)(result)
 
@@ -716,12 +717,12 @@ class OrderedSetPartition(ClonableArray,
 
         i1 = 0
         for j2 in co2:
-            sum1 = Set()
+            sum1 = set()
             while len(sum1) < len(j2):
                 next = co1[i1]
                 if sum1 and max(sum1) >= min(next):
                     return False
-                sum1 += next
+                sum1 = sum1.union(next)
                 i1 += 1
             if not sum1.issubset(j2):
                 return False
@@ -996,9 +997,7 @@ class OrderedSetPartitions(UniqueRepresentation, Parent):
             sage: [Set([1,2]), Set([3,4])] in OS
             True
             sage: [set([1,2]), set([3,4])] in OS
-            Traceback (most recent call last):
-            ...
-            TypeError: X (=...1, 2...) must be a Set
+            True
         """
         # x must be a list
         if not isinstance(x, (OrderedSetPartition, list, tuple)):
@@ -1011,7 +1010,7 @@ class OrderedSetPartitions(UniqueRepresentation, Parent):
 
         # Check to make sure each element of the list
         # is a nonempty set
-        u = Set()
+        u = set()
         for s in x:
             if not s or not isinstance(s, (set, frozenset, Set_generic)):
                 return False

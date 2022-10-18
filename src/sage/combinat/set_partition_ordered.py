@@ -40,6 +40,7 @@ from sage.rings.integer_ring import ZZ
 from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
 from sage.sets.set import Set, Set_generic
 from sage.structure.list_clone import ClonableArray
+from sage.structure.element import parent
 from sage.structure.parent import Parent
 from sage.structure.richcmp import richcmp
 from sage.structure.unique_representation import UniqueRepresentation
@@ -229,7 +230,8 @@ class OrderedSetPartition(ClonableArray,
             sage: s = OS([[1, 3], [2, 4]])
             sage: s.check()
         """
-        assert self in self.parent(), "%s not in %s" % (self, self.parent())
+        par = parent(self)
+        assert self in par, "%s not in %s" % (self, par)
 
     def _hash_(self):
         """
@@ -267,7 +269,7 @@ class OrderedSetPartition(ClonableArray,
             frozenset({'a', 'b', 'c', 'd', 'e'})
         """
         try:
-            return self.parent()._set
+            return parent(self)._set
         except AttributeError:  # in OrderedSetPartitions_all
             return frozenset(x for part in self for x in part)
 
@@ -286,7 +288,7 @@ class OrderedSetPartition(ClonableArray,
             sage: OrderedSetPartition([[1,2,3,4]]).base_set_cardinality()
             4
         """
-        return len(self.parent()._set)
+        return len(parent(self)._set)
 
     size = base_set_cardinality
 
@@ -377,7 +379,7 @@ class OrderedSetPartition(ClonableArray,
             sage: OrderedSetPartition([]).reversed()
             []
         """
-        par = self.parent()
+        par = parent(self)
         return par(list(reversed(self)))
 
     def complement(self):
@@ -415,7 +417,7 @@ class OrderedSetPartition(ClonableArray,
         m = min(base_set)
         M = max(base_set)
         mM = m + M
-        par = self.parent()
+        par = parent(self)
         return par([[mM - i for i in part] for part in self])
 
     def finer(self):
@@ -448,7 +450,7 @@ class OrderedSetPartition(ClonableArray,
              [{4, 9}, {-1}, {2}],
              [{4, 9}, {-1, 2}]]
         """
-        par = self.parent()
+        par = parent(self)
         if not self:
             return FiniteEnumeratedSet([self])
         return FiniteEnumeratedSet([par(sum((list(i) for i in C), []))
@@ -550,7 +552,7 @@ class OrderedSetPartition(ClonableArray,
         for i in range(len(grouping)):
             result[i] = sum(self[j:j+grouping[i]], Set())
             j += grouping[i]
-        return self.parent()(result)
+        return parent(self)(result)
 
     def fatter(self):
         """
@@ -666,7 +668,7 @@ class OrderedSetPartition(ClonableArray,
              [{4, 9}, {-1}, {2}],
              [{4, 9}, {-1, 2}]]
         """
-        par = self.parent()
+        par = parent(self)
         if not self:
             return FiniteEnumeratedSet([self])
         buo = OrderedSetPartition.bottom_up_osp

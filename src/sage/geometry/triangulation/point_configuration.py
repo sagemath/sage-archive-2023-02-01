@@ -1899,7 +1899,7 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
             # PointConfiguration are actually ignored.
         if not points:
             return tuple()
-                         
+
         if initial_point is None:
             origin = points.pop()
         else:
@@ -2005,7 +2005,7 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
 
         # input verification
         self._assert_is_affine()
-        
+
         point_order_is_given = point_order is not None
         if point_order is None:
             point_order = list(self.points())

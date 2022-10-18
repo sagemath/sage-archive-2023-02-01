@@ -53,7 +53,7 @@ cdef inline is_long_hole_free_process(g, short_digraph sd, bitset_t dense_graph,
                                       bint certificate,
                                       int a, int b, int c, int n):
     """
-    This method is part of method `is_long_hole_free`.
+    This method is part of method ``is_long_hole_free``.
 
     EXAMPLES::
 
@@ -225,7 +225,7 @@ def is_long_hole_free(g, certificate=False):
             bitset_add(dense_graph, u * n + v)
             bitset_add(dense_graph, v * n + u)
 
-    # Allocate some data strutures
+    # Allocate some data structures
     cdef MemoryAllocator mem = MemoryAllocator()
     cdef int* path = <int*> mem.allocarray(n, sizeof(int))
     cdef int path_top
@@ -285,7 +285,7 @@ cdef inline is_long_antihole_free_process(g, short_digraph sd, bitset_t dense_gr
                                           bint certificate,
                                           int a, int b, int c, int n):
     """
-    This method is part of method `is_long_antihole_free`.
+    This method is part of method ``is_long_antihole_free``.
 
     EXAMPLES::
 
@@ -456,7 +456,7 @@ def is_long_antihole_free(g, certificate=False):
             bitset_add(dense_graph, u * n + v)
             bitset_add(dense_graph, v * n + u)
 
-    # Allocate some data strutures
+    # Allocate some data structures
     cdef MemoryAllocator mem = MemoryAllocator()
     cdef int* path = <int*> mem.allocarray(n, sizeof(int))
     cdef int path_top

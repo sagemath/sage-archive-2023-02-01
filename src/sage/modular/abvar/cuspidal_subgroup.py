@@ -69,11 +69,14 @@ TESTS::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from .finite_subgroup                import FiniteSubgroup
-from sage.rings.all                 import infinity, QQ, ZZ
-from sage.matrix.all                import matrix
+from sage.matrix.constructor        import matrix
 from sage.modular.arithgroup.all    import is_Gamma0
 from sage.modular.cusps             import Cusp
+from sage.rings.infinity            import infinity
+from sage.rings.integer_ring        import ZZ
+from sage.rings.rational_field      import QQ
+
+from .finite_subgroup               import FiniteSubgroup
 
 
 class CuspidalSubgroup_generic(FiniteSubgroup):
@@ -238,9 +241,10 @@ class CuspidalSubgroup(CuspidalSubgroup_generic):
         try:
             return self.__lattice
         except AttributeError:
-            lattice = self._compute_lattice(rational_only = False)
+            lattice = self._compute_lattice(rational_only=False)
             self.__lattice = lattice
             return lattice
+
 
 class RationalCuspSubgroup(CuspidalSubgroup_generic):
     """
@@ -289,9 +293,10 @@ class RationalCuspSubgroup(CuspidalSubgroup_generic):
         try:
             return self.__lattice
         except AttributeError:
-            lattice = self._compute_lattice(rational_only = True)
+            lattice = self._compute_lattice(rational_only=True)
             self.__lattice = lattice
             return lattice
+
 
 class RationalCuspidalSubgroup(CuspidalSubgroup_generic):
     """
@@ -339,7 +344,7 @@ class RationalCuspidalSubgroup(CuspidalSubgroup_generic):
         try:
             return self.__lattice
         except AttributeError:
-            lattice = self._compute_lattice(rational_subgroup = True)
+            lattice = self._compute_lattice(rational_subgroup=True)
             self.__lattice = lattice
             return lattice
 

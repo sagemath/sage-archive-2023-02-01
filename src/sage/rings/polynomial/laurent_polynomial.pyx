@@ -294,10 +294,11 @@ cdef class LaurentPolynomial(CommutativeAlgebraElement):
             R = R.change_ring(new_base_ring)
         elif isinstance(f, Map):
             R = R.change_ring(f.codomain())
-        return R(dict([(k,f(v)) for (k,v) in self.dict().items()]))
+        return R(dict([(k, f(v)) for (k, v) in self.dict().items()]))
+
 
 cdef class LaurentPolynomial_univariate(LaurentPolynomial):
-    """
+    r"""
     A univariate Laurent polynomial in the form of `t^n \cdot f`
     where `f` is a polynomial in `t`.
 
@@ -1118,12 +1119,27 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial):
             x^3 + 3*x^4 + 3*x^5 + 10*x^6 + 18*x^7 + 9*x^8 + 27*x^9 + 27*x^10 + 27*x^12
             sage: g^4
             x^-40 - 4*x^-29 + 6*x^-18 - 4*x^-7 + x^4
+
+            sage: R.<x> = LaurentPolynomialRing(Zmod(6))
+            sage: x^-2
+            x^-2
+            sage: (5*x^2)^-4
+            x^-8
+            sage: (5*x^-4)^-3
+            5*x^12
         """
         cdef LaurentPolynomial_univariate self = _self
         cdef long right = r
         if right != r:
             raise ValueError("exponent must be an integer")
-        return self._parent.element_class(self._parent, self.__u**right, self.__n*right)
+        try:
+            return self._parent.element_class(self._parent, self.__u**right, self.__n*right)
+        except TypeError as err:
+            # we need to handle the special case of negative powers and a unit
+            if not self.__u.is_constant() or not self.__u.leading_coefficient().is_unit():
+                raise
+            c = self._parent._R(self.__u.leading_coefficient() ** right)
+            return self._parent.element_class(self._parent, c, self.__n*right)
 
     cpdef _floordiv_(self, rhs):
         """
@@ -1339,10 +1355,10 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial):
         return ret
 
     @coerce_binop
-    def quo_rem(self, right_r):
-        """
-        Attempts to divide ``self`` by ``right`` and returns a quotient and
-        a remainder.
+    def quo_rem(self, other):
+        r"""
+        Divide ``self`` by ``other`` and return a quotient ``q``
+        and a remainder ``r`` such that ``self == q * other + r``.
 
         EXAMPLES::
 
@@ -1351,11 +1367,32 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial):
             (t^-2 + 1 + t^2, 0)
             sage: (t^-2 + 3 + t).quo_rem(t^-4)
             (t^2 + 3*t^4 + t^5, 0)
-            sage: (t^-2 + 3 + t).quo_rem(t^-4 + t)
-            (0, 1 + 3*t^2 + t^3)
+
+            sage: num = t^-2 + t
+            sage: den = t^-2 + 1
+            sage: q, r = num.quo_rem(den)
+            sage: num == q * den + r
+            True
+
+        TESTS:
+
+        Check that :trac:`34330` is fixed::
+
+            sage: num = t^-2 + 3 + t
+            sage: den = t^-4 + t
+            sage: q, r = num.quo_rem(den); q, r
+            (0, t^-2 + 3 + t)
+            sage: num == q * den + r
+            True
+
+            sage: num = 2*t^-4 + t^-3 + t^-2 + 2*t + 2*t^2
+            sage: q, r = num.quo_rem(den); q, r
+            (2 + 2*t, -t^-3 + t^-2)
+            sage: num == q * den + r
+            True
         """
-        cdef LaurentPolynomial_univariate right = <LaurentPolynomial_univariate> right_r
-        q,r = self.__u.quo_rem(right.__u)
+        cdef LaurentPolynomial_univariate right = <LaurentPolynomial_univariate> other
+        q, r = self.__u.quo_rem(right.__u)
         cdef LaurentPolynomial_univariate ql, qr
         ql = <LaurentPolynomial_univariate> self._new_c()
         ql.__u = <ModuleElement> q
@@ -1363,9 +1400,9 @@ cdef class LaurentPolynomial_univariate(LaurentPolynomial):
         ql.__normalize()
         qr = <LaurentPolynomial_univariate> self._new_c()
         qr.__u = <ModuleElement> r
-        qr.__n = 0
+        qr.__n = self.__n
         qr.__normalize()
-        return (ql, qr)
+        return ql, qr
 
     cpdef _richcmp_(self, right_r, int op):
         r"""

@@ -4545,7 +4545,7 @@ _SupportedFindStatCollections = {
     _SupportedFindStatCollection(lambda x: (lambda E, V: Graph([list(range(V)),
                                                                 lambda i,j: (i,j) in E or (j,i) in E],
                                                                immutable=True))(*literal_eval(x)),
-                                 lambda X: str((sorted(X.edges(labels=False)), X.num_verts())),
+                                 lambda X: str((X.edges(labels=False, sort=True), X.num_verts())),
                                  lambda x: (g.copy(immutable=True) for g in graphs(x, copy=False)),
                                  lambda x: x.num_verts(),
                                  lambda x: isinstance(x, Graph)),
@@ -4582,7 +4582,7 @@ _SupportedFindStatCollections = {
     "Posets":
     _SupportedFindStatCollection(lambda x: (lambda R, E: Poset((list(range(E)), R)))(*literal_eval(x)),
                                  lambda X: str((sorted(X._hasse_diagram.cover_relations()),
-                                                len(X._hasse_diagram.vertices()))),
+                                                len(X._hasse_diagram.vertices(sort=False)))),
                                  Posets,
                                  lambda x: x.cardinality(),
                                  lambda x: isinstance(x, FinitePoset)),
@@ -4634,7 +4634,7 @@ _SupportedFindStatCollections = {
     "Lattices":
     _SupportedFindStatCollection(lambda x: (lambda R, E: LatticePoset((list(range(E)), R)))(*literal_eval(x)),
                                  lambda X: str((sorted(X._hasse_diagram.cover_relations()),
-                                                len(X._hasse_diagram.vertices()))),
+                                                len(X._hasse_diagram.vertices(sort=False)))),
                                  _finite_lattices,
                                  lambda x: x.cardinality(),
                                  lambda x: isinstance(x, FiniteLatticePoset))}
@@ -4767,13 +4767,13 @@ class FindStatCollections(UniqueRepresentation, Parent):
 
             sage: cc = FindStatCollection(graphs(3)); cc                        # optional -- internet
             a subset of Cc0020: Graphs
-            sage: cc.first_terms(lambda x: x.edges(labels=False)).list()        # optional -- internet
+            sage: cc.first_terms(lambda x: x.edges(labels=False, sort=True)).list()        # optional -- internet
             [(Graph on 3 vertices, []),
              (Graph on 3 vertices, [(0, 2)]),
              (Graph on 3 vertices, [(0, 2), (1, 2)]),
              (Graph on 3 vertices, [(0, 1), (0, 2), (1, 2)])]
 
-            sage: len(cc.first_terms(lambda x: x.edges(labels=False)).list())   # optional -- internet
+            sage: len(cc.first_terms(lambda x: x.edges(labels=False, sort=False)).list())   # optional -- internet
             4
         """
         if isinstance(entry, self.Element):

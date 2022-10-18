@@ -2225,7 +2225,8 @@ class HasseDiagram(DiGraph):
             sage: H = P._hasse_diagram
             sage: H.are_incomparable(1,2)
             True
-            sage: [ (i,j) for i in H.vertices() for j in H.vertices() if H.are_incomparable(i,j)]
+            sage: V = H.vertices(sort=True)
+            sage: [ (i,j) for i in V for j in V if H.are_incomparable(i,j)]
             [(1, 2), (1, 3), (2, 1), (3, 1)]
         """
         if i == j:
@@ -2249,7 +2250,8 @@ class HasseDiagram(DiGraph):
             sage: H = P._hasse_diagram
             sage: H.are_comparable(1,2)
             False
-            sage: [ (i,j) for i in H.vertices() for j in H.vertices() if H.are_comparable(i,j)]
+            sage: V = H.vertices(sort=True)
+            sage: [ (i,j) for i in V for j in V if H.are_comparable(i,j)]
             [(0, 0), (0, 1), (0, 2), (0, 3), (0, 4), (1, 0), (1, 1), (1, 4), (2, 0), (2, 2), (2, 3), (2, 4), (3, 0), (3, 2), (3, 3), (3, 4), (4, 0), (4, 1), (4, 2), (4, 3), (4, 4)]
         """
         if i == j:
@@ -2291,7 +2293,7 @@ class HasseDiagram(DiGraph):
             sage: TestSuite(A).run()
         """
         from sage.combinat.subsets_pairwise import PairwiseCompatibleSubsets
-        return PairwiseCompatibleSubsets(self.vertices(),
+        return PairwiseCompatibleSubsets(self.vertices(sort=True),
                                          self.are_incomparable,
                                          element_class=element_class)
 
@@ -2450,7 +2452,7 @@ class HasseDiagram(DiGraph):
         """
         diamonds = []
         all_diamonds_completed = True
-        for w in self.vertices():
+        for w in self.vertices(sort=True):
             covers = self.neighbors_out(w)
             for i, x in enumerate(covers):
                 for y in covers[i + 1:]:
@@ -3487,15 +3489,15 @@ class HasseDiagram(DiGraph):
         p = len(a_spec)
         q = len(b_spec)
 
-        for r in range(1, p+q+1):
+        for r in range(1, p + q + 1):
             new_a_spec.append(0)
-            for i in range(max(1, r-q), min(p, r) + 1):
-                k_val = binomial(r-1, i-1) * binomial(p+q-r, p-i)
+            for i in range(max(1, r - q), min(p, r) + 1):
+                k_val = binomial(r - 1, i - 1) * binomial(p + q - r, p - i)
                 if orientation:
-                    inner_sum = sum(b_spec[j-1] for j in range(r-i + 1, len(b_spec) + 1))
+                    inner_sum = sum(b_spec[j - 1] for j in range(r - i + 1, len(b_spec) + 1))
                 else:
-                    inner_sum = sum(b_spec[j-1] for j in range(1, r-i + 1))
-                new_a_spec[-1] = new_a_spec[-1] + (a_spec[i-1] * k_val * inner_sum)
+                    inner_sum = sum(b_spec[j - 1] for j in range(1, r - i + 1))
+                new_a_spec[-1] = new_a_spec[-1] + (a_spec[i - 1] * k_val * inner_sum)
 
         return new_a_spec
 

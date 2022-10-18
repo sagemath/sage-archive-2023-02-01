@@ -120,30 +120,6 @@ def layout_split(layout_function, G, **options):
     return pos
 
 
-def spring_layout_fast_split(G, **options):
-    """
-    Graph each component of ``G`` separately, placing them adjacent to each
-    other.
-
-    In ticket :trac:`29522` the function was modified so that it can
-    work with any layout method and renamed ``layout_split``.
-    Please use :func:`layout_split` from now on.
-
-    TESTS::
-
-        sage: from sage.graphs.generic_graph_pyx import spring_layout_fast_split
-        sage: G = Graph(4)
-        sage: _ = spring_layout_fast_split(G)
-        doctest:...: DeprecationWarning: spring_layout_fast_split is deprecated, please use layout_split instead
-        See https://trac.sagemath.org/29522 for details.
-
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(29522, ('spring_layout_fast_split is deprecated, please use '
-                        'layout_split instead'), stacklevel=3)
-    return layout_split(spring_layout_fast, G, **options)
-
-
 def spring_layout_fast(G, iterations=50, int dim=2, vpos=None, bint rescale=True,
                        bint height=False, by_component=False, **options):
     """
@@ -836,7 +812,7 @@ cdef class SubgraphSearch:
         self.nh = H.order()
 
         # Storing the list of vertices
-        self.g_vertices = G.vertices()
+        self.g_vertices = G.vertices(sort=True)
 
         # Are the graphs directed (in __init__(), we check
         # whether both are of the same type)
@@ -1321,7 +1297,7 @@ cpdef tuple find_hamiltonian(G, long max_iter=100000, long reset_bound=30000,
     if not n:
         return False, []
     if n == 1:
-        return False, G.vertices()
+        return False, G.vertices(sort=False)
 
     # To clean the output when find_path is None or a number
     find_path = (find_path > 0)
@@ -1329,7 +1305,7 @@ cpdef tuple find_hamiltonian(G, long max_iter=100000, long reset_bound=30000,
     if G.is_clique(induced=False):
         # We have an hamiltonian path since n >= 2, but we have an hamiltonian
         # cycle only if n >= 3
-        return find_path or n >= 3, G.vertices()
+        return find_path or n >= 3, G.vertices(sort=True)
 
     cdef list best_path, p
     if not G.is_connected():
@@ -1486,7 +1462,7 @@ cpdef tuple find_hamiltonian(G, long max_iter=100000, long reset_bound=30000,
                 done = has_edge(sd, path[n - 1], path[0]) != NULL
 
         if bigcount * reset_bound > max_iter:
-            verts = G.vertices()
+            verts = G.vertices(sort=True)
             output = [verts[longest_path[i]] for i in range(longest)]
             free_short_digraph(sd)
             return (False, output)
@@ -1507,7 +1483,7 @@ cpdef tuple find_hamiltonian(G, long max_iter=100000, long reset_bound=30000,
     if not find_path and has_edge(sd, path[0], path[n - 1]) == NULL:
         raise RuntimeError('vertices %d and %d are not adjacent' % (path[0], path[n - 1]))
 
-    verts = G.vertices()
+    verts = G.vertices(sort=True)
     output = [verts[path[i]] for i in range(length)]
     free_short_digraph(sd)
 

@@ -247,6 +247,7 @@ from sage.structure.factorization import Factorization
 from sage.structure.sequence import Sequence
 
 from sage.rings.fraction_field import FractionField
+from sage.rings.all import RealField
 
 from sage.interfaces.singular import singular as singular_default, is_SingularElement, SingularElement
 from sage.interfaces.macaulay2 import macaulay2 as macaulay2_default, is_Macaulay2Element
@@ -1983,7 +1984,6 @@ cdef class MPolynomial_libsingular(MPolynomial):
             sage: R.<x,y> = QQ[]
             sage: x._new_constant_poly(2/1,R)
             2
-
         """
         if not x:
             return new_MP(P, NULL)
@@ -1992,7 +1992,7 @@ cdef class MPolynomial_libsingular(MPolynomial):
         return new_MP(P, _p)
 
     def __call__(self, *x, **kwds):
-        """
+        r"""
         Evaluate this multi-variate polynomial at ``x``, where ``x``
         is either the tuple of values to substitute in, or one can use
         functional notation ``f(a_0,a_1,a_2, \ldots)`` to evaluate
@@ -2260,7 +2260,7 @@ cdef class MPolynomial_libsingular(MPolynomial):
         return new_MP((<MPolynomial_libsingular>left)._parent,_p)
 
     cpdef _div_(left, right_ringelement):
-        """
+        r"""
         Divide left by right
 
         EXAMPLES::
@@ -4575,7 +4575,7 @@ cdef class MPolynomial_libsingular(MPolynomial):
         return Sequence(l, check=False, immutable=True)
 
     def reduce(self,I):
-        """
+        r"""
         Return a remainder of this polynomial modulo the
         polynomials in ``I``.
 
@@ -5287,15 +5287,14 @@ cdef class MPolynomial_libsingular(MPolynomial):
         return new_MP(self._parent,p)
 
     def integral(self, MPolynomial_libsingular var):
-        """
-        Integrates this polynomial with respect to the provided
-        variable.
+        r"""
+        Integrate this polynomial with respect to the provided variable.
 
         One requires that `\QQ` is contained in the ring.
 
         INPUT:
 
-        - ``variable`` - the integral is taken with respect to variable
+        - ``variable`` -- the integral is taken with respect to variable
 
         EXAMPLES::
 
@@ -5547,9 +5546,19 @@ cdef class MPolynomial_libsingular(MPolynomial):
             sage: f = 1/123*x*y + 12
             sage: f.global_height(prec=2)
             8.0
+
+        ::
+
+            sage: R.<x,y> = QQ[]
+            sage: f = 0*x*y
+            sage: f.global_height()
+            0.000000000000000
         """
         if prec is None:
             prec = 53
+
+        if self.is_zero():
+            return RealField(prec).zero()
 
         K = self.base_ring()
         if K in NumberFields() or is_NumberFieldOrder(K):

@@ -217,6 +217,7 @@ Left-special and bispecial factors::
 from itertools import repeat
 from collections import defaultdict
 from itertools import islice, cycle
+
 from sage.combinat.words.abstract_word import Word_class
 from sage.combinat.words.words import Words
 from sage.misc.cachefunc import cached_method
@@ -1522,9 +1523,9 @@ class FiniteWord_class(Word_class):
             sage: g = w.rauzy_graph(3); g
             Looped digraph on 8 vertices
             sage: WordOptions(identifier='')
-            sage: g.vertices()
+            sage: g.vertices(sort=True)
             [012, 123, 234, 345, 456, 567, 678, 789]
-            sage: g.edges()
+            sage: g.edges(sort=True)
             [(012, 123, 3),
              (123, 234, 4),
              (234, 345, 5),
@@ -1544,7 +1545,7 @@ class FiniteWord_class(Word_class):
 
             sage: w = Word('1111111')
             sage: g = w.rauzy_graph(3)
-            sage: g.edges()
+            sage: g.edges(sort=True)
             [(word: 111, word: 111, word: 1)]
 
         ::
@@ -1563,7 +1564,7 @@ class FiniteWord_class(Word_class):
             sage: w = W('abc')
             sage: w.rauzy_graph(0)
             Looped multi-digraph on 1 vertex
-            sage: _.edges()
+            sage: _.edges(sort=True)
             [(word: , word: , word: a),
              (word: , word: , word: b),
              (word: , word: , word: c)]
@@ -1632,9 +1633,9 @@ class FiniteWord_class(Word_class):
             word: 0123456789
             sage: g = w.reduced_rauzy_graph(3); g
             Looped multi-digraph on 2 vertices
-            sage: g.vertices()
+            sage: g.vertices(sort=True)
             [word: 012, word: 789]
-            sage: g.edges()
+            sage: g.edges(sort=True)
             [(word: 012, word: 789, word: 3456789)]
 
         For the Fibonacci word::
@@ -1642,9 +1643,9 @@ class FiniteWord_class(Word_class):
             sage: f = words.FibonacciWord()[:100]
             sage: g = f.reduced_rauzy_graph(8);g
             Looped multi-digraph on 2 vertices
-            sage: g.vertices()
+            sage: g.vertices(sort=True)
             [word: 01001010, word: 01010010]
-            sage: g.edges()
+            sage: g.edges(sort=True)
             [(word: 01001010, word: 01010010, word: 010), (word: 01010010, word: 01001010, word: 01010), (word: 01010010, word: 01001010, word: 10)]
 
         For periodic words::
@@ -1652,7 +1653,7 @@ class FiniteWord_class(Word_class):
             sage: from itertools import cycle
             sage: w = Word(cycle('abcd'))[:100]
             sage: g = w.reduced_rauzy_graph(3)
-            sage: g.edges()
+            sage: g.edges(sort=True)
             [(word: abc, word: abc, word: dabc)]
 
         ::
@@ -1671,9 +1672,9 @@ class FiniteWord_class(Word_class):
             sage: w = sigma.fixed_point('a')[:100]; w
             word: abcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd...
             sage: g = w.reduced_rauzy_graph(5)
-            sage: g.vertices()
+            sage: g.vertices(sort=True)
             [word: abcdc, word: cdcdc]
-            sage: g.edges()
+            sage: g.edges(sort=True)
             [(word: abcdc, word: cdcdc, word: dc), (word: cdcdc, word: cdcdc, word: dc)]
 
         AUTHOR:
@@ -2622,7 +2623,7 @@ class FiniteWord_class(Word_class):
         and lacunas of ``self`` (see [BMBL2008]_ and [BMBFLR2008]_).
 
         Note that a word `w` has at most `|w| + 1` different palindromic factors
-        (see [DJP2001]_). For `f`-palindromes (or pseudopalidromes or theta-palindromes),
+        (see [DJP2001]_). For `f`-palindromes (or pseudopalindromes or theta-palindromes),
         the maximum number of `f`-palindromic factors is `|w|+1-g_f(w)`, where
         `g_f(w)` is the number of pairs `\{a, f(a)\}` such that `a` is a letter,
         `a` is not equal to `f(a)`, and `a` or `f(a)` occurs in `w`, see [Star2011]_.
@@ -5949,7 +5950,6 @@ class FiniteWord_class(Word_class):
                     desubstitued_word = desubstitued_word + w_running ** (current_run_length - min_run)
             return desubstitued_word.sturmian_desubstitute_as_possible()
 
-
     def is_sturmian_factor(self):
         r"""
         Tell whether ``self`` is a factor of a Sturmian word.
@@ -6009,7 +6009,6 @@ class FiniteWord_class(Word_class):
         -   Thierry Monteil
         """
         return self.sturmian_desubstitute_as_possible().is_empty()
-
 
     def is_tangent(self):
         r"""
@@ -6079,7 +6078,6 @@ class FiniteWord_class(Word_class):
                 height = height - 1
                 mini = min(mini , height)
         return (maxi - mini <= 2)
-
 
     # TODO.
     # 1. Those three swap functions should use the cmp of python.
@@ -7175,7 +7173,6 @@ class FiniteWord_class(Word_class):
             if end >= p.length():
                 return factor ** q
 
-#######################################################################
 
 class CallableFromListOfWords(tuple):
     r"""
@@ -7222,6 +7219,7 @@ class CallableFromListOfWords(tuple):
             j -= c.length()
         raise IndexError("index (=%s) out of range" % i)
 
+
 class Factorization(list):
     r"""
     A list subclass having a nicer representation for factorization of words.
@@ -7244,6 +7242,7 @@ class Factorization(list):
             (ab, ba)
         """
         return '(%s)' % ', '.join(w.string_rep() for w in self)
+
 
 #######################################################################
 
@@ -7270,12 +7269,12 @@ def evaluation_dict(w):
 
         sage: evaluation_dict('1213121') # keys appear in random order
         {'1': 4, '2': 2, '3': 1}
-
     """
     d = defaultdict(int)
     for a in w:
         d[a] += 1
     return dict(d)
+
 
 def word_to_ordered_set_partition(w):
     r"""

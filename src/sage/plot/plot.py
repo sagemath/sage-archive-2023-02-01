@@ -1,5 +1,5 @@
 r"""
-2D Plotting
+2D plotting
 
 Sage provides extensive 2D plotting functionality. The underlying
 rendering is done using the matplotlib Python library.
@@ -517,6 +517,11 @@ Verify that a clean sage startup does *not* import matplotlib::
 
     sage: os.system("sage -c \"if 'matplotlib' in sys.modules: sys.exit(1)\"") # long time
     0
+
+Verify that :trac:`10980` is fixed::
+
+    sage: plot(x,0,2,gridlines=([sqrt(2)],[]))
+    Graphics object consisting of 1 graphics primitive
 
 AUTHORS:
 

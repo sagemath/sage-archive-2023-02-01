@@ -11,7 +11,7 @@ This file constructs some examples of Sandpiles.
 
 The examples are accessible by typing ``sandpiles.NAME``, where
 ``NAME`` is the name of the example.  You can get a list by typing
-``sandpiles.`` and hitting the TAB key::
+``sandpiles.`` and hitting the :kbd:`Tab` key::
 
    sandpiles.Complete
    sandpiles.Cycle
@@ -109,7 +109,7 @@ class SandpileExamples():
         EXAMPLES::
 
             sage: s = sandpiles.Cycle(4)
-            sage: s.edges()
+            sage: s.edges(sort=True)
             [(0, 1, 1),
              (0, 3, 1),
              (1, 0, 1),
@@ -193,7 +193,7 @@ class SandpileExamples():
         EXAMPLES::
 
             sage: s = sandpiles.Grid(2,3)
-            sage: s.vertices()
+            sage: s.vertices(sort=True)
             [(0, 0), (1, 1), (1, 2), (1, 3), (2, 1), (2, 2), (2, 3)]
             sage: s.invariant_factors()
             [1, 1, 1, 1, 1, 2415]

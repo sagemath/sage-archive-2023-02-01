@@ -275,8 +275,9 @@ def automorphism_group_QQ_fixedpoints(rational_function, return_functions=False,
                                 elements.append(matrix(F, 2, [a,b, 1, d]))
 
     if iso_type:
-        return(elements, which_group(elements))
-    return(elements)
+        return elements, which_group(elements)
+    return elements
+
 
 def height_bound(polynomial):
     r"""
@@ -611,7 +612,8 @@ def remove_redundant_automorphisms(automorphisms, order_elts, moduli, integral_a
             del automorphisms[i][j]
             del order_elts[i][j]
 
-    return(automorphisms)
+    return automorphisms
+
 
 def automorphism_group_QQ_CRT(rational_function, prime_lower_bound=4, return_functions=True, iso_type=False):
     r"""
@@ -755,7 +757,7 @@ def automorphism_group_QQ_CRT(rational_function, prime_lower_bound=4, return_fun
                 (gcd(orderaut + [24]) == 24 and \
                 (len(elements) == 12 or len(elements) == 8)):
                     if iso_type:
-                        return(elements, which_group(elements))
+                        return elements, which_group(elements)
                     return elements
             else:
                 N = gcd(orderaut + [12])  # all orders of elements divide N
@@ -784,7 +786,7 @@ def automorphism_group_QQ_CRT(rational_function, prime_lower_bound=4, return_fun
                         if (len(elements) == gcd(orderaut + [24])):
                             #found enough automorphisms
                                 if iso_type:
-                                    return(elements, which_group(elements))
+                                    return elements, which_group(elements)
                                 return elements
                         elif numelts <= (len(temp)):
                             badorders.append(order)
@@ -819,8 +821,9 @@ def automorphism_group_QQ_CRT(rational_function, prime_lower_bound=4, return_fun
         p = primes.next(p)
 
     if iso_type:
-        return(elements, which_group(elements))
-    return(elements)
+        return elements, which_group(elements)
+    return elements
+
 
 def automorphism_group_FF(rational_function, absolute=False, iso_type=False, return_functions=False):
     r"""
@@ -1904,7 +1907,7 @@ def conjugating_set_initializer(f, g):
             repeated_mult_L[repeated] += [mult_to_point_L[mult_L]]
     more = True
 
-    # the n+2 points to be used to specificy PGL conjugations
+    # the n+2 points to be used to specify PGL conjugations
     source = []
 
     # a list of tuples of the form ((multiplier, level), repeat) where the
@@ -1994,9 +1997,10 @@ def conjugating_set_initializer(f, g):
             for r in sorted(repeated_mult_L.keys()):
                 for point_lst in repeated_mult_L[r]:
                     all_points += point_lst
-            # this loop is quite long, so we break after finding the first subset
-            # with the desired property. There is, however, no guarentee that the
-            # subset we found minimizes the combinatorics when checking conjugations
+            # this loop is quite long, so we break after finding the
+            # first subset with the desired property. There is,
+            # however, no guarantee that the subset we found minimizes
+            # the combinatorics when checking conjugations
             for subset in Subsets(range(len(all_points)), n+2):
                 source = []
                 for i in subset:
@@ -2163,10 +2167,10 @@ def conjugating_set_helper(f, g, num_cpus, source, possible_targets):
         subset_iterators.append(Subsets(range(len(lst[0])), lst[1]))
 
     # helper function for parallelization
-    # given a list of tuples which specify indicies of possible target points
-    # in possible_targets, check all arragements of those possible target points
-    # and if any of them define a conjugation which sends f to g, return
-    # those conjugations as a list
+    # given a list of tuples which specify indices of possible target
+    # points in possible_targets, check all arrangements of those
+    # possible target points and if any of them define a conjugation
+    # which sends f to g, return those conjugations as a list
     def find_conjugations_subset(tuples):
         conj = []
         for tup in tuples:
@@ -2192,9 +2196,9 @@ def conjugating_set_helper(f, g, num_cpus, source, possible_targets):
         return conj
 
     # helper function for parallelization
-    # given a list of tuples which specify indicies of possible target points
-    # in possible_targets, check all possible target points
-    # and if any of them define a conjugation which sends f to g, return
+    # given a list of tuples which specify indices of possible target
+    # points in possible_targets, check all possible target points and
+    # if any of them define a conjugation which sends f to g, return
     # those conjugations as a list
     def find_conjugations_arrangement(tuples):
         conj = []
@@ -2226,7 +2230,7 @@ def conjugating_set_helper(f, g, num_cpus, source, possible_targets):
                 if ret[1]:
                     Conj += ret[1]
         # otherwise, we need to first check linear independence of the subsets
-        # and then build a big list of all the arrangemenets to split among
+        # and then build a big list of all the arrangements to split among
         # the threads
         else:
             good_targets = []
@@ -2304,9 +2308,10 @@ def is_conjugate_helper(f, g, num_cpus, source, possible_targets):
         subset_iterators.append(Subsets(range(len(lst[0])), lst[1]))
 
     # helper function for parallelization
-    # given a list of tuples which specify indicies of possible target points
-    # in possible_targets, check all arragements of those possible target points
-    # and if any of them define a conjugation which sends f to g, return True
+    # given a list of tuples which specify indices of possible target
+    # points in possible_targets, check all arrangements of those
+    # possible target points and if any of them define a conjugation
+    # which sends f to g, return True
     def find_conjugations_subset(tuples):
         for tup in tuples:
             target_set = []
@@ -2331,7 +2336,7 @@ def is_conjugate_helper(f, g, num_cpus, source, possible_targets):
         return False
 
     # helper function for parallelization
-    # given a list of tuples which specify indicies of possible target points
+    # given a list of tuples which specify indices of possible target points
     # in possible_targets, check all possible target points
     # and if any of them define a conjugation which sends f to g, return True
     def find_conjugations_arrangement(tuples):
@@ -2364,7 +2369,7 @@ def is_conjugate_helper(f, g, num_cpus, source, possible_targets):
                     is_conj = True
                     break
         # otherwise, we need to first check linear independence of the subsets
-        # and then build a big list of all the arrangemenets to split among
+        # and then build a big list of all the arrangements to split among
         # the threads
         else:
             good_targets = []

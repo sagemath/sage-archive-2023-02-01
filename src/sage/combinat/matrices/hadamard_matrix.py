@@ -430,9 +430,9 @@ def hadamard_matrix(n,existence=False, check=True):
         if existence:
             return True
         M = hadamard_matrix_paleyII(n)
-    elif n == 4 or n % 8 == 0:
+    elif n == 4 or n % 8 == 0 and hadamard_matrix(n//2,existence=True) is True:
         if existence:
-            return hadamard_matrix(n//2,existence=True)
+            return True
         had = hadamard_matrix(n//2,check=False)
         chad1 = matrix([list(r) + list(r) for r in had.rows()])
         mhad = (-1) * had

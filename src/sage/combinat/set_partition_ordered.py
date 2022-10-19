@@ -568,10 +568,10 @@ class OrderedSetPartition(ClonableArray,
             sage: C.cardinality()
             4
             sage: sorted(C)
-            [[{1, 2, 3, 4, 5}],
-             [{1, 2, 5}, {3, 4}],
+            [[{2, 5}, {1}, {3, 4}],
              [{2, 5}, {1, 3, 4}],
-             [{2, 5}, {1}, {3, 4}]]
+             [{1, 2, 5}, {3, 4}],
+             [{1, 2, 3, 4, 5}]]
 
             sage: OrderedSetPartition([[4, 9], [-1, 2]]).fatter().list()
             [[{4, 9}, {-1, 2}], [{-1, 2, 4, 9}]]
@@ -583,14 +583,14 @@ class OrderedSetPartition(ClonableArray,
             sage: list(Composition([]).fatter())
             [[]]
             sage: sorted(OrderedSetPartition([[1], [2], [3], [4]]).fatter())
-            [[{1, 2, 3, 4}],
-             [{1, 2, 3}, {4}],
-             [{1, 2}, {3, 4}],
-             [{1, 2}, {3}, {4}],
-             [{1}, {2, 3, 4}],
-             [{1}, {2, 3}, {4}],
+            [[{1}, {2}, {3}, {4}],
              [{1}, {2}, {3, 4}],
-             [{1}, {2}, {3}, {4}]]
+             [{1}, {2, 3}, {4}],
+             [{1}, {2, 3, 4}],
+             [{1, 2}, {3}, {4}],
+             [{1, 2}, {3, 4}],
+             [{1, 2, 3}, {4}],
+             [{1, 2, 3, 4}]]
         """
         return Compositions(len(self)).map(self.fatten)
 
@@ -742,8 +742,7 @@ class OrderedSetPartition(ClonableArray,
             sage: C.cardinality()
             2
             sage: sorted(C)
-            [[{2, 5}, {1, 3, 4}],
-             [{2, 5}, {1}, {3, 4}]]
+            [[{2, 5}, {1}, {3, 4}], [{2, 5}, {1, 3, 4}]]
 
             sage: OrderedSetPartition([[4, 9], [-1, 2]]).strongly_fatter().list()
             [[{4, 9}, {-1, 2}]]
@@ -755,21 +754,21 @@ class OrderedSetPartition(ClonableArray,
             sage: list(OrderedSetPartition([]).strongly_fatter())
             [[]]
             sage: sorted(OrderedSetPartition([[1], [2], [3], [4]]).strongly_fatter())
-            [[{1, 2, 3, 4}],
-             [{1, 2, 3}, {4}],
-             [{1, 2}, {3, 4}],
-             [{1, 2}, {3}, {4}],
-             [{1}, {2, 3, 4}],
-             [{1}, {2, 3}, {4}],
+            [[{1}, {2}, {3}, {4}],
              [{1}, {2}, {3, 4}],
-             [{1}, {2}, {3}, {4}]]
+             [{1}, {2, 3}, {4}],
+             [{1}, {2, 3, 4}],
+             [{1, 2}, {3}, {4}],
+             [{1, 2}, {3, 4}],
+             [{1, 2, 3}, {4}],
+             [{1, 2, 3, 4}]]
             sage: sorted(OrderedSetPartition([[1], [3], [2], [4]]).strongly_fatter())
-            [[{1, 3}, {2, 4}],
-             [{1, 3}, {2}, {4}],
+            [[{1}, {3}, {2}, {4}],
              [{1}, {3}, {2, 4}],
-             [{1}, {3}, {2}, {4}]]
+             [{1, 3}, {2}, {4}],
+             [{1, 3}, {2, 4}]]
             sage: sorted(OrderedSetPartition([[4], [1], [5], [3]]).strongly_fatter())
-            [[{4}, {1, 5}, {3}], [{4}, {1}, {5}, {3}]]
+            [[{4}, {1}, {5}, {3}], [{4}, {1, 5}, {3}]]
         """
         c = [sorted(X) for X in self]
         l = len(c) - 1

@@ -574,7 +574,7 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
             sage: M = WQSym.M(); M
             Word Quasi-symmetric functions over Rational Field in the Monomial basis
             sage: sorted(M.basis(2))
-            [M[{1, 2}], M[{2}, {1}], M[{1}, {2}]]
+            [M[{1}, {2}], M[{2}, {1}], M[{1, 2}]]
         """
         _prefix = "M"
         _basis_name = "Monomial"
@@ -625,6 +625,7 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
             def union(X, Y):
                 return X.union(Y)
+
             return self.sum_of_monomials(ShuffleProduct_overlapping(x, yshift,
                                                                     K, union))
 
@@ -975,12 +976,15 @@ class WordQuasiSymmetricFunctions(UniqueRepresentation, Parent):
                         temp = temp[:j]
                         break
 
+            def union(X, Y):
+                return X.union(Y)
+
             # Perform the quasi-shuffle product
             cur = {data[0]: 1}
             for B in data[1:]:
                 ret = {}
                 for A in cur:
-                    for C in ShuffleProduct_overlapping(A, B, element_constructor=OSP):
+                    for C in ShuffleProduct_overlapping(A, B, element_constructor=OSP, add=union):
                         if C in ret:
                             ret[C] += cur[A]
                         else:
@@ -2220,7 +2224,7 @@ class WQSymBases(Category_realization_of_parent):
                 sage: M[[1,4],[2,5],[3,6]].algebraic_complement()
                 M[{3, 6}, {2, 5}, {1, 4}]
                 sage: (3*M[[1]] - 4*M[[]] + 5*M[[1],[2]]).algebraic_complement()
-                -4*M[] + 3*M[{1}] + 5*M[{2}, {1}]
+                3*M[{1}] - 4*M[] + 5*M[{2}, {1}]
                 sage: X = WQSym.X()
                 sage: X[[1,3],[2]].algebraic_complement()
                 X[{2}, {1, 3}]
@@ -2385,7 +2389,7 @@ class WQSymBases(Category_realization_of_parent):
                 sage: M[[1,4],[2,5],[3,6]].coalgebraic_complement()
                 M[{3, 6}, {2, 5}, {1, 4}]
                 sage: (3*M[[1]] - 4*M[[]] + 5*M[[1],[2]]).coalgebraic_complement()
-                -4*M[] + 3*M[{1}] + 5*M[{2}, {1}]
+                3*M[{1}] - 4*M[] + 5*M[{2}, {1}]
                 sage: X = WQSym.X()
                 sage: X[[1,3],[2]].coalgebraic_complement()
                 X[{1, 3}, {2}]
@@ -2496,7 +2500,7 @@ class WQSymBases(Category_realization_of_parent):
                 sage: M[[1,4],[2,5],[3,6]].star_involution()
                 M[{1, 4}, {2, 5}, {3, 6}]
                 sage: (3*M[[1]] - 4*M[[]] + 5*M[[1],[2]]).star_involution()
-                -4*M[] + 3*M[{1}] + 5*M[{1}, {2}]
+                3*M[{1}] - 4*M[] + 5*M[{1}, {2}]
                 sage: X = WQSym.X()
                 sage: X[[1,3],[2]].star_involution()
                 X[{2}, {1, 3}]

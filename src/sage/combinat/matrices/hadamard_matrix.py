@@ -413,6 +413,10 @@ def hadamard_matrix(n,existence=False, check=True):
         ValueError: The Hadamard matrix of order 10 does not exist
         sage: matrix.hadamard(312, existence=True)
         True
+        sage: matrix.hadamard(1904, existence=True)
+        True
+        sage: matrix.hadamard(324, existence=True)
+        True
     """
     if not(n % 4 == 0) and (n > 2):
         if existence:

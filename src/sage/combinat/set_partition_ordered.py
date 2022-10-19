@@ -250,8 +250,9 @@ class OrderedSetPartition(ClonableArray,
 
     def base_set(self):
         """
-        Return the base set of ``self``, which is the union of all parts
-        of ``self``.
+        Return the base set of ``self``.
+
+        This is the union of all parts of ``self``.
 
         EXAMPLES::
 
@@ -276,8 +277,9 @@ class OrderedSetPartition(ClonableArray,
 
     def base_set_cardinality(self):
         """
-        Return the cardinality of the base set of ``self``, which is the sum
-        of the sizes of the parts of ``self``.
+        Return the cardinality of the base set of ``self``.
+
+        This is the sum of the sizes of the parts of ``self``.
 
         This is also known as the *size* (sometimes the *weight*) of
         an ordered set partition.
@@ -288,8 +290,17 @@ class OrderedSetPartition(ClonableArray,
             4
             sage: OrderedSetPartition([[1,2,3,4]]).base_set_cardinality()
             4
+
+        TESTS::
+
+            sage: S = OrderedSetPartitions()
+            sage: S([[1,4],[3],[2]]).base_set_cardinality()
+            4
         """
-        return len(parent(self)._set)
+        try:
+            return len(parent(self)._set)
+        except AttributeError:  # in OrderedSetPartitions_all
+            return sum(len(part) for part in self)
 
     size = base_set_cardinality
 

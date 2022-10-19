@@ -405,7 +405,7 @@ def hadamard_matrix(n,existence=False, check=True):
         False
         sage: matrix.hadamard(12,existence=True)
         True
-        sage: matrix.hadamard(92,existence=True)
+        sage: matrix.hadamard(116,existence=True)
         Unknown
         sage: matrix.hadamard(10)
         Traceback (most recent call last):

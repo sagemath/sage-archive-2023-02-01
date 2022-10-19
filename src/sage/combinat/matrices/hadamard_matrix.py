@@ -448,6 +448,14 @@ def hadamard_matrix(n,existence=False, check=True):
         if existence:
             return True
         M = hadamard_matrix_paleyI(n)
+    elif skew_hadamard_matrix(n, existence=True) is True:
+        if existence:
+            return True
+        M = skew_hadamard_matrix(n, check=False)
+    elif regular_symmetric_hadamard_matrix_with_constant_diagonal(n, 1, existence=True) is True:
+        if existence: 
+            return True
+        M = regular_symmetric_hadamard_matrix_with_constant_diagonal(n, 1)
     else:
         if existence:
             return Unknown

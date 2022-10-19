@@ -69,9 +69,12 @@ class WQSymBasis_abstract(CombinatorialFreeModule, BindableClass):
             sage: M = algebras.WQSym(QQ).M()
             sage: TestSuite(M).run()  # long time
         """
+        def sorting_key(X):
+            return (sum(map(len, X)), X)
         CombinatorialFreeModule.__init__(self, alg.base_ring(),
                                          OrderedSetPartitions(),
                                          category=WQSymBases(alg, graded),
+                                         sorting_key=sorting_key,
                                          bracket="", prefix=self._prefix)
 
     def _repr_term(self, osp):
@@ -2224,7 +2227,7 @@ class WQSymBases(Category_realization_of_parent):
                 sage: M[[1,4],[2,5],[3,6]].algebraic_complement()
                 M[{3, 6}, {2, 5}, {1, 4}]
                 sage: (3*M[[1]] - 4*M[[]] + 5*M[[1],[2]]).algebraic_complement()
-                3*M[{1}] - 4*M[] + 5*M[{2}, {1}]
+                -4*M[] + 3*M[{1}] + 5*M[{2}, {1}]
                 sage: X = WQSym.X()
                 sage: X[[1,3],[2]].algebraic_complement()
                 X[{2}, {1, 3}]
@@ -2389,7 +2392,7 @@ class WQSymBases(Category_realization_of_parent):
                 sage: M[[1,4],[2,5],[3,6]].coalgebraic_complement()
                 M[{3, 6}, {2, 5}, {1, 4}]
                 sage: (3*M[[1]] - 4*M[[]] + 5*M[[1],[2]]).coalgebraic_complement()
-                3*M[{1}] - 4*M[] + 5*M[{2}, {1}]
+                -4*M[] + 3*M[{1}] + 5*M[{2}, {1}]
                 sage: X = WQSym.X()
                 sage: X[[1,3],[2]].coalgebraic_complement()
                 X[{1, 3}, {2}]
@@ -2500,7 +2503,7 @@ class WQSymBases(Category_realization_of_parent):
                 sage: M[[1,4],[2,5],[3,6]].star_involution()
                 M[{1, 4}, {2, 5}, {3, 6}]
                 sage: (3*M[[1]] - 4*M[[]] + 5*M[[1],[2]]).star_involution()
-                3*M[{1}] - 4*M[] + 5*M[{1}, {2}]
+                -4*M[] + 3*M[{1}] + 5*M[{1}, {2}]
                 sage: X = WQSym.X()
                 sage: X[[1,3],[2]].star_involution()
                 X[{2}, {1, 3}]

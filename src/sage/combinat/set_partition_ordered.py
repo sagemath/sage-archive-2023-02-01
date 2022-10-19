@@ -1030,7 +1030,7 @@ class OrderedSetPartitions(UniqueRepresentation, Parent):
         # sets is the original set
         return len(u) == len(self._set)
 
-    def from_finite_word(self, w):
+    def from_finite_word(self, w, check=True):
         r"""
         Return the unique ordered set partition of `\{1, 2, \ldots, n\}` corresponding
         to a word `w` of length `n`.
@@ -1051,14 +1051,24 @@ class OrderedSetPartitions(UniqueRepresentation, Parent):
 
             sage: A = OrderedSetPartitions().from_finite_word('abcabca')
             sage: A.parent()
+            Ordered set partitions
+
+            sage: A = OrderedSetPartitions(7).from_finite_word('abcabca')
+            sage: A.parent()
             Ordered set partitions of {1, 2, 3, 4, 5, 6, 7}
         """
         # TODO: fix this if statement.
         #       In fact, what we need is for the underlying alphabet to be sortable.
         if isinstance(w, (list, tuple, str, FiniteWord_class)):
             W = Words(infinite=False)
-            s = frozenset(range(1, len(w) + 1))
-            return self.element_class(self.subset(s), W(w).to_ordered_set_partition())
+            if check:
+                try:
+                    X = self._set
+                    if len(X) != len(w) or X != frozenset(range(1, len(w) + 1)):
+                        raise ValueError(f"result not in {self}")
+                except AttributeError:
+                    pass
+            return self.element_class(self, W(w).to_ordered_set_partition())
         raise TypeError(f"`from_finite_word` expects an object of type list/tuple/str/Word "
                         f"representing a finite word, received {w}")
 

@@ -47,7 +47,7 @@ cdef class KSHandler:
     whether the structure contains an entry corresponding to the given index.
 
     The parent process should construct this object without a
-    ``name`` attribute. Children processes use the ``name`` attribute, 
+    ``name`` attribute. Children processes use the ``name`` attribute,
     accessed via ``self.shm.name`` to attach to the shared memory block.
 
     INPUT:
@@ -64,7 +64,7 @@ cdef class KSHandler:
 
     .. NOTE::
 
-        To properly dispose of shared memory resources, 
+        To properly dispose of shared memory resources,
         ``self.shm.unlink()`` must be called before exiting.
 
     .. WARNING::
@@ -75,14 +75,14 @@ cdef class KSHandler:
     EXAMPLES::
 
         sage: from sage.algebras.fusion_rings.shm_managers import KSHandler
-        sage: #Create shared data structure
+        sage: # Create shared data structure
         sage: f = FMatrix(FusionRing("A1", 2), inject_variables=True)
         creating variables fx1..fx14
         Defining fx0, fx1, fx2, fx3, fx4, fx5, fx6, fx7, fx8, fx9, fx10, fx11, fx12, fx13
         sage: n = f._poly_ring.ngens()
         sage: f.start_worker_pool()
         sage: ks = KSHandler(n, f._field, use_mp=True)
-        sage: #In the same shell or in a different shell, attach to fvars
+        sage: # In the same shell or in a different shell, attach to fvars
         sage: name = ks.shm.name
         sage: ks2 = KSHandler(n, f._field, name=name, use_mp=True)
         sage: from sage.algebras.fusion_rings.poly_tup_engine import poly_to_tup
@@ -103,7 +103,7 @@ cdef class KSHandler:
         EXAMPLES::
 
             sage: from sage.algebras.fusion_rings.shm_managers import KSHandler
-            sage: #Create shared data structure
+            sage: # Create shared data structure
             sage: f = FMatrix(FusionRing("A1", 2), inject_variables=True)
             creating variables fx1..fx14
             Defining fx0, fx1, fx2, fx3, fx4, fx5, fx6, fx7, fx8, fx9, fx10, fx11, fx12, fx13
@@ -119,8 +119,8 @@ cdef class KSHandler:
         n = n_slots
         d = self.field.degree()
         ks_t = np.dtype([
-            ('known', 'bool', (1, )), 
-            ('nums', 'i8', (d, )), 
+            ('known', 'bool', (1, )),
+            ('nums', 'i8', (d, )),
             ('denoms', 'u8', (d, ))
         ])
         self.obj_cache = [None]*n
@@ -136,7 +136,7 @@ cdef class KSHandler:
             self.ks_dat['known'] = np.zeros((n, 1), dtype='bool')
             self.ks_dat['nums'] = np.zeros((n, d), dtype='i8')
             self.ks_dat['denoms'] = np.ones((n, d), dtype='u8')
-        #Populate initializer data
+        # Populate initializer data
         for idx, sq in init_data.items():
             self.setitem(idx, sq)
 
@@ -145,7 +145,7 @@ cdef class KSHandler:
     @cython.boundscheck(False)
     cdef NumberFieldElement_absolute get(self, int idx):
         r"""
-        Retrieve the known square corresponding to the given index, 
+        Retrieve the known square corresponding to the given index,
         if it exists.
         """
         if not self.ks_dat['known'][idx]:
@@ -188,19 +188,19 @@ cdef class KSHandler:
             ....:     k
             ....:
             sage: f.get_orthogonality_constraints()
-            [fx0^2 - 1, 
-             fx1^2 - 1, 
-             fx2^2 - 1, 
-             fx3^2 - 1, 
-             fx4^2 - 1, 
-             fx5^2 - 1, 
-             fx6^2 - 1, 
-             fx7^2 - 1, 
-             fx8^2 - 1, 
-             fx9^2 - 1, 
-             fx10^2 + fx12^2 - 1, 
-             fx10*fx11 + fx12*fx13, 
-             fx10*fx11 + fx12*fx13, 
+            [fx0^2 - 1,
+             fx1^2 - 1,
+             fx2^2 - 1,
+             fx3^2 - 1,
+             fx4^2 - 1,
+             fx5^2 - 1,
+             fx6^2 - 1,
+             fx7^2 - 1,
+             fx8^2 - 1,
+             fx9^2 - 1,
+             fx10^2 + fx12^2 - 1,
+             fx10*fx11 + fx12*fx13,
+             fx10*fx11 + fx12*fx13,
              fx11^2 + fx13^2 - 1]
              sage: f.get_orthogonality_constraints(output=False)
              sage: f._ks.update(f.ideal_basis)
@@ -230,7 +230,7 @@ cdef class KSHandler:
             eq_tup = eqns[i]
             if tup_fixes_sq(eq_tup):
                 rhs = [-v for v in eq_tup[-1][1]]
-                #eq_tup is guaranteed univariate, so we extract variable idx from lm
+                # eq_tup is guaranteed univariate, so we extract variable idx from lm
                 lm = eq_tup[0][0]
                 idx = lm._data[0]
                 try:
@@ -288,7 +288,7 @@ cdef class KSHandler:
             sage: n = f._poly_ring.ngens()
             sage: f.start_worker_pool()
             sage: ks = KSHandler(n, f._field, use_mp=True, init_data=f._ks)
-            sage: #In the same shell or in a different one, attach to shared memory handler
+            sage: # In the same shell or in a different one, attach to shared memory handler
             sage: name = ks.shm.name
             sage: k2 = KSHandler(n, f._field, name=name, use_mp=True)
             sage: ks == k2
@@ -308,7 +308,7 @@ cdef class KSHandler:
             sage: f._reset_solver_state()
             sage: loads(dumps(f._ks)) == f._ks
             True
-            sage: f.find_orthogonal_solution(verbose=False)    #long time
+            sage: f.find_orthogonal_solution(verbose=False)    # long time
             sage: loads(dumps(f._ks)) == f._ks
             True
         """
@@ -384,11 +384,11 @@ cdef class FvarsHandler:
     entries have been modified before attempting retrieval.
 
     The parent process should construct this object without a
-    ``name`` attribute. Children processes use the ``name`` attribute, 
+    ``name`` attribute. Children processes use the ``name`` attribute,
     accessed via ``self.shm.name`` to attach to the shared memory block.
 
     Multiprocessing requires Python 3.8+, since we must import the
-    ``multiprocessing.shared_memory`` module. 
+    ``multiprocessing.shared_memory`` module.
 
     INPUT:
 
@@ -413,7 +413,7 @@ cdef class FvarsHandler:
 
     .. NOTE::
 
-        To properly dispose of shared memory resources, 
+        To properly dispose of shared memory resources,
         ``self.shm.unlink()`` must be called before exiting.
 
     .. NOTE::
@@ -424,7 +424,7 @@ cdef class FvarsHandler:
 
     .. WARNING::
 
-        The current data structure supports up to `2^16` entries, 
+        The current data structure supports up to `2^16` entries,
         with each monomial in each entry having at most 254
         nonzero terms. On average, each of the ``max_terms`` monomials
         can have at most 30 terms.
@@ -432,7 +432,7 @@ cdef class FvarsHandler:
     EXAMPLES::
 
         sage: from sage.algebras.fusion_rings.shm_managers import FvarsHandler
-        sage: #Create shared data structure
+        sage: # Create shared data structure
         sage: f = FMatrix(FusionRing("A2", 1), inject_variables=True)
         creating variables fx1..fx8
         Defining fx0, fx1, fx2, fx3, fx4, fx5, fx6, fx7
@@ -440,7 +440,7 @@ cdef class FvarsHandler:
         sage: n_proc = f.pool._processes
         sage: pids_name = f._pid_list.shm.name
         sage: fvars = FvarsHandler(8, f._field, f._idx_to_sextuple, use_mp=n_proc, pids_name=pids_name)
-        sage: #In the same shell or in a different shell, attach to fvars
+        sage: # In the same shell or in a different shell, attach to fvars
         sage: name = fvars.shm.name
         sage: fvars2 = FvarsHandler(8, f._field, f._idx_to_sextuple, name=name , use_mp=n_proc, pids_name=pids_name)
         sage: from sage.algebras.fusion_rings.poly_tup_engine import poly_to_tup
@@ -451,7 +451,7 @@ cdef class FvarsHandler:
         sage: fvars.shm.unlink()
         sage: f.shutdown_worker_pool()
     """
-    def __init__(self, n_slots, field, idx_to_sextuple, init_data={}, use_mp=0, 
+    def __init__(self, n_slots, field, idx_to_sextuple, init_data={}, use_mp=0,
                  pids_name=None, name=None, max_terms=20, n_bytes=32):
         r"""
         Initialize ``self``.
@@ -459,7 +459,7 @@ cdef class FvarsHandler:
         EXAMPLES::
 
             sage: from sage.algebras.fusion_rings.shm_managers import FvarsHandler
-            sage: #Create shared data structure
+            sage: # Create shared data structure
             sage: f = FMatrix(FusionRing("A2", 1), inject_variables=True)
             creating variables fx1..fx8
             Defining fx0, fx1, fx2, fx3, fx4, fx5, fx6, fx7
@@ -478,10 +478,10 @@ cdef class FvarsHandler:
         cdef int slots = self.bytes // 8
         cdef int n_proc = use_mp + 1
         self.fvars_t = np.dtype([
-            ('modified', np.int8, (n_proc, )), 
-            ('ticks', 'u1', (max_terms, )), 
-            ('exp_data', 'u2', (max_terms*30, )), 
-            ('coeff_nums', np.int64, (max_terms, d, slots)), 
+            ('modified', np.int8, (n_proc, )),
+            ('ticks', 'u1', (max_terms, )),
+            ('exp_data', 'u2', (max_terms*30, )),
+            ('coeff_nums', np.int64, (max_terms, d, slots)),
             ('coeff_denom', np.uint64, (max_terms, d, slots))
         ])
         self.sext_to_idx = {s: i for i, s in idx_to_sextuple.items()}
@@ -497,7 +497,7 @@ cdef class FvarsHandler:
         else:
             self.fvars = np.ndarray((self.ngens, ), dtype=self.fvars_t)
             self.child_id = 0
-        #Populate with initialziation data
+        # Populate with initialziation data
         for sextuple, fvar in init_data.items():
             if isinstance(fvar, MPolynomial_libsingular):
                 fvar = _flatten_coeffs(poly_to_tup(fvar))
@@ -521,7 +521,7 @@ cdef class FvarsHandler:
         unflattening its representation and constructing relevant Python
         objects.
 
-        This method returns a tuple of ``(ETuple, coeff)`` pairs, 
+        This method returns a tuple of ``(ETuple, coeff)`` pairs,
         where ``coeff`` is an element of ``self.field``.
 
         EXAMPLES::
@@ -562,10 +562,10 @@ cdef class FvarsHandler:
         if not sextuple in self.sext_to_idx:
             raise KeyError('invalid sextuple {}'.format(sextuple))
         cdef Py_ssize_t idx = self.sext_to_idx[sextuple]
-        #Each process builds its own cache, so each process must know
-        #whether the entry it wants to retrieve has been modified.
-        #Each process needs to know where to look, so we use an index
-        #every process agrees on. The pid_list[0] belongs to the main process.
+        # Each process builds its own cache, so each process must know
+        # whether the entry it wants to retrieve has been modified.
+        # Each process needs to know where to look, so we use an index
+        # every process agrees on. The pid_list[0] belongs to the main process.
         if self.child_id < 0:
             self.child_id = self.pid_list.index(getpid())
         if idx in self.obj_cache:
@@ -581,7 +581,7 @@ cdef class FvarsHandler:
         cdef Py_ssize_t cum, i, j, k
         cdef Rational quo
         cdef tuple ret
-        #Define memory views to reduce Python overhead and ensure correct typing
+        # Define memory views to reduce Python overhead and ensure correct typing
         cdef np.ndarray[np.uint8_t, ndim=1] ticks = self.fvars['ticks'][idx]
         cdef np.ndarray[np.uint16_t, ndim=1] exp_data = self.fvars['exp_data'][idx]
         cdef np.ndarray[np.int64_t, ndim=3] nums = self.fvars['coeff_nums'][idx]
@@ -592,9 +592,9 @@ cdef class FvarsHandler:
         cum = 0
         count = np.count_nonzero(ticks)
         for i in range(count):
-            #Construct new ETuple for each monomial
+            # Construct new ETuple for each monomial
             exp = e._new()
-            #Handle constant coeff
+            # Handle constant coeff
             nnz = ticks[i] if ticks[i] < 255 else 0
             exp._nonzero = nnz
             if nnz:
@@ -603,7 +603,7 @@ cdef class FvarsHandler:
                     exp._data[j] = <int>exp_data[cum]
                     cum += 1
 
-            #Construct cyclotomic field coefficient
+            # Construct cyclotomic field coefficient
             rats = list()
             for k in range(self.field.degree()):
                 num = Integer(list(nums[i, k]), 2**63)
@@ -613,7 +613,7 @@ cdef class FvarsHandler:
             cyc_coeff = self.field(rats)
             poly_tup.append((exp, cyc_coeff))
         ret = tuple(poly_tup)
-        #Cache object and reset modified
+        # Cache object and reset modified
         self.obj_cache[idx] = ret
         modified[self.child_id] = 0
         return ret
@@ -622,7 +622,7 @@ cdef class FvarsHandler:
     @cython.wraparound(False)
     def __setitem__(self, sextuple, fvar):
         r"""
-        Given a sextuple of labels and a tuple of ``(ETuple, cyc_coeff)`` pairs, 
+        Given a sextuple of labels and a tuple of ``(ETuple, cyc_coeff)`` pairs,
         create or overwrite an entry in the shared data structure
         corresponding to the given sextuple.
 
@@ -660,21 +660,21 @@ cdef class FvarsHandler:
         cdef Py_ssize_t cum, i, idx, j, k, t
         cdef Rational r
         idx = self.sext_to_idx[sextuple]
-        #Clear entry before inserting
+        # Clear entry before inserting
         self.fvars[idx] = np.zeros((1, ), dtype=self.fvars_t)
-        #Define memory views to reduce Python overhead and ensure correct typing
+        # Define memory views to reduce Python overhead and ensure correct typing
         cdef np.ndarray[np.uint8_t, ndim=1] ticks = self.fvars['ticks'][idx]
         cdef np.ndarray[np.uint16_t, ndim=1] exp_data = self.fvars['exp_data'][idx]
         cdef np.ndarray[np.int64_t, ndim=3] nums = self.fvars['coeff_nums'][idx]
         cdef np.ndarray[np.uint64_t, ndim=3] denoms = self.fvars['coeff_denom'][idx]
         cdef np.ndarray[np.int8_t, ndim=1] modified = self.fvars['modified'][idx]
         cdef list digits
-        #Initialize denominators to 1
+        # Initialize denominators to 1
         denoms[:, :, 0] = 1
         cum = 0
         i = 0
         for exp, coeff_tup in fvar:
-            #Handle constant coefficient
+            # Handle constant coefficient
             if exp._nonzero > 0:
                 ticks[i] = exp._nonzero
             else:

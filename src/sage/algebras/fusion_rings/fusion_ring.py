@@ -2,13 +2,13 @@
 Fusion Rings
 """
 # ****************************************************************************
-#  Copyright (C) 2019 Daniel Bump <bump at match.stanford.edu>
-#                     Guillermo Aboumrad <gh_willieab>
-#                     Travis Scrimshaw <tcscrims at gmail.com>
-#                     Nicolas Thiery <nthiery at users.sf.net>
+# Copyright (C) 2019 Daniel Bump <bump at match.stanford.edu>
+# Guillermo Aboumrad <gh_willieab>
+# Travis Scrimshaw <tcscrims at gmail.com>
+# Nicolas Thiery <nthiery at users.sf.net>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#                  https://www.gnu.org/licenses/
+# Distributed under the terms of the GNU General Public License (GPL)
+# https://www.gnu.org/licenses/
 # ****************************************************************************
 
 from itertools import product, zip_longest
@@ -408,10 +408,10 @@ class FusionRing(WeylCharacterRing):
            raise NotImplementedError("only implemented for multiplicity free fusion rings")
         b = self.basis()
         results = []
-        #Test with different numbers of strands
+        # Test with different numbers of strands
         for n_strands in range(3, max_strands+1):
-            #Randomly select a fusing anyon. Skip the identity element, since
-            #its braiding matrices are trivial
+            # Randomly select a fusing anyon. Skip the identity element, since
+            # its braiding matrices are trivial
             if anyon is not None:
                 a = anyon
             else:
@@ -421,7 +421,7 @@ class FusionRing(WeylCharacterRing):
                         break
             pow = a ** n_strands
             d = pow.monomials()[0]
-            #Try to find 'interesting' braid group reps i.e. skip 1-d reps
+            # Try to find 'interesting' braid group reps i.e. skip 1-d reps
             for k, v in pow.monomial_coefficients().items():
                 if v > 1:
                     d = self(k)
@@ -515,7 +515,7 @@ class FusionRing(WeylCharacterRing):
             Cyclotomic Field of order 40 and degree 16
         """
         # if self._field is None:
-        #     self._field = CyclotomicField(4 * self._cyclotomic_order)
+        # self._field = CyclotomicField(4 * self._cyclotomic_order)
         # return self._field
         return CyclotomicField(4 * self._cyclotomic_order)
 
@@ -1160,7 +1160,7 @@ class FusionRing(WeylCharacterRing):
 
         comp_basis = list()
         for top in product((a*a).monomials(), repeat=n_strands//2):
-            #If the n_strands is odd, we must extend the top row by a fusing anyon
+            # If the n_strands is odd, we must extend the top row by a fusing anyon
             top_row = list(top)+[a]*(n_strands%2)
             comp_basis.extend(tuple([*top, *levels]) for levels in _get_trees(self, top_row, b))
         return comp_basis
@@ -1222,14 +1222,14 @@ class FusionRing(WeylCharacterRing):
         n_proc = worker_pool._processes if worker_pool is not None else 1
         input_iter = [(child_id, n_proc, input_args) for child_id in range(n_proc)]
         no_mp = worker_pool is None
-        #Map phase
+        # Map phase
         input_iter = zip_longest([], input_iter, fillvalue=(mapper, id(self)))
         results = list()
         if no_mp:
             mapped = map(executor, input_iter)
         else:
             mapped = worker_pool.imap_unordered(executor, input_iter, chunksize=1)
-        #Reduce phase
+        # Reduce phase
         for worker_results in mapped:
             results.extend(worker_results)
         return results
@@ -1317,7 +1317,7 @@ class FusionRing(WeylCharacterRing):
         """
         if n_strands < 3:
             raise ValueError("the number of strands must be an integer at least 3")
-        #Construct associated FMatrix object and solve for F-symbols
+        # Construct associated FMatrix object and solve for F-symbols
         if self.fmats._chkpt_status < 7:
             self.fmats.find_orthogonal_solution(checkpoint=checkpoint,
                                                 save_results=save_results,
@@ -1325,37 +1325,37 @@ class FusionRing(WeylCharacterRing):
                                                 use_mp=use_mp,
                                                 verbose=verbose)
 
-        #Set multiprocessing parameters. Context can only be set once, so we try to set it
+        # Set multiprocessing parameters. Context can only be set once, so we try to set it
         try:
             set_start_method('fork')
         except RuntimeError:
             pass
-        #Turn off multiprocessing when field is QQbar due to pickling issues introduced by PARI upgrade in trac ticket #30537
+        # Turn off multiprocessing when field is QQbar due to pickling issues introduced by PARI upgrade in trac ticket #30537
         pool = Pool() if use_mp and self.fvars_field() != QQbar else None
 
-        #Set up computational basis and compute generators one at a time
+        # Set up computational basis and compute generators one at a time
         a, b = fusing_anyon, total_charge_anyon
         comp_basis = self.get_computational_basis(a, b, n_strands)
         d = len(comp_basis)
         if verbose:
             print("Computing an {}-dimensional representation of the Artin braid group on {} strands...".format(d, n_strands))
 
-        #Compute diagonal odd-indexed generators using the 3j-symbols
+        # Compute diagonal odd-indexed generators using the 3j-symbols
         gens = {2*i+1: diagonal_matrix(self.r_matrix(a, a, c[i]) for c in comp_basis) for i in range(n_strands//2)}
 
-        #Compute even-indexed generators using F-matrices
+        # Compute even-indexed generators using F-matrices
         for k in range(1, n_strands//2):
             entries = self._emap('sig_2k', (k, a, b, n_strands), pool)
 
-            #Build cyclotomic field element objects from tuple of rationals repn
+            # Build cyclotomic field element objects from tuple of rationals repn
             _unflatten_entries(self, entries)
             gens[2*k] = matrix(dict(entries))
 
-        #If n_strands is odd, we compute the final generator
+        # If n_strands is odd, we compute the final generator
         if n_strands % 2:
             entries = self._emap('odd_one_out', (a, b, n_strands), pool)
 
-            #Build cyclotomic field element objects from tuple of rationals repn
+            # Build cyclotomic field element objects from tuple of rationals repn
             _unflatten_entries(self, entries)
             gens[n_strands-1] = matrix(dict(entries))
 
@@ -1467,7 +1467,7 @@ class FusionRing(WeylCharacterRing):
             P = self.parent()
             rho = P.space().rho()
             # We copy self.weight() to skip the test (which was already done
-            #   by self.is_simple_object()).
+            # by self.is_simple_object()).
             lam = next(iter(self._monomial_coefficients))
             inner = lam.inner_product(lam + 2*rho)
             twist = P._conj * P._nf * inner / P.fusion_l()

@@ -282,7 +282,7 @@ class FMatrix(SageObject):
             self._FR.fusion_labels(fusion_label, inject_variables=True)
         if not self._FR.is_multiplicity_free():
             raise NotImplementedError("FMatrix is only available for multiplicity free FusionRings")
-        #Set up F-symbols entry by entry
+        # Set up F-symbols entry by entry
         n_vars = self.findcases()
         self._poly_ring = PolynomialRing(self._FR.field(), n_vars, var_prefix)
         if inject_variables:
@@ -290,15 +290,15 @@ class FMatrix(SageObject):
             self._poly_ring.inject_variables(get_main_globals())
         self._idx_to_sextuple, self._fvars = self.findcases(output=True)
 
-        #Base field attributes
+        # Base field attributes
         self._field = self._FR.field()
         r = self._field.defining_polynomial().roots(ring=QQbar, multiplicities=False)[0]
         self._qqbar_embedding = self._field.hom([r], QQbar)
 
-        #Warm starting
+        # Warm starting
         self._chkpt_status = -1
 
-        #Multiprocessing attributes
+        # Multiprocessing attributes
         self.mp_thresh = 10000
         self.pool = None
 
@@ -407,7 +407,7 @@ class FMatrix(SageObject):
         self._singles = self.get_fvars_by_size(1, indices=True)
         self._nnz = self._get_known_nonz()
 
-        #Clear relevant caches
+        # Clear relevant caches
         [x.q_dimension.clear_cache() for x in self._FR.basis()]
         self._FR.r_matrix.clear_cache()
         self._FR.s_ij.clear_cache()
@@ -443,7 +443,7 @@ class FMatrix(SageObject):
             or self._FR.Nk_ij(b, c, y) == 0 or self._FR.Nk_ij(a, y, d) == 0):
             return 0
 
-        #Some known zero F-symbols
+        # Some known zero F-symbols
         if a == self._FR.one():
             if x == b and y == d:
                 return 1
@@ -460,8 +460,8 @@ class FMatrix(SageObject):
             else:
                 return 0
         if data:
-            #Better to use try/except for speed. Somewhat trivial, but worth
-            #hours when method is called ~10^11 times
+            # Better to use try/except for speed. Somewhat trivial, but worth
+            # hours when method is called ~10^11 times
             try:
                 return self._fvars[a, b, c, d, x, y]
             except KeyError:
@@ -692,7 +692,7 @@ class FMatrix(SageObject):
         """
         return self._poly_ring
 
-    #TODO: this method is incredibly slow... improve by keeping track of the cyclotomic polynomials, NOT their roots in QQbar
+    # TODO: this method is incredibly slow... improve by keeping track of the cyclotomic polynomials, NOT their roots in QQbar
     def get_non_cyclotomic_roots(self):
         r"""
         Return a list of roots that define the extension of the associated
@@ -809,11 +809,11 @@ class FMatrix(SageObject):
             sage: phi.is_identity()
             True
         """
-        #If base field is different from associated FusionRing's CyclotomicField,
-        #return coercion map
+        # If base field is different from associated FusionRing's CyclotomicField,
+        # return coercion map
         try:
             return self._coerce_map_from_cyc_field
-        #Otherwise, return identity map CyclotomicField <-> CyclotomicField
+        # Otherwise, return identity map CyclotomicField <-> CyclotomicField
         except AttributeError:
             F = self._FR.field()
             return F.hom([F.gen()], F)
@@ -958,7 +958,7 @@ class FMatrix(SageObject):
             if len(X) == n and len(Y) == n:
                 for x in X:
                     for y in Y:
-                        #Discard trivial 1x1 F-matrix
+                        # Discard trivial 1x1 F-matrix
                         trivial = a == one and x == b and y == d
                         trivial |= b == one and x == a and y == c
                         trivial |= c == one and x == d and y == b
@@ -1054,7 +1054,7 @@ class FMatrix(SageObject):
         """
         with open(filename, 'rb') as f:
             self._fvars, self._non_cyc_roots, self._coerce_map_from_cyc_field, self._qqbar_embedding = pickle.load(f)
-        #Update state attributes
+        # Update state attributes
         self._chkpt_status = 7
         self._solved = list(True for v in self._fvars)
         self._field = self._qqbar_embedding.domain()
@@ -1206,7 +1206,7 @@ class FMatrix(SageObject):
         """
         with open(filename, 'rb') as f:
             state = pickle.load(f)
-        #Loading saved results pickle
+        # Loading saved results pickle
         if len(state) == 4:
             self.load_fvars(filename)
             self._chkpt_status = 7
@@ -1281,7 +1281,7 @@ class FMatrix(SageObject):
             pass
         if not hasattr(self, '_nnz'):
             self._reset_solver_state()
-        #Set up shared memory resource handlers
+        # Set up shared memory resource handlers
         n_proc = cpu_count() if processes is None else processes
         self._pid_list = shared_memory.ShareableList([0]*(n_proc+1))
         pids_name = self._pid_list.shm.name
@@ -1294,7 +1294,7 @@ class FMatrix(SageObject):
         ks_names = self._ks.shm.name
         self._shared_fvars = FvarsHandler(n, self._field, self._idx_to_sextuple, use_mp=n_proc, pids_name=pids_name, init_data=self._fvars)
         fvar_names = self._shared_fvars.shm.name
-        #Initialize worker pool processes
+        # Initialize worker pool processes
         args = (id(self), s_name, vd_name, ks_names, fvar_names, n_proc, pids_name)
         def init(fmats_id, solved_name, vd_name, ks_names, fvar_names, n_proc, pids_name):
             """
@@ -1377,7 +1377,7 @@ class FMatrix(SageObject):
         """
         if mp_thresh is None:
           mp_thresh = self.mp_thresh
-        #Compute multiprocessing parameters
+        # Compute multiprocessing parameters
         if worker_pool is not None:
             try:
                 n = len(input_iter)
@@ -1386,13 +1386,13 @@ class FMatrix(SageObject):
             if chunksize is None:
                 chunksize = n // (worker_pool._processes**2) + 1
         no_mp = worker_pool is None or n < mp_thresh
-        #Map phase
+        # Map phase
         input_iter = zip_longest([], input_iter, fillvalue=(mapper, id(self)))
         if no_mp:
             mapped = map(executor, input_iter)
         else:
             mapped = worker_pool.imap_unordered(executor, input_iter, chunksize=chunksize)
-        #Reduce phase
+        # Reduce phase
         results = set()
         for child_eqns in mapped:
             if child_eqns is not None:
@@ -1601,7 +1601,7 @@ class FMatrix(SageObject):
             if not linear_terms_exist:
                 break
             _backward_subs(self)
-            #Compute new reduction params and update eqns
+            # Compute new reduction params and update eqns
             self._update_reduction_params(eqns=eqns)
             if self.pool is not None and len(eqns) > self.mp_thresh:
                 n = self.pool._processes
@@ -1673,13 +1673,13 @@ class FMatrix(SageObject):
         G = Graph()
         if not eqns: return G
 
-        #Eqns could be a list of poly objects or poly tuples stored in internal repn
+        # Eqns could be a list of poly objects or poly tuples stored in internal repn
         if isinstance(eqns[0], tuple):
             G.add_vertices([x for eq_tup in eqns for x in variables(eq_tup)])
         else:
             G.add_vertices([x for eq in eqns for x in eq.variables()])
         for eq in eqns:
-            #Eqns could be a list of poly objects or poly tuples stored in internal repn
+            # Eqns could be a list of poly objects or poly tuples stored in internal repn
             if isinstance(eq, tuple):
                 s = [v for v in variables(eq)]
             else:
@@ -1773,7 +1773,7 @@ class FMatrix(SageObject):
         small_comps = list()
         temp_eqns = list()
         for comp, comp_eqns in self._partition_eqns(eqns=eqns, verbose=verbose).items():
-            #Check if component is too large to process
+            # Check if component is too large to process
             if len(comp) > largest_comp:
                 temp_eqns.extend(comp_eqns)
             else:
@@ -1810,17 +1810,17 @@ class FMatrix(SageObject):
             sage: f._get_component_variety(c, eqns)                                      # long time
             [{216: -1, 292: -1, 319: 1}]
         """
-        #Define smaller poly ring in component vars
+        # Define smaller poly ring in component vars
         R = PolynomialRing(self._FR.field(), len(var), 'a', order='lex')
 
-        #Zip tuples into R and compute Groebner basis
+        # Zip tuples into R and compute Groebner basis
         idx_map = {old: new for new, old in enumerate(sorted(var))}
         nvars = len(var)
         eqns = [_unflatten_coeffs(self._field, eq_tup) for eq_tup in eqns]
         polys = [_tup_to_poly(resize(eq_tup, idx_map, nvars), parent=R) for eq_tup in eqns]
         var_in_R = Ideal(sorted(polys)).variety(ring=AA)
 
-        #Change back to fmats poly ring and append to temp_eqns
+        # Change back to fmats poly ring and append to temp_eqns
         inv_idx_map = {v: k for k, v in idx_map.items()}
         return [{inv_idx_map[i]: value for i, (key, value) in enumerate(sorted(soln.items()))} for soln in var_in_R]
 
@@ -1829,8 +1829,8 @@ class FMatrix(SageObject):
     #######################
 
     # TODO: this can probably be improved by constructing a set of defining polynomials
-    #   and checking, one by one, if it's irreducible over the current field.
-    #   If it is, we construct an extension. Perhaps it's best to go one by one here...
+    # and checking, one by one, if it's irreducible over the current field.
+    # If it is, we construct an extension. Perhaps it's best to go one by one here...
     def attempt_number_field_computation(self):
         r"""
         Based on the ``CartanType`` of ``self`` and data
@@ -1866,7 +1866,7 @@ class FMatrix(SageObject):
         """
         ct = self._FR.cartan_type()
         k = self._FR._k
-        #Don't try when k is large and odd for SU(2)_k
+        # Don't try when k is large and odd for SU(2)_k
         if ct.letter == 'A':
             if ct.n == 1 and k >= 9 and k % 2:
                 return False
@@ -1917,7 +1917,7 @@ class FMatrix(SageObject):
         """
         if eqns is None:
             eqns = self.ideal_basis
-        #Don't add square fixers when warm starting from a late-stage checkpoint
+        # Don't add square fixers when warm starting from a late-stage checkpoint
         if self._chkpt_status < 5:
             n = self._poly_ring.ngens()
             one = self._field.one()
@@ -1934,21 +1934,21 @@ class FMatrix(SageObject):
         must_change_base_field = False
         phi = F.hom([F.gen()], F)
         for comp, part in eqns_partition.items():
-            #If component has only one equation in a single variable, get a root
+            # If component has only one equation in a single variable, get a root
             if len(comp) == 1 and len(part) == 1:
-                #Attempt to find cyclotomic root
+                # Attempt to find cyclotomic root
                 univ_poly = tup_to_univ_poly(part[0], R)
                 roots = univ_poly.roots(multiplicities=False)
                 if roots:
                     numeric_fvars[comp[0]] = roots[0]
                 else:
-                    #A real solution is preferred
+                    # A real solution is preferred
                     roots = univ_poly.roots(ring=AA, multiplicities=False)
                     if not roots:
                         roots = univ_poly.roots(ring=QQbar, multiplicities=False)
                     non_cyclotomic_roots.append((comp[0], roots[0]))
                     must_change_base_field = True
-            #Otherwise, compute the component variety and select a point to obtain a numerical solution
+            # Otherwise, compute the component variety and select a point to obtain a numerical solution
             else:
                 sols = self._get_component_variety(comp, part)
                 for fx, rhs in sols[0].items():
@@ -1956,8 +1956,8 @@ class FMatrix(SageObject):
                 must_change_base_field = True
 
         if must_change_base_field:
-            #Attempt to compute smallest number field containing all the F-symbols
-            #If calculation takes too long, we use QQbar as the base field
+            # Attempt to compute smallest number field containing all the F-symbols
+            # If calculation takes too long, we use QQbar as the base field
             if self.attempt_number_field_computation():
                 if verbose:
                     print("Computing appropriate NumberField...")
@@ -1970,30 +1970,30 @@ class FMatrix(SageObject):
                 self._qqbar_embedding = lambda x : x
             self._non_cyc_roots = bf_elts[1:]
 
-            #Embed cyclotomic field into newly constructed base field
+            # Embed cyclotomic field into newly constructed base field
             cyc_gen_as_bf_elt = bf_elts.pop(0)
             phi = self._FR.field().hom([cyc_gen_as_bf_elt], self._field)
             self._coerce_map_from_cyc_field = phi
             numeric_fvars = {k : phi(v) for k, v in numeric_fvars.items()}
             for i, elt in enumerate(bf_elts):
                 numeric_fvars[non_cyclotomic_roots[i][0]] = elt
-            #Update polynomial ring
+            # Update polynomial ring
             self._poly_ring = self._poly_ring.change_ring(self._field)
 
-        #Ensure all F-symbols are known
+        # Ensure all F-symbols are known
         for fx in numeric_fvars:
             self._solved[fx] = True
         nvars = self._poly_ring.ngens()
         assert sum(self._solved) == nvars, "Some F-symbols are still missing...{}".format([self._poly_ring.gen(fx) for fx in range(nvars) if not self._solved[fx]])
 
-        #Backward substitution step. Traverse variables in reverse lexicographical order. (System is in triangular form)
+        # Backward substitution step. Traverse variables in reverse lexicographical order. (System is in triangular form)
         self._fvars = {sextuple : apply_coeff_map(rhs, phi) for sextuple, rhs in self._fvars.items()}
         for fx, rhs in numeric_fvars.items():
             self._fvars[self._idx_to_sextuple[fx]] = ((ETuple({}, nvars), rhs), )
         _backward_subs(self, flatten=False)
         self._fvars = {sextuple : constant_coeff(rhs, self._field) for sextuple, rhs in self._fvars.items()}
 
-        #Update base field attributes
+        # Update base field attributes
         self._FR._field = self.field()
         self._FR._basecoer = self.get_coerce_map_from_fr_cyclotomic_field()
         if self._FR._basecoer:
@@ -2099,29 +2099,29 @@ class FMatrix(SageObject):
             return
         self._reset_solver_state()
 
-        #Resume computation from checkpoint
+        # Resume computation from checkpoint
         if warm_start:
             self._restore_state(warm_start)
-            #Loading from a pickle with solved F-symbols
+            # Loading from a pickle with solved F-symbols
             if self._chkpt_status > 5:
                 return
         # loads_shared_memory = False
         # if use_mp:
-        #     loads_shared_memory = self.start_worker_pool()
+        # loads_shared_memory = self.start_worker_pool()
         if use_mp:
             self.start_worker_pool()
         if verbose:
             print("Computing F-symbols for {} with {} variables...".format(self._FR, self._poly_ring.ngens()))
 
         if self._chkpt_status < 1:
-            #Set up hexagon equations and orthogonality constraints
+            # Set up hexagon equations and orthogonality constraints
             self.get_orthogonality_constraints(output=False)
             self.get_defining_equations('hexagons', output=False)
-            #Report progress
+            # Report progress
             if verbose:
                 print("Set up {} hex and orthogonality constraints...".format(len(self.ideal_basis)))
 
-        #Unzip _fvars and link to shared_memory structure if using multiprocessing
+        # Unzip _fvars and link to shared_memory structure if using multiprocessing
         if use_mp:# and loads_shared_memory:
             self._fvars = self._shared_fvars
         else:
@@ -2130,35 +2130,35 @@ class FMatrix(SageObject):
         self._checkpoint(checkpoint, 1, verbose=verbose)
 
         if self._chkpt_status < 2:
-            #Set up equations graph. Find GB for each component in parallel. Eliminate variables
+            # Set up equations graph. Find GB for each component in parallel. Eliminate variables
             self.ideal_basis = self._par_graph_gb(verbose=verbose)
             self.ideal_basis.sort(key=poly_tup_sortkey)
             self._triangular_elim(verbose=verbose)
-            #Report progress
+            # Report progress
             if verbose:
                 print("Hex elim step solved for {} / {} variables".format(sum(self._solved), len(self._poly_ring.gens())))
         self._checkpoint(checkpoint, 2, verbose=verbose)
 
         if self._chkpt_status < 3:
-            #Set up pentagon equations in parallel
+            # Set up pentagon equations in parallel
             self.get_defining_equations('pentagons', output=False)
-            #Report progress
+            # Report progress
             if verbose:
                 print("Set up {} reduced pentagons...".format(len(self.ideal_basis)))
         self._checkpoint(checkpoint, 3, verbose=verbose)
 
         if self._chkpt_status < 4:
-            #Simplify and eliminate variables
+            # Simplify and eliminate variables
             self.ideal_basis.sort(key=poly_tup_sortkey)
             self._triangular_elim(verbose=verbose)
-            #Report progress
+            # Report progress
             if verbose:
                 print("Pent elim step solved for {} / {} variables".format(sum(self._solved), len(self._poly_ring.gens())))
         self._checkpoint(checkpoint, 4, verbose=verbose)
 
-        #Try adding degrevlex gb -> elim loop until len(ideal_basis) does not change
+        # Try adding degrevlex gb -> elim loop until len(ideal_basis) does not change
 
-        #Set up new equations graph and compute variety for each component
+        # Set up new equations graph and compute variety for each component
         if self._chkpt_status < 5:
             self.ideal_basis = self._par_graph_gb(term_order="lex", verbose=verbose)
             self.ideal_basis.sort(key=poly_tup_sortkey)
@@ -2166,9 +2166,9 @@ class FMatrix(SageObject):
         self._checkpoint(checkpoint, 5, verbose=verbose)
         self.shutdown_worker_pool()
 
-        #Find numeric values for each F-symbol
+        # Find numeric values for each F-symbol
         self._get_explicit_solution(verbose=verbose)
-        #The calculation was successful, so we may delete checkpoints
+        # The calculation was successful, so we may delete checkpoints
         self._chkpt_status = 7
         self.clear_equations()
         if checkpoint:
@@ -2203,13 +2203,13 @@ class FMatrix(SageObject):
             adding equation... fx21 - 1
         """
         while not all(v for v in self._solved):
-            #Get a variable that has not been fixed
-            #In ascending index order, for consistent results
+            # Get a variable that has not been fixed
+            # In ascending index order, for consistent results
             for i, var in enumerate(self._poly_ring.gens()):
                 if not self._solved[i]:
                     break
 
-            #Fix var = 1, substitute, and solve equations
+            # Fix var = 1, substitute, and solve equations
             self.ideal_basis.add(var-1)
             print("adding equation...", var-1)
             self.ideal_basis = set(Ideal(list(self.ideal_basis)).groebner_basis(algorithm=algorithm))
@@ -2244,11 +2244,11 @@ class FMatrix(SageObject):
         for eq in eqns:
             if eq.degree() == 1 and sum(eq.degrees()) <= 2 and eq.lm() not in self._solved:
                 self._fvars[self._var_to_sextuple[eq.lm()]] = -sum(c * m for c, m in zip(eq.coefficients()[1:], eq.monomials()[1:])) / eq.lc()
-                #Add variable to set of known values and remove this equation
+                # Add variable to set of known values and remove this equation
                 new_knowns.add(eq.lm())
                 useless.add(eq)
 
-        #Update fvars depending on other variables
+        # Update fvars depending on other variables
         for idx, fx in enumerate(self._poly_ring.gens()):
             if fx in new_knowns:
                 self._solved[idx] = fx

@@ -28,7 +28,7 @@ cdef mid_sig_ij(fusion_ring, row, col, a, b):
 
         This method assumes F-matrices are orthogonal.
     """
-    #Pre-compute common parameters for efficiency
+    # Pre-compute common parameters for efficiency
     _fvars = fusion_ring.fmats._fvars
     _Nk_ij = fusion_ring.Nk_ij
     one = fusion_ring.one()
@@ -39,7 +39,7 @@ cdef mid_sig_ij(fusion_ring, row, col, a, b):
     cdef list basis = list(fusion_ring.basis())
     for c in basis:
         for d in basis:
-            ##Warning: We assume F-matrices are orthogonal!!! (using transpose for inverse)
+            # #Warning: We assume F-matrices are orthogonal!!! (using transpose for inverse)
             f1 = _fmat(_fvars, _Nk_ij, one, a, a, yi, b, xi, c)
             f2 = _fmat(_fvars, _Nk_ij, one, a, a, a, c, d, yi)
             f3 = _fmat(_fvars, _Nk_ij, one, a, a, a, c, d, yj)
@@ -58,21 +58,21 @@ cdef odd_one_out_ij(fusion_ring, xi, xj, a, b):
 
         This method assumes F-matrices are orthogonal.
     """
-    #Pre-compute common parameters for efficiency
+    # Pre-compute common parameters for efficiency
     _fvars = fusion_ring.fmats._fvars
     _Nk_ij = fusion_ring.Nk_ij
     one = fusion_ring.one()
 
     entry = 0
     for c in fusion_ring.basis():
-        ##Warning: We assume F-matrices are orthogonal!!! (using transpose for inverse)
+        # #Warning: We assume F-matrices are orthogonal!!! (using transpose for inverse)
         f1 = _fmat(_fvars, _Nk_ij, one, a, a, a, b, xi, c)
         f2 = _fmat(_fvars, _Nk_ij, one, a, a, a, b, xj, c)
         r = fusion_ring.r_matrix(a, a, c)
         entry += f1 * r * f2
     return entry
 
-#Cache methods (manually for cdef methods)
+# Cache methods (manually for cdef methods)
 cdef odd_one_out_ij_cache = dict()
 cdef mid_sig_ij_cache = dict()
 
@@ -102,7 +102,7 @@ cdef sig_2k(fusion_ring, tuple args):
     r"""
     Compute entries of the `2k`-th braid generator
     """
-    #Pre-compute common parameters for efficiency
+    # Pre-compute common parameters for efficiency
     _fvars = fusion_ring.fmats._fvars
     _Nk_ij = fusion_ring.Nk_ij
     one = fusion_ring.one()
@@ -112,37 +112,37 @@ cdef sig_2k(fusion_ring, tuple args):
     k, a, b, n_strands = fn_args
     cdef int ctr = -1
     cdef list worker_results = list()
-    #Get computational basis
+    # Get computational basis
     cdef list comp_basis = fusion_ring.get_computational_basis(a, b, n_strands)
     cdef dict basis_dict = {elt: i for i, elt in enumerate(comp_basis)}
     cdef int dim = len(comp_basis)
     cdef set coords = set()
     cdef int i
-    #Avoid pickling cyclotomic field element objects
+    # Avoid pickling cyclotomic field element objects
     cdef bint must_flatten_coeff = fusion_ring.fvars_field() != QQbar
     cdef list basis = list(fusion_ring.basis())
     for i in range(dim):
         for f in basis:
             for e in basis:
                 for q in basis:
-                    #Distribute work amongst processes
+                    # Distribute work amongst processes
                     ctr += 1
                     if ctr % n_proc != child_id:
                         continue
 
-                    #Compute appropriate possible nonzero row index
+                    # Compute appropriate possible nonzero row index
                     nnz_pos = list(comp_basis[i])
                     nnz_pos[k-1] = f
                     nnz_pos[k] = e
-                    #Handle the special case k = 1
+                    # Handle the special case k = 1
                     if k > 1:
                         nnz_pos[n_strands//2+k-2] = q
                     nnz_pos = tuple(nnz_pos)
 
-                    #Skip repeated entries when k = 1
+                    # Skip repeated entries when k = 1
                     if nnz_pos in comp_basis and (basis_dict[nnz_pos], i) not in coords:
                         m, l = comp_basis[i][:n_strands//2], comp_basis[i][n_strands//2:]
-                        #A few special cases
+                        # A few special cases
                         top_left = m[0]
                         if k >= 3:
                             top_left = l[k-3]
@@ -150,11 +150,11 @@ cdef sig_2k(fusion_ring, tuple args):
                         if k - 1 < len(l):
                             root = l[k-1]
 
-                        #Handle the special case k = 1
+                        # Handle the special case k = 1
                         if k == 1:
                             entry = cached_mid_sig_ij(fusion_ring, m[:2], (f, e), a, root)
 
-                            #Avoid pickling cyclotomic field element objects
+                            # Avoid pickling cyclotomic field element objects
                             if must_flatten_coeff:
                                 entry = entry.list()
 
@@ -168,7 +168,7 @@ cdef sig_2k(fusion_ring, tuple args):
                             f2 = _fmat(_fvars, _Nk_ij, one, top_left, f, e, root, q, p)
                             entry += f1 * cached_mid_sig_ij(fusion_ring, (m[k-1], m[k]), (f, e), a, p) * f2
 
-                        #Avoid pickling cyclotomic field element objects
+                        # Avoid pickling cyclotomic field element objects
                         if must_flatten_coeff:
                             entry = entry.list()
 
@@ -182,7 +182,7 @@ cdef odd_one_out(fusion_ring, tuple args):
     Compute entries of the rightmost braid generator, in case we have an
     odd number of strands.
     """
-    #Pre-compute common parameters for efficiency
+    # Pre-compute common parameters for efficiency
     _fvars = fusion_ring.fmats._fvars
     _Nk_ij = fusion_ring.Nk_ij
     one = fusion_ring.one()
@@ -194,27 +194,27 @@ cdef odd_one_out(fusion_ring, tuple args):
     child_id, n_proc, fn_args = args
     a, b, n_strands = fn_args
     cdef int ctr = -1
-    #Get computational basis
+    # Get computational basis
     cdef list comp_basis = fusion_ring.get_computational_basis(a, b, n_strands)
     cdef dict basis_dict = {elt: i for i, elt in enumerate(comp_basis)}
     cdef int dim = len(comp_basis)
 
-    #Avoid pickling cyclotomic field element objects
+    # Avoid pickling cyclotomic field element objects
     cdef bint must_flatten_coeff = fusion_ring.fvars_field() != QQbar
 
     cdef list basis = list(fusion_ring.basis())
     for i in range(dim):
         for f in basis:
             for q in basis:
-                #Distribute work amongst processes
+                # Distribute work amongst processes
                 ctr += 1
                 if ctr % n_proc != child_id:
                     continue
 
-                #Compute appropriate possible nonzero row index
+                # Compute appropriate possible nonzero row index
                 nnz_pos_temp = list(comp_basis[i])
                 nnz_pos_temp[n_strands//2-1] = f
-                #Handle small special case
+                # Handle small special case
                 if n_strands > 3:
                     nnz_pos_temp[-1] = q
                 nnz_pos = tuple(nnz_pos_temp)
@@ -222,11 +222,11 @@ cdef odd_one_out(fusion_ring, tuple args):
                 if nnz_pos in comp_basis:
                     m, l = comp_basis[i][:n_strands//2], comp_basis[i][n_strands//2:]
 
-                    #Handle a couple of small special cases
+                    # Handle a couple of small special cases
                     if n_strands == 3:
                         entry = cached_odd_one_out_ij(fusion_ring, m[-1], f, a, b)
 
-                        #Avoid pickling cyclotomic field element objects
+                        # Avoid pickling cyclotomic field element objects
                         if must_flatten_coeff:
                             entry = entry.list()
 
@@ -237,14 +237,14 @@ cdef odd_one_out(fusion_ring, tuple args):
                         top_left = l[-2]
                     root = b
 
-                    #Compute relevant entry
+                    # Compute relevant entry
                     entry = 0
                     for p in basis:
                         f1 = _fmat(_fvars, _Nk_ij, one, top_left, m[-1], a, root, l[-1], p)
                         f2 = _fmat(_fvars, _Nk_ij, one, top_left, f, a, root, q, p)
                         entry += f1 * cached_odd_one_out_ij(fusion_ring, m[-1], f, a, p) * f2
 
-                    #Avoid pickling cyclotomic field element objects
+                    # Avoid pickling cyclotomic field element objects
                     if must_flatten_coeff:
                         entry = entry.list()
 
@@ -255,9 +255,9 @@ cdef odd_one_out(fusion_ring, tuple args):
 ### Parallel code executor ###
 ##############################
 
-#Hard-coded module __dict__-style attribute with visible cdef methods
+# Hard-coded module __dict__-style attribute with visible cdef methods
 cdef dict mappers = {
-    "sig_2k": sig_2k, 
+    "sig_2k": sig_2k,
     "odd_one_out": odd_one_out
 }
 
@@ -294,9 +294,9 @@ cpdef executor(tuple params):
         True
     """
     (fn_name, fr_id), args = params
-    #Construct a reference to global FMatrix object in this worker's memory
+    # Construct a reference to global FMatrix object in this worker's memory
     fusion_ring_obj = cast(fr_id, py_object).value
-    #Bind module method to FMatrix object in worker process, and call the method
+    # Bind module method to FMatrix object in worker process, and call the method
     return mappers[fn_name](fusion_ring_obj, args)
 
 ######################################
@@ -327,4 +327,3 @@ cpdef _unflatten_entries(fusion_ring, list entries):
     if F != QQbar:
         for i, (coord, entry) in enumerate(entries):
             entries[i] = (coord, F(entry))
-

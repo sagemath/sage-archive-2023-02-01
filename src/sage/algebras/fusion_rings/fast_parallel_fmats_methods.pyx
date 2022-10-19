@@ -10,12 +10,12 @@ Fast F-Matrix methods
 
 cimport cython
 from sage.algebras.fusion_rings.poly_tup_engine cimport (
-    compute_known_powers, 
-    get_variables_degrees, variables, 
-    poly_to_tup, _tup_to_poly, 
-    subs, subs_squares, reduce_poly_dict, resize, 
-    _flatten_coeffs, _unflatten_coeffs, 
-    has_appropriate_linear_term, 
+    compute_known_powers,
+    get_variables_degrees, variables,
+    poly_to_tup, _tup_to_poly,
+    subs, subs_squares, reduce_poly_dict, resize,
+    _flatten_coeffs, _unflatten_coeffs,
+    has_appropriate_linear_term,
     resize
 )
 from sage.algebras.fusion_rings.shm_managers cimport KSHandler, FvarsHandler
@@ -81,14 +81,14 @@ cpdef _solve_for_linear_terms(factory, list eqns=None):
                 factory._solved[vars[0]] = True
                 linear_terms_exist = True
 
-                #TESTS:
+                # TESTS:
                 # s = factory._idx_to_sextuple[vars[0]]
                 # factory.test_fvars[s] = tuple()
                 # assert factory.test_fvars[s] == fvars[s], "OG value {}, Shared: {}".format(fvars[s], factory.test_fvars[s])
         if len(eq_tup) == 2:
             idx = has_appropriate_linear_term(eq_tup)
             if idx < 0: continue
-            #The chosen term is guaranteed to be univariate in the largest variable
+            # The chosen term is guaranteed to be univariate in the largest variable
             exp = eq_tup[idx][0]
             max_var = exp._data[0]
             if not factory._solved[max_var]:
@@ -100,7 +100,7 @@ cpdef _solve_for_linear_terms(factory, list eqns=None):
                 factory._solved[max_var] = True
                 linear_terms_exist = True
 
-                #TESTS:
+                # TESTS:
                 # s = factory._idx_to_sextuple[max_var]
                 # factory.test_fvars[s] = ((rhs_exp, rhs_coeff), )
                 # assert _unflatten_coeffs(factory._field, factory.test_fvars[s]) == fvars[s], "OG value {}, Shared: {}".format(factory.test_fvars[s], fvars[s])
@@ -175,7 +175,7 @@ cdef _fmat(fvars, _Nk_ij, id_anyon, a, b, c, d, x, y):
       """
       if _Nk_ij(a, b, x) == 0 or _Nk_ij(x, c, d) == 0 or _Nk_ij(b, c, y) == 0 or _Nk_ij(a, y, d) == 0:
           return 0
-      #Some known F-symbols
+      # Some known F-symbols
       if a == id_anyon:
           if x == b and y == d:
               return 1
@@ -201,19 +201,19 @@ cdef _fmat(fvars, _Nk_ij, id_anyon, a, b, c, d, x, y):
 # cdef dict _Nk_ij = dict()
 
 # cpdef _Nk_ij(factory, proc):
-#     cdef int coeff
-#     for a, b, c in product(factory._FR.basis(), repeat=3):
-#         try:
-#             coeff = (a*b).monomial_coefficients(copy=False)[c.weight()]
-#         except:
-#             coeff = 0
-#         _Nk_ij[a, b, c] = coeff
+# cdef int coeff
+# for a, b, c in product(factory._FR.basis(), repeat=3):
+# try:
+# coeff = (a*b).monomial_coefficients(copy=False)[c.weight()]
+# except:
+# coeff = 0
+# _Nk_ij[a, b, c] = coeff
 
 # cpdef int _Nk_ij(a, b, c):
-#     try:
-#         return (a*b).monomial_coefficients(copy=False)[c.weight()]
-#     except KeyError:
-#         return 0
+# try:
+# return (a*b).monomial_coefficients(copy=False)[c.weight()]
+# except KeyError:
+# return 0
 #
 # _Nk_ij = cached_function(_Nk_ij, name='_Nk_ij')
 
@@ -227,8 +227,8 @@ cdef req_cy(tuple basis, r_matrix, dict fvars, Nk_ij, id_anyon, tuple sextuple):
     as a polynomial object.
     """
     a, b, c, d, e, g = sextuple
-    #To add typing we need to ensure all fmats.fmat are of the same type?
-    #Return fmats._poly_ring.zero() and fmats._poly_ring.one() instead of 0 and 1?
+    # To add typing we need to ensure all fmats.fmat are of the same type?
+    # Return fmats._poly_ring.zero() and fmats._poly_ring.one() instead of 0 and 1?
     lhs = r_matrix(a, c, e, base_coercion=False) * _fmat(fvars, Nk_ij, id_anyon, a, c, b, d, e, g) * r_matrix(b, c, g, base_coercion=False)
     rhs = 0
     for f in basis:
@@ -242,21 +242,21 @@ cdef get_reduced_hexagons(factory, tuple mp_params):
     """
     Set up and reduce the hexagon equations corresponding to this worker.
     """
-    #Set up multiprocessing parameters
+    # Set up multiprocessing parameters
     cdef list worker_results = list()
     cdef int child_id, n_proc
     cdef unsigned long i
     child_id, n_proc, output = mp_params
     cdef tuple sextuple, red
 
-    #Pre-compute common parameters for speed
+    # Pre-compute common parameters for speed
     cdef tuple basis = tuple(factory._FR.basis())
     cdef dict fvars
     cdef bint must_zip_up = False
     if not output:
         fvars = {s: factory._poly_ring.gen(i) for i, s in factory._idx_to_sextuple.items()}
     else:
-        #Handle both cyclotomic and orthogonal solution method
+        # Handle both cyclotomic and orthogonal solution method
         for k, v in factory._fvars.items():
             must_zip_up = isinstance(v, tuple)
             break
@@ -272,7 +272,7 @@ cdef get_reduced_hexagons(factory, tuple mp_params):
     cdef ETuple _nnz = factory._nnz
     _ks = factory._ks
 
-    #Computation loop
+    # Computation loop
     it = product(basis, repeat=6)
     for i in range(len(basis)**6):
         sextuple = next(it)
@@ -281,7 +281,7 @@ cdef get_reduced_hexagons(factory, tuple mp_params):
             if he:
                 red = reduce_poly_dict(he.dict(), _nnz, _ks, one)
 
-                #Avoid pickling cyclotomic coefficients
+                # Avoid pickling cyclotomic coefficients
                 red = _flatten_coeffs(red)
 
                 worker_results.append(red)
@@ -309,7 +309,7 @@ cdef get_reduced_pentagons(factory, tuple mp_params):
     r"""
     Set up and reduce the pentagon equations corresponding to this worker.
     """
-    #Set up multiprocessing parameters
+    # Set up multiprocessing parameters
     cdef list worker_results = list()
     cdef int child_id, n_proc
     child_id, n_proc, output = mp_params
@@ -317,9 +317,9 @@ cdef get_reduced_pentagons(factory, tuple mp_params):
     cdef tuple nonuple, red
     cdef MPolynomial_libsingular pe
 
-    #Pre-compute common parameters for speed
+    # Pre-compute common parameters for speed
     cdef tuple basis = tuple(factory._FR.basis())
-    #Handle both cyclotomic and orthogonal solution method
+    # Handle both cyclotomic and orthogonal solution method
     cdef bint must_zip_up
     for k, v in factory._fvars.items():
         must_zip_up = isinstance(v, tuple)
@@ -338,7 +338,7 @@ cdef get_reduced_pentagons(factory, tuple mp_params):
     factory._nnz = factory._get_known_nonz()
     cdef ETuple _nnz = factory._nnz
 
-    #Computation loop
+    # Computation loop
     it = product(basis, repeat=9)
     for i in range(len(basis)**9):
         nonuple = next(it)
@@ -347,7 +347,7 @@ cdef get_reduced_pentagons(factory, tuple mp_params):
             if pe:
                 red = reduce_poly_dict(pe.dict(), _nnz, _ks, one)
 
-                #Avoid pickling cyclotomic coefficients
+                # Avoid pickling cyclotomic coefficients
                 red = _flatten_coeffs(red)
 
                 worker_results.append(red)
@@ -361,11 +361,11 @@ cdef list update_reduce(factory, list eqns):
     cdef tuple eq_tup, red, unflat
     cdef dict eq_dict
 
-    #Pre-compute common parameters for speed
+    # Pre-compute common parameters for speed
     _field = factory._field
     one = _field.one()
     cdef KSHandler _ks = factory._ks
-    #Update reduction params
+    # Update reduction params
     factory._nnz = factory._get_known_nonz()
     factory._kp = compute_known_powers(factory._var_degs, factory._get_known_vals(), factory._field.one())
     cdef dict _kp = factory._kp
@@ -373,13 +373,13 @@ cdef list update_reduce(factory, list eqns):
 
     for i in range(len(eqns)):
         eq_tup = eqns[i]
-        #Construct cyclotomic field elts from list repn
+        # Construct cyclotomic field elts from list repn
         unflat = _unflatten_coeffs(_field, eq_tup)
 
         eq_dict = subs(unflat, _kp, one)
         red = reduce_poly_dict(eq_dict, _nnz, _ks, one)
 
-        #Avoid pickling cyclotomic coefficients
+        # Avoid pickling cyclotomic coefficients
         red = _flatten_coeffs(red)
 
         res.append(red)
@@ -392,7 +392,7 @@ cdef list compute_gb(factory, tuple args):
     cdef list res = list()
     cdef list eqns, sorted_vars
     eqns, term_order = args
-    #Define smaller poly ring in component vars
+    # Define smaller poly ring in component vars
     sorted_vars = []
     cdef tuple eq_tup
     cdef int fx
@@ -402,7 +402,7 @@ cdef list compute_gb(factory, tuple args):
     sorted_vars = sorted(set(sorted_vars))
     cdef MPolynomialRing_libsingular R = PolynomialRing(factory._FR.field(), len(sorted_vars), 'a', order=term_order)
 
-    #Zip tuples into R and compute Groebner basis
+    # Zip tuples into R and compute Groebner basis
     cdef idx_map = { old : new for new, old in enumerate(sorted_vars) }
     nvars = len(sorted_vars)
     F = factory.field()
@@ -412,14 +412,14 @@ cdef list compute_gb(factory, tuple args):
         polys.append(_tup_to_poly(resize(eq_tup, idx_map, nvars), parent=R))
     gb = Ideal(sorted(polys)).groebner_basis(algorithm="libsingular:slimgb")
 
-    #Change back to fmats poly ring and append to temp_eqns
+    # Change back to fmats poly ring and append to temp_eqns
     cdef dict inv_idx_map = { v : k for k, v in idx_map.items() }
     cdef tuple t
     nvars = factory._poly_ring.ngens()
     for p in gb:
         t = resize(poly_to_tup(p), inv_idx_map, nvars)
 
-        #Avoid pickling cyclotomic coefficients
+        # Avoid pickling cyclotomic coefficients
         t = _flatten_coeffs(t)
 
         res.append(t)
@@ -437,7 +437,7 @@ cdef inline list collect_eqns(list eqns):
     This method is only useful when called after :meth:`executor`, whose
     function argument appends output to the ``worker_results`` list.
     """
-    #Discard the zero polynomial
+    # Discard the zero polynomial
     reduced = set(eqns) - set([tuple()])
     return list(reduced)
 
@@ -445,12 +445,12 @@ cdef inline list collect_eqns(list eqns):
 ### Parallel code executor ###
 ##############################
 
-#Hard-coded module __dict__-style attribute with visible cdef methods
+# Hard-coded module __dict__-style attribute with visible cdef methods
 cdef dict mappers = {
-    "get_reduced_hexagons": get_reduced_hexagons, 
-    "get_reduced_pentagons": get_reduced_pentagons, 
-    "update_reduce": update_reduce, 
-    "compute_gb": compute_gb, 
+    "get_reduced_hexagons": get_reduced_hexagons,
+    "get_reduced_pentagons": get_reduced_pentagons,
+    "update_reduce": update_reduce,
+    "compute_gb": compute_gb,
     "pent_verify": pent_verify
     }
 
@@ -492,9 +492,9 @@ cpdef executor(tuple params):
         True
     """
     (fn_name, fmats_id), args = params
-    #Construct a reference to global FMatrix object in this worker's memory
+    # Construct a reference to global FMatrix object in this worker's memory
     fmats_obj = cast(fmats_id, py_object).value
-    #Bind module method to FMatrix object in worker process, and call the method
+    # Bind module method to FMatrix object in worker process, and call the method
     return mappers[fn_name](fmats_obj, args)
 
 ####################
@@ -521,7 +521,7 @@ cdef feq_verif(factory, worker_results, fvars, Nk_ij, id_anyon, tuple nonuple, f
 @cython.cdivision(True)
 cdef pent_verify(factory, tuple mp_params):
     r"""
-    Generate all the pentagon equations assigned to this process, 
+    Generate all the pentagon equations assigned to this process,
     and reduce them.
     """
     child_id, n_proc, verbose = mp_params
@@ -530,7 +530,7 @@ cdef pent_verify(factory, tuple mp_params):
     cdef unsigned long long i
     cdef list worker_results = list()
 
-    #Pre-compute common parameters for speed
+    # Pre-compute common parameters for speed
     Nk_ij = factory._FR.Nk_ij
     cdef dict fvars = factory._fvars
     id_anyon = factory._FR.one()
@@ -539,4 +539,3 @@ cdef pent_verify(factory, tuple mp_params):
             feq_verif(factory, worker_results, fvars, Nk_ij, id_anyon, nonuple)
         if i % 50000000 == 0 and i and verbose:
             print("{:5d}m equations checked... {} potential misses so far...".format(i // 1000000, len(worker_results)))
-

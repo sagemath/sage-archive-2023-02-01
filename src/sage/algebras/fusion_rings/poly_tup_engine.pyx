@@ -222,7 +222,7 @@ cdef inline ETuple degrees(tuple poly_tup):
     r"""
     Return the maximal degree of each variable in the polynomial.
     """
-    #Deal with the empty tuple, representing the zero polynomial
+    # Deal with the empty tuple, representing the zero polynomial
     if not poly_tup:
         return ETuple()
     cdef ETuple max_degs, exp
@@ -329,7 +329,7 @@ cdef inline bint tup_fixes_sq(tuple eq_tup):
     """
     if len(eq_tup) != 2:
         return False
-    #To access _attributes, we must cdef ETuple
+    # To access _attributes, we must cdef ETuple
     cdef ETuple lm = eq_tup[0][0]
     if lm._nonzero != 1 or lm._data[1] != 2:
         return False
@@ -367,13 +367,13 @@ cdef dict subs_squares(dict eq_dict, KSHandler known_sq):
         for idx, power in exp.sparse_iter():
             if known_sq.contains(idx):
                 coeff *= pow(known_sq.get(idx), power // 2)
-                #New power is 1 if power is odd
+                # New power is 1 if power is odd
                 if power & True:
                   new_e[idx] = 1
             else:
                 new_e[idx] = power
         exp = ETuple(new_e, len(exp))
-        #If exponent tuple is already present in dictionary, coefficients are added
+        # If exponent tuple is already present in dictionary, coefficients are added
         if exp in subbed:
             subbed[exp] += coeff
         else:
@@ -389,7 +389,7 @@ cdef dict remove_gcf(dict eq_dict, ETuple nonz):
     variables known to be nonzero. The entries of ``nonz`` are assumed to
     be some relatively large number, like 100.
     """
-    #Find common variables, filtered according to known nonzeros
+    # Find common variables, filtered according to known nonzeros
     cdef ETuple common_powers, exp
     cdef NumberFieldElement_absolute c
     common_powers = nonz
@@ -474,7 +474,7 @@ cpdef dict compute_known_powers(max_degs, dict val_dict, one):
     cdef ETuple max_deg = ETuple(list(max_degs))
     max_deg = max_deg.emin(ETuple({idx: 100 for idx in val_dict}, len(max_deg)))
     cdef dict known_powers
-    #Get polynomial unit as tuple to initialize list elements
+    # Get polynomial unit as tuple to initialize list elements
     cdef tuple one_tup = ((max_deg._new(), one), )
     cdef int d, power, var_idx
     known_powers = {var_idx: [one_tup]*(d+1) for var_idx, d in max_deg.sparse_iter()}
@@ -492,7 +492,7 @@ cdef dict subs(tuple poly_tup, dict known_powers, one):
     cdef int var_idx, power
     cdef tuple temp
     for exp, coeff in poly_tup:
-        #Get polynomial unit as tuple
+        # Get polynomial unit as tuple
         temp = ((exp._new(), one), )
         for var_idx, power in exp.sparse_iter():
             if var_idx in known_powers:
@@ -532,7 +532,7 @@ cdef tuple monom_sortkey(ETuple exp):
     """
     cdef int deg = exp.unweighted_degree()
     # for i in range(exp._nonzero):
-    #     exp._data[2*i+1] = -exp._data[2*i+1]
+    # exp._data[2*i+1] = -exp._data[2*i+1]
     cdef ETuple rev = exp.reversed().emul(-1)
     return (deg, rev)
 
@@ -568,9 +568,9 @@ cpdef tuple poly_tup_sortkey(tuple eq_tup):
     cdef int i, l, nnz
     cdef list key = []
     for exp, c in eq_tup:
-       #Compare by term degree
+       # Compare by term degree
        key.append(exp.unweighted_degree())
-       #Next compare by term w.r.t. lex order
+       # Next compare by term w.r.t. lex order
        for i in range(exp._nonzero):
            # key.append(exp._length-1-exp._data[2*(nnz-i-1)])
            # key.append(-exp._data[2*(nnz-i-1)+1])

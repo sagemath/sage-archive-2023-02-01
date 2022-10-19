@@ -355,30 +355,30 @@ cdef class MPolynomialRing_base(sage.rings.ring.CommutativeRing):
 
         This function can be called in two ways:
 
-           1. multivariate_interpolation(bound, points, values)
+        1. multivariate_interpolation(bound, points, values)
 
-           2. multivariate_interpolation(bound, function)
+        2. multivariate_interpolation(bound, function)
 
         INPUT:
 
-        * "bound" -- either an integer bounding the total degree or a
+        * `bound` -- either an integer bounding the total degree or a
           list/tuple of integers bounding the degree of the variables
 
-        * "points" -- a list/tuple containing the evaluation points
+        * `points` -- list/tuple containing the evaluation points
 
-        * "values" -- a list/tuple containing the desired values at "points"
+        * `values` -- list/tuple containing the desired values at `points`
 
-        * "function" -- a evaluable function in n variables, where n is the
-          number of variables of the polynomial ring
+        * `function` -- evaluable function in n variables, where n is the number
+          of variables of the polynomial ring
 
         OUTPUT:
 
-           1. A polynomial respecting the bounds and having "values" as values
-              when evaluated at "points".
+        1. A polynomial respecting the bounds and having `values` as values
+           when evaluated at `points`.
 
-           2. A polynomial respecting the bounds and having the same values as
-              "function" at exactly so many points so that the polynomial is
-              unique.
+        2. A polynomial respecting the bounds and having the same values as
+           `function` at exactly so many points so that the polynomial is
+           unique.
 
         EXAMPLES::
 
@@ -411,17 +411,17 @@ cdef class MPolynomialRing_base(sage.rings.ring.CommutativeRing):
 
         ALGORITHM:
 
-            Solves a linear system of equations with the linear algebra module.
-            If the points are not specified, it samples exactly as many points
-            as needed for a unique solution.
+        Solves a linear system of equations with the linear algebra module. If
+        the points are not specified, it samples exactly as many points as
+        needed for a unique solution.
 
-        NOTE:
+        .. NOTE::
 
             It will only run if the base ring is a field, even though it might
             work otherwise as well. If your base ring is an integral domain,
             let it run over the fraction field.
 
-        WARNING::
+        .. WARNING::
 
             If you don't provide point/value pairs but just a function, it
             will only use as many points as needed for a unique solution with
@@ -437,7 +437,8 @@ cdef class MPolynomialRing_base(sage.rings.ring.CommutativeRing):
             sage: R.multivariate_interpolation(3,F)
             1/2*x^3 + x*y + z^2 - 1/2*x + y + 25
 
-        SEEALSO:
+        .. SEEALSO::
+        
             :meth:`lagrange_polynomial<sage.rings.polynomial.polynomial_ring.PolynomialRing_field.lagrange_polynomial>`
         """
         # get ring and number of variables

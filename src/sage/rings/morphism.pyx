@@ -2953,7 +2953,7 @@ cdef class FrobeniusEndomorphism_generic(RingHomomorphism):
             sage: phi == psi
             True
         """
-        self._p = _slots['p']
+        self._p = _slots['_domain'].characteristic()
         self._power = _slots['power']
         self._q = self._p ** self._power
         RingHomomorphism._update_slots(self, _slots)
@@ -2978,7 +2978,6 @@ cdef class FrobeniusEndomorphism_generic(RingHomomorphism):
             True
         """
         slots = RingHomomorphism._extra_slots(self)
-        slots['p'] = self._p
         slots['power'] = self._power
         return slots
 

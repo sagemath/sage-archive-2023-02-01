@@ -641,6 +641,13 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
             ...
             ZeroDivisionError: Inverse of 28 does not exist
             (characteristic = 35 = 7*5)
+
+        Checks that :trac:`34681` is fixed::
+
+            sage: P+P
+            (15 : 14 : 1)
+            sage: 2*P
+            (15 : 14 : 1)
         """
         # Use Prop 7.1.7 of Cohen "A Course in Computational Algebraic
         # Number Theory"
@@ -3505,7 +3512,7 @@ class EllipticCurvePoint_finite_field(EllipticCurvePoint_field):
                 vQ = 0
             else:
                 assert len(pariQ) == 2
-                vQ = Sequence(tuple(pariQ) + (1,), E.base_field())
+                vQ = Sequence(tuple(pariQ) + (1,), E.base_ring())
             Q = EllipticCurvePoint_finite_field(E, vQ, check=False)
 
         else:

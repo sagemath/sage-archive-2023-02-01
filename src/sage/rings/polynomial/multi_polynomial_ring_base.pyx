@@ -361,23 +361,23 @@ cdef class MPolynomialRing_base(sage.rings.ring.CommutativeRing):
 
         INPUT:
 
-        * `bound` -- either an integer bounding the total degree or a
+        * ``bound`` -- either an integer bounding the total degree or a
           list/tuple of integers bounding the degree of the variables
 
-        * `points` -- list/tuple containing the evaluation points
+        * ``points`` -- list/tuple containing the evaluation points
 
-        * `values` -- list/tuple containing the desired values at `points`
+        * ``values`` -- list/tuple containing the desired values at ``points``
 
-        * `function` -- evaluable function in n variables, where n is the number
-          of variables of the polynomial ring
+        * ``function`` -- evaluable function in `n` variables, where `n` is the
+          number of variables of the polynomial ring
 
         OUTPUT:
 
-        1. A polynomial respecting the bounds and having `values` as values
-           when evaluated at `points`.
+        1. A polynomial respecting the bounds and having ``values`` as values
+           when evaluated at ``points``.
 
         2. A polynomial respecting the bounds and having the same values as
-           `function` at exactly so many points so that the polynomial is
+           ``function`` at exactly so many points so that the polynomial is
            unique.
 
         EXAMPLES::
@@ -421,6 +421,9 @@ cdef class MPolynomialRing_base(sage.rings.ring.CommutativeRing):
             work otherwise as well. If your base ring is an integral domain,
             let it run over the fraction field.
 
+            Also, if the solution is not unique, it spits out one solution,
+            without any notice that there are more.
+
         .. WARNING::
 
             If you don't provide point/value pairs but just a function, it
@@ -428,7 +431,7 @@ cdef class MPolynomialRing_base(sage.rings.ring.CommutativeRing):
             the given bounds. In particular it will *not* notice or check
             whether the result yields the correct evaluation for other points
             as well. So if you give wrong bounds, you will get a wrong answer
-            without a warning.
+            without any warning.
 
             sage: def F(a,b,c):
             ....:     return a^3*b + b + c^2 + 25
@@ -496,10 +499,6 @@ cdef class MPolynomialRing_base(sage.rings.ring.CommutativeRing):
         except ValueError:
             raise ValueError('Could not find a solution.')
         solution = sum(coeff[i] * self.monomial(*exponents_space[i]) for i in range(len(exponents_space)))
-
-        # warn the user if the solution is not unique
-        if M.left_kernel().dimension() > 0:
-            warnings.warn('The solution is not unique.')
 
         return solution
 

@@ -2941,7 +2941,9 @@ cdef class FrobeniusEndomorphism_generic(RingHomomorphism):
 
     cdef _update_slots(self, dict _slots):
         """
-        Helper for copying and pickling.
+        Update information with the given slots.
+
+        Helper function for copying or pickling.
 
         EXAMPLES::
 
@@ -2951,14 +2953,17 @@ cdef class FrobeniusEndomorphism_generic(RingHomomorphism):
             sage: phi == psi
             True
         """
-        self._p = _slots['prime']
+        self._p = _slots['p']
         self._power = _slots['power']
         self._q = self._p ** self._power
         RingHomomorphism._update_slots(self, _slots)
 
     cdef dict _extra_slots(self):
         """
-        Helper for copying and pickling.
+        Return additional information about this morphism
+        as a dictionary.
+
+        Helper function for copying or pickling.
 
         EXAMPLES::
 
@@ -2973,7 +2978,7 @@ cdef class FrobeniusEndomorphism_generic(RingHomomorphism):
             True
         """
         slots = RingHomomorphism._extra_slots(self)
-        slots['prime'] = self._p
+        slots['p'] = self._p
         slots['power'] = self._power
         return slots
 

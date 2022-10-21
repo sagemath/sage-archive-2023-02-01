@@ -7478,57 +7478,51 @@ def from_cycles(n, cycles, parent=None):
         sage: Permutation("(-12,2)(3,4)")
         Traceback (most recent call last):
         ...
-        ValueError: All elements should be strictly positive integers, and I just found a non-positive one.
+        ValueError: all elements should be strictly positive integers, but I found -12
         sage: Permutation("(1,2)(2,4)")
         Traceback (most recent call last):
         ...
-        ValueError: an element appears twice in the input
+        ValueError: the element 2 appears more than once in the input
         sage: permutation.from_cycles(4, [[1,18]])
         Traceback (most recent call last):
         ...
-        ValueError: You claimed that this was a permutation on 1...4 but it contains 18
+        ValueError: you claimed that this is a permutation on 1...4, but it contains 18
+
+    TESTS:
+
+    Verify that :trac:`34662` has been fixed::
+
+        sage: permutation.from_cycles(6, (c for c in [[1,2,3], [4,5,6]]))
+        [2, 3, 1, 5, 6, 4]
     """
     if parent is None:
         parent = Permutations(n)
 
-    p = list(range(1, n+1))
-
-    # Is it really a permutation on 1...n ?
-    flattened_and_sorted = []
-    for c in cycles:
-        flattened_and_sorted.extend(c)
-    flattened_and_sorted.sort()
-
-    # Empty input
-    if not flattened_and_sorted:
-        return parent(p, check_input=False)
-
-    # Only positive elements
-    if int(flattened_and_sorted[0]) < 1:
-        raise ValueError("All elements should be strictly positive "
-                         "integers, and I just found a non-positive one.")
-
-    # Really smaller or equal to n ?
-    if flattened_and_sorted[-1] > n:
-        raise ValueError("You claimed that this was a permutation on 1..."+
-                         str(n)+" but it contains "+str(flattened_and_sorted[-1]))
-
-    # Disjoint cycles ?
-    previous = flattened_and_sorted[0] - 1
-    for i in flattened_and_sorted:
-        if i == previous:
-            raise ValueError("an element appears twice in the input")
-        else:
-            previous = i
+    # None represents a value of the permutation that has not yet been specified
+    p = n * [None]
 
     for cycle in cycles:
-        if not cycle:
-            continue
-        first = cycle[0]
-        for i in range(len(cycle)-1):
-            p[cycle[i]-1] = cycle[i+1]
-        p[cycle[-1]-1] = first
+        for i in range(len(cycle)):
+            # two consecutive terms in the cycle represent k and p(k)
+            k = cycle[i]
+            pk = cycle[(i + 1) % len(cycle)]
 
+            # check that the values are valid
+            if (int(k) < 1) or (int(pk) < 1):
+                raise ValueError("all elements should be strictly positive "
+                                f"integers, but I found {min(k, pk)}")
+            if (k > n) or (pk > n):
+                raise ValueError("you claimed that this is a permutation on "
+                                f"1...{n}, but it contains {max(k, pk)}")
+            if p[k - 1] is not None:
+                raise ValueError(f"the element {k} appears more than once"
+                                " in the input")
+
+            p[k - 1] = pk
+    # unspecified values are fixed points of the permutation
+    for i in range(n):
+        if p[i] is None:
+            p[i] = i + 1
     return parent(p, check_input=False)
 
 def from_lehmer_code(lehmer, parent=None):

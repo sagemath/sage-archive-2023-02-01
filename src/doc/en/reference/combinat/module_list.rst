@@ -359,6 +359,7 @@ Comprehensive Module List
     sage/combinat/tamari_lattices
     sage/combinat/tiling
     sage/combinat/tools
+    sage/combinat/triangles_FHM
     sage/combinat/tuple
     sage/combinat/tutorial
     sage/combinat/vector_partition

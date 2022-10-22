@@ -143,6 +143,21 @@ class Triangle(SageObject):
         self._poly = poly
         self._n = max(self._poly.degree(v) for v in self._vars)
 
+    def _ascii_art_(self):
+        """
+        Return the ascii-art representation (as a matrix).
+
+        EXAMPLES::
+
+            sage: from sage.combinat.triangles_FHM import H_triangle
+            sage: x, y = polygens(ZZ, 'x,y')
+            sage: ht = H_triangle(1+2*x*y)
+            sage: ascii_art(ht)
+            [0 2]
+            [1 0]
+        """
+        return self.matrix()._ascii_art_()
+
     def _unicode_art_(self):
         """
         Return the unicode representation (as a matrix).
@@ -170,7 +185,24 @@ class Triangle(SageObject):
             sage: ht
             H: 2*x*y + 1
         """
-        return self._prefix + repr(self._poly)
+        return self._prefix + ": " + repr(self._poly)
+
+    def _latex_(self):
+        r"""
+        Return the LaTeX representation (as a matrix).
+
+        EXAMPLES::
+
+            sage: from sage.combinat.triangles_FHM import H_triangle
+            sage: x, y = polygens(ZZ, 'x,y')
+            sage: ht = H_triangle(1+2*x*y)
+            sage: latex(ht)
+            \left(\begin{array}{rr}
+            0 & 2 \\
+            1 & 0
+            \end{array}\right)
+        """
+        return self.matrix()._latex_()
 
     def __eq__(self, other) -> bool:
         """
@@ -266,6 +298,20 @@ class Triangle(SageObject):
         """
         return _matrix_display(self._poly, variables=self._vars)
 
+    def polynomial(self):
+        """
+        Return the triangle as a bare polynomial.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.triangles_FHM import H_triangle
+            sage: x, y = polygens(ZZ, 'x,y')
+            sage: h = H_triangle(1+2*x*y)
+            sage: h.polynomial()
+            2*x*y + 1
+        """
+        return self._poly
+
     def truncate(self, d):
         """
         Return the truncated triangle.
@@ -304,7 +350,7 @@ class M_triangle(Triangle):
         sage: P.M_triangle()
         M: x*y - y + 1
     """
-    _prefix = 'M: '
+    _prefix = 'M'
 
     def dual(self):
         """
@@ -407,7 +453,7 @@ class H_triangle(Triangle):
     """
     Class for the H-triangles.
     """
-    _prefix = 'H: '
+    _prefix = 'H'
 
     def transpose(self):
         """
@@ -544,7 +590,7 @@ class F_triangle(Triangle):
     """
     Class for the F-triangles.
     """
-    _prefix = 'F: '
+    _prefix = 'F'
 
     def h(self):
         """
@@ -641,7 +687,7 @@ class Gamma_triangle(Triangle):
     """
     Class for the Gamma-triangles.
     """
-    _prefix = 'Γ: '
+    _prefix = 'Γ'
 
     def h(self):
         r"""

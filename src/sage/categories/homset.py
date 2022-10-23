@@ -734,7 +734,7 @@ class Homset(Set_generic):
         """
         return hash((self._domain, self._codomain, self.base()))
 
-    def __bool__(self):
+    def __bool__(self) -> bool:
         """
         TESTS::
 

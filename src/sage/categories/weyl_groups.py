@@ -150,7 +150,7 @@ class WeylGroups(Category_singleton):
             if hasattr(ct, "PieriFactors"):
                 return ct.PieriFactors(self, *args, **keywords)
             raise NotImplementedError("Pieri factors for type {}".format(ct))
-        
+
         def bruhat_cone(self, x, y, side='upper', backend='cdd'):
             r"""
             Return the (upper or lower) Bruhat cone associated to the interval ``[x,y]``.

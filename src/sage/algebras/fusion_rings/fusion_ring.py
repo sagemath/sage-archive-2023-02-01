@@ -571,7 +571,7 @@ class FusionRing(WeylCharacterRing):
         computed :func:`NumberField`.
         """
         if self.is_multiplicity_free():
-            return self.fmats.field()
+            return self.get_fmatrix().field()
         else:
             raise ValueError("Method is only available for multiplicity free fusion rings.")
 
@@ -859,14 +859,16 @@ class FusionRing(WeylCharacterRing):
             sage: E62.s_ij(e8, e1).conjugate() == E62.s_ijconj(e8, e1)
             True
             sage: F41 = FusionRing("F4", 1)
-            sage: F41.fmats.find_orthogonal_solution(verbose=False)
+            sage: fmats = F41.get_fmatrix()
+            sage: fmats.find_orthogonal_solution(verbose=False)
             sage: b = F41.basis()
             sage: all(F41.s_ijconj(x, y) == F41._basecoer(F41.s_ij(x, y, base_coercion=False).conjugate()) for x in b for y in b)
             True
             sage: G22 = FusionRing("G2", 2)
-            sage: G22.fmats.find_orthogonal_solution(verbose=False)     # long time (~11 s)
+            sage: fmats = G22.get_fmatrix()
+            sage: fmats.find_orthogonal_solution(verbose=False)         # long time (~11 s)
             sage: b = G22.basis()                                       # long time
-            sage: all(G22.s_ijconj(x, y) == G22.fmats.field()(G22.s_ij(x, y, base_coercion=False).conjugate()) for x in b for y in b)   # long time
+            sage: all(G22.s_ijconj(x, y) == fmats.field()(G22.s_ij(x, y, base_coercion=False).conjugate()) for x in b for y in b)   # long time
             True
         """
         ret = self.s_ij(elt_i, elt_j, base_coercion=False).conjugate()
@@ -1165,8 +1167,7 @@ class FusionRing(WeylCharacterRing):
             comp_basis.extend(tuple([*top, *levels]) for levels in _get_trees(self, top_row, b))
         return comp_basis
 
-    @lazy_attribute
-    def fmats(self):
+    def get_fmatrix(self, *args, **kwargs):
         r"""
         Construct an :class:`FMatrix` factory to solve the pentagon relations
         and organize the resulting F-symbols.
@@ -1176,11 +1177,13 @@ class FusionRing(WeylCharacterRing):
         EXAMPLES::
 
             sage: A15 = FusionRing("A1", 5)
-            sage: A15.fmats
+            sage: A15.get_fmatrix()
             F-Matrix factory for The Fusion Ring of Type A1 and level 5 with Integer Ring coefficients
         """
-        from sage.algebras.fusion_rings.f_matrix import FMatrix
-        return FMatrix(self)
+        if not hasattr(self, 'fmats'):
+            from sage.algebras.fusion_rings.f_matrix import FMatrix
+            self.fmats = FMatrix(self, *args, **kwargs)
+        return self.fmats
 
     def _emap(self, mapper, input_args, worker_pool=None):
         r"""
@@ -1210,12 +1213,14 @@ class FusionRing(WeylCharacterRing):
 
             sage: FR = FusionRing("A1", 4)
             sage: FR.fusion_labels(['idd', 'one', 'two', 'three', 'four'], inject_variables=True)
-            sage: FR.fmats.find_orthogonal_solution(verbose=False)      # long time
+            sage: fmats = FR.get_fmatrix()
+            sage: fmats.find_orthogonal_solution(verbose=False)             # long time
             sage: len(FR._emap('sig_2k', (1, one, one, 5)))                 # long time
             13
             sage: FR = FusionRing("A1", 2)
             sage: FR.fusion_labels("a", inject_variables=True)
-            sage: FR.fmats.find_orthogonal_solution(verbose=False)
+            sage: fmats = FR.get_fmatrix()
+            sage: fmats.find_orthogonal_solution(verbose=False)
             sage: len(FR._emap('odd_one_out', (a1, a1, 7)))
             16
         """
@@ -1318,6 +1323,7 @@ class FusionRing(WeylCharacterRing):
         if n_strands < 3:
             raise ValueError("the number of strands must be an integer at least 3")
         # Construct associated FMatrix object and solve for F-symbols
+        self.get_fmatrix()
         if self.fmats._chkpt_status < 7:
             self.fmats.find_orthogonal_solution(checkpoint=checkpoint,
                                                 save_results=save_results,

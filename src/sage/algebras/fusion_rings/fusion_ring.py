@@ -1180,7 +1180,11 @@ class FusionRing(WeylCharacterRing):
             sage: A15.get_fmatrix()
             F-Matrix factory for The Fusion Ring of Type A1 and level 5 with Integer Ring coefficients
         """
-        if not hasattr(self, 'fmats'):
+        # Initialize fresh FMatrix object. Useful if you need to reset
+        # FMatrix properties and there are various FusionRing objects (unique)
+        # associated to same level and algebra.
+        if not hasattr(self, 'fmats') or kwargs.get('new', False):
+            kwargs.pop('new', None)
             from sage.algebras.fusion_rings.f_matrix import FMatrix
             self.fmats = FMatrix(self, *args, **kwargs)
         return self.fmats

@@ -93,8 +93,8 @@ def hadamard_matrix_paleyI(n, normalize=True):
     r"""
     Implement the Paley type I construction.
 
-    The Paley type I case corresponds to the case `p \cong 3 \mod{4}` for a
-    prime `p` (see [Hora]_).
+    The Paley type I case corresponds to the case `p=n-1 \cong 3 \mod{4}` for a
+    prime power `p` (see [Hora]_).
 
     INPUT:
 
@@ -160,8 +160,8 @@ def hadamard_matrix_paleyII(n):
     r"""
     Implement the Paley type II construction.
 
-    The Paley type II case corresponds to the case `p \cong 1 \mod{4}` for a
-    prime `p` (see [Hora]_).
+    The Paley type II case corresponds to the case `p=n/2-1 \cong 1 \mod{4}` for a
+    prime power `p` (see [Hora]_).
 
     EXAMPLES::
 

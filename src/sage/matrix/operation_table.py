@@ -383,6 +383,7 @@ class OperationTable(SageObject):
 
     - Rob Beezer (2010-03-15)
     """
+
     def __init__(self, S, operation, names='letters', elements=None):
         r"""
         TESTS::
@@ -397,7 +398,7 @@ class OperationTable(SageObject):
         # Note: there exist listable infinite objects (like ZZ)
         if (elements is None):
             if hasattr(S, 'is_finite'):
-                if not(S.is_finite()):
+                if not (S.is_finite()):
                     raise ValueError('%s is infinite' % S)
             try:
                 try:
@@ -411,7 +412,7 @@ class OperationTable(SageObject):
             try:
                 for e in elements:
                     coerced = S(e)
-                    if not(coerced in elems):
+                    if not (coerced in elems):
                         elems.append(coerced)
             except Exception:
                 raise TypeError('unable to coerce %s into %s' % (e, S))
@@ -432,7 +433,7 @@ class OperationTable(SageObject):
         supported = {
             add: (add, '+', '+'),
             mul: (mul, '*', '\\ast')
-            }
+        }
         # default symbols for upper-left-hand-corner of table
         self._ascii_symbol = '.'
         self._latex_symbol = '\\cdot'
@@ -451,7 +452,7 @@ class OperationTable(SageObject):
         # the elements might not be hashable. But if they are it is much
         # faster to lookup in a hash table rather than in a list!
         try:
-            get_row = {e: i for i,e in enumerate(self._elts)}.__getitem__
+            get_row = {e: i for i, e in enumerate(self._elts)}.__getitem__
         except TypeError:
             get_row = self._elts.index
 
@@ -461,7 +462,7 @@ class OperationTable(SageObject):
                 try:
                     result = self._operation(g, h)
                 except Exception:
-                    raise TypeError('elements %s and %s of %s are incompatible with operation: %s' % (g,h,S,self._operation))
+                    raise TypeError('elements %s and %s of %s are incompatible with operation: %s' % (g, h, S, self._operation))
 
                 try:
                     r = get_row(result)
@@ -570,7 +571,7 @@ class OperationTable(SageObject):
                 name_list.append(estr)
         elif isinstance(names, list):
             if len(names) != self._n:
-                raise ValueError('list of element names must be the same size as the set, %s != %s'%(len(names), self._n))
+                raise ValueError('list of element names must be the same size as the set, %s != %s' % (len(names), self._n))
             width = 0
             for name in names:
                 if not isinstance(name, str):
@@ -582,7 +583,7 @@ class OperationTable(SageObject):
             raise ValueError("element names must be a list, or one of the keywords: 'letters', 'digits', 'elements'")
         name_dict = {}
         for i in range(self._n):
-            name_dict[name_list[i]]=self._elts[i]
+            name_dict[name_list[i]] = self._elts[i]
         return width, name_list, name_dict
 
     def __getitem__(self, pair):
@@ -747,7 +748,7 @@ class OperationTable(SageObject):
             ...
             ValueError: ASCII symbol should be a single character, not 5
         """
-        if not isinstance(ascii, str) or not len(ascii)==1:
+        if not isinstance(ascii, str) or not len(ascii) == 1:
             raise ValueError('ASCII symbol should be a single character, not %s' % ascii)
         if not isinstance(latex, str):
             raise ValueError('LaTeX symbol must be a string, not %s' % latex)
@@ -936,21 +937,50 @@ class OperationTable(SageObject):
         R = PolynomialRing(QQ, 'x', self._n)
         MS = MatrixSpace(R, self._n, self._n)
         entries = [R('x'+str(self._table[i][j])) for i in range(self._n) for j in range(self._n)]
-        return MS( entries )
+        return MS(entries)
 
-    #def color_table():
-        #r"""
-        #Returns a graphic image as a square grid where entries are color coded.
-        #"""
-        #pass
-        #return None
+    def color_table(self, element_names=True, cmap=gist_rainbow, **options):
+        r"""
+        Returns a graphic image as a square grid where entries are color coded.
 
-    #def gray_table():
-        #r"""
-        #Returns a graphic image as a square grid where entries are coded as grayscale values.
-        #"""
-        #pass
-        #return None
+        INPUT:
+
+        - ``element_names`` - (default : ``True``) Whether to display text with element names on the image
+
+        - ``cmap`` - (default : ``gist_rainbow``) colour map for plot, see matplotlib.cm
+
+        - ``**options`` - passed on to matrix_plot call
+
+        """
+
+        # Base matrix plot object, without text
+        plot = matrix_plot(Matrix(self._table), cmap=cmap, frame=False, **options)
+
+        if element_names:
+
+            # adapted from ._ascii_table()
+            # prepare widenames[] list for labelling on image
+            n = self._n
+            width = self._width
+
+            widenames = []
+            for name in self._names:
+                widenames.append("{0: >{1}s}".format(name, width))
+
+            # iterate through each element
+            for g in range(n):
+                for h in range(n):
+
+                    # add text to the plot
+                    tPos = (g, h)
+                    tText = widenames[self._table[g][h]]
+                    t = text(tText, tPos, rgbcolor=(0, 0, 0))
+                    plot = plot + t
+
+        return plot
+
+    def gray_table(self, **options):
+        return self.color_table(cmap=Greys, **options)
 
     def _ascii_table(self):
         r"""
@@ -1031,7 +1061,7 @@ class OperationTable(SageObject):
             widenames.append('{0: >{1}s}'.format(name, width))
 
         # Headers
-        table = ['{0: >{1}s} '.format(self._ascii_symbol,width)]
+        table = ['{0: >{1}s} '.format(self._ascii_symbol, width)]
         table += [' '+widenames[i] for i in range(n)]+['\n']
         table += [' ']*width + ['+'] + ['-']*(n*(width+1))+['\n']
 

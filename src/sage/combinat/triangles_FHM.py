@@ -6,6 +6,9 @@ Elements of the classes are polynomials in two variables `x` and `y`,
 possibly with other parameters. The conversion methods amount to specific
 invertible rational change-of-variables involving `x` and `y`.
 
+These polynomial are called triangles because their supports, the sets
+of exponents where their coefficients can be non-zero, have a triangular shape.
+
 The M-triangle class is motivated by the generating series of Möbius numbers
 for graded posets. A typical example is::
 
@@ -697,8 +700,8 @@ class Gamma_triangle(Triangle):
 
         .. MATH::
 
-            H(x,y) = (1+x)^d \sum_{0\leq i; 0\leq j \leq d-2i} gamma_{i,j}
-            (\frac{x}{(1+x)^2})^i (\frac{1+xy}{1+x})^j
+            H(x,y) = (1+x)^d \sum_{0\leq i; 0\leq j \leq d-2i} \gamma_{i,j}
+            \left(\frac{x}{(1+x)^2}\right)^i \left(\frac{1+xy}{1+x}\right)^j
 
         EXAMPLES::
 

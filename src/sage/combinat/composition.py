@@ -1924,6 +1924,18 @@ class Compositions_all(Compositions):
         """
         return Composition([])
 
+    def _an_element_(self):
+        """
+        Return an element of ``self``.
+
+        EXAMPLES::
+
+            sage: C = Compositions()
+            sage: C.an_element()
+            []
+        """
+        return self.zero()
+
     def __iter__(self):
         """
         Iterate over all compositions.

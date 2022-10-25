@@ -1555,7 +1555,7 @@ class Compositions(UniqueRepresentation, Parent):
         ...
         ValueError: setting min_part=0 is not allowed for Compositions
 
-    Preferably consider using ``IntegerVectors`` instead::
+    Instead you must use ``IntegerVectors``::
 
         sage: list(IntegerVectors(2, 3))
         [[2, 0, 0], [1, 1, 0], [1, 0, 1], [0, 2, 0], [0, 1, 1], [0, 0, 2]]

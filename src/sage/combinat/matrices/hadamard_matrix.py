@@ -223,6 +223,68 @@ def hadamard_matrix_paleyII(n):
 
     return normalise_hadamard(H)
 
+def hadamard_matrix_williamson_type(a, b, c, d, check=False):
+    """
+    Construction of Williamson type Hadamard matrix.
+
+    Given `n\times n` circulant matrices `A`, `B`, `C`, `D` with 1,-1 entries,
+    and satisfying `AA^\top + BB^\top + CC^\top + DD^\top = 4nI`,
+    one can construct a  Hadamard matrix of order `4n`, cf. [Ha83]_.
+
+    INPUT:
+
+    - ``a`` -- 1,-1 list specifying the 1st row of `A`
+
+    - ``b`` -- 1,-1 list specifying the 1st row of `B`
+
+    - ``d`` -- 1,-1 list specifying the 1st row of `C`
+
+    - ``c`` -- 1,-1 list specifying the 1st row of `D`
+
+    - ``check`` (boolean) -- Whether to check that the input is correct and that the output is an hadamard matrix
+
+    EXAMPLES::
+
+        sage: from sage.combinat.matrices.hadamard_matrix import hadamard_matrix_williamson_type
+        sage: a = [ 1,  1, 1]
+        sage: b = [ 1, -1, -1]
+        sage: c = [ 1, -1, -1]
+        sage: d = [ 1, -1, -1]
+        sage: M = hadamard_matrix_williamson_type(a,b,c,d,check=True)
+    
+    sage: from sage.combinat.matrices.hadamard_matrix import hadamard_matrix_williamson_type, is_hadamard_matrix
+        sage: a = [ 1,  1, 1]
+        sage: b = [ 1, -1, -1]
+        sage: c = [ 1, -1, -1]
+        sage: d = [ 1, -1, -1]
+        sage: is_hadamard_matrix(hadamard_matrix_williamson_type(a,b,c,d))
+        True
+        sage: e = [1, 1, 1]
+        sage: hadamard_matrix_williamson_type(a,b,c,e, check=True)
+        Traceback (most recent call last):
+        ...
+        AssertionError
+        sage: f = [1, -1, 1, -1]
+        sage: hadamard_matrix_williamson_type(a,b,c,f, check=True)
+        Traceback (most recent call last):
+        ...
+        AssertionError
+    """
+    A, B, C, D = map(matrix.circulant, [a, b, c, d])
+
+    if check:
+        n = len(a)
+        assert len(a) == len(b) == len(c) == len(d)
+        assert A*A.T+B*B.T+C*C.T+D*D.T==4*n*I(n)
+
+    M = block_matrix([[ A,  B,  C,  D],
+                      [-B,  A, -D,  C],
+                      [-C,  D,  A, -B],
+                      [-D, -C,  B, A]])
+    if check:
+        assert is_hadamard_matrix(M, normalized=False, skew=False)
+    return M
+
 def is_hadamard_matrix(M, normalized=False, skew=False, verbose=False):
     r"""
     Test if `M` is a hadamard matrix.

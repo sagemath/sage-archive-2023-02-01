@@ -359,7 +359,7 @@ def _extract_embedded_signature(docstring, name):
         docstring = L[1] if len(L) > 1 else ''  # Remove first line, keep the rest
         def_string = "def " + name + signature + ": pass"
         try:
-            return docstring, inspect.ArgSpec(*_sage_getargspec_cython(def_string))
+            return docstring, inspect.FullArgSpec(*_sage_getargspec_cython(def_string))
         except SyntaxError:
             docstring = os.linesep.join(L)
     return docstring, None
@@ -1135,8 +1135,9 @@ def _sage_getargspec_from_ast(source):
     vararg = getattr(ast_args.vararg, 'arg', None)
     kwarg = getattr(ast_args.kwarg, 'arg', None)
 
-    return inspect.ArgSpec(args, vararg, kwarg,
-                           tuple(defaults) if defaults else None)
+    return inspect.FullArgSpec(args, vararg, kwarg,
+                               tuple(defaults) if defaults else None,
+                               kwonlyargs=[], kwonlydefaults={}, annotations={})
 
 
 def _sage_getargspec_cython(source):
@@ -1152,7 +1153,7 @@ def _sage_getargspec_cython(source):
 
     OUTPUT:
 
-    - an instance of :obj:`inspect.ArgSpec`, i.e., a named tuple
+    - an instance of :class:`inspect.FullArgSpec`, i.e., a named tuple
 
     EXAMPLES::
 
@@ -1662,11 +1663,11 @@ def sage_getargspec(obj):
         return sage_getargspec(obj.__call__)
     if isinstance(obj, (lazy_attribute, AbstractMethod)):
         source = sage_getsource(obj)
-        return inspect.ArgSpec(*_sage_getargspec_cython(source))
+        return inspect.FullArgSpec(*_sage_getargspec_cython(source))
     if not callable(obj):
         raise TypeError("obj is not a code object")
     try:
-        return inspect.ArgSpec(*obj._sage_argspec_())
+        return inspect.FullArgSpec(*obj._sage_argspec_())
     except (AttributeError, TypeError):
         pass
     # If we are lucky, the function signature is embedded in the docstring.
@@ -1682,7 +1683,7 @@ def sage_getargspec(obj):
         # Note that this may give a wrong result for the constants!
         try:
             args, varargs, varkw = inspect.getargs(obj.__code__)
-            return inspect.ArgSpec(args, varargs, varkw, obj.__defaults__)
+            return inspect.FullArgSpec(args, varargs, varkw, obj.__defaults__)
         except (TypeError, AttributeError):
             pass
     if isclassinstance(obj):
@@ -1717,7 +1718,7 @@ def sage_getargspec(obj):
         except TypeError: # happens for Python builtins
             source = ''
         if source:
-            return inspect.ArgSpec(*_sage_getargspec_cython(source))
+            return inspect.FullArgSpec(*_sage_getargspec_cython(source))
         else:
             func_obj = obj
 
@@ -1730,7 +1731,7 @@ def sage_getargspec(obj):
         except TypeError: # arg is not a code object
             # The above "hopefully" was wishful thinking:
             try:
-                return inspect.ArgSpec(*_sage_getargspec_cython(sage_getsource(obj)))
+                return inspect.FullArgSpec(*_sage_getargspec_cython(sage_getsource(obj)))
             except TypeError: # This happens for Python builtins
                 # The best we can do is to return a generic argspec
                 args = []
@@ -1740,7 +1741,8 @@ def sage_getargspec(obj):
         defaults = func_obj.__defaults__
     except AttributeError:
         defaults = None
-    return inspect.ArgSpec(args, varargs, varkw, defaults)
+    return inspect.FullArgSpec(args, varargs, varkw, defaults,
+                               kwonlyargs=[], kwonlydefaults={}, annotations={})
 
 
 def formatannotation(annotation, base_module=None):
@@ -1811,7 +1813,7 @@ def sage_formatargspec(args, varargs=None, varkw=None, defaults=None,
     :func:`sage_getargspec`. Since :func:`sage_getargspec` works for
     Cython functions while Python's inspect module does not, it makes
     sense to keep this function for formatting instances of
-    ``inspect.ArgSpec``.
+    ``inspect.FullArgSpec``.
 
     EXAMPLES::
 

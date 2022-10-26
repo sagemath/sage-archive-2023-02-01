@@ -2818,7 +2818,7 @@ cdef class CachedMethod():
                 except Exception:
                     pass
             if self.nargs == 0:
-                args, varargs, keywords, defaults = sage_getargspec(f)
+                args, varargs, keywords, defaults, kwonlyargs, kwonlydefaults, annotations = sage_getargspec(f)
                 if varargs is None and keywords is None and len(args)<=1:
                     self.nargs = 1
                 else:
@@ -2954,7 +2954,7 @@ cdef class CachedSpecialMethod(CachedMethod):
         # we need to analyse the argspec
         f = self._cachedfunc.f
         if self.nargs == 0:
-            args, varargs, keywords, defaults = sage_getargspec(f)
+            args, varargs, keywords, defaults, kwonlyargs, kwonlydefaults, annotations = sage_getargspec(f)
             if varargs is None and keywords is None and len(args)<=1:
                 self.nargs = 1
                 Caller = CachedMethodCallerNoArgs(inst, f, name=name, do_pickle=self._cachedfunc.do_pickle)

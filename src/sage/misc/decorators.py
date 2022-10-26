@@ -32,7 +32,8 @@ from copy import copy
 
 from sage.misc.sageinspect import (sage_getsource, sage_getsourcelines,
                                    sage_getargspec)
-from inspect import ArgSpec
+
+from inspect import FullArgSpec
 
 
 def sage_wraps(wrapped, assigned=WRAPPER_ASSIGNMENTS, updated=WRAPPER_UPDATES):
@@ -499,7 +500,8 @@ class options():
                     list(self.options))
             defaults = (argspec.defaults or ()) + tuple(self.options.values())
             # Note: argspec.defaults is not always a tuple for some reason
-            return ArgSpec(args, argspec.varargs, argspec.keywords, defaults)
+            return FullArgSpec(args, argspec.varargs, argspec.keywords, defaults,
+                               kwonlyargs=[], kwonlydefaults={}, annotations={})
 
         wrapper._sage_argspec_ = argspec
 

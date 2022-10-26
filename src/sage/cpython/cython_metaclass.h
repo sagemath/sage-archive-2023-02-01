@@ -66,7 +66,7 @@ static CYTHON_INLINE int Sage_PyType_Ready(PyTypeObject* t)
         }
 
         /* Now, set t.__class__ to metaclass */
-        Py_TYPE(t) = metaclass;
+        Py_SET_TYPE(t, metaclass);
         PyType_Modified(t);
     }
     else

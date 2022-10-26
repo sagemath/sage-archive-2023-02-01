@@ -7498,17 +7498,18 @@ def from_cycles(n, cycles, parent=None):
     if parent is None:
         parent = Permutations(n)
 
-    # None represents a value of the permutation that has not yet been specified
+    # None represents a value of the permutation that has not been specified yet
     p = n * [None]
 
     for cycle in cycles:
-        for i in range(len(cycle)):
+        cycle_length = len(cycle)
+        for i in range(cycle_length):
             # two consecutive terms in the cycle represent k and p(k)
-            k = cycle[i]
-            pk = cycle[(i + 1) % len(cycle)]
+            k = ZZ(cycle[i])
+            pk = ZZ(cycle[(i + 1) % cycle_length])
 
             # check that the values are valid
-            if (int(k) < 1) or (int(pk) < 1):
+            if (k < 1) or (pk < 1):
                 raise ValueError("all elements should be strictly positive "
                                 f"integers, but I found {min(k, pk)}")
             if (k > n) or (pk > n):
@@ -7519,10 +7520,10 @@ def from_cycles(n, cycles, parent=None):
                                 " in the input")
 
             p[k - 1] = pk
-    # unspecified values are fixed points of the permutation
+    # values that are not in any cycle are fixed points of the permutation
     for i in range(n):
         if p[i] is None:
-            p[i] = i + 1
+            p[i] = ZZ(i + 1)
     return parent(p, check_input=False)
 
 def from_lehmer_code(lehmer, parent=None):

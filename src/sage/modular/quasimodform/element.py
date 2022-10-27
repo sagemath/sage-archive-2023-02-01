@@ -368,12 +368,13 @@ class QuasiModularFormsElement(ModuleElement):
             E2*E6 + 2*E4^2 + E2 + 1/2
         """
         P = self.parent().polynomial_ring(names)
-        P_gens = P.gens()[1:]
-        E2 = P_gens[0]
+        poly_gens = P.gens()
+        E2 = poly_gens[0]
+        poly_gens = poly_gens[1:]
         modform_poly_gens = self.parent().modular_forms_subring().polynomial_ring(names='x').gens()
         subs_dictionnary = {}
         for idx, g in enumerate(modform_poly_gens):
-            subs_dictionnary[g] = P_gens[idx]
+            subs_dictionnary[g] = poly_gens[idx]
         return sum(f.to_polynomial().subs(subs_dictionnary) * E2 ** exp for exp, f in enumerate(self._polynomial.coefficients(sparse=False)))
 
     to_polynomial = polynomial # alias

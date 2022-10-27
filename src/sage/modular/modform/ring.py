@@ -511,6 +511,10 @@ class ModularFormsRing(Parent):
             Traceback (most recent call last):
             ...
             NotImplementedError: conversion from q-expansion not yet implemented
+            sage: M = ModularFormsRing(Gamma0(2))
+            sage: E4 = ModularForms(1, 4).0
+            sage: M(E4)[4].parent()
+            Modular Forms space of dimension 2 for Congruence Subgroup Gamma0(2) of weight 4 over Rational Field
         """
         if isinstance(forms_datum, (dict, list)):
             forms_dictionary = forms_datum
@@ -518,7 +522,8 @@ class ModularFormsRing(Parent):
             forms_dictionary = forms_datum._forms_dictionary
         elif is_ModularFormElement(forms_datum):
             if self.group().is_subgroup(forms_datum.group()) and self.base_ring().has_coerce_map_from(forms_datum.base_ring()):
-                forms_dictionary = {forms_datum.weight():forms_datum}
+                M = ModularForms(self.group(), forms_datum.weight(), self.base_ring())
+                forms_dictionary = {forms_datum.weight() : M(forms_datum)}
             else:
                 raise ValueError('the group (%s) and/or the base ring (%s) of the given modular form is not consistant with the base space: %s'%(forms_datum.group(), forms_datum.base_ring(), self))
         elif forms_datum in self.base_ring():

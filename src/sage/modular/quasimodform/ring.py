@@ -526,18 +526,18 @@ class QuasiModularForms(Parent, UniqueRepresentation):
         """
         return self.__polynomial_subring.gen()
 
-    def polynomial_ring(self, names='E2, E4, E6'):
+    def polynomial_ring(self, names='g0'):
         r"""
         Return a multivariate polynomial ring isomorphic to the given graded
         quasimodular forms ring.
 
         In the case of the full modular group, this
-        ring is `R[E_2, E_4, E_6]` where `E_2`, `E_4` and `E_6` have degrees 2,
+        ring is `R[g_0, g_1, g_2]` where `g_0`, `g_4` and `g_6` have degrees 2,
         4 and 6 respectively.
 
         INPUT:
 
-        - ``names`` (str, default: ``'E2, E4, E6'``) -- a list or tuple of names
+        - ``names`` (str, default: ``'g'``) -- a list or tuple of names
           (strings), or a comma separated string. Correspond to the names of the
           variables.
 
@@ -560,19 +560,22 @@ class QuasiModularForms(Parent, UniqueRepresentation):
             ...
             ValueError: the number of variables (4) of the given polynomial cannot exceed the number of generators (3) of the quasimodular forms ring
         """
-        return PolynomialRing(self.base_ring(), 3, names, order=TermOrder('wdeglex', [ZZ(2), ZZ(4), ZZ(6)]))
+        weights = [2]
+        for f in self.__modular_forms_subring.gen_forms():
+            weights.append(f.weight())
+        return PolynomialRing(self.base_ring(), len(weights), names, order=TermOrder('wdeglex', weights))
 
     def from_polynomial(self, polynomial):
         r"""
-        Convert the given polynomial `P(X, Y, Z)` to the graded quasiform
-        `P(E_2, E_4, E_6)` where `E_2`, `E_4` and `E_6` are the generators given
+        Convert the given polynomial `P(x,\ldots, y)` to the graded quasiform
+        `P(g_0, \ldots, g_n)` where the `g_i` are the generators given
         by :meth:`~sage.modular.quasimodform.ring.QuasiModularForms.gens`.
 
         INPUT:
 
-        - ``plynomial`` -- A multivariate polynomial
+        - ``polynomial`` -- A multivariate polynomial
 
-        OUTPUT: the graded quasimodular forms `P(E_2, E_4, E_6)`
+        OUTPUT: the graded quasimodular forms `P(g_0, \ldots, g_n)`
 
         EXAMPLES::
 

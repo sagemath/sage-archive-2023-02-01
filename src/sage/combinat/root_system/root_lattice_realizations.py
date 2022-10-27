@@ -3848,7 +3848,7 @@ class RootLatticeRealizations(Category_over_base_ring):
                True
             """
             alphacheck = self.parent().simple_coroots()
-            from sage.rings.semirings.all import NN
+            from sage.rings.semirings.non_negative_integer_semiring import NN
             return all(self.inner_product(alphacheck[i]) in NN
                        for i in self.parent().index_set())
 

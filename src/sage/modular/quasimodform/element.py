@@ -344,7 +344,6 @@ class QuasiModularFormsElement(ModuleElement):
         """
         return self._polynomial.degree() <= 0 and self._polynomial[0].is_modular_form()
 
-    #def polynomial(self, names='E2, E4, E6'):
     def polynomial(self, names='g'):
         r"""
         Return a multivariate polynomial `P(g_0,..., g_n)` where `g_i`

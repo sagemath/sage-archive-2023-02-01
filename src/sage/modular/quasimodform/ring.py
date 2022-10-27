@@ -81,7 +81,7 @@ One may also create rings of quasimodular forms for certain congruence subgroups
     sage: QM.ngens()
     4
 
-The first generators is the weight 2 Eisenstein series::
+The first generator is the weight 2 Eisenstein series::
 
     sage: E2 = QM.0; E2
     1 - 24*q - 72*q^2 - 96*q^3 - 168*q^4 - 144*q^5 + O(q^6)

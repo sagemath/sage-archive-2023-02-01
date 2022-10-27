@@ -292,7 +292,7 @@ class TateAlgebraIdeal(Ideal_generic):
 
             All ideals are saturated when `\pi` is invertible.
 
-        EXAMPLES::
+        EXAMPLES:
 
         Over classical Tate algebras (where `\pi` is invertible), this
         method always returns ``True``::
@@ -350,7 +350,7 @@ class TateAlgebraIdeal(Ideal_generic):
 
             When `\pi` is invertible in `A`, all ideals are saturated.
 
-        EXAMPLES::
+        EXAMPLES:
 
         Over classical Tate algebras (where `\pi` is invertible), this
         method always returns the same ideal::

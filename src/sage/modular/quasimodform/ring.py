@@ -129,15 +129,15 @@ This works also for congruence subgroup::
     sage: QM.ngens()
     5
     sage: QM.polynomial_ring()
-    Multivariate Polynomial Ring in g0, g1, g2, g3, g4 over Rational Field
+    Multivariate Polynomial Ring in E2, A2, B2, A3, B3 over Rational Field
     sage: (QM.0 + QM.1*QM.0^2 + QM.3 + QM.4^3).polynomial()
     g4^3 + g0^2*g1 + g3 + g0
 
 One can also convert a multivariate polynomial into a quasimodular form::
 
     sage: QM.polynomial_ring().inject_variables()
-    Defining g0, g1, g2, g3, g4
-    sage: QM.from_polynomial(g4^3 + g0^2*g1 + g3 + g0)
+    Defining E2, A2, B2, A3, B3
+    sage: QM.from_polynomial(B3^3 + E2^2*A2 + A3 + E2)
     3 - 72*q + 396*q^2 + 2081*q^3 + 19752*q^4 + 98712*q^5 + O(q^6)
 
 .. NOTE::
@@ -595,36 +595,41 @@ class QuasiModularForms(Parent, UniqueRepresentation):
 
     def polynomial_ring(self, names=None):
         r"""
-        Return a multivariate polynomial ring isomorphic to the given graded
-        quasimodular forms ring.
+        Return a multivariate polynomial ring of which the quasimodular forms
+        ring is a quotient.
 
-        In the case of the full modular group, this
-        ring is `R[g_0, g_1, g_2]` where `g_0`, `g_4` and `g_6` have degrees 2,
-        4 and 6 respectively.
+        In the case of the full modular group, this ring is `R[E_2, E_4, E_6]`
+        where `E_2`, `E_4` and `E_6` have degrees 2, 4 and 6 respectively.
 
         INPUT:
 
-        - ``names`` (str, default: ``'g'``) -- a list or tuple of names
-          (strings), or a comma separated string. Correspond to the names of the
-          variables.
+        - ``names`` (str, default: ``None``) -- a list or tuple of names
+          (strings), or a comma separated string. Defines the names for the
+          generators of the multivariate polynomial ring. The default names are
+          of the form ``ABCk`` where ``k`` is a number corresponding to the
+          weight of the form ``ABC``.
 
         OUTPUT: A multivariate polynomial ring in the variables ``names``
 
         EXAMPLES::
 
             sage: QM = QuasiModularForms(1)
-            sage: P.<E2, E4, E6> = QM.polynomial_ring(); P
+            sage: P = QM.polynomial_ring(); P
             Multivariate Polynomial Ring in E2, E4, E6 over Rational Field
+            sage: P.inject_variables()
+            Defining E2, E4, E6
             sage: E2.degree()
             2
             sage: E4.degree()
             4
             sage: E6.degree()
             6
-            sage: P.<x, y, z, w> = QQ[]
-            sage: QM = QuasiModularForms(Gamma0(13))
+            sage: QM = QuasiModularForms(Gamma1(9))
             sage: QM.polynomial_ring()
-            Multivariate Polynomial Ring in g0, g1, g2, g3, g4, g5, g6, g7 over Rational Field
+            Multivariate Polynomial Ring in E2, A2, B2, C2, D2, F2, G2, H2, A3, B3, C3, D3, F3, G3, H3, AA3, AB3, AC3 over Rational Field
+            sage: QM = QuasiModularForms(Gamma0(6))
+            sage: QM.polynomial_ring(names="F")
+            Multivariate Polynomial Ring in F0, F1, F2, F3 over Rational Field
         """
         weights = [f.weight() for f in self.__modular_forms_subring.gen_forms()]
         if names is None:
@@ -676,18 +681,18 @@ class QuasiModularForms(Parent, UniqueRepresentation):
             sage: QM = QuasiModularForms(Gamma0(2))
             sage: P = QM.polynomial_ring()
             sage: P.inject_variables()
-            Defining g0, g1, g2
-            sage: QM.from_polynomial(g0)
+            Defining E2, A2, A4
+            sage: QM.from_polynomial(E2)
             1 - 24*q - 72*q^2 - 96*q^3 - 168*q^4 - 144*q^5 + O(q^6)
-            sage: QM.from_polynomial(g0 + g2*g1) == QM.0 + QM.2*QM.1
+            sage: QM.from_polynomial(E2 + A4*A2) == QM.0 + QM.2*QM.1
             True
 
         Naturally, the number of variable must not exceed the number of generators::
 
-            sage: P = PolynomialRing(QQ, 'g', 4)
+            sage: P = PolynomialRing(QQ, 'F', 4)
             sage: P.inject_variables()
-            Defining g0, g1, g2, g3
-            sage: QM.from_polynomial(g0 + g1 + g2 + g3)
+            Defining F0, F1, F2, F3
+            sage: QM.from_polynomial(F0 + F1 + F2 + F3)
             Traceback (most recent call last):
             ...
             ValueError: the number of variables (4) of the given polynomial cannot exceed the number of generators (3) of the quasimodular forms ring

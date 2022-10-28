@@ -64,6 +64,23 @@ class QuasiModularFormsElement(ModuleElement):
         sage: M = QM.modular_forms_subring()
         sage: QM(M.0 * E2 + M.1 * E2^2)
         2 - 336*q + 4320*q^2 + 398400*q^3 - 3772992*q^4 - 89283168*q^5 + O(q^6)
+
+    One may convert a quasimodular form into a multivariate polynomial in the
+    generators of the ring by calling
+    :meth:`~sage.modular.quasimodform.element.QuasiModularFormsElement.polynomial`::
+
+        sage: QM = QuasiModularForms(1)
+        sage: F = QM.0^2 + QM.1^2 + QM.0*QM.1*QM.2
+        sage: F.polynomial()
+        E2*E4*E6 + E4^2 + E2^2
+
+    If the group is not the full modular group, the names of the generators will
+    of the form ``ABCk`` where ``k`` is the weight of the form ``ABC``::
+
+        sage: QM = QuasiModularForms(Gamma1(4))
+        sage: F = (QM.0^4)*(QM.1^3) + QM.3
+        sage: F.polynomial()
+        -512*E2^4*B2^3 + E2^4*A3^2 + 48*E2^4*B3^2 + A3
     """
     def __init__(self, parent, polynomial):
         r"""
@@ -364,26 +381,30 @@ class QuasiModularFormsElement(ModuleElement):
         """
         return self._polynomial.degree() <= 0 and self._polynomial[0].is_modular_form()
 
-    def polynomial(self, names='g'):
+    def polynomial(self, names=None):
         r"""
-        Return a multivariate polynomial `P(g_0,\ldots, g_n)` where `g_i`
-        correspond to the `i`-th generator of the ring given by the method:
+        Return a multivariate polynomial such that every variable corresponds to
+        a generator of the ring, ordered by the method:
         :meth:`~sage.modular.quasimodform.ring.QuasiModularForms.gens`.
+
+        An alias of this method is ``to_polynomial``.
 
         INPUT:
 
-        - ``names`` (str, default: ``'g'``) -- a list or tuple of names
-          (strings), or a comma separated string. Correspond to the names of the
-          variables;
+        - ``names`` (str, default: ``None``) -- a list or tuple of names
+          (strings), or a comma separated string. Defines the names for the
+          generators of the multivariate polynomial ring. The default names are
+          of the form ``ABCk`` where ``k`` is a number corresponding to the
+          weight of the form ``ABC``.
 
         OUTPUT: A multivariate polynomial in the variables ``names``
 
         EXAMPLES::
 
             sage: QM = QuasiModularForms(1)
-            sage: (QM.0 + QM.1).polynomial('E2, E4, E6')
+            sage: (QM.0 + QM.1).polynomial()
             E4 + E2
-            sage: (1/2 + QM.0 + 2*QM.1^2 + QM.0*QM.2).polynomial('E2, E4, E6')
+            sage: (1/2 + QM.0 + 2*QM.1^2 + QM.0*QM.2).polynomial()
             E2*E6 + 2*E4^2 + E2 + 1/2
 
         Check that :trac:`34569` is fixed::
@@ -392,7 +413,7 @@ class QuasiModularFormsElement(ModuleElement):
             sage: QM.ngens()
             5
             sage: (QM.0 + QM.1 + QM.2*QM.1 + QM.3*QM.4).polynomial()
-            g3*g4 + g1*g2 + g0 + g1
+            B3*A4 + A2*A3 + E2 + A2
 
         """
         P = self.parent().polynomial_ring(names)

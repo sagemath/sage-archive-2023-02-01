@@ -131,7 +131,7 @@ This works also for congruence subgroup::
     sage: QM.polynomial_ring()
     Multivariate Polynomial Ring in E2, A2, B2, A3, B3 over Rational Field
     sage: (QM.0 + QM.1*QM.0^2 + QM.3 + QM.4^3).polynomial()
-    g4^3 + g0^2*g1 + g3 + g0
+    B3^3 + E2^2*A2 + A3 + E2
 
 One can also convert a multivariate polynomial into a quasimodular form::
 

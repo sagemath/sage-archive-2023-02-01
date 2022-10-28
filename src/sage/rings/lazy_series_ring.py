@@ -1535,6 +1535,14 @@ class LazyLaurentSeriesRing(LazySeriesRing):
             sage: phi[:20] == M.euler()[:20]
             True
 
+        TESTS::
+
+            sage: R = ZZ['q'].fraction_field()
+            sage: q = R.gen()
+            sage: L.<z> = LazyLaurentSeriesRing(LazyDirichletSeriesRing(R, "s"))
+            sage: z.q_pochhammer(q)
+            1 + ((1/(q-1)))*z + ((q/(q^3-q^2-q+1)))*z^2 + ... + O(z^7)
+
         REFERENCES:
 
         - :wikipedia:`Q-Pochhammer_symbol`
@@ -1550,7 +1558,7 @@ class LazyLaurentSeriesRing(LazySeriesRing):
         one = qP.one()
         def coeff(n):
             return (-1)**n * q**binomial(n, 2) / qP.prod(one - q**i for i in range(1, n+1))
-        return self(coeff, valuation=0)
+        return self(coefficients=coeff, valuation=0)
 
     def euler(self):
         r"""
@@ -1578,6 +1586,12 @@ class LazyLaurentSeriesRing(LazySeriesRing):
             sage: P[:20] == [Partitions(n).cardinality() for n in range(20)]
             True
 
+        TESTS::
+
+            sage: L.<q> = LazyLaurentSeriesRing(LazyDirichletSeriesRing(QQ, "s"))
+            sage: q.euler()
+            1 - q - q^2 + q^5 + O(q^7)
+
         REFERENCES:
 
         - :wikipedia:`Euler_function`
@@ -1588,7 +1602,8 @@ class LazyLaurentSeriesRing(LazySeriesRing):
             if rem:
                 return ZZ.zero()
             return (-1) ** ((m + 1) // 6)
-        return self(coeff, valuation=0)
+        return self(coefficients=coeff, valuation=0)
+
 ######################################################################
 
 

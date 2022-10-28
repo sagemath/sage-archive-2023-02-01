@@ -169,9 +169,9 @@ class FreeAlgebraQuotient(UniqueRepresentation, Algebra, object):
             sage: a = H._element_constructor_([1,2,3,4]); a
             1 + 2*i + 3*j + 4*k
         """
-        return self.element_class(self,x)
+        return self.element_class(self, x)
 
-    def _coerce_map_from_(self,S):
+    def _coerce_map_from_(self,S ):
         """
         EXAMPLES::
 
@@ -331,11 +331,13 @@ def hamilton_quatalg(R):
     constructed as a free algebra quotient.
 
     INPUT:
-        - R -- a commutative ring
+
+    - R -- a commutative ring
 
     OUTPUT:
-        - Q -- quaternion algebra
-        - gens -- generators for Q
+
+    - Q -- quaternion algebra
+    - gens -- generators for Q
 
     EXAMPLES::
 

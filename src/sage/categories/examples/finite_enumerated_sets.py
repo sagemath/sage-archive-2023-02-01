@@ -146,6 +146,7 @@ class IsomorphicObjectOfFiniteEnumeratedSet(UniqueRepresentation, Parent):
     def lift(self, x):
         """
         INPUT:
+
          - ``x`` -- an element of ``self``
 
         Lifts ``x`` to the ambient space for ``self``, as per
@@ -164,6 +165,7 @@ class IsomorphicObjectOfFiniteEnumeratedSet(UniqueRepresentation, Parent):
     def retract(self, x):
         """
         INPUT:
+
          - ``x`` -- an element of the ambient space for ``self``
 
         Retracts ``x`` from the ambient space to ``self``, as per

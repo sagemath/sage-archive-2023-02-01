@@ -87,10 +87,11 @@ class DihedralGroup(UniqueRepresentation, Parent):
 
     def __init__(self, n=5):
         r"""
-        INPUT:
-         - ``n`` - an integer with `n>=2`
+        Construct the `n`-th DihedralGroup of order `2 n`
 
-        Construct the n-th DihedralGroup of order 2*n
+        INPUT:
+
+         - `n` -- an integer with `n>=2`
 
         EXAMPLES::
 

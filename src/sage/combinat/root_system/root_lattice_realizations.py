@@ -1789,6 +1789,7 @@ class RootLatticeRealizations(Category_over_base_ring):
             # orbits under the action of a group:
             # def orbits(seeds, operators)
             #     INPUT:
+
             #     - seeds: a list of elements
             #     - operators: a list of functions
             #
@@ -4122,8 +4123,9 @@ class RootLatticeRealizations(Category_over_base_ring):
         def translation(self, x):
             """
             INPUT:
-             - ``self`` - an element `t` at level `0`
-             - ``x`` - an element of the same space
+
+             - ``self`` -- an element `t` at level `0`
+             - ``x`` -- an element of the same space
 
             Returns `x` translated by `t`, that is `x+level(x) t`
 

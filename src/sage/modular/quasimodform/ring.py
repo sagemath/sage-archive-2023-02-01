@@ -165,6 +165,8 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
+from itertools import product, chain
+
 from sage.categories.graded_algebras import GradedAlgebras
 
 from sage.modular.arithgroup.congroup_gamma0 import Gamma0_constructor as Gamma0
@@ -591,7 +593,7 @@ class QuasiModularForms(Parent, UniqueRepresentation):
         """
         return self.__polynomial_subring.gen()
 
-    def polynomial_ring(self, names='g'):
+    def polynomial_ring(self, names=None):
         r"""
         Return a multivariate polynomial ring isomorphic to the given graded
         quasimodular forms ring.
@@ -624,10 +626,26 @@ class QuasiModularForms(Parent, UniqueRepresentation):
             sage: QM.polynomial_ring()
             Multivariate Polynomial Ring in g0, g1, g2, g3, g4, g5, g6, g7 over Rational Field
         """
-        weights = [2]
-        for f in self.__modular_forms_subring.gen_forms():
-            weights.append(f.weight())
-        return PolynomialRing(self.base_ring(), len(weights), names, order=TermOrder('wdeglex', weights))
+        weights = [f.weight() for f in self.__modular_forms_subring.gen_forms()]
+        if names is None:
+            if self.group() == Gamma0(1):
+                names = ["E2", "E4", "E6"]
+            else:
+                names = ["E2"]
+                letters = "ABCDFGH"
+                for unique_weight in set(weights):
+                    same_weights = [k for k in weights if k == unique_weight]
+                    # create all the names of the form:
+                    # A, B, C, D, F, G, H, AA, AB, AC, AD,..., AAA, AAB, AAC,...
+                    # the letter E is reserved for the weight 2 Eisenstein series
+                    iter_names = (product(letters, repeat=r)
+                                  for r in range(1, len(same_weights)//7 + 2))
+                    iter_names = chain(*iter_names)
+                    for k in same_weights:
+                        names.append("".join(next(iter_names)) + str(k))
+        weights.insert(0, 2) # add the weight 2 Eisenstein series
+        return PolynomialRing(self.base_ring(), len(weights), names,
+                              order=TermOrder('wdeglex', weights))
 
     def from_polynomial(self, polynomial):
         r"""

@@ -693,11 +693,11 @@ def discrete_log(a, base, ord=None, bounds=None, operation='*', identity=None, i
 
     OUTPUT:
 
-    Returns an integer `n` such that `b^n = a` (or `nb = a`),
+    This returns an integer `n` such that `b^n = a` (or `nb = a`),
     assuming that ``ord`` is a multiple of the order of the base `b`.
     If ``ord`` is not specified, an attempt is made to compute it.
 
-    If no such `n` exists, this function raises a ValueError exception.
+    If no such `n` exists, this function raises a ``ValueError`` exception.
 
     .. warning::
 

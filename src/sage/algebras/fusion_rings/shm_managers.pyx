@@ -76,7 +76,7 @@ cdef class KSHandler:
 
         sage: from sage.algebras.fusion_rings.shm_managers import KSHandler
         sage: # Create shared data structure
-        sage: f = FusionRing("A1", 2).f_matrix(inject_variables=True)
+        sage: f = FusionRing("A1", 2).get_fmatrix(inject_variables=True, new=True)
         creating variables fx1..fx14
         Defining fx0, fx1, fx2, fx3, fx4, fx5, fx6, fx7, fx8, fx9, fx10, fx11, fx12, fx13
         sage: n = f._poly_ring.ngens()
@@ -104,7 +104,7 @@ cdef class KSHandler:
 
             sage: from sage.algebras.fusion_rings.shm_managers import KSHandler
             sage: # Create shared data structure
-            sage: f = FusionRing("A1", 2).f_matrix(inject_variables=True)
+            sage: f = FusionRing("A1", 2).get_fmatrix(inject_variables=True, new=True)
             creating variables fx1..fx14
             Defining fx0, fx1, fx2, fx3, fx4, fx5, fx6, fx7, fx8, fx9, fx10, fx11, fx12, fx13
             sage: n = f._poly_ring.ngens()
@@ -182,7 +182,7 @@ cdef class KSHandler:
 
         EXAMPLES::
 
-            sage: f = FusionRing("B5", 1).f_matrix()
+            sage: f = FusionRing("B5", 1).get_fmatrix()
             sage: f._reset_solver_state()
             sage: for idx, sq in f._ks.items():
             ....:     k
@@ -281,7 +281,7 @@ cdef class KSHandler:
 
         TESTS::
 
-            sage: f = FusionRing("C2", 2).f_matrix()
+            sage: f = FusionRing("C2", 2).get_fmatrix()
             sage: f._reset_solver_state()
             sage: f.get_orthogonality_constraints(output=False)
             sage: from sage.algebras.fusion_rings.shm_managers import KSHandler
@@ -304,7 +304,7 @@ cdef class KSHandler:
 
         TESTS::
 
-            sage: f = FusionRing("A3", 1).f_matrix()
+            sage: f = FusionRing("A3", 1).get_fmatrix()
             sage: f._reset_solver_state()
             sage: loads(dumps(f._ks)) == f._ks
             True
@@ -321,7 +321,7 @@ cdef class KSHandler:
 
         EXAMPLES::
 
-            sage: f = FusionRing("A3", 1).f_matrix()
+            sage: f = FusionRing("A3", 1).get_fmatrix()
             sage: f._reset_solver_state()
             sage: f.get_orthogonality_constraints(output=False)
             sage: f._ks.update(f.ideal_basis)
@@ -348,7 +348,7 @@ def make_KSHandler(n_slots, field, init_data):
 
     TESTS::
 
-        sage: f = FusionRing("B4", 1).f_matrix()
+        sage: f = FusionRing("B4", 1).get_fmatrix()
         sage: f._reset_solver_state()
         sage: loads(dumps(f._ks)) == f._ks                 # indirect doctest
         True
@@ -433,7 +433,7 @@ cdef class FvarsHandler:
 
         sage: from sage.algebras.fusion_rings.shm_managers import FvarsHandler
         sage: # Create shared data structure
-        sage: f = FusionRing("A2", 1).f_matrix(inject_variables=True)
+        sage: f = FusionRing("A2", 1).get_fmatrix(inject_variables=True, new=True)
         creating variables fx1..fx8
         Defining fx0, fx1, fx2, fx3, fx4, fx5, fx6, fx7
         sage: f.start_worker_pool()
@@ -460,7 +460,7 @@ cdef class FvarsHandler:
 
             sage: from sage.algebras.fusion_rings.shm_managers import FvarsHandler
             sage: # Create shared data structure
-            sage: f = FusionRing("A2", 1).f_matrix(inject_variables=True)
+            sage: f = FusionRing("A2", 1).get_fmatrix(inject_variables=True, new=True)
             creating variables fx1..fx8
             Defining fx0, fx1, fx2, fx3, fx4, fx5, fx6, fx7
             sage: f.start_worker_pool()
@@ -528,7 +528,7 @@ cdef class FvarsHandler:
 
             sage: from sage.algebras.fusion_rings.shm_managers import FvarsHandler
             sage: from sage.algebras.fusion_rings.poly_tup_engine import poly_to_tup
-            sage: f = FusionRing("B7", 1).f_matrix(inject_variables=True)
+            sage: f = FusionRing("B7", 1).get_fmatrix(inject_variables=True, new=True)
             creating variables fx1..fx14
             Defining fx0, fx1, fx2, fx3, fx4, fx5, fx6, fx7, fx8, fx9, fx10, fx11, fx12, fx13
             sage: f.start_worker_pool()
@@ -630,7 +630,7 @@ cdef class FvarsHandler:
 
             sage: from sage.algebras.fusion_rings.shm_managers import FvarsHandler
             sage: from sage.algebras.fusion_rings.poly_tup_engine import poly_to_tup
-            sage: f = FusionRing("A3", 1).f_matrix(inject_variables=True)
+            sage: f = FusionRing("A3", 1).get_fmatrix(inject_variables=True, new=True)
             creating variables fx1..fx27
             Defining fx0, ..., fx26
             sage: f.start_worker_pool()
@@ -711,7 +711,7 @@ cdef class FvarsHandler:
 
         TESTS::
 
-            sage: f = FusionRing("F4", 1).f_matrix()
+            sage: f = FusionRing("F4", 1).get_fmatrix()
             sage: from sage.algebras.fusion_rings.shm_managers import FvarsHandler
             sage: n = f._poly_ring.ngens()
             sage: f.start_worker_pool()
@@ -739,7 +739,7 @@ cdef class FvarsHandler:
 
         EXAMPLES::
 
-            sage: f = FusionRing("G2", 1).f_matrix(inject_variables=True)
+            sage: f = FusionRing("G2", 1).get_fmatrix(inject_variables=True, new=True)
             creating variables fx1..fx5
             Defining fx0, fx1, fx2, fx3, fx4
             sage: from sage.algebras.fusion_rings.shm_managers import FvarsHandler
@@ -759,7 +759,7 @@ def make_FvarsHandler(n, field, idx_map, init_data):
 
     TESTS::
 
-        sage: f = FusionRing("G2", 1).f_matrix()
+        sage: f = FusionRing("G2", 1).get_fmatrix()
         sage: from sage.algebras.fusion_rings.shm_managers import FvarsHandler
         sage: n = f._poly_ring.ngens()
         sage: f.start_worker_pool()

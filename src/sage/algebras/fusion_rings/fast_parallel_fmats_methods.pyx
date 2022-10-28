@@ -39,7 +39,7 @@ cpdef _solve_for_linear_terms(factory, list eqns=None):
 
     EXAMPLES::
 
-        sage: f = FusionRing("D3", 1).f_matrix(inject_variables=True)
+        sage: f = FusionRing("D3", 1).get_fmatrix(inject_variables=True, new=True)
         creating variables fx1..fx27
         Defining fx0, ..., fx26
         sage: f._reset_solver_state()
@@ -113,7 +113,7 @@ cpdef _backward_subs(factory, bint flatten=True):
 
     EXAMPLES::
 
-        sage: f = FusionRing("D3", 1).f_matrix(inject_variables=True)
+        sage: f = FusionRing("D3", 1).get_fmatrix(inject_variables=True, new=True)
         creating variables fx1..fx27
         Defining fx0, ..., fx26
         sage: f._reset_solver_state()
@@ -480,12 +480,12 @@ cpdef executor(tuple params):
     TESTS::
 
         sage: from sage.algebras.fusion_rings.fast_parallel_fmats_methods import executor
-        sage: fmats = FusionRing("A1", 3).f_matrix()
+        sage: fmats = FusionRing("A1", 3).get_fmatrix()
         sage: fmats._reset_solver_state()
         sage: params = (('get_reduced_hexagons', id(fmats)), (0, 1, True))
         sage: len(executor(params)) == 63
         True
-        sage: fmats = FusionRing("E6", 1).f_matrix()
+        sage: fmats = FusionRing("E6", 1).get_fmatrix()
         sage: fmats._reset_solver_state()
         sage: params = (('get_reduced_hexagons', id(fmats)), (0, 1, False))
         sage: len(executor(params)) == 6

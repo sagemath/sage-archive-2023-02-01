@@ -29,7 +29,7 @@ cdef mid_sig_ij(fusion_ring, row, col, a, b):
         This method assumes F-matrices are orthogonal.
     """
     # Pre-compute common parameters for efficiency
-    _fvars = fusion_ring.fmats._fvars
+    _fvars = fusion_ring.get_fmatrix()._fvars
     _Nk_ij = fusion_ring.Nk_ij
     one = fusion_ring.one()
 
@@ -59,7 +59,7 @@ cdef odd_one_out_ij(fusion_ring, xi, xj, a, b):
         This method assumes F-matrices are orthogonal.
     """
     # Pre-compute common parameters for efficiency
-    _fvars = fusion_ring.fmats._fvars
+    _fvars = fusion_ring.get_fmatrix()._fvars
     _Nk_ij = fusion_ring.Nk_ij
     one = fusion_ring.one()
 
@@ -103,7 +103,7 @@ cdef sig_2k(fusion_ring, tuple args):
     Compute entries of the `2k`-th braid generator
     """
     # Pre-compute common parameters for efficiency
-    _fvars = fusion_ring.fmats._fvars
+    _fvars = fusion_ring.get_fmatrix()._fvars
     _Nk_ij = fusion_ring.Nk_ij
     one = fusion_ring.one()
 
@@ -183,7 +183,7 @@ cdef odd_one_out(fusion_ring, tuple args):
     odd number of strands.
     """
     # Pre-compute common parameters for efficiency
-    _fvars = fusion_ring.fmats._fvars
+    _fvars = fusion_ring.get_fmatrix()._fvars
     _Nk_ij = fusion_ring.Nk_ij
     one = fusion_ring.one()
 
@@ -281,14 +281,14 @@ cpdef executor(tuple params):
         sage: from sage.algebras.fusion_rings.fast_parallel_fusion_ring_braid_repn import executor
         sage: FR = FusionRing("A1", 4)
         sage: FR.fusion_labels(['idd', 'one', 'two', 'three', 'four'], inject_variables=True)
-        sage: FR.fmats.find_orthogonal_solution(verbose=False)    # long time
+        sage: FR.get_fmatrix().find_orthogonal_solution(verbose=False)    # long time
         sage: params = (('sig_2k', id(FR)), (0, 1, (1, one, one, 5)))    # long time
         sage: len(executor(params)) == 13                         # long time
         True
         sage: from sage.algebras.fusion_rings.fast_parallel_fusion_ring_braid_repn import executor
         sage: FR = FusionRing("A1", 2)
         sage: FR.fusion_labels("a", inject_variables=True)
-        sage: FR.fmats.find_orthogonal_solution(verbose=False)
+        sage: FR.get_fmatrix().find_orthogonal_solution(verbose=False)
         sage: params = (('odd_one_out', id(FR)), (0, 1, (a2, a2, 5)))
         sage: len(executor(params)) == 1
         True
@@ -323,7 +323,7 @@ cpdef _unflatten_entries(fusion_ring, list entries):
         True
     """
     F = fusion_ring.fvars_field()
-    fm = fusion_ring.fmats
+    fm = fusion_ring.get_fmatrix()
     if F != QQbar:
         for i, (coord, entry) in enumerate(entries):
             entries[i] = (coord, F(entry))

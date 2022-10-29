@@ -224,7 +224,7 @@ def hadamard_matrix_paleyII(n):
     return normalise_hadamard(H)
 
 def hadamard_matrix_williamson_type(a, b, c, d, check=True):
-    """
+    r"""
     Construction of Williamson type Hadamard matrix.
 
     Given `n\times n` circulant matrices `A`, `B`, `C`, `D` with 1,-1 entries,
@@ -285,7 +285,7 @@ def hadamard_matrix_williamson_type(a, b, c, d, check=True):
     return M
 
 def williamson_hadamard_matrix_smallcases(n, existence=False, check=True):
-    """
+    r"""
     Data for construction of Williamson type Hadamard matrices.
 
     This function contains the data needed for the williamson contruction.

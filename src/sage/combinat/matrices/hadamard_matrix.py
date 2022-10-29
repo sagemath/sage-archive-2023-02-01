@@ -223,7 +223,7 @@ def hadamard_matrix_paleyII(n):
 
     return normalise_hadamard(H)
 
-def hadamard_matrix_williamson_type(a, b, c, d, check=False):
+def hadamard_matrix_williamson_type(a, b, c, d, check=True):
     """
     Construction of Williamson type Hadamard matrix.
 
@@ -241,7 +241,7 @@ def hadamard_matrix_williamson_type(a, b, c, d, check=False):
 
     - ``c`` -- 1,-1 list specifying the 1st row of `D`
 
-    - ``check`` (boolean) -- Whether to check that the input is correct and that the output is an hadamard matrix
+    - ``check`` (boolean) -- Whether to check that the output is an hadamard matrix before returning it
 
     EXAMPLES::
 
@@ -272,10 +272,9 @@ def hadamard_matrix_williamson_type(a, b, c, d, check=False):
     """
     A, B, C, D = map(matrix.circulant, [a, b, c, d])
 
-    if check:
-        n = len(a)
-        assert len(a) == len(b) == len(c) == len(d)
-        assert A*A.T+B*B.T+C*C.T+D*D.T==4*n*I(n)
+    n = len(a)
+    assert len(a) == len(b) == len(c) == len(d)
+    assert A*A.T+B*B.T+C*C.T+D*D.T==4*n*I(n)
 
     M = block_matrix([[ A,  B,  C,  D],
                       [-B,  A, -D,  C],

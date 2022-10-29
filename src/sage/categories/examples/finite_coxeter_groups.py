@@ -1,14 +1,13 @@
 r"""
 Examples of finite Coxeter groups
 """
-#*****************************************************************************
+# ****************************************************************************
 #  Copyright (C) 2008 Nicolas M. Thiery <nthiery at users.sf.net>
 #  Copyright (C) 2009 Nicolas Borie <nicolas dot borie at math.u-psud.fr>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#                  http://www.gnu.org/licenses/
-#******************************************************************************
-
+#                  https://www.gnu.org/licenses/
+# *****************************************************************************
 from sage.misc.cachefunc import cached_method
 from sage.structure.parent import Parent
 from sage.structure.element_wrapper import ElementWrapper
@@ -87,11 +86,11 @@ class DihedralGroup(UniqueRepresentation, Parent):
 
     def __init__(self, n=5):
         r"""
-        Construct the `n`-th DihedralGroup of order `2 n`
+        Construct the `n`-th DihedralGroup of order `2 n`.
 
         INPUT:
 
-         - `n` -- an integer with `n>=2`
+        - `n` -- an integer with `n>=2`
 
         EXAMPLES::
 

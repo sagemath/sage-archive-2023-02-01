@@ -147,7 +147,7 @@ class IsomorphicObjectOfFiniteEnumeratedSet(UniqueRepresentation, Parent):
         """
         INPUT:
 
-         - ``x`` -- an element of ``self``
+        - ``x`` -- an element of ``self``
 
         Lifts ``x`` to the ambient space for ``self``, as per
         :meth:`Sets.Subquotients.ParentMethods.lift()
@@ -166,7 +166,7 @@ class IsomorphicObjectOfFiniteEnumeratedSet(UniqueRepresentation, Parent):
         """
         INPUT:
 
-         - ``x`` -- an element of the ambient space for ``self``
+        - ``x`` -- an element of the ambient space for ``self``
 
         Retracts ``x`` from the ambient space to ``self``, as per
         :meth:`Sets.Subquotients.ParentMethods.retract()

@@ -90,7 +90,7 @@ class DihedralGroup(UniqueRepresentation, Parent):
 
         INPUT:
 
-        - `n` -- an integer with `n>=2`
+        - `n` -- an integer with `n \geq 2`
 
         EXAMPLES::
 
@@ -238,12 +238,13 @@ class DihedralGroup(UniqueRepresentation, Parent):
                     return self.parent()(reduced_word[:-1])
                 else:
                     return self.parent()(reduced_word[1:])
-            elif (len(reduced_word) == n-1 and (not self.has_descent(i))) and (reduced_word[0] == 2):
-                return self.parent()((1,)+reduced_word)
+            elif (len(reduced_word) == n - 1 and (not self.has_descent(i))) and (reduced_word[0] == 2):
+                return self.parent()((1,) + reduced_word)
             else:
                 if self.has_descent(i):
                     return self.parent()(reduced_word[:-1])
                 else:
-                    return self.parent()(reduced_word+(i,))
+                    return self.parent()(reduced_word + (i,))
+
 
 Example = DihedralGroup

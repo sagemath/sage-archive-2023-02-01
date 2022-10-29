@@ -285,6 +285,58 @@ def hadamard_matrix_williamson_type(a, b, c, d, check=False):
         assert is_hadamard_matrix(M, normalized=False, skew=False)
     return M
 
+def williamson_hadamard_matrix_smallcases(n, existence=False, check=True):
+    """
+    Data for construction of Williamson type Hadamard matrices.
+
+    This function contains the data needed for the williamson contruction.
+    Namely, it needs 4 circulant matrices with the properties described in
+    :func:`sage.combinat.matrices.hadamard_matrix.hadamard_matrix_williamson_type`.
+    The matrices for n=116 and n=172 are given in [Ha83]_.
+
+    INPUT:
+
+    - ``n`` -- the order of the matrix
+
+    - ``existence`` -- if true, only check that we can do the construction (default false).
+
+    - ``check`` -- if true (default), check the result.
+
+    TESTS::
+
+        sage: from sage.combinat.matrices.hadamard_matrix import williamson_hadamard_matrix_smallcases
+        sage: williamson_hadamard_matrix_smallcases(116)
+        116 x 116 dense matrix over Integer Ring...
+        sage: williamson_hadamard_matrix_smallcases(172)
+        172 x 172 dense matrix over Integer Ring...
+        sage: williamson_hadamard_matrix_smallcases(100)
+        Traceback (most recent call last):
+        ...
+        ValueError: The Williamson type Hadamard matrix of order 100 is not yet implemented.
+    """
+    if n not in [116, 172]:
+        if existence:
+            return False
+        raise ValueError("The Williamson type Hadamard matrix of order %s is not yet implemented." % n)
+    
+    if existence:
+        return True
+
+    if n == 116:
+        a = [1, 1, 1,-1,-1,-1, 1, 1,-1,-1, 1,-1, 1,-1,-1,-1,-1, 1,-1, 1,-1,-1, 1, 1,-1,-1,-1, 1, 1]
+        b = [1,-1, 1,-1,-1,-1, 1, 1,-1,-1, 1,-1, 1, 1, 1, 1, 1, 1,-1, 1,-1,-1, 1, 1,-1,-1,-1, 1,-1]
+        c = [1, 1, 1, 1,-1, 1, 1,-1, 1,-1,-1,-1, 1, 1, 1, 1, 1, 1,-1,-1,-1, 1,-1, 1, 1,-1, 1, 1, 1]
+        d = [1, 1,-1,-1, 1,-1,-1, 1,-1, 1, 1, 1,-1, 1, 1, 1, 1,-1, 1, 1, 1,-1, 1,-1,-1, 1,-1,-1, 1]
+        return hadamard_matrix_williamson_type(a, b, c, d, check=check)
+    
+    if n == 172:
+        a = [1, 1, -1, -1, -1, 1, 1, 1, 1, -1, 1, -1, -1, 1, -1, -1, 1, 1, -1, -1, -1, -1, -1, -1, -1, -1, 1, 1, -1, -1, 1, -1, -1, 1, -1, 1, 1, 1, 1, -1, -1, -1, 1]
+        b = [1, 1, 1, -1, 1, -1, 1, 1, -1, -1, 1, -1, 1, -1, 1, 1, 1, 1, -1, 1, -1, -1, -1, -1, 1, -1, 1, 1, 1, 1, -1, 1, -1, 1, -1, -1, 1, 1, -1, 1, -1, 1, 1]
+        c = [1, 1, -1, 1, 1, 1, 1, 1, 1, -1, -1, -1, -1, 1, -1, 1, -1, -1, 1, 1, -1, 1, 1, -1, 1, 1, -1, -1, 1, -1, 1, -1, -1, -1, -1, 1, 1, 1, 1, 1, 1, -1, 1]
+        d = [1, -1, -1, -1, 1, 1, -1, -1, 1, 1, 1, 1, -1, 1, -1, 1, 1, 1, -1, 1, 1, -1, -1, 1, 1, -1, 1, 1, 1, -1, 1, -1, 1, 1, 1, 1, -1, -1, 1, 1, -1, -1, -1]
+        return hadamard_matrix_williamson_type(a, b, c, d, check=check)
+
+
 def is_hadamard_matrix(M, normalized=False, skew=False, verbose=False):
     r"""
     Test if `M` is a hadamard matrix.

@@ -518,7 +518,7 @@ def hadamard_matrix(n,existence=False, check=True):
         False
         sage: matrix.hadamard(12,existence=True)
         True
-        sage: matrix.hadamard(116,existence=True)
+        sage: matrix.hadamard(472,existence=True)
         Unknown
         sage: matrix.hadamard(10)
         Traceback (most recent call last):
@@ -561,6 +561,10 @@ def hadamard_matrix(n,existence=False, check=True):
         if existence:
             return True
         M = hadamard_matrix_paleyI(n)
+    elif williamson_hadamard_matrix_smallcases(n, existence=True):
+        if existence:
+            return True
+        M = williamson_hadamard_matrix_smallcases(n, check=False)
     elif skew_hadamard_matrix(n, existence=True) is True:
         if existence:
             return True

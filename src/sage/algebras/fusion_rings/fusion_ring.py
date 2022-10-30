@@ -587,8 +587,18 @@ class FusionRing(WeylCharacterRing):
             sage: A11 = FusionRing("A1", 1)
             sage: A11.field()
             Cyclotomic Field of order 24 and degree 8
-            sage: [A11.root_of_unity(2/x) for x in [1..7]]
-            [1, -1, zeta24^4 - 1, zeta24^6, None, zeta24^4, None]
+            sage: for n in [1..7]:
+            ....:     try:
+            ....:         print(n, A11.root_of_unity(2/n))
+            ....:     except ValueError as err:
+            ....:         print(n, err)
+            1 1
+            2 -1
+            3 zeta24^4 - 1
+            4 zeta24^6
+            5 not an integer root of unity
+            6 zeta24^4
+            7 not an integer root of unity
         """
         n = 2 * r * self._cyclotomic_order
         if n not in ZZ:

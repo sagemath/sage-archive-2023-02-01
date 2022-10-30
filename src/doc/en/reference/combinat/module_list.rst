@@ -109,6 +109,7 @@ Comprehensive Module List
     sage/combinat/designs/steiner_quadruple_systems
     sage/combinat/designs/subhypergraph_search
     sage/combinat/designs/twographs
+    sage/combinat/diagram
     sage/combinat/diagram_algebras
     sage/combinat/dlx
     sage/combinat/dyck_word

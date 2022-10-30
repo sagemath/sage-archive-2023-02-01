@@ -5106,6 +5106,9 @@ REFERENCES:
 .. [RSS] :wikipedia:`Residual_sum_of_squares`, accessed 13th
          October 2009.
 
+.. [RS1995] Victor Reiner, Mark Shimozono, *Plactification*,
+            J. Algebraic Combin. **4** (1995), pp. 331-351.
+
 .. [RS2012] G. Rudolph and M. Schmidt, "Differential Geometry and Mathematical Physics.
             Part I. Manifolds, Lie Groups and Hamiltonian Systems", Springer, 2012.
 

@@ -350,7 +350,6 @@ cdef dict subs_squares(dict eq_dict, KSHandler known_sq):
 
     - ``eq_dict`` -- a dictionary of ``(ETuple, coeff)`` pairs representing
       a polynomial
-
     - ``known_sq`` -- a dictionary of ``(int i, NumberFieldElement a)`` pairs
       such that `x_i^2 - a = 0`
 
@@ -577,3 +576,4 @@ cpdef tuple poly_tup_sortkey(tuple eq_tup):
            key.append(-exp._data[2*i])
            key.append(exp._data[2*i+1])
     return tuple(key)
+

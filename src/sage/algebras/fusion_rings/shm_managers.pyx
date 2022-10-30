@@ -1,11 +1,11 @@
 r"""
-Shared memory managers for F-symbol attributes.
+Shared Memory Managers for F-Symbol Attributes
 
 This module provides an implementation for shared dictionary like
 state attributes required by the orthogonal F-matrix solver.
 
-Currently, the attributes only work when the base field of the FMatrix
-factory is a cyclotomic field.
+Currently, the attributes only work when the base field of the
+:class:`FMatrix` factory is a cyclotomic field.
 """
 
 # ****************************************************************************
@@ -773,3 +773,4 @@ def make_FvarsHandler(n, field, idx_map, init_data):
         sage: f.shutdown_worker_pool()
     """
     return FvarsHandler(n, field, idx_map, init_data=init_data)
+

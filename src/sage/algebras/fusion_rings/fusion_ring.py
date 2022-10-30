@@ -572,8 +572,7 @@ class FusionRing(WeylCharacterRing):
         """
         if self.is_multiplicity_free():
             return self.get_fmatrix().field()
-        else:
-            raise ValueError("Method is only available for multiplicity free fusion rings.")
+        raise NotImplementedError("method is only available for multiplicity free fusion rings")
 
     def root_of_unity(self, r, base_coercion=True):
         r"""
@@ -592,13 +591,12 @@ class FusionRing(WeylCharacterRing):
             [1, -1, zeta24^4 - 1, zeta24^6, None, zeta24^4, None]
         """
         n = 2 * r * self._cyclotomic_order
-        if n in ZZ:
-            ret = self.field().gen() ** n
-            if (not base_coercion) or (self._basecoer is None):
-                return ret
-            return self._basecoer(ret)
-        else:
-            return None
+        if n not in ZZ:
+            raise ValueError("not an integer root of unity")
+        ret = self.field().gen() ** n
+        if (not base_coercion) or (self._basecoer is None):
+            return ret
+        return self._basecoer(ret)
 
     def get_order(self):
         r"""
@@ -908,11 +906,11 @@ class FusionRing(WeylCharacterRing):
             [0 0 0 1]
         """
         b = self.basis()
-        S = matrix([[self.s_ij(b[x], b[y], base_coercion=base_coercion) for x in self.get_order()] for y in self.get_order()])
+        S = matrix([[self.s_ij(b[x], b[y], base_coercion=base_coercion)
+                     for x in self.get_order()] for y in self.get_order()])
         if unitary:
             return S / self.total_q_order(base_coercion=base_coercion)
-        else:
-            return S
+        return S
 
     @cached_method
     def r_matrix(self, i, j, k, base_coercion=True):
@@ -987,7 +985,7 @@ class FusionRing(WeylCharacterRing):
             sage: FusionRing("E6", 1).global_q_dimension()
             3
         """
-        ret = sum(x.q_dimension(base_coercion=False)**2 for x in self.basis())
+        ret = sum(x.q_dimension(base_coercion=False) ** 2 for x in self.basis())
         if (not base_coercion) or (self._basecoer is None):
             return ret
         return self._basecoer(ret)
@@ -1486,8 +1484,7 @@ class FusionRing(WeylCharacterRing):
                 f = twist.floor()
                 twist -= f
                 return twist + (f % 2)
-            else:
-                return twist
+            return twist
 
         def ribbon(self, base_coercion=True):
             r"""
@@ -1565,3 +1562,4 @@ class FusionRing(WeylCharacterRing):
             if (not base_coercion) or (self.parent()._basecoer is None):
                 return ret
             return self.parent()._basecoer(ret)
+

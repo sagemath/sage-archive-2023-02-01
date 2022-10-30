@@ -1,5 +1,5 @@
 r"""
-F-Matrices of Fusion Rings
+The F-Matrix of a Fusion Ring
 """
 # ****************************************************************************
 #  Copyright (C) 2019 Daniel Bump <bump at match.stanford.edu>
@@ -45,7 +45,7 @@ from sage.rings.qqbar import AA, QQbar, number_field_elements_from_algebraics
 
 class FMatrix(SageObject):
     r"""
-    Return an F-Matrix factory for a :class:`FusionRing`.
+    An F-matrix for a :class:`FusionRing`.
 
     INPUT:
 
@@ -222,9 +222,7 @@ class FMatrix(SageObject):
     smaller examples. For example the :class:`FusionRing` for `G_2`
     at level 2 is too large. When it is available, this method
     produces an F-matrix whose entries are in the same
-    cyclotomic field as the underlying :class:`FusionRing`.
-
-    ::
+    cyclotomic field as the underlying :class:`FusionRing`. ::
 
         sage: f.find_cyclotomic_solution()
         Setting up hexagons and pentagons...
@@ -254,9 +252,7 @@ class FMatrix(SageObject):
     modified, adding an attribute ``_basecoer`` that is
     a coercion from the cyclotomic field to the field
     containing the F-matrix. The field containing the F-matrix
-    is available through :meth:`field`.
-
-    ::
+    is available through :meth:`field`. ::
 
         sage: f = FusionRing("B3", 2).get_fmatrix()
         sage: f.find_orthogonal_solution(verbose=False, checkpoint=True)     # not tested (~100 s)
@@ -795,10 +791,8 @@ class FMatrix(SageObject):
         When F-symbols are computed as elements of the associated
         :class:`FusionRing`'s base
         :class:`Cyclotomic field<sage.rings.number_field.number_field.CyclotomicFieldFactory>`,
-        we have ``self.field() == self.FR().field()`` and this method
-        returns the identity map on ``self.field()``.
-
-        ::
+        we have ``self.field() == self.FR().field()`` and this
+        returns the identity map on ``self.field()``. ::
 
             sage: f = FusionRing("A2", 1).get_fmatrix()
             sage: f.find_orthogonal_solution(verbose=False)
@@ -849,7 +843,7 @@ class FMatrix(SageObject):
 
     def get_radical_expression(self):
         """
-        Return radical expression of F-symbols for easy visualization
+        Return a radical expression of F-symbols.
 
         EXAMPLES::
 
@@ -885,7 +879,8 @@ class FMatrix(SageObject):
 
     def _get_known_nonz(self):
         r"""
-        Construct an ETuple indicating positions of known nonzero variables.
+        Construct an :class:`ETuple` indicating positions of
+        known nonzero variables.
 
         .. NOTE::
 
@@ -1930,7 +1925,7 @@ class FMatrix(SageObject):
             one = self._field.one()
             for fx, rhs in self._ks.items():
                 if not self._solved[fx]:
-                    lt = (ETuple({fx : 2}, n), one)
+                    lt = (ETuple({fx: 2}, n), one)
                     eqns.append(((lt, (ETuple({}, n), -rhs))))
         eqns_partition = self._partition_eqns(verbose=verbose)
 
@@ -1994,11 +1989,11 @@ class FMatrix(SageObject):
         assert sum(self._solved) == nvars, "Some F-symbols are still missing...{}".format([self._poly_ring.gen(fx) for fx in range(nvars) if not self._solved[fx]])
 
         # Backward substitution step. Traverse variables in reverse lexicographical order. (System is in triangular form)
-        self._fvars = {sextuple : apply_coeff_map(rhs, phi) for sextuple, rhs in self._fvars.items()}
+        self._fvars = {sextuple: apply_coeff_map(rhs, phi) for sextuple, rhs in self._fvars.items()}
         for fx, rhs in numeric_fvars.items():
             self._fvars[self._idx_to_sextuple[fx]] = ((ETuple({}, nvars), rhs), )
         _backward_subs(self, flatten=False)
-        self._fvars = {sextuple : constant_coeff(rhs, self._field) for sextuple, rhs in self._fvars.items()}
+        self._fvars = {sextuple: constant_coeff(rhs, self._field) for sextuple, rhs in self._fvars.items()}
 
         # Update base field attributes
         self._FR._field = self.field()
@@ -2186,7 +2181,7 @@ class FMatrix(SageObject):
 
     def _fix_gauge(self, algorithm=""):
         r"""
-        Fix the gauge by forcing F-symbols not already fixed to equal 1.
+        Fix the gauge by forcing F-symbols not already fixed to equal `1`.
 
         .. NOTE::
 
@@ -2221,7 +2216,7 @@ class FMatrix(SageObject):
             self._update_equations()
 
     def _substitute_degree_one(self, eqns=None):
-        """
+        r"""
         Substitute known value from linear univariate polynomial and
         solve, following [Bond2007]_ p.37, for two-term linear equation
         for one of the variables.
@@ -2287,7 +2282,7 @@ class FMatrix(SageObject):
 
     def find_cyclotomic_solution(self, equations=None, algorithm="", verbose=True, output=False):
         r"""
-        Solve the the hexagon and pentagon relations to evaluate the F-matrix.
+        Solve the hexagon and pentagon relations to evaluate the F-matrix.
 
         This method (omitting the orthogonality constraints) produces
         output in the cyclotomic field, but it is very limited in the size
@@ -2462,3 +2457,4 @@ class FMatrix(SageObject):
                 print("Something went wrong. Pentagons remain.")
         self._fvars = fvars_copy
         return pe
+

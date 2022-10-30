@@ -1,5 +1,5 @@
 """
-Fast FusionRing methods for computing braid group representations
+Fast Fusion Ring Methods for Computing Braid Group Representations
 """
 # ****************************************************************************
 #  Copyright (C) 2021 Guillermo Aboumrad <gh_willieab>

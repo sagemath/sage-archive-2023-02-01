@@ -483,6 +483,10 @@ REFERENCES:
                  "PHOTON-BeetleAuthenticated Encryption and Hash Family"
                  https://csrc.nist.gov/CSRC/media/Projects/Lightweight-Cryptography/documents/round-1/spec-doc/PHOTON-Beetle-spec.pdf
 
+.. [BH1965] \L. D. Baumert, M. Hall Jr.
+            "A new construction for Hadamard matrices".
+            Bulletin of the American Mathematical Society 71, no. 1 (1965): 169-170.
+
 .. [BH2012] \A. Brouwer and W. Haemers,
             Spectra of graphs,
             Springer, 2012,

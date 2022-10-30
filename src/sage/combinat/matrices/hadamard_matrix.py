@@ -337,6 +337,21 @@ def williamson_hadamard_matrix_smallcases(n, existence=False, check=True):
 
 
 def hadamard_matrix_156():
+    r"""
+    Construct an hadamard matrix of order 156.
+
+    The matrix is created using the construction detailed in [BH1965]_.
+    It is constructed from four circulant matrices of size `13\times 13`,
+    which are composed into a `156\times 156` block matrix.
+
+    TESTS::
+    
+        sage: from sage.combinat.matrices.hadamard_matrix import is_hadamard_matrix, hadamard_matrix_156
+        sage: is_hadamard_matrix(hadamard_matrix_156())
+        True
+        sage: hadamard_matrix_156()
+        156 x 156 dense matrix over Integer Ring...
+    """
     a = [1, 1,-1,-1, 1,-1, 1, 1,-1, 1,-1,-1, 1]
     b = [1,-1,-1,-1, 1, 1, 1, 1, 1, 1,-1,-1,-1]
     c = [1, 1, 1,-1, 1, 1,-1,-1, 1, 1,-1, 1, 1]

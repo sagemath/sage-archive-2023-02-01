@@ -345,7 +345,7 @@ def hadamard_matrix_156():
     which are composed into a `156\times 156` block matrix.
 
     TESTS::
-    
+
         sage: from sage.combinat.matrices.hadamard_matrix import is_hadamard_matrix, hadamard_matrix_156
         sage: is_hadamard_matrix(hadamard_matrix_156())
         True
@@ -602,6 +602,10 @@ def hadamard_matrix(n,existence=False, check=True):
         if existence:
             return True
         M = williamson_hadamard_matrix_smallcases(n, check=False)
+    elif n == 156:
+        if existence:
+            return True
+        M = hadamard_matrix_156()
     elif skew_hadamard_matrix(n, existence=True) is True:
         if existence:
             return True

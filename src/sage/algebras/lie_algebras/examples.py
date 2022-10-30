@@ -41,7 +41,7 @@ from sage.algebras.lie_algebras.classical_lie_algebra import gl
 from sage.algebras.lie_algebras.classical_lie_algebra import ClassicalMatrixLieAlgebra as ClassicalMatrix
 
 
-# the next 6 lines are here to silent pyflakes warnings
+# the next 6 lines are here to silence pyflakes warnings
 assert VirasoroAlgebra
 assert RankTwoHeisenbergVirasoro
 assert OnsagerAlgebra

@@ -336,6 +336,28 @@ def williamson_hadamard_matrix_smallcases(n, existence=False, check=True):
         return hadamard_matrix_williamson_type(a, b, c, d, check=check)
 
 
+def hadamard_matrix_156():
+    a = [1, 1,-1,-1, 1,-1, 1, 1,-1, 1,-1,-1, 1]
+    b = [1,-1,-1,-1, 1, 1, 1, 1, 1, 1,-1,-1,-1]
+    c = [1, 1, 1,-1, 1, 1,-1,-1, 1, 1,-1, 1, 1]
+    d = [1, 1,-1, 1,-1, 1, 1, 1, 1,-1, 1,-1, 1]
+
+    A, B, C, D = map(matrix.circulant, [a, b, c, d])
+
+    return block_matrix([[ A, A, A, B,-B, C,-C,-D, B, C,-D,-D],
+                         [ A,-A, B,-A,-B,-D, D,-C,-B,-D,-C,-C],
+                         [ A,-B,-A, A,-D, D,-B, B,-C,-D, C,-C],
+                         [ B, A,-A,-A, D, D, D, C, C,-B,-B,-C],
+                         [ B,-D, D, D, A, A, A, C,-C, B,-C, B],
+                         [ B, C,-D, D, A,-A, C,-A,-D, C, B,-B],
+                         [ D,-C, B,-B, A,-C,-A, A, B, C, D,-D],
+                         [-C,-D,-C,-D, C, A,-A,-A,-D, B,-B,-B],
+                         [ D,-C,-B,-B,-B, C, C,-D, A, A, A, D],
+                         [-D,-B, C, C, C, B, B,-D, A,-A, D,-A],
+                         [ C,-B,-C, C, D,-B,-D,-B, A,-D,-A, A],
+                         [-C,-D,-D, C,-C,-B, B, B, D, A,-A,-A]])
+
+
 def is_hadamard_matrix(M, normalized=False, skew=False, verbose=False):
     r"""
     Test if `M` is a hadamard matrix.

@@ -2447,6 +2447,64 @@ class LazyModuleElement(Element):
               valuation=0)
         return f(self)
 
+    # === named special functions ===
+
+    def q_pochhammer(self, q=None):
+        r"""
+        Return the infinite ``q``-Pochhammer symbol `(a; q)_{\infty}`,
+        where `a` is ``self``.
+
+        This is also one version of the quantum dilogarithm or
+        the `q`-Exponential function.
+
+        .. SEEALSO::
+
+            :meth:`sage.rings.lazy_series_ring.LazyLaurentSeriesRing.q_pochhammer`
+
+        INPUT:
+
+        - ``q`` -- (default: `q \in \QQ(q)`) the parameter `q`
+
+        EXAMPLES::
+
+            sage: q = ZZ['q'].fraction_field().gen()
+            sage: L.<z> = LazyLaurentSeriesRing(q.parent())
+            sage: qp = L.q_pochhammer(q)
+            sage: (z + z^2).q_pochhammer(q) - qp(z + z^2)
+            O(z^7)
+        """
+        from .lazy_series_ring import LazyLaurentSeriesRing
+        P = LazyLaurentSeriesRing(self.base_ring(), "z", sparse=self.parent()._sparse)
+        f = P.q_pochhammer(q)
+        return f(self)
+
+    def euler(self):
+        r"""
+        Return the Euler function evaluated at ``self``.
+
+        The *Euler function* is defined as
+
+        .. MATH::
+
+            \phi(z) = (z; z)_{\infty}
+            = \sum_{n=0}^{\infty} (-1)^n q^{(3n^2-n)/2}.
+
+        .. SEEALSO::
+
+            :meth:`sage.rings.lazy_series_ring.LazyLaurentSeriesRing.euler`
+
+        EXAMPLES::
+
+            sage: L.<q> = LazyLaurentSeriesRing(ZZ)
+            sage: phi = L.euler()
+            sage: (q + q^2).euler() - phi(q + q^2)
+            O(q^7)
+        """
+        from .lazy_series_ring import LazyLaurentSeriesRing
+        P = LazyLaurentSeriesRing(self.base_ring(), "z", sparse=self.parent()._sparse)
+        phi = P.euler()
+        return phi(self)
+
     # === powers ===
 
     def __pow__(self, n):

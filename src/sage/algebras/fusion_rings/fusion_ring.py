@@ -596,13 +596,13 @@ class FusionRing(WeylCharacterRing):
             2 -1
             3 zeta24^4 - 1
             4 zeta24^6
-            5 not an integer root of unity
+            5 not a root of unity in the field
             6 zeta24^4
-            7 not an integer root of unity
+            7 not a root of unity in the field
         """
         n = 2 * r * self._cyclotomic_order
         if n not in ZZ:
-            raise ValueError("not an integer root of unity")
+            raise ValueError("not a root of unity in the field")
         ret = self.field().gen() ** n
         if (not base_coercion) or (self._basecoer is None):
             return ret

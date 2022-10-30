@@ -133,7 +133,7 @@ class WeylCharacterRing(CombinatorialFreeModule):
         self._basecoer = None
         self._k = k
         if k is not None:
-           self._k = Integer(k)
+            self._k = Integer(k)
         if ct.is_irreducible():
             self._opposition = ct.opposition_automorphism()
             self._highest = self._space.highest_root()

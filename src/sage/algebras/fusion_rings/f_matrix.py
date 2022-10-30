@@ -1300,6 +1300,7 @@ class FMatrix(SageObject):
         fvar_names = self._shared_fvars.shm.name
         # Initialize worker pool processes
         args = (id(self), s_name, vd_name, ks_names, fvar_names, n_proc, pids_name)
+
         def init(fmats_id, solved_name, vd_name, ks_names, fvar_names, n_proc, pids_name):
             """
             Connect worker process to shared memory resources
@@ -1380,12 +1381,12 @@ class FMatrix(SageObject):
             sage: f.shutdown_worker_pool()
         """
         if mp_thresh is None:
-          mp_thresh = self.mp_thresh
+            mp_thresh = self.mp_thresh
         # Compute multiprocessing parameters
         if worker_pool is not None:
             try:
                 n = len(input_iter)
-            except:
+            except (TypeError, ValueError, AttributeError):
                 n = mp_thresh + 1
             if chunksize is None:
                 chunksize = n // (worker_pool._processes**2) + 1
@@ -1675,7 +1676,8 @@ class FMatrix(SageObject):
             eqns = self.ideal_basis
 
         G = Graph()
-        if not eqns: return G
+        if not eqns:
+            return G
 
         # Eqns could be a list of poly objects or poly tuples stored in internal repn
         if isinstance(eqns[0], tuple):
@@ -1773,7 +1775,8 @@ class FMatrix(SageObject):
              fx3^2 + (zeta80^24 - zeta80^16)]
             sage: f.shutdown_worker_pool()
         """
-        if eqns is None: eqns = self.ideal_basis
+        if eqns is None:
+            eqns = self.ideal_basis
         small_comps = list()
         temp_eqns = list()
         for comp, comp_eqns in self._partition_eqns(eqns=eqns, verbose=verbose).items():

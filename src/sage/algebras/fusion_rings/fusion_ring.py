@@ -2,13 +2,14 @@
 Fusion Rings
 """
 # ****************************************************************************
-# Copyright (C) 2019 Daniel Bump <bump at match.stanford.edu>
-# Guillermo Aboumrad <gh_willieab>
-# Travis Scrimshaw <tcscrims at gmail.com>
-# Nicolas Thiery <nthiery at users.sf.net>
+#  Copyright (C) 2019 Daniel Bump <bump at match.stanford.edu>
+#                     Guillermo Aboumrad <gh_willieab>
+#                     Travis Scrimshaw <tcscrims at gmail.com>
+#                     Nicolas Thiery <nthiery at users.sf.net>
+#                2022 Guillermo Aboumrad <gh_willieab>
 #
-# Distributed under the terms of the GNU General Public License (GPL)
-# https://www.gnu.org/licenses/
+#  Distributed under the terms of the GNU General Public License (GPL)
+#                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
 from itertools import product, zip_longest
@@ -22,7 +23,6 @@ from sage.combinat.root_system.weyl_characters import WeylCharacterRing
 from sage.matrix.constructor import matrix
 from sage.matrix.special import diagonal_matrix
 from sage.misc.cachefunc import cached_method
-from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.misc import inject_variable
 from sage.rings.integer_ring import ZZ
 from sage.rings.number_field.number_field import CyclotomicField
@@ -405,7 +405,7 @@ class FusionRing(WeylCharacterRing):
             True
         """
         if not self.is_multiplicity_free(): # Braid group representation is not available if self is not multiplicity free
-           raise NotImplementedError("only implemented for multiplicity free fusion rings")
+            raise NotImplementedError("only implemented for multiplicity free fusion rings")
         b = self.basis()
         results = []
         # Test with different numbers of strands

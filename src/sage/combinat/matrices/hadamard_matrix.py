@@ -462,7 +462,7 @@ def hadamard_matrix(n,existence=False, check=True):
         raise ValueError("The Hadamard matrix of order %s is not yet implemented." % n)
 
     if check:
-        assert is_hadamard_matrix(M, normalized=True)
+        assert is_hadamard_matrix(M)
 
     return M
 

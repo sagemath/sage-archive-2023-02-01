@@ -109,6 +109,11 @@ warnings.filterwarnings('ignore', category=DeprecationWarning,
                         message="'cgi' is deprecated and slated for removal in Python 3.13",
                         module='Cython')
 
+# triggered by pyparsing 2.4.7
+warnings.filterwarnings('ignore', category=DeprecationWarning,
+                        message="module 'sre_constants' is deprecated",
+                        module='pyparsing')
+
 ################ end setup warnings ###############################
 
 

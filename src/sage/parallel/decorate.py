@@ -243,7 +243,8 @@ for a in args[0]))
             ....:     return x + y
             sage: from sage.misc.sageinspect import sage_getargspec
             sage: sage_getargspec(p(f))
-            ArgSpec(args=['x', 'y'], varargs=None, keywords=None, defaults=None)
+            FullArgSpec(args=['x', 'y'], varargs=None, varkw=None, defaults=None,
+                        kwonlyargs=[], kwonlydefaults=None, annotations={})
         """
         from sage.misc.sageinspect import sage_getargspec
         return sage_getargspec(self.func)

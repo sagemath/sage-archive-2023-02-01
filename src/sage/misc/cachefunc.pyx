@@ -931,9 +931,9 @@ cdef class CachedFunction():
             sage: I = P*[x,y]
             sage: from sage.misc.sageinspect import sage_getargspec
             sage: sage_getargspec(I.groebner_basis)   # indirect doctest
-            ArgSpec(args=['self', 'algorithm', 'deg_bound', 'mult_bound', 'prot'],
-            varargs='args', keywords='kwds', defaults=('', None, None,
-            False))
+            FullArgSpec(args=['self', 'algorithm', 'deg_bound', 'mult_bound', 'prot'],
+                        varargs='args', varkw='kwds', defaults=('', None, None, False),
+                        kwonlyargs=[], kwonlydefaults=None, annotations={})
 
         """
         return sage_getargspec(self.f)

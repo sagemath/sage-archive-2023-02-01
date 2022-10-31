@@ -93,7 +93,8 @@ def sage_wraps(wrapped, assigned=WRAPPER_ASSIGNMENTS, updated=WRAPPER_UPDATES):
         5
         sage: from sage.misc.sageinspect import sage_getargspec
         sage: sage_getargspec(g)
-        ArgSpec(args=['x'], varargs=None, keywords=None, defaults=None)
+        FullArgSpec(args=['x'], varargs=None, varkw=None, defaults=None,
+                    kwonlyargs=[], kwonlydefaults=None, annotations={})
 
     Demonstrate that it correctly gets the source lines and the source
     file, which is essential for interactive code edition; note that we
@@ -392,7 +393,8 @@ class suboptions():
 
             sage: from sage.misc.sageinspect import sage_getargspec
             sage: sage_getargspec(f)
-            ArgSpec(args=['arrow_size'], varargs='args', keywords='kwds', defaults=(2,))
+            FullArgSpec(args=['arrow_size'], varargs='args', varkw='kwds', defaults=(2,),
+                        kwonlyargs=[], kwonlydefaults=None, annotations={})
         """
         @sage_wraps(func)
         def wrapper(*args, **kwds):
@@ -460,7 +462,8 @@ class options():
             sage: f1 = o(f)
             sage: from sage.misc.sageinspect import sage_getargspec
             sage: sage_getargspec(f1)
-            ArgSpec(args=['rgbcolor'], varargs='args', keywords='kwds', defaults=((0, 0, 1),))
+            FullArgSpec(args=['rgbcolor'], varargs='args', varkw='kwds', defaults=((0, 0, 1),),
+                        kwonlyargs=[], kwonlydefaults=None, annotations={})
         """
         self.options = options
         self.original_opts = options.pop('__original_opts', False)

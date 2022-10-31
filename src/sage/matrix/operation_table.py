@@ -15,6 +15,10 @@ This module implements general operation tables, which are very matrix-like.
 # ****************************************************************************
 
 from sage.structure.sage_object import SageObject
+from matplotlib.cm import gist_rainbow, Greys
+from sage.plot.matrix_plot import matrix_plot
+from sage.matrix.constructor import Matrix
+from sage.plot.text import text
 
 
 class OperationTable(SageObject):
@@ -379,9 +383,10 @@ class OperationTable(SageObject):
         Provide color and grayscale graphical representations of tables.
         See commented-out stubs in source code.
 
-    AUTHOR:
+    AUTHORS:
 
     - Rob Beezer (2010-03-15)
+    - Bruno Edwards (2022-10-31)
     """
 
     def __init__(self, S, operation, names='letters', elements=None):

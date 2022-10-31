@@ -1137,7 +1137,7 @@ def _sage_getargspec_from_ast(source):
 
     return inspect.FullArgSpec(args, vararg, kwarg,
                                tuple(defaults) if defaults else None,
-                               kwonlyargs=[], kwonlydefaults={}, annotations={})
+                               kwonlyargs=[], kwonlydefaults=None, annotations={})
 
 
 def _sage_getargspec_cython(source):
@@ -1683,7 +1683,8 @@ def sage_getargspec(obj):
         # Note that this may give a wrong result for the constants!
         try:
             args, varargs, varkw = inspect.getargs(obj.__code__)
-            return inspect.FullArgSpec(args, varargs, varkw, obj.__defaults__)
+            return inspect.FullArgSpec(args, varargs, varkw, obj.__defaults__,
+                                       kwonlyargs=[], kwonlydefaults=None, annotations={})
         except (TypeError, AttributeError):
             pass
     if isclassinstance(obj):
@@ -1742,7 +1743,7 @@ def sage_getargspec(obj):
     except AttributeError:
         defaults = None
     return inspect.FullArgSpec(args, varargs, varkw, defaults,
-                               kwonlyargs=[], kwonlydefaults={}, annotations={})
+                               kwonlyargs=[], kwonlydefaults=None, annotations={})
 
 
 def formatannotation(annotation, base_module=None):
@@ -1788,7 +1789,7 @@ def formatannotation(annotation, base_module=None):
 
 
 def sage_formatargspec(args, varargs=None, varkw=None, defaults=None,
-                       kwonlyargs=(), kwonlydefaults={}, annotations={},
+                       kwonlyargs=(), kwonlydefaults=None, annotations={},
                        formatarg=str,
                        formatvarargs=lambda name: '*' + name,
                        formatvarkw=lambda name: '**' + name,

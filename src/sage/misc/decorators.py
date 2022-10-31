@@ -423,7 +423,8 @@ class suboptions():
             defaults = (argspec.defaults if argspec.defaults is not None else ()) \
                         + tuple(self.options.values())
             # Note: argspec.defaults is not always a tuple for some reason
-            return ArgSpec(args, argspec.varargs, argspec.keywords, defaults)
+            return FullArgSpec(args, argspec.varargs, argspec.varkw, defaults,
+                               kwonlyargs=[], kwonlydefaults=None, annotations={})
         wrapper._sage_argspec_ = argspec
 
         return wrapper
@@ -500,8 +501,8 @@ class options():
                     list(self.options))
             defaults = (argspec.defaults or ()) + tuple(self.options.values())
             # Note: argspec.defaults is not always a tuple for some reason
-            return FullArgSpec(args, argspec.varargs, argspec.keywords, defaults,
-                               kwonlyargs=[], kwonlydefaults={}, annotations={})
+            return FullArgSpec(args, argspec.varargs, argspec.varkw, defaults,
+                               kwonlyargs=[], kwonlydefaults=None, annotations={})
 
         wrapper._sage_argspec_ = argspec
 

@@ -220,10 +220,7 @@ class NumberFields(Category_singleton):
 
             - ``options`` -- any keyword arguments accepted by :meth:`_tester`
 
-            EXAMPLES:
-
-            By default, this method tests only the elements returned by
-            ``self.some_elements()``::
+            EXAMPLES::
 
                 sage: S = NumberField(x**3-x-1, 'a')
                 sage: S._test_absolute_disc()

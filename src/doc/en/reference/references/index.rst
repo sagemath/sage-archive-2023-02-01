@@ -484,8 +484,8 @@ REFERENCES:
                  https://csrc.nist.gov/CSRC/media/Projects/Lightweight-Cryptography/documents/round-1/spec-doc/PHOTON-Beetle-spec.pdf
 
 .. [BH1965] \L. D. Baumert, M. Hall Jr.
-            "A new construction for Hadamard matrices".
-            Bulletin of the American Mathematical Society 71, no. 1 (1965): 169-170.
+            *A new construction for Hadamard matrices*.
+            Bulletin of the American Mathematical Society 71(1):169-170, 1965.
 
 .. [BH2012] \A. Brouwer and W. Haemers,
             Spectra of graphs,

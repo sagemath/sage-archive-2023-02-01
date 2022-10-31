@@ -104,6 +104,11 @@ warnings.filterwarnings('ignore', category=DeprecationWarning,
                         message='The distutils(.sysconfig module| package) is deprecated',
                         module='Cython|distutils|numpy|sage.env|sage.features')
 
+# triggered by cython 0.29.32
+warnings.filterwarnings('ignore', category=DeprecationWarning,
+                        message="'cgi' is deprecated and slated for removal in Python 3.13",
+                        module='Cython')
+
 ################ end setup warnings ###############################
 
 

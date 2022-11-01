@@ -54,6 +54,7 @@ character-by-character::
         exec(code, globals)
       File ".../foobar.sage....py", line ..., in <module>
         raise ValueError("third")   # this should appear in the source snippet
+    ...
     ValueError: third
     sage: detach(src)
 """

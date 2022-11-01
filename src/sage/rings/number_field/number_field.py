@@ -568,7 +568,7 @@ def NumberField(polynomial, name=None, check=True, names=None, embedding=None,
             raise TypeError("NumberField() got an unexpected keyword argument '%s'" % key)
         if not (val is None or isinstance(val, list) and all(c is None for c in val)):
             raise NotImplementedError("Number field with prescribed %s is not implemented" % key)
-    if isinstance(polynomial, (list,tuple)):
+    if isinstance(polynomial, (list, tuple)):
         return NumberFieldTower(polynomial, names=name, check=check, embeddings=embedding, latex_names=latex_name, assume_disc_small=assume_disc_small, maximize_at_primes=maximize_at_primes, structures=structure)
 
     return NumberField_version2(polynomial=polynomial, name=name, check=check, embedding=embedding, latex_name=latex_name, assume_disc_small=assume_disc_small, maximize_at_primes=maximize_at_primes, structure=structure)
@@ -655,7 +655,7 @@ class NumberFieldFactory(UniqueFactory):
         polynomial = polynomial.change_ring(polynomial.base_ring().fraction_field())
 
         # normalize embedding
-        if isinstance(embedding, (list,tuple)):
+        if isinstance(embedding, (list, tuple)):
             if len(embedding) != 1:
                 raise TypeError("embedding must be a list of length 1")
             embedding = embedding[0]
@@ -681,7 +681,7 @@ class NumberFieldFactory(UniqueFactory):
                 raise TypeError("structure must be a list of length 1")
             structure = structure[0]
 
-        return (polynomial.base_ring(), polynomial, name, embedding, latex_name, maximize_at_primes, assume_disc_small, structure), {"check":check}
+        return (polynomial.base_ring(), polynomial, name, embedding, latex_name, maximize_at_primes, assume_disc_small, structure), {"check": check}
 
     def create_object(self, version, key, check):
         r"""
@@ -10808,7 +10808,7 @@ class NumberField_cyclotomic(NumberField_absolute, sage.rings.abc.NumberField_cy
             sage: CyclotomicField(400)._repr_()
             'Cyclotomic Field of order 400 and degree 160'
         """
-        n = self._n
+        n = self.__n
         return f"Cyclotomic Field of order {n} and degree {self.degree()}"
 
     def _n(self):
@@ -11952,7 +11952,7 @@ class NumberField_quadratic(NumberField_absolute, sage.rings.abc.NumberField_qua
         # we must set the flag _standard_embedding *before* any element creation
         # Note that in the following code, no element is built.
         if self.coerce_embedding() is not None and CDF.has_coerce_map_from(self):
-            rootD = CDF(number_field_element_quadratic.NumberFieldElement_quadratic(self, (QQ(0),QQ(1))))
+            rootD = CDF(number_field_element_quadratic.NumberFieldElement_quadratic(self, (QQ(0), QQ(1))))
             if D > 0:
                 self._standard_embedding = rootD.real() > 0
             else:
@@ -12548,7 +12548,7 @@ def is_real_place(v):
         return False
 
 
-def _splitting_classes_gens_(K,m,d):
+def _splitting_classes_gens_(K, m, d):
     r"""
     Given a number field `K` of conductor `m` and degree `d`,
     this returns a set of multiplicative generators of the
@@ -12597,7 +12597,7 @@ def _splitting_classes_gens_(K,m,d):
     Hgens = []
     H = Zmstar.subgroup([])
     p = 0
-    Horder = arith.euler_phi(m)/d
+    Horder = arith.euler_phi(m) / d
     for g in Zmstar:
         if H.order() == Horder:
             break

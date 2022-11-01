@@ -114,6 +114,12 @@ warnings.filterwarnings('ignore', category=DeprecationWarning,
                         message="module 'sre_constants' is deprecated",
                         module='pyparsing')
 
+# importlib.resources.path and ...read_binary are deprecated in python 3.11,
+# but the replacement importlib.resources.files needs python 3.9
+warnings.filterwarnings('ignore', category=DeprecationWarning,
+                        message=r'(path|read_binary) is deprecated\. Use files\(\) instead\.',
+                        module='sage.repl.rich_output.output_(graphics|graphics3d|video)')
+
 ################ end setup warnings ###############################
 
 

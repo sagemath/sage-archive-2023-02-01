@@ -971,6 +971,7 @@ class OperationTable(SageObject):
             sage: OT = OperationTable(SymmetricGroup(3), operation=operator.mul)
             sage: OT.color_table()
             Launched png viewer for Graphics object consisting of 37 graphics primitives
+
         """
 
         # Base matrix plot object, without text
@@ -997,6 +998,10 @@ class OperationTable(SageObject):
                     tText = widenames[self._table[g][h]]
                     t = text(tText, tPos, rgbcolor=(0, 0, 0))
                     plot = plot + t
+
+        # https://moyix.blogspot.com/2022/09/someones-been-messing-with-my-subnormals.html
+        import warnings
+        warnings.filterwarnings("ignore", message="The value of the smallest subnormal for")
 
         return plot
 

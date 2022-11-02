@@ -2077,7 +2077,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         """
         if self._structure is None:
             f = self.hom(self)
-            return f,f
+            return f, f
         else:
             return self._structure.create_structure(self)
 
@@ -2635,7 +2635,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
                 return Infinity
             return v
         # The dyadic case
-        s = self(F.lift((1/F(a)).sqrt()))
+        s = self(F.lift((1 / F(a)).sqrt()))
         a = self(s**2) * a
         u = self(4).valuation(p)
         w = (a - 1).valuation(p)
@@ -3551,7 +3551,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         except ValueError:
             return sage.rings.ring.Ring.ideal(self, gens, **kwds)
 
-    def idealchinese(self,ideals,residues):
+    def idealchinese(self, ideals, residues):
         r"""
         Return a solution of the Chinese Remainder Theorem problem
         for ideals in a number field.
@@ -3599,16 +3599,15 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             ....:     for P,k in I.factor()
             ....: )
             True
-
         """
         factorizations = [I.factor() for I in ideals]
-        y = [a for a,f in zip(residues,factorizations) for _ in f]
+        y = [a for a, f in zip(residues, factorizations) for _ in f]
         x = pari.Mat([
-            pari.Col([p.pari_prime(),k])
+            pari.Col([p.pari_prime(), k])
             for f in factorizations
-            for p,k in f
+            for p, k in f
         ]).mattranspose()
-        r = self.pari_nf().idealchinese(x,y)
+        r = self.pari_nf().idealchinese(x, y)
         return self(r)
 
     def fractional_ideal(self, *gens, **kwds):
@@ -6921,10 +6920,10 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         import sage.matrix.matrix_space
         A = sage.matrix.matrix_space.MatrixSpace(self.base_ring(), len(v))(0)
         for i in range(len(v)):
-            for j in range(i,len(v)):
+            for j in range(i, len(v)):
                 t = (self(v[i]*v[j])).trace()
-                A[i,j] = t
-                A[j,i] = t
+                A[i, j] = t
+                A[j, i] = t
         return A
 
     def uniformizer(self, P, others="positive"):
@@ -7166,7 +7165,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             except AttributeError:
                 pass
 
-        U = UnitGroup(self,proof)
+        U = UnitGroup(self, proof)
         if proof:
             self._unit_group = U
         else:
@@ -7292,7 +7291,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             except KeyError:
                 pass
 
-        U = UnitGroup(self,proof,S=S)
+        U = UnitGroup(self, proof, S=S)
         if proof:
             self._S_unit_group_cache[S] = U
         else:
@@ -7650,8 +7649,8 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
                 raise ArithmeticError("ideals in solve_CRT() must be pairwise coprime")
             x = ((1-r)*reslist[0]+r*reslist[1]).mod(prod(Ilist))
         else:  # n>2;, use induction / recursion
-            x = self.solve_CRT([reslist[0],self.solve_CRT(reslist[1:],Ilist[1:])],
-                               [Ilist[0],prod(Ilist[1:])], check=check)
+            x = self.solve_CRT([reslist[0], self.solve_CRT(reslist[1:], Ilist[1:])],
+                               [Ilist[0], prod(Ilist[1:])], check=check)
         if check and not all(x - xi in Ii for xi, Ii in zip(reslist, Ilist)):
             raise RuntimeError("Error in number field solve_CRT()")
         return self(x)
@@ -8188,7 +8187,7 @@ class NumberField_absolute(NumberField_generic):
             # they are equal.  The factor 128 is arbitrary, it is an extra
             # safety margin.
             eps = (log_root_diff - 7.0).exp2()
-            are_roots_equal = lambda a,b: (a-b).abs() <= eps
+            are_roots_equal = lambda a, b: (a-b).abs() <= eps
             if F is CC:
                 # Adjust the precision of F, sufficient to represent all
                 # the temporaries in the computation with a precision
@@ -8558,8 +8557,8 @@ class NumberField_absolute(NumberField_generic):
               Defn: a |--> -1/2*a6^3 + a6^2 - 1/2*a6)
             ]
         """
-        return self._subfields_helper(degree=degree,name=name,
-                                      both_maps=both_maps,optimize=True)
+        return self._subfields_helper(degree=degree, name=name,
+                                      both_maps=both_maps, optimize=True)
 
     def change_names(self, names):
         r"""
@@ -9294,8 +9293,8 @@ class NumberField_absolute(NumberField_generic):
 
             for i in range(s):
                 z = places[r+i](B[col])
-                d[(r+2*i,col)] = z.real()*sqrt2
-                d[(r+2*i+1,col)] = z.imag()*sqrt2
+                d[(r+2*i, col)] = z.real()*sqrt2
+                d[(r+2*i+1, col)] = z.imag()*sqrt2
 
         return sage.matrix.all.matrix(d)
 
@@ -10315,7 +10314,7 @@ class NumberField_absolute(NumberField_generic):
             assert phi(a) == v, "oops"
         return a
 
-    def hilbert_conductor(self,a,b):
+    def hilbert_conductor(self, a, b):
         """
         This is the product of all (finite) primes where the Hilbert symbol is -1.
         What is the same, this is the (reduced) discriminant of the quaternion
@@ -10347,7 +10346,7 @@ class NumberField_absolute(NumberField_generic):
         a, b = self(a), self(b)
         d = self.ideal(1)
         for p in set(self.ideal(2).prime_factors()).union(self.ideal(a).prime_factors()).union(self.ideal(b).prime_factors()):
-            if self.hilbert_symbol(a,b,p) == -1:
+            if self.hilbert_symbol(a, b, p) == -1:
                 d *= p
         return d
 
@@ -11143,102 +11142,15 @@ class NumberField_cyclotomic(NumberField_absolute, sage.rings.abc.NumberField_cy
         elif (sage.interfaces.gap.is_GapElement(x) or
               isinstance(x, sage.libs.gap.element.GapElement)):
             return self._coerce_from_gap(x)
-        elif isinstance(x,str):
+        elif isinstance(x, str):
             return self._convert_from_str(x)
 
         # late import because of speed
         from sage.rings.universal_cyclotomic_field import UniversalCyclotomicFieldElement
-        if isinstance(x,UniversalCyclotomicFieldElement):
+        if isinstance(x, UniversalCyclotomicFieldElement):
             return x.to_cyclotomic_field(self)
         else:
             return self._convert_non_number_field_element(x)
-
-    # TODO:
-    # The following is very nice and much more flexible / powerful.
-    # However, it is simply not *consistent*, since it totally
-    # breaks the doctests in eisenstein_submodule.py.
-    # FIX THIS.
-
-#      def _will_be_better_coerce_from_other_cyclotomic_field(self, x, only_canonical=False):
-#          """
-#          Coerce an element x of a cyclotomic field into self, if at all possible.
-
-#          INPUT:
-#              x -- number field element
-
-#              only_canonical -- bool (default: False); Attempt to work,
-#                     even in some cases when x is not in a subfield of
-#                     the cyclotomics (as long as x is a root of unity).
-
-#          EXAMPLES::
-
-#              sage: k5 = CyclotomicField(5)
-#              sage: k3 = CyclotomicField(3)
-#              sage: k15 = CyclotomicField(15)
-#              sage: k15._coerce_from_other_cyclotomic_field(k3.gen())
-#              zeta15^5
-#              sage: k15._coerce_from_other_cyclotomic_field(k3.gen()^2 + 17/3)
-#              -zeta15^5 + 14/3
-#              sage: k3._coerce_from_other_cyclotomic_field(k15.gen()^5)
-#              zeta3
-#              sage: k3._coerce_from_other_cyclotomic_field(-2/3 * k15.gen()^5 + 2/3)
-#              -2/3*zeta3 + 2/3
-#          """
-
-#          K = x.parent()
-
-#          if K is self:
-#              return x
-#          n = K.zeta_order()
-#          m = self.zeta_order()
-
-#          self_gen = self.gen()
-
-#          if m % n == 0:   # easy case
-#              # pass this off to a method in the element class
-#              # it can be done very quickly and easily by the cython<->NTL
-#              # interface there
-#              return x._lift_cyclotomic_element(self)
-
-#          # Whatever happens below, it has to be consistent with
-#          #  zeta_r |---> (zeta_s)^m
-
-#          if m % 2 and not n%2:
-#              m *= 2
-#              self_gen = -self_gen
-
-#          if only_canonical and m % n:
-#              raise TypeError, "no canonical coercion"
-
-#          if not is_CyclotomicField(K):
-#              raise TypeError, "x must be in a cyclotomic field"
-
-#          v = x.list()
-
-#          # Find the smallest power r >= 1 of the generator g of K that is in self,
-#          # i.e., find the smallest r such that g^r has order dividing m.
-
-#          d = sage.arith.all.gcd(m,n)
-#          r = n // d
-
-#          # Since we use the power basis for cyclotomic fields, if every
-#          # v[i] with i not divisible by r is 0, then we're good.
-
-#          # If h generates self and has order m, then the element g^r
-#          # maps to the power of self of order gcd(m,n)., i.e., h^(m/gcd(m,n))
-#          #
-#          z = self_gen**(m // d)
-#          w = self(1)
-
-#          a = self(0)
-#          for i in range(len(v)):
-#              if i%r:
-#                  if v[i]:
-#                      raise TypeError, "element does not belong to cyclotomic field"
-#              else:
-#                  a += w*v[i]
-#                  w *= z
-#          return a
 
     def _coerce_from_other_cyclotomic_field(self, x, only_canonical=False):
         """
@@ -11345,7 +11257,7 @@ class NumberField_cyclotomic(NumberField_absolute, sage.rings.abc.NumberField_cy
             return self(QQ(x))
         coeffs = x.CoeffsCyc(self.__n)
         zeta = self.gen()
-        return sum(QQ(c)*zeta**i for i,c in enumerate(coeffs))
+        return sum(QQ(c) * zeta**i for i, c in enumerate(coeffs))
 
     def _Hom_(self, codomain, cat=None):
         """
@@ -11496,7 +11408,7 @@ class NumberField_cyclotomic(NumberField_absolute, sage.rings.abc.NumberField_cy
                 # zeta not defined
                 return super().embeddings(K)
             else:
-                X = [m for m in range(n) if arith.gcd(m,n) == 1]
+                X = (m for m in range(n) if arith.gcd(m, n) == 1)
                 v = [self.hom([z**i], check=False) for i in X]
         else:
             v = []
@@ -11744,7 +11656,7 @@ class NumberField_cyclotomic(NumberField_absolute, sage.rings.abc.NumberField_cy
             zeta = self.zeta(n)
             # todo: this desperately needs to be optimized!!!
             for i in range(n):
-                t[x.polynomial()] = n//arith.GCD(m,n)   # multiplicative_order of (zeta_n)**m
+                t[x.polynomial()] = n // arith.GCD(m, n)  # multiplicative_order of (zeta_n)**m
                 x *= zeta
                 m += 1
             self.__multiplicative_order_table = t

@@ -2503,7 +2503,7 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
             self = self.change_ring(field)
             other = other.change_ring(field)
         return sorted(wm.WeierstrassIsomorphism(self, urst, other)
-                      for urst in wm.isomorphisms(self, other))
+                      for urst in wm._isomorphisms(self, other))
 
     def is_isomorphic(self, other, field=None):
         """
@@ -2543,7 +2543,7 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
         if self.j_invariant() != other.j_invariant():  # easy check
             return False
         try:
-            next(wm.isomorphisms(self, other))
+            next(wm._isomorphisms(self, other))
         except StopIteration:
             return False
         return True

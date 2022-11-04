@@ -254,7 +254,7 @@ class baseWI():
         raise ValueError("baseWI(a) only for a=(x,y), (x:y:z) or (a1,a2,a3,a4,a6)")
 
 
-def isomorphisms(E, F):
+def _isomorphisms(E, F):
     r"""
     Enumerate all isomorphisms between two elliptic curves,
     as a generator object.
@@ -267,21 +267,12 @@ def isomorphisms(E, F):
 
     A generator object producing 4-tuples `(u,r,s,t)` representing an isomorphism.
 
-    .. NOTE::
-
-        This function is not intended for users, who should use the methods
-        :meth:`~sage.schemes.elliptic_curves.ell_generic.isomorphisms`
-        and
-        :meth:`~sage.schemes.elliptic_curves.ell_generic.isomorphism_to`
-        and
-        :meth:`~sage.schemes.elliptic_curves.ell_generic.automorphisms`.
-
     EXAMPLES::
 
-        sage: from sage.schemes.elliptic_curves.weierstrass_morphism import *
-        sage: list(isomorphisms(EllipticCurve_from_j(0), EllipticCurve('27a3')))
+        sage: from sage.schemes.elliptic_curves.weierstrass_morphism import _isomorphisms
+        sage: list(_isomorphisms(EllipticCurve_from_j(0), EllipticCurve('27a3')))
         [(1, 0, 0, 0), (-1, 0, 0, -1)]
-        sage: list(isomorphisms(EllipticCurve_from_j(0), EllipticCurve('27a1')))
+        sage: list(_isomorphisms(EllipticCurve_from_j(0), EllipticCurve('27a1')))
         []
 
     TESTS:
@@ -290,10 +281,10 @@ def isomorphisms(E, F):
 
         sage: z8 = GF(2^8).gen()
         sage: E1 = EllipticCurve([z8, z8, z8, z8, z8])
-        sage: list(isomorphisms(E1, E1))
+        sage: list(_isomorphisms(E1, E1))
         [(1, 0, 0, 0), (1, 0, z8, z8)]
         sage: E2 = EllipticCurve([z8^2, 0, 0, 0, z8^7 + z8^4])
-        sage: list(isomorphisms(E1, E2))
+        sage: list(_isomorphisms(E1, E2))
         [(z8^7 + z8^3 + z8^2 + z8, 1, 1, z8^7 + z8^3 + z8^2 + z8 + 1),
          (z8^7 + z8^3 + z8^2 + z8, 1, z8 + 1, z8^7 + z8^3 + z8^2 + z8 + 1)]
 
@@ -519,7 +510,7 @@ class WeierstrassIsomorphism(EllipticCurveHom, baseWI):
 
         elif urst is None:  # try to construct the morphism
             try:
-                urst = next(isomorphisms(E, F))
+                urst = next(_isomorphisms(E, F))
             except StopIteration:
                 raise ValueError("elliptic curves not isomorphic")
             baseWI.__init__(self, *urst)

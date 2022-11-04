@@ -3268,7 +3268,7 @@ def carmichael_lambda(n):
     if n < 1:
         raise ValueError("Input n must be a positive integer.")
 
-    L = n.factor()
+    L = list(n.factor())
     t = []
 
     # first get rid of the prime factor 2

@@ -347,7 +347,7 @@ cdef class MPolynomialRing_base(sage.rings.ring.CommutativeRing):
         """
         return self.remove_var(x)[str(x)]
 
-    def multivariate_interpolation(self, bound, *args):
+    def interpolation(self, bound, *args):
         """
         Create a polynomial with specified evaluations.
 
@@ -355,9 +355,9 @@ cdef class MPolynomialRing_base(sage.rings.ring.CommutativeRing):
 
         This function can be called in two ways:
 
-        1. multivariate_interpolation(bound, points, values)
+        1. interpolation(bound, points, values)
 
-        2. multivariate_interpolation(bound, function)
+        2. interpolation(bound, function)
 
         INPUT:
 
@@ -386,7 +386,7 @@ cdef class MPolynomialRing_base(sage.rings.ring.CommutativeRing):
             ....:     return a^3*b + b + c^2 + 25
             ....:
             sage: R.<x,y,z> = PolynomialRing(QQ)
-            sage: R.multivariate_interpolation(4, F)
+            sage: R.interpolation(4, F)
             x^3*y + z^2 + y + 25
 
 
@@ -394,7 +394,7 @@ cdef class MPolynomialRing_base(sage.rings.ring.CommutativeRing):
             ....:     return a^3*b + b + c^2 + 25
             ....:
             sage: R.<x,y,z> = PolynomialRing(QQ)
-            sage: R.multivariate_interpolation([3,1,2], F)
+            sage: R.interpolation([3,1,2], F)
             x^3*y + z^2 + y + 25
 
 
@@ -406,7 +406,7 @@ cdef class MPolynomialRing_base(sage.rings.ring.CommutativeRing):
             ....: (2,7,0),(1,10,13),(0,0,1),(-1,1,0),(2,5,3),(1,1,1),(7,4,11),
             ....: (12,1,9),(1,1,3),(4,-1,2),(0,1,5),(5,1,3),(3,1,-2),(2,11,3),
             ....: (4,12,19),(3,1,1),(5,2,-3),(12,1,1),(2,3,4)]
-            sage: R.multivariate_interpolation([3,1,2], points, [F(*x) for x in points])
+            sage: R.interpolation([3,1,2], points, [F(*x) for x in points])
             x^3*y + z^2 + y + 25
 
         ALGORITHM:
@@ -424,6 +424,9 @@ cdef class MPolynomialRing_base(sage.rings.ring.CommutativeRing):
             Also, if the solution is not unique, it spits out one solution,
             without any notice that there are more.
 
+            Lastly, the interpolation function for univariate polynomial rings
+            is called ``lagrange_polynomial()``.
+
         .. WARNING::
 
             If you don't provide point/value pairs but just a function, it
@@ -437,7 +440,7 @@ cdef class MPolynomialRing_base(sage.rings.ring.CommutativeRing):
             ....:     return a^3*b + b + c^2 + 25
             ....:
             sage: R.<x,y,z> = PolynomialRing(QQ)
-            sage: R.multivariate_interpolation(3,F)
+            sage: R.interpolation(3,F)
             1/2*x^3 + x*y + z^2 - 1/2*x + y + 25
 
         .. SEEALSO::

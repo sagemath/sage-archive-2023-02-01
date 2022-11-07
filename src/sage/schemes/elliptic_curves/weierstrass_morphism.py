@@ -637,9 +637,11 @@ class WeierstrassIsomorphism(EllipticCurveHom, baseWI):
         """
         if P[2] == 0:
             return self._codomain(0)
-        return self._codomain.point(baseWI.__call__(self,
-                                                          tuple(P._coords)),
-                                          check=False)
+        res = baseWI.__call__(self, tuple(P._coords))
+        Q = self._codomain.point(res, check=False)
+        if hasattr(P, '_order'):
+            Q._order = P._order
+        return Q
 
     def __invert__(self):
         r"""

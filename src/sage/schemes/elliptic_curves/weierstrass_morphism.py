@@ -333,8 +333,8 @@ def _isomorphisms(E, F):
         ....:      2: j not in (0, 1728),
         ....:      4: p >= 5 and j == 1728,
         ....:      6: p >= 5 and j == 0,
-        ....:     12: p == 3 and j in (0, 1728),
-        ....:     24: p == 2 and j in (0, 1728),
+        ....:     12: p == 3 and j == 0,  # note 1728 == 0
+        ....:     24: p == 2 and j == 0,  # note 1728 == 0
         ....: }[len(Aut)]
         True
         sage: u,r,s,t = (F^4).random_element()

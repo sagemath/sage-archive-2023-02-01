@@ -32,6 +32,32 @@ from sage.structure.richcmp import (richcmp_method, richcmp, richcmp_not_equal,
 from sage.structure.sequence import Sequence
 from sage.rings.all import Integer, PolynomialRing
 
+def _urst_sorting_key(tup):
+    r"""
+    Return a sorting key for `(u,r,s,t)` tuples representing
+    elliptic-curve isomorphisms. The key is chosen in such a
+    way that an isomorphism and its negative appear next to
+    one another in a sorted list, and such that normalized
+    isomorphisms come first. One particular consequence of
+    this is that the identity and negation morphisms are the
+    first and second entries of the list returned by
+    :meth:`~sage.schemes.elliptic_curves.ell_generic.EllipticCurve_generic.automorphisms`.
+
+    TESTS::
+
+        sage: from sage.schemes.elliptic_curves.weierstrass_morphism import _urst_sorting_key
+        sage: _urst_sorting_key((1,0,0,0)) < _urst_sorting_key((-1,0,0,0))
+        True
+        sage: _urst_sorting_key((-1,0,0,0)) < _urst_sorting_key((2,0,0,0))
+        True
+        sage: _urst_sorting_key((1,2,3,4)) < _urst_sorting_key((-1,0,0,0))
+        True
+    """
+    v = tup[0]
+    h = 0 if v == 1 else 1 if v == -1 else 2
+    if -v < v:
+        v = -v
+    return (h, v) + tup
 
 @richcmp_method
 class baseWI():
@@ -91,12 +117,7 @@ class baseWI():
         """
         Standard comparison function.
 
-        The ordering is just lexicographic on the tuple `(u,r,s,t)`.
-
-        .. NOTE::
-
-            In a list of automorphisms, there is no guarantee that the
-            identity will be first!
+        The ordering is done according to :func:`_urst_sorting_key`.
 
         EXAMPLES::
 
@@ -117,7 +138,9 @@ class baseWI():
         """
         if not isinstance(other, baseWI):
             return op == op_NE
-        return richcmp(self.tuple(), other.tuple(), op)
+        key1 = _urst_sorting_key(self.tuple())
+        key2 = _urst_sorting_key(other.tuple())
+        return richcmp(key1, key2, op)
 
     def tuple(self):
         r"""
@@ -543,7 +566,7 @@ class WeierstrassIsomorphism(EllipticCurveHom, baseWI):
             sage: w1 = E.isomorphism_to(F)
             sage: w1 == w1
             True
-            sage: w2 = F.automorphisms()[0] * w1
+            sage: w2 = F.automorphisms()[1] * w1
             sage: w1 == w2
             False
 

@@ -252,7 +252,9 @@ def hadamard_matrix_williamson_type(a, b, c, d, check=True):
         sage: d = [ 1, -1, -1]
         sage: M = hadamard_matrix_williamson_type(a,b,c,d,check=True)
     
-    sage: from sage.combinat.matrices.hadamard_matrix import hadamard_matrix_williamson_type, is_hadamard_matrix
+    TESTS::
+
+        sage: from sage.combinat.matrices.hadamard_matrix import hadamard_matrix_williamson_type, is_hadamard_matrix
         sage: a = [ 1,  1, 1]
         sage: b = [ 1, -1, -1]
         sage: c = [ 1, -1, -1]

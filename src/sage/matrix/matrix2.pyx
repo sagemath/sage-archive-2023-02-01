@@ -63,6 +63,8 @@ AUTHORS:
   Pfaffian
 
 - Moritz Firsching(2020-10-05): added ``quantum_determinant``
+
+- Dima Pasechnik (2022-11-08): fixed ``echelonize`` for inexact matrices
 """
 
 # ****************************************************************************
@@ -7599,6 +7601,15 @@ cdef class Matrix(Matrix1):
             sage: transformation_matrix = m.echelonize(transformation=True)
             sage: m == transformation_matrix * m_original
             True
+
+        TESTS::
+
+        Check that :trac:`34724` is fixed (indirect doctest)::
+
+            sage: a=RR(6.12323399573677e-17)
+            sage: m=matrix(RR,[[-a, -1.72508242466029], [ 0.579682446302195, a]])
+            sage: (~m*m).norm()
+            1.0
         """
         self.check_mutability()
 
@@ -7617,7 +7628,11 @@ cdef class Matrix(Matrix1):
                 except (AttributeError, TypeError):
                     algorithm = 'scaled_partial_pivoting_valuation'
             else:
-                algorithm = 'classical'
+                try:
+                    self.base_ring(1/2).abs()
+                    algorithm = 'scaled_partial_pivoting'
+                except (AttributeError, ArithmeticError, TypeError):
+                    algorithm = 'classical'
         try:
             if self.base_ring() in _Fields:
                 if algorithm in ['classical', 'partial_pivoting', 'scaled_partial_pivoting', 'scaled_partial_pivoting_valuation']:

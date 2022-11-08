@@ -366,9 +366,9 @@ class EllipticCurveHom(Morphism):
             ...
             NotImplementedError: ...
         """
-        #TODO: could have a default implementation that simply
-        #      returns .formal()[1], but it seems safer to fail
-        #      visibly to make sure we would notice regressions
+        # TODO: could have a default implementation that simply
+        #       returns .formal()[1], but it seems safer to fail
+        #       visibly to make sure we would notice regressions
         raise NotImplementedError('children must implement')
 
     def formal(self, prec=20):
@@ -585,7 +585,7 @@ class EllipticCurveHom(Morphism):
             True
         """
         if not self.is_separable():
-            #TODO: should implement .separable_degree() or similar
+            # TODO: should implement .separable_degree() or similar
             raise NotImplementedError
         return self.degree() == 1
 
@@ -754,6 +754,7 @@ def compare_via_evaluation(left, right):
     else:
         raise NotImplementedError('not implemented for this base field')
 
+
 def find_post_isomorphism(phi, psi):
     r"""
     Given two isogenies `\phi: E\to E'` and `\psi: E\to E''`
@@ -846,4 +847,3 @@ def find_post_isomorphism(phi, psi):
 
     # found no suitable isomorphism -- either doesn't exist or a bug
     raise ValueError('isogenies not equal up to post-isomorphism')
-

@@ -27,39 +27,10 @@ from sage.structure.element import get_coercion_model
 
 from .constructor import EllipticCurve
 from sage.schemes.elliptic_curves.hom import EllipticCurveHom
-from sage.structure.richcmp import (richcmp_method, richcmp, richcmp_not_equal,
-                                    op_NE)
+from sage.structure.richcmp import (richcmp, richcmp_not_equal, op_EQ, op_NE)
 from sage.structure.sequence import Sequence
 from sage.rings.all import Integer, PolynomialRing
 
-def _urst_sorting_key(tup):
-    r"""
-    Return a sorting key for `(u,r,s,t)` tuples representing
-    elliptic-curve isomorphisms. The key is chosen in such a
-    way that an isomorphism and its negative appear next to
-    one another in a sorted list, and such that normalized
-    isomorphisms come first. One particular consequence of
-    this is that the identity and negation morphisms are the
-    first and second entries of the list returned by
-    :meth:`~sage.schemes.elliptic_curves.ell_generic.EllipticCurve_generic.automorphisms`.
-
-    TESTS::
-
-        sage: from sage.schemes.elliptic_curves.weierstrass_morphism import _urst_sorting_key
-        sage: _urst_sorting_key((1,0,0,0)) < _urst_sorting_key((-1,0,0,0))
-        True
-        sage: _urst_sorting_key((-1,0,0,0)) < _urst_sorting_key((2,0,0,0))
-        True
-        sage: _urst_sorting_key((1,2,3,4)) < _urst_sorting_key((-1,0,0,0))
-        True
-    """
-    v = tup[0]
-    h = 0 if v == 1 else 1 if v == -1 else 2
-    if -v < v:
-        v = -v
-    return (h, v) + tup
-
-@richcmp_method
 class baseWI():
     r"""
     This class implements the basic arithmetic of isomorphisms between
@@ -112,35 +83,6 @@ class baseWI():
         self.r = r
         self.s = s
         self.t = t
-
-    def __richcmp__(self, other, op):
-        """
-        Standard comparison function.
-
-        The ordering is done according to :func:`_urst_sorting_key`.
-
-        EXAMPLES::
-
-            sage: from sage.schemes.elliptic_curves.weierstrass_morphism import baseWI
-            sage: baseWI(1,2,3,4) == baseWI(1,2,3,4)
-            True
-            sage: baseWI(1,2,3,4) != baseWI(1,2,3,4)
-            False
-            sage: baseWI(1,2,3,4) < baseWI(1,2,3,5)
-            True
-            sage: baseWI(1,2,3,4) > baseWI(1,2,3,4)
-            False
-
-        It will never return equality if ``other`` is of another type::
-
-            sage: baseWI() == 1
-            False
-        """
-        if not isinstance(other, baseWI):
-            return op == op_NE
-        key1 = _urst_sorting_key(self.tuple())
-        key2 = _urst_sorting_key(other.tuple())
-        return richcmp(key1, key2, op)
 
     def tuple(self):
         r"""
@@ -595,7 +537,21 @@ class WeierstrassIsomorphism(EllipticCurveHom, baseWI):
         if lx != rx:
             return richcmp_not_equal(lx, rx, op)
 
-        return baseWI.__richcmp__(left, right, op)
+        if op in (op_EQ, op_NE):
+            return richcmp(left.tuple(), right.tuple(), op)
+
+        # This makes sure that the identity and negation morphisms
+        # come first in a sorted list of WeierstrassIsomorphisms.
+        # More generally, we're making sure that a morphism and its
+        # negative appear next to each other, and that those pairs
+        # of isomorphisms satisfying u=+-1 come first.
+        def _sorting_key(iso):
+            v, w = iso.tuple(), (-iso).tuple()
+            i = 0 if (1,0,0,0) in (v,w) else 1
+            j = 0 if v[0] == 1 else 1 if w[0] == 1 else 2
+            return (i,) + min(v,w) + (j,) + v
+
+        return richcmp(_sorting_key(left), _sorting_key(right), op)
 
     def _eval(self, P):
         r"""

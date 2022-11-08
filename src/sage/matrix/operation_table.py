@@ -970,7 +970,7 @@ class OperationTable(SageObject):
             sage: from sage.matrix.operation_table import OperationTable
             sage: OT = OperationTable(SymmetricGroup(3), operation=operator.mul)
             sage: OT.color_table()
-            Launched png viewer for Graphics object consisting of 37 graphics primitives
+            Graphics object consisting of 37 graphics primitives
 
         """
 

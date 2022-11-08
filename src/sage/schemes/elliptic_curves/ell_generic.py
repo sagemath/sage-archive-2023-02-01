@@ -559,6 +559,8 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
                       (ell_point.EllipticCurvePoint_field,
                        ell_point.EllipticCurvePoint_number_field,
                        ell_point.EllipticCurvePoint)):
+            if P.curve() is self:
+                return P
             # check if denominator of the point contains a factor of the
             # characteristic of the base ring. if so, coerce the point to
             # infinity.

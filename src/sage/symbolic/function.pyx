@@ -141,11 +141,6 @@ is attempted, and after that ``sin()`` which succeeds::
 from sage.structure.sage_object cimport SageObject
 from sage.structure.element cimport Element, parent, Expression
 from sage.misc.lazy_attribute import lazy_attribute
-from .expression import (
-    call_registered_function, find_registered_function, register_or_update_function,
-    get_sfunction_from_hash
-)
-from .expression import get_sfunction_from_serial as get_sfunction_from_serial
 
 from sage.structure.coerce cimport (coercion_model,
         py_scalar_to_element, is_numpy_type, is_mpmath_type)
@@ -263,6 +258,8 @@ cdef class Function(SageObject):
             f(x)
 
         """
+        from .expression import register_or_update_function
+
         self._serial = register_or_update_function(self, self._name, self._latex_name,
                                                    self._nargs, self._evalf_params_first,
                                                    False)
@@ -543,6 +540,8 @@ cdef class Function(SageObject):
             for a in args:
                 if not isinstance(a, Expression):
                     raise TypeError("arguments must be symbolic expressions")
+
+        from .expression import call_registered_function
 
         return call_registered_function(self._serial, self._nargs, args, hold,
                                     not symbolic_input, SR)
@@ -838,6 +837,8 @@ cdef class GinacFunction(BuiltinFunction):
                 preserved_arg=preserved_arg, alt_name=alt_name)
 
     cdef _is_registered(self):
+        from .expression import find_registered_function, get_sfunction_from_serial
+
         # Since this is function is defined in C++, it is already in
         # ginac's function registry
         fname = self._ginac_name if self._ginac_name is not None else self._name
@@ -845,6 +846,8 @@ cdef class GinacFunction(BuiltinFunction):
         return bool(get_sfunction_from_serial(self._serial))
 
     cdef _register_function(self):
+        from .expression import register_or_update_function
+
         # We don't need to add anything to GiNaC's function registry
         # However, if any custom methods were provided in the python class,
         # we should set the properties of the function_options object
@@ -1094,6 +1097,8 @@ cdef class BuiltinFunction(Function):
             sage: loads(dumps(cot)) == cot    # trac #15138
             True
         """
+        from .expression import find_registered_function, get_sfunction_from_serial
+
         # check if already defined
         cdef unsigned int serial
 
@@ -1191,6 +1196,8 @@ cdef class SymbolicFunction(Function):
                 evalf_params_first)
 
     cdef _is_registered(SymbolicFunction self):
+        from .expression import get_sfunction_from_hash
+
         # see if there is already a SymbolicFunction with the same state
         cdef long myhash = self._hash_()
         cdef SymbolicFunction sfunc = get_sfunction_from_hash(myhash)

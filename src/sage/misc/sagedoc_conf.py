@@ -23,6 +23,7 @@ def process_docstring_aliases(app, what, name, obj, options, docstringlines):
     """
     Change the docstrings for aliases to point to the original object.
     """
+
     basename = name.rpartition('.')[2]
     if hasattr(obj, '__name__') and obj.__name__ != basename:
         docstringlines[:] = ['See :obj:`%s`.' % name]
@@ -145,9 +146,6 @@ class SagemathTransform(Transform):
                 source = blankline_re.sub('', source)
                 node.rawsource = source
                 node[:] = [nodes.Text(source)]
-
-from sage.misc.sageinspect import sage_getargspec
-autodoc_builtin_argspec = sage_getargspec
 
 # This is only used by sage.misc.sphinxify
 def setup(app):

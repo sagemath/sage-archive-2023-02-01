@@ -40,12 +40,12 @@ from sage.features import PythonModule
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 extensions = [
-    'sage_docbuild.ext.inventory_builder',
-    'sage_docbuild.ext.multidocs',
-    'sage_docbuild.ext.sage_autodoc',
     'sphinx.ext.todo',
     'sphinx.ext.extlinks',
     'sphinx.ext.mathjax',
+    'sage_docbuild.ext.sage_autodoc',
+    'sage_docbuild.ext.inventory_builder',
+    'sage_docbuild.ext.multidocs',
     'IPython.sphinxext.ipython_directive',
     'matplotlib.sphinxext.plot_directive',
     'jupyter_sphinx',

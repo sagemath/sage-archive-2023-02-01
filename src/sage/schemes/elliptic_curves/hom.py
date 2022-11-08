@@ -361,9 +361,9 @@ class EllipticCurveHom(Morphism):
             ...
             NotImplementedError: ...
         """
-        #TODO: could have a default implementation that simply
-        #      returns .formal()[1], but it seems safer to fail
-        #      visibly to make sure we would notice regressions
+        # TODO: could have a default implementation that simply
+        #       returns .formal()[1], but it seems safer to fail
+        #       visibly to make sure we would notice regressions
         raise NotImplementedError('children must implement')
 
     def formal(self, prec=20):
@@ -579,7 +579,7 @@ class EllipticCurveHom(Morphism):
             True
         """
         if not self.is_separable():
-            #TODO: should implement .separable_degree() or similar
+            # TODO: should implement .separable_degree() or similar
             raise NotImplementedError
         return self.degree() == 1
 
@@ -747,4 +747,3 @@ def compare_via_evaluation(left, right):
             assert False, "couldn't find a point of infinite order"
     else:
         raise NotImplementedError('not implemented for this base field')
-

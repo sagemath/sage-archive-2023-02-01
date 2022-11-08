@@ -1151,6 +1151,16 @@ class EllipticCurveIsogeny(EllipticCurveHom):
             Traceback (most recent call last):
             ...
             TypeError: (20 : 90 : 1) fails to convert into the map's domain Elliptic Curve defined by y^2 = x^3 + 7*x over Number Field in th with defining polynomial x^2 + 3, but a `pushforward` method is not properly implemented
+
+        Check that copying the order over works::
+
+            sage: E = EllipticCurve(GF(431), [1,0])
+            sage: P, = E.gens()
+            sage: Q = 2^99*P; Q.order()
+            27
+            sage: phi = E.isogeny(3^99*P)
+            sage: phi(Q)._order
+            27
         """
         if P.is_zero():
             return self._codomain(0)

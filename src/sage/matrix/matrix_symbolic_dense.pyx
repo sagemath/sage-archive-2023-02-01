@@ -166,6 +166,9 @@ cdef maxima
 from sage.calculus.calculus import symbolic_expression_from_maxima_string, maxima
 
 cdef class Matrix_symbolic_dense(Matrix_generic_dense):
+    def echelonize(self, algorithm="classical", cutoff=0, **kwds):
+        return super().echelonize(algorithm="classical", cutoff=cutoff, **kwds)
+
     def eigenvalues(self, extend=True):
         """
         Compute the eigenvalues by solving the characteristic

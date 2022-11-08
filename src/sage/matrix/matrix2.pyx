@@ -90,7 +90,6 @@ from sage.categories.all import Fields, IntegralDomains
 from sage.rings.ring import is_Ring
 from sage.rings.number_field.number_field_base import is_NumberField
 from sage.rings.integer_ring import ZZ, is_IntegerRing
-from sage.symbolic.ring import SR
 from sage.rings.integer import Integer
 from sage.rings.rational_field import QQ, is_RationalField
 import sage.rings.abc
@@ -7630,7 +7629,7 @@ cdef class Matrix(Matrix1):
                     algorithm = 'scaled_partial_pivoting'
                 except (AttributeError, TypeError):
                     algorithm = 'scaled_partial_pivoting_valuation'
-            elif (basring is SR) or basring.is_exact():
+            elif basring.is_exact():
                 algorithm = 'classical'
             else:
                 try:

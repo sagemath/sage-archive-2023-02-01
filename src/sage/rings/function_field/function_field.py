@@ -128,7 +128,7 @@ TESTS::
     sage: TestSuite(S).run()               # long time (4s)
 
 Global function fields
-======================
+----------------------
 
 A global function field in Sage is an extension field of a rational function field
 over a *finite* constant field by an irreducible separable polynomial over the

@@ -46,7 +46,7 @@ def init():
         sage: sage.combinat.sf.classical.conversion_functions = {}
         sage: init()
         sage: sage.combinat.sf.classical.conversion_functions[('Schur', 'powersum')]
-        <cyfunction t_SCHUR_POWSYM_symmetrica at ...>
+        <built-in function t_SCHUR_POWSYM_symmetrica>
 
     The following checks if the bug described in :trac:`15312` is fixed. ::
 

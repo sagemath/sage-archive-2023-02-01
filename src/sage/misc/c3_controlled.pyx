@@ -1091,7 +1091,7 @@ class HierarchyElement(object, metaclass=ClasscallMetaclass):
             sage: x._bases
             [5, 2]
             sage: x._key
-            <cyfunction identity at ...>
+            <built-in function identity>
             sage: x._key(10)
             10
 

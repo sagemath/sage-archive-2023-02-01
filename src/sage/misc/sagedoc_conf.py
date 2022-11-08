@@ -23,7 +23,6 @@ def process_docstring_aliases(app, what, name, obj, options, docstringlines):
     """
     Change the docstrings for aliases to point to the original object.
     """
-
     basename = name.rpartition('.')[2]
     if hasattr(obj, '__name__') and obj.__name__ != basename:
         docstringlines[:] = ['See :obj:`%s`.' % name]

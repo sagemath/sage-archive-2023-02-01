@@ -64,6 +64,7 @@ from sage.matrix.constructor import identity_matrix as I
 from sage.matrix.constructor import ones_matrix     as J
 from sage.misc.unknown import Unknown
 from sage.cpython.string import bytes_to_str
+from sage.modules.free_module_element import vector
 
 
 def normalise_hadamard(H):
@@ -286,14 +287,75 @@ def hadamard_matrix_williamson_type(a, b, c, d, check=True):
         assert is_hadamard_matrix(M, normalized=False, skew=False)
     return M
 
+def williamson_type_quadruples_smallcases(n, existence=False):
+    r"""
+    Quadruples of matrices that can be used to construct Williamson Type hadamard Matrices.
+
+    This function contains for some values of n, four `n\times n` matrices used in the 
+    Williamson construction of Hadamard matrices. Namely, the function returns the first row of
+    4 `n\times n` circulant matrices with the properties described in
+    :func:`sage.combinat.matrices.hadamard_matrix.hadamard_matrix_williamson_type`.
+    The matrices for n=29 and n=43 are given in [Ha83]_.
+
+    INPUT:
+
+    - ``n`` -- the order of the matrices to be returned
+
+    - ``existence`` -- if true, only check that we have the quadruple (default false).
+
+    OUTPUT:
+
+    If ``existence`` is false, returns a tuple containing four vectors, each being the first line
+    of one of the four matrices. It raises an error if no such matrices are available.
+    If ``existence`` is true, returns a boolean representing whether the matrices are available or not.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.matrices.hadamard_matrix import williamson_type_quadruples_smallcases
+        sage: williamson_type_quadruples_smallcases(29)
+        ((1, 1, 1, -1, -1, -1, 1, 1, -1, -1, 1, -1, 1, -1, -1, -1, -1, 1, -1, 1, -1, -1, 1, 1, -1, -1, -1, 1, 1),
+         (1, -1, 1, -1, -1, -1, 1, 1, -1, -1, 1, -1, 1, 1, 1, 1, 1, 1, -1, 1, -1, -1, 1, 1, -1, -1, -1, 1, -1),
+         (1, 1, 1, 1, -1, 1, 1, -1, 1, -1, -1, -1, 1, 1, 1, 1, 1, 1, -1, -1, -1, 1, -1, 1, 1, -1, 1, 1, 1),
+         (1, 1, -1, -1, 1, -1, -1, 1, -1, 1, 1, 1, -1, 1, 1, 1, 1, -1, 1, 1, 1, -1, 1, -1, -1, 1, -1, -1, 1))
+        sage: williamson_type_quadruples_smallcases(43, existence=True)
+        True
+
+    TESTS::
+
+        sage: williamson_type_quadruples_smallcases(123, existence=True)
+        False
+        sage: williamson_type_quadruples_smallcases(123)
+        Traceback (most recent call last):
+        ...
+        ValueError: The Williamson type quadruple of order 123 is not yet implemented.
+    """
+    db = {
+        29: ([1, 1, 1,-1,-1,-1, 1, 1,-1,-1, 1,-1, 1,-1,-1,-1,-1, 1,-1, 1,-1,-1, 1, 1,-1,-1,-1, 1, 1],
+            [1,-1, 1,-1,-1,-1, 1, 1,-1,-1, 1,-1, 1, 1, 1, 1, 1, 1,-1, 1,-1,-1, 1, 1,-1,-1,-1, 1,-1],
+            [1, 1, 1, 1,-1, 1, 1,-1, 1,-1,-1,-1, 1, 1, 1, 1, 1, 1,-1,-1,-1, 1,-1, 1, 1,-1, 1, 1, 1],
+            [1, 1,-1,-1, 1,-1,-1, 1,-1, 1, 1, 1,-1, 1, 1, 1, 1,-1, 1, 1, 1,-1, 1,-1,-1, 1,-1,-1, 1]),
+        43: ([1, 1, -1, -1, -1, 1, 1, 1, 1, -1, 1, -1, -1, 1, -1, -1, 1, 1, -1, -1, -1, -1, -1, -1, -1, -1, 1, 1, -1, -1, 1, -1, -1, 1, -1, 1, 1, 1, 1, -1, -1, -1, 1],
+            [1, 1, 1, -1, 1, -1, 1, 1, -1, -1, 1, -1, 1, -1, 1, 1, 1, 1, -1, 1, -1, -1, -1, -1, 1, -1, 1, 1, 1, 1, -1, 1, -1, 1, -1, -1, 1, 1, -1, 1, -1, 1, 1],
+            [1, 1, -1, 1, 1, 1, 1, 1, 1, -1, -1, -1, -1, 1, -1, 1, -1, -1, 1, 1, -1, 1, 1, -1, 1, 1, -1, -1, 1, -1, 1, -1, -1, -1, -1, 1, 1, 1, 1, 1, 1, -1, 1],
+            [1, -1, -1, -1, 1, 1, -1, -1, 1, 1, 1, 1, -1, 1, -1, 1, 1, 1, -1, 1, 1, -1, -1, 1, 1, -1, 1, 1, 1, -1, 1, -1, 1, 1, 1, 1, -1, -1, 1, 1, -1, -1, -1]), 
+    }
+
+    if existence:
+        return n in db
+    
+    if n not in db:
+        raise ValueError("The Williamson type quadruple of order %s is not yet implemented." % n)
+    a, b, c, d = map(vector, db[n])
+    return a, b, c, d
+
 def williamson_hadamard_matrix_smallcases(n, existence=False, check=True):
     r"""
-    Data for construction of Williamson type Hadamard matrices.
+    Construction of Williamson type Hadamard matrices for some small values of n.
 
-    This function contains the data needed for the williamson contruction.
-    Namely, it needs 4 circulant matrices with the properties described in
+    This function uses the data contained in 
+    :func:`sage.combinat.matrices.hadamard_matrix.williamson_type_quadruples_smallcases`
+    to create Hadamard matrices of the Williamson type, using the construction from
     :func:`sage.combinat.matrices.hadamard_matrix.hadamard_matrix_williamson_type`.
-    The matrices for n=116 and n=172 are given in [Ha83]_.
 
     INPUT:
 
@@ -315,27 +377,18 @@ def williamson_hadamard_matrix_smallcases(n, existence=False, check=True):
         ...
         ValueError: The Williamson type Hadamard matrix of order 100 is not yet implemented.
     """
-    if n not in [116, 172]:
+    assert n%4 == 0
+    
+    if not  williamson_type_quadruples_smallcases(n//4, existence=True):
         if existence:
             return False
         raise ValueError("The Williamson type Hadamard matrix of order %s is not yet implemented." % n)
-    
+
     if existence:
         return True
 
-    if n == 116:
-        a = [1, 1, 1,-1,-1,-1, 1, 1,-1,-1, 1,-1, 1,-1,-1,-1,-1, 1,-1, 1,-1,-1, 1, 1,-1,-1,-1, 1, 1]
-        b = [1,-1, 1,-1,-1,-1, 1, 1,-1,-1, 1,-1, 1, 1, 1, 1, 1, 1,-1, 1,-1,-1, 1, 1,-1,-1,-1, 1,-1]
-        c = [1, 1, 1, 1,-1, 1, 1,-1, 1,-1,-1,-1, 1, 1, 1, 1, 1, 1,-1,-1,-1, 1,-1, 1, 1,-1, 1, 1, 1]
-        d = [1, 1,-1,-1, 1,-1,-1, 1,-1, 1, 1, 1,-1, 1, 1, 1, 1,-1, 1, 1, 1,-1, 1,-1,-1, 1,-1,-1, 1]
-        return hadamard_matrix_williamson_type(a, b, c, d, check=check)
-    
-    if n == 172:
-        a = [1, 1, -1, -1, -1, 1, 1, 1, 1, -1, 1, -1, -1, 1, -1, -1, 1, 1, -1, -1, -1, -1, -1, -1, -1, -1, 1, 1, -1, -1, 1, -1, -1, 1, -1, 1, 1, 1, 1, -1, -1, -1, 1]
-        b = [1, 1, 1, -1, 1, -1, 1, 1, -1, -1, 1, -1, 1, -1, 1, 1, 1, 1, -1, 1, -1, -1, -1, -1, 1, -1, 1, 1, 1, 1, -1, 1, -1, 1, -1, -1, 1, 1, -1, 1, -1, 1, 1]
-        c = [1, 1, -1, 1, 1, 1, 1, 1, 1, -1, -1, -1, -1, 1, -1, 1, -1, -1, 1, 1, -1, 1, 1, -1, 1, 1, -1, -1, 1, -1, 1, -1, -1, -1, -1, 1, 1, 1, 1, 1, 1, -1, 1]
-        d = [1, -1, -1, -1, 1, 1, -1, -1, 1, 1, 1, 1, -1, 1, -1, 1, 1, 1, -1, 1, 1, -1, -1, 1, 1, -1, 1, 1, 1, -1, 1, -1, 1, 1, 1, 1, -1, -1, 1, 1, -1, -1, -1]
-        return hadamard_matrix_williamson_type(a, b, c, d, check=check)
+    a, b, c, d = williamson_type_quadruples_smallcases(n//4)
+    return hadamard_matrix_williamson_type(a, b, c, d, check=check)
 
 
 def hadamard_matrix_156():
@@ -1320,7 +1373,6 @@ def skew_hadamard_matrix(n,existence=False, skew_normalize=True, check=True):
     if check:
         assert is_hadamard_matrix(M, normalized=False, skew=True)
         if skew_normalize:
-            from sage.modules.free_module_element import vector
             assert M[0]==vector([1]*n)
     _skew_had_cache[n]=True
     return M

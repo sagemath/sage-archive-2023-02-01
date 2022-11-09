@@ -716,6 +716,84 @@ def _get_baumert_hall_units(n, existence=False):
     e4 = construct_baumert_hall_unit(M4hat, M3hat, -M2hat, M1hat)
     return e1, e2, e3, e4
     
+def hadamard_matrix_turyn_type(a, b, c, d, e1, e2, e3, e4, check=True):
+    r"""
+    Construction of Turyn type Hadamard matrix.
+
+    Given `n\times n` circulant matrices `A`, `B`, `C`, `D` with 1,-1 entries,
+    satisfying `AA^\top + BB^\top + CC^\top + DD^\top = 4nI`, and a set of 
+    Baumert-Hall units of order 4t, one can construct a Hadamard matrix of order 
+    `4tn` as detailed by Turyn in [Tur1974]_.
+
+    INPUT:
+
+        - ``a`` -- 1,-1 list specifying the 1st row of `A`
+
+        - ``b`` -- 1,-1 list specifying the 1st row of `B`
+
+        - ``d`` -- 1,-1 list specifying the 1st row of `C`
+
+        - ``c`` -- 1,-1 list specifying the 1st row of `D`
+
+        - ``e1`` -- Matrix representing the first Baumert-Hall unit
+
+        - ``e2`` -- Matrix representing the second Baumert-Hall unit
+
+        - ``e3`` -- Matrix representing the third Baumert-Hall unit
+        
+        - ``e4`` -- Matrix representing the fourth Baumert-Hall unit
+
+        - ``check`` -- Whether to check that the output is an hadamard matrix before returning it
+
+    EXAMPLES::
+
+        sage: from sage.combinat.matrices.hadamard_matrix import hadamard_matrix_turyn_type, _get_baumert_hall_units
+        sage: A, B, C, D = _get_baumert_hall_units(236)
+        sage: hadamard_matrix_turyn_type([1], [1], [1], [1], A, B, C, D)
+        236 x 236 dense matrix over Integer Ring...
+
+    TESTS::
+
+        sage: from sage.combinat.matrices.hadamard_matrix import hadamard_matrix_turyn_type, _get_baumert_hall_units, is_hadamard_matrix
+        sage: A, B, C, D = _get_baumert_hall_units(236)
+        sage: is_hadamard_matrix(hadamard_matrix_turyn_type([1], [1], [1], [1], A, B, C, D))
+        True
+        sage: hadamard_matrix_turyn_type([1, -1], [1], [1], [1], A, B, C, D)
+        Traceback (most recent call last):
+        ...
+        AssertionError
+        sage: hadamard_matrix_turyn_type([1, -1], [1, 1], [1, 1], [1, 1], A, B, C, D)
+        Traceback (most recent call last):
+        ...
+        AssertionError
+    """
+    A, B, C, D = map(matrix.circulant, [a, b, c, d])
+
+    n = len(a)
+    assert len(a) == len(b) == len(c) == len(d)
+    assert A*A.T+B*B.T+C*C.T+D*D.T==4*n*I(n)
+
+    t4 = len(e1[0])
+    assert t4 %4 == 0
+    t = t4//4
+
+    # Check that e1, e2, e3, e4 are valid Baumert-Hall units
+    for i in range(t4):
+        for j in range(t4):
+            assert abs(e1[i, j]) + abs(e2[i, j]) + abs(e3[i, j]) + abs(e4[i, j]) == 1
+
+    assert e1*e1.T == t*I(t4) and e2*e2.T == t*I(t4) and e3*e3.T == t*I(t4) and e4*e4.T == t*I(t4)
+    
+    units = [e1, e2, e3, e4]
+    for i in range(len(units)):
+        for j in range(i+1, len(units)):
+            assert units[i]*units[j].T + units[j]*units[i].T == 0*I(t4)
+
+
+    H = e1.tensor_product(A) + e2.tensor_product(B) + e3.tensor_product(C) + e4.tensor_product(D)
+    if check:
+        assert is_hadamard_matrix(H)
+    return H
 
 def is_hadamard_matrix(M, normalized=False, skew=False, verbose=False):
     r"""

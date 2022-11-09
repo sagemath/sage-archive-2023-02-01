@@ -330,6 +330,7 @@ def williamson_type_quadruples_smallcases(n, existence=False):
         ValueError: The Williamson type quadruple of order 123 is not yet implemented.
     """
     db = {
+        1: ([1], [1], [1], [1]),
         29: ([1, 1, 1,-1,-1,-1, 1, 1,-1,-1, 1,-1, 1,-1,-1,-1,-1, 1,-1, 1,-1,-1, 1, 1,-1,-1,-1, 1, 1],
             [1,-1, 1,-1,-1,-1, 1, 1,-1,-1, 1,-1, 1, 1, 1, 1, 1, 1,-1, 1,-1,-1, 1, 1,-1,-1,-1, 1,-1],
             [1, 1, 1, 1,-1, 1, 1,-1, 1,-1,-1,-1, 1, 1, 1, 1, 1, 1,-1,-1,-1, 1,-1, 1, 1,-1, 1, 1, 1],
@@ -795,6 +796,60 @@ def hadamard_matrix_turyn_type(a, b, c, d, e1, e2, e3, e4, check=True):
         assert is_hadamard_matrix(H)
     return H
 
+def turyn_type_hadamard_matrix_smallcases(n, existence=False, check=True):
+    r"""
+    Use available 4-symbol delta codes and Williamson quadruples to construct an hadamard matrix of order `n`.
+
+    The function looks for Baumert-Hall units and Williamson type matrices from 
+    :func:`four_symbol_delta_code_smallcases` and :func:`williamson_type_quadruples_smallcases`
+    and use them to construct an Hadamard matrix with the Turyn construction
+    defined in :func:`hadamard_matrix_turyn_type`.
+
+    INPUT:
+        
+        - ``n`` -- integer, the order of the matrix to be constructed
+
+        - ``existence`` -- boolean (default False): if True, only check if matrix exists
+
+        - ``check`` -- bolean: if True (default), check the the matrix is an hadamard matrix before returning
+
+    EXAMPLES::
+
+        sage: from sage.combinat.matrices.hadamard_matrix import turyn_type_hadamard_matrix_smallcases
+        sage: turyn_type_hadamard_matrix_smallcases(40, existence=True)
+        True
+        sage: turyn_type_hadamard_matrix_smallcases(236)
+        236 x 236 dense matrix over Integer Ring...
+
+    TESTS::
+
+        sage: from sage.combinat.matrices.hadamard_matrix import turyn_type_hadamard_matrix_smallcases, is_hadamard_matrix
+        sage: is_hadamard_matrix(turyn_type_hadamard_matrix_smallcases(40))
+        True
+        sage: turyn_type_hadamard_matrix_smallcases(64, existence=True)
+        False
+        sage: turyn_type_hadamard_matrix_smallcases(64)
+        Traceback (most recent call last):
+        ...
+        ValueError: The Turyn type construction for hadamard matrices of order 64 is not yet implemented.
+    """
+    assert n%4 == 0 and n > 0
+
+    for delta_code_len in divisors(n//4):
+        units_size = delta_code_len*4
+        will_size = n//units_size
+        if _get_baumert_hall_units(units_size, existence=True) and williamson_type_quadruples_smallcases(will_size, existence=True):
+            if existence:
+                return True
+            
+            e1, e2, e3, e4 = _get_baumert_hall_units(units_size)
+            a, b, c, d = williamson_type_quadruples_smallcases(will_size)
+            return hadamard_matrix_turyn_type(a, b, c, d, e1, e2, e3, e4, check=check)
+    
+    if existence:
+        return False
+    raise ValueError("The Turyn type construction for hadamard matrices of order %s is not yet implemented." % n)
+
 def is_hadamard_matrix(M, normalized=False, skew=False, verbose=False):
     r"""
     Test if `M` is a hadamard matrix.
@@ -977,7 +1032,7 @@ def hadamard_matrix(n,existence=False, check=True):
         False
         sage: matrix.hadamard(12,existence=True)
         True
-        sage: matrix.hadamard(472,existence=True)
+        sage: matrix.hadamard(476,existence=True)
         Unknown
         sage: matrix.hadamard(10)
         Traceback (most recent call last):
@@ -1028,6 +1083,10 @@ def hadamard_matrix(n,existence=False, check=True):
         if existence:
             return True
         M = hadamard_matrix_156()
+    elif turyn_type_hadamard_matrix_smallcases(n, existence=True):
+        if existence:
+            return True
+        M = turyn_type_hadamard_matrix_smallcases(n, check=False)
     elif skew_hadamard_matrix(n, existence=True) is True:
         if existence:
             return True

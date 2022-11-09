@@ -427,6 +427,215 @@ def hadamard_matrix_156():
                          [ C,-B,-C, C, D,-B,-D,-B, A,-D,-A, A],
                          [-C,-D,-D, C,-C,-B, B, B, D, A,-A,-A]])
 
+def construction_four_symbol_delta_code_I(X, Y, Z, W):
+    r"""
+    Construct 4-symbol delta code of length 2*n+1.
+
+    The 4-symbol delta code is constructed from sequences X, Y, Z, W of 
+    length n+1, n+1, n, n satisfying for all `s > 0`:
+
+    .. MATH::
+
+        N_X(s) + N_Y(s) + N_Z(s) + N_W(s) = 0 
+    
+    where `N_A(s)` is the nonperiodic correlation function:
+    
+    .. MATH::
+
+        N_A(s) = \sum_{i=1}^{n-s}a_ia_{i+s}
+
+    The construction (detailed in [Tur1974]_) is as follows:
+
+    .. MATH::
+
+        T_1 = X;Z
+        T_2 = X;-Z
+        T_3 = Y;W
+        T_4 = Y;-W
+
+    INPUT:
+
+        - ``X`` -- a list, representing the first sequence (length n+1)
+
+        - ``Y`` -- a list, representing the second sequence (length n+1)
+
+        - ``Z`` -- a list, representing the third sequence (length n)
+
+        - ``W`` -- a list, representing the fourth sequence (length n)
+
+    OUTPUT:
+        A tuple containing the 4-symbol delta code of length 2*n+1
+
+    EXAMPLE::
+    
+        sage: from sage.combinat.matrices.hadamard_matrix import construction_four_symbol_delta_code_I
+        sage: construction_four_symbol_delta_code_I([1, 1], [1, -1], [1], [1])
+        ([1, 1, 1], [1, 1, -1], [1, -1, 1], [1, -1, -1])
+    
+    TESTS::
+
+        sage: construction_four_symbol_delta_code_I([1, 1], [1, -1], [1, 1], [1])
+        Traceback (most recent call last):
+        ...
+        AssertionError
+        sage: construction_four_symbol_delta_code_I([1, 1], [1, 1], [-1], [1])
+        Traceback (most recent call last):
+        ...
+        AssertionError
+    """
+    n = len(X)
+    assert len(Y) == n and len(Z) == n-1 and len(W) == n-1
+
+    autocorrelation =  lambda seq, j: sum([seq[i]*seq[i+j] for i in range(len(seq)-j)])
+    for j in range(1, n):
+        assert sum(map(lambda seq: autocorrelation(seq, j), [X, Y, Z, W])) == 0
+
+    T1 = X + Z
+    T2 = X + [-z for z in Z]
+    T3 = Y + W
+    T4 = Y + [-w for w in W]
+    return T1, T2, T3, T4
+
+
+def construction_four_symbol_delta_code_II(X, Y, Z, W):
+    r"""
+    Construct 4-symbol delta code of length 4*n+3.
+
+    The 4-symbol delta code is constructed from sequences  X, Y, Z, W of 
+    length n+1, n+1, n, n satisfying for all `s > 0`:
+
+    .. MATH::
+        N_X(s) + N_Y(s) + N_Z(s) + N_W(s) = 0 
+    
+    where `N_A(s)` is the nonperiodic correlation function:
+    
+    .. MATH::
+
+        N_A(s) = \sum_{i=1}^{n-s}a_ia_{i+s}
+
+    The construction (detailed in [Tur1974]_) is as follows (writing
+    A/B to mean A alternated with B):
+
+    .. MATH::
+
+        T_1 = X/Z;Y/W;1
+        T_2 = X/Z;Y/-W;-1
+        T_3 = X/Z;-Y/-W;1
+        T_4 = X/Z;-Y/W;-1
+
+    INPUT:
+
+        - ``X`` -- a list, representing the first sequence (length n+1)
+
+        - ``Y`` -- a list, representing the second sequence (length n+1)
+
+        - ``Z`` -- a list, representing the third sequence (length n)
+
+        - ``W`` -- a list, representing the fourth sequence (length n)
+
+    OUTPUT:
+        A tuple containing the four 4-symbol delta code of length 2*n+1
+
+    EXAMPLE::
+    
+        sage: from sage.combinat.matrices.hadamard_matrix import construction_four_symbol_delta_code_II
+        sage: construction_four_symbol_delta_code_II([1, 1], [1, -1], [1], [1])
+        ([1, 1, 1, 1, 1, -1, 1],
+         [1, 1, 1, 1, -1, -1, -1],
+         [1, 1, 1, -1, -1, 1, 1],
+         [1, 1, 1, -1, 1, 1, -1])
+    
+    TESTS::
+
+        sage: construction_four_symbol_delta_code_II([1, 1], [1, -1], [1, 1], [1])
+        Traceback (most recent call last):
+        ...
+        AssertionError
+        sage: construction_four_symbol_delta_code_II([1, 1], [1, 1], [-1], [1, 1])
+        Traceback (most recent call last):
+        ...
+        AssertionError
+
+    """
+
+    n = len(Z)
+    assert len(X) == n+1 and len(Y) == n+1 and len(W) == n
+
+    autocorrelation =  lambda seq, j: sum([seq[i]*seq[i+j] for i in range(len(seq)-j)])
+    for j in range(1, n):
+        assert sum(map(lambda seq: autocorrelation(seq, j), [X, Y, Z, W])) == 0
+
+    def alternate(seq1, seq2):
+        return [seq1[i//2] if i%2 == 0 else seq2[(i-1)//2] for i in range(len(seq1)+len(seq2))]
+
+    XaltZ = alternate(X, Z)
+    Wneg = [-w for w in W]
+    Yneg = [-y for y in Y]
+
+    T1 = XaltZ + alternate(Y, W) + [1]
+    T2 = XaltZ + alternate(Y, Wneg) + [-1]
+    T3 = XaltZ + alternate(Yneg, Wneg) + [1]
+    T4 = XaltZ + alternate(Yneg, W) + [-1]
+    return T1, T2, T3, T4
+
+def four_symbol_delta_code_smallcases(n, existence=False):
+    """
+    Return the 4-symobl delta code of length n if available.
+    
+    The 4-symbol delta codes are constructed using :func:`construction_four_symbol_delta_code_I`
+    or :func:`construction_four_symbol_delta_code_II`. 
+    The base sequences used are taken from [Tur1974]_.
+
+    INPUT:
+
+        - ``n`` -- integer, the length of the desired 4-symbol delta code
+
+        - ``existence`` -- boolean, if true only check if the sequences are available
+    EXAMPLES::
+
+        sage: from sage.combinat.matrices.hadamard_matrix import four_symbol_delta_code_smallcases
+        sage: four_symbol_delta_code_smallcases(4)
+        ([1, -1, 1], [1, -1, -1], [1, 1, 1], [1, 1, -1])
+        sage: four_symbol_delta_code_smallcases(3, existence=True)
+        True
+    
+    TESTS::
+
+        sage: four_symbol_delta_code_smallcases(17)
+        Traceback (most recent call last):
+        ...
+        ValueError: The four-symbol delta code of length 17 have not yet been implemented
+        sage: four_symbol_delta_code_smallcases(17, existence=True)
+        False
+    """
+    db = {
+        1: ([1, -1], [1, 1], [1], [1]),
+        14: ([1, 1, -1, 1, 1, 1, -1, 1, -1, 1, 1, 1, -1, 1, 1],
+            [1, 1, 1,-1, 1, 1, -1, -1, -1, 1, 1, -1, 1, 1, -1],
+            [1, 1, 1, 1, -1, -1, 1, -1, 1, 1, -1, -1, -1, -1],
+            [1, -1, -1, -1, -1, 1, -1, 1, -1, 1, 1, 1, 1, -1])
+    }
+
+    T1, T2, T3, T4 = None, None, None, None
+    if (n-1)//2 in db:
+        if existence:
+            return True
+        X, Y, Z, W = db[(n-1)//2]
+        T1, T2, T3, T4 = construction_four_symbol_delta_code_I(X, Y, Z, W)
+    elif (n-3)//4 in db:
+        if existence:
+            return True
+        X, Y, Z, W = db[(n-3)//4]
+        T1, T2, T3, T4 = construction_four_symbol_delta_code_II(X, Y, Z, W)
+    
+    if existence:
+        return False
+
+    if T1 is None:
+        raise ValueError("The four-symbol delta code of length %s have not yet been implemented" % n)
+
+    return T1, T2, T3, T4
+
 
 def is_hadamard_matrix(M, normalized=False, skew=False, verbose=False):
     r"""

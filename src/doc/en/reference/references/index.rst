@@ -5831,6 +5831,11 @@ REFERENCES:
 .. [TTWL2009] Trebst, Troyer, Wang and Ludwig, A short introduction to
               Fibonacci anyon models, :arxiv:`0902.3275`.
 
+.. [Tur1974] \R. J. Turyn *Hadamard matrices, Baumert-Hall units, 
+             four-symbol sequences, pulse compression, and surface wave encodings*. 
+             Journal of Combinatorial Theory, Series A 16.3 (1974), pp 313–333.
+             :doi:`10.1016/0097-3165(74)90056-9`
+
 .. [TW1980] \A.D. Thomas and G.V. Wood, Group Tables (Exeter: Shiva
             Publishing, 1980)
 

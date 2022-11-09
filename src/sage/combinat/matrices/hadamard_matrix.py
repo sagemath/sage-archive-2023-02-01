@@ -636,6 +636,86 @@ def four_symbol_delta_code_smallcases(n, existence=False):
 
     return T1, T2, T3, T4
 
+def _get_baumert_hall_units(n, existence=False):
+    r"""
+    Construct Baumert-Hall units of size n from available 4-symbol delta codes.
+
+    The construction is detailed in Theroem 2 from [Tur1974]_, and is based on the 
+    Goethals-Seidel construction of hadamard matrices.
+    We need 4-symbol delta codes to detail the first row of circulant matrices M1, M2, M3, M4
+    used in the construction.
+
+    INPUT:
+        
+        - ``n`` -- integer, the size of the Baumert-Hall units
+        
+        - ``existence`` -- boolean (default False): if true only check whether the units can be contructed
+
+    OUTPUT:
+
+        If ``existence`` is true, return a boolean representing whether the Baumert-Hall units can 
+        be constructed. Otherwise, return a tuple containing the four Baumer-Hall units.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.matrices.hadamard_matrix import _get_baumert_hall_units
+        sage: _get_baumert_hall_units(236)
+        (236 x 236 dense matrix over Integer Ring,
+         236 x 236 dense matrix over Integer Ring,
+         236 x 236 dense matrix over Integer Ring,
+         236 x 236 dense matrix over Integer Ring)
+    
+    TESTS::
+
+        sage: _get_baumert_hall_units(236, existence=True)
+        True
+        sage: _get_baumert_hall_units(200, existence=True)
+        False
+        sage: _get_baumert_hall_units(15)
+        Traceback (most recent call last):
+        ...
+        AssertionError
+        sage: _get_baumert_hall_units(200)
+        Traceback (most recent call last):
+        ...
+        ValueError: The Baumert-Hall units of size 200 have not yet been implemented
+    """
+    assert n%4 == 0 and n > 0
+
+    def construct_baumert_hall_unit(A, B ,C, D):
+        n = len(A[0])
+        R = matrix([[1 if i+j==(n)-1 else 0 for j in range(n)] for i in range(n)])
+        return block_matrix([[   A,    B*R,    C*R,    D*R],
+                             [-B*R,      A, -D.T*R,  C.T*R],
+                             [-C*R,  D.T*R,      A, -B.T*R],
+                             [-D*R, -C.T*R,  B.T*R,      A]])
+
+    delta_codes_len = n//4
+    if not four_symbol_delta_code_smallcases(delta_codes_len, existence=True):
+        if existence:
+            return False
+        raise ValueError("The Baumert-Hall units of size %s have not yet been implemented" % n)
+
+    if existence:
+        return True
+
+    T1, T2, T3, T4 = four_symbol_delta_code_smallcases(delta_codes_len)
+    M1 = matrix.circulant(T1)
+    M2 = matrix.circulant(T2)
+    M3 = matrix.circulant(T3)
+    M4 = matrix.circulant(T4)
+
+    M1hat = matrix(ZZ, 0.25*(M1+M2+M3+M4))
+    M2hat = matrix(ZZ, 0.25*(M1-M2-M3+M4))
+    M3hat = matrix(ZZ, 0.25*(M1+M2-M3-M4))
+    M4hat = matrix(ZZ, 0.25*(M1-M2+M3-M4))
+    
+    e1 = construct_baumert_hall_unit(M1hat, -M2hat, -M3hat, -M4hat) 
+    e2 = construct_baumert_hall_unit(M2hat, M1hat, M4hat, -M3hat)
+    e3 = construct_baumert_hall_unit(M3hat, -M4hat, M1hat, M2hat)
+    e4 = construct_baumert_hall_unit(M4hat, M3hat, -M2hat, M1hat)
+    return e1, e2, e3, e4
+    
 
 def is_hadamard_matrix(M, normalized=False, skew=False, verbose=False):
     r"""

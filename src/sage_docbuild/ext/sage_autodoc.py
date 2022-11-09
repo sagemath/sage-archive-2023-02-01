@@ -3,7 +3,7 @@ Sage autodoc extension
 
 This is :mod:`sphinx.ext.autodoc` extension modified for Sage objects.
 
-The original headline of :mod:`sphinx.ext.autodoc`:
+The original header of :mod:`sphinx.ext.autodoc`:
 
     Extension to create automatic documentation from code docstrings.
 
@@ -11,11 +11,13 @@ The original headline of :mod:`sphinx.ext.autodoc`:
     the doctree, thus avoiding duplication between docstrings and documentation
     for those who like elaborate docstrings.
 
-Presently this module is based on :mod:`sphinx.ext.autodoc` from Sphinx version 5.3.0.
-The upstream original source file is `sphinx/ext/autodoc/__init__.py <https://github.com/sphinx-doc/sphinx/blob/v5.3.0/sphinx/ext/autodoc/__init__.py>`_.
+This module is currently based on :mod:`sphinx.ext.autodoc` from Sphinx version
+5.3.0. Compare against the upstream original source file
+`sphinx/ext/autodoc/__init__.py
+<https://github.com/sphinx-doc/sphinx/blob/v5.3.0/sphinx/ext/autodoc/__init__.py>`_.
 
 In the source file of this module, major modifications are delimited by a pair
-of comment dividers. To lessen maintenance burdens, we aim at reducing those modifications.
+of comment dividers. To lessen maintenance burden, we aim at reducing the modifications.
 
 AUTHORS:
 
@@ -510,8 +512,6 @@ class Documenter:
 
         Let the user process it via the ``autodoc-process-signature`` event.
         """
-        #if 'Expression.numerical_approx' in self.name:
-        #    from celery.contrib import rdb; rdb.set_trace()
         if self.args is not None:
             # signature given explicitly
             args = "(%s)" % self.args
@@ -1338,10 +1338,10 @@ class FunctionDocumenter(DocstringSignatureMixin, ModuleLevelDocumenter):  # typ
 
         try:
             self.env.app.emit('autodoc-before-process-signature', self.object, False)
-            # --------------------------------------------
+            # ----------------------------------------------------------------
             # Trac #9976: Support the _sage_argspec_ attribute which makes it
             # possible to get argument specification of decorated callables in
-            # documentation correct.  See e.g. sage.misc.decorators.sage_wraps
+            # documentation correct. See e.g. sage.misc.decorators.sage_wraps
             obj = self.object
 
             if hasattr(obj, "_sage_argspec_"):
@@ -1362,7 +1362,7 @@ class FunctionDocumenter(DocstringSignatureMixin, ModuleLevelDocumenter):  # typ
             if argspec is None:
                 return None
             args = sage_formatargspec(*argspec)
-            # --------------------------------------------
+            # ----------------------------------------------------------------
         except TypeError as exc:
             logger.warning(__("Failed to get a function signature for %s: %s"),
                            self.fullname, exc)
@@ -1542,15 +1542,10 @@ class ClassDocumenter(DocstringSignatureMixin, ModuleLevelDocumenter):  # type: 
         if ret:
             if hasattr(self.object, '__name__'):
                 self.doc_as_attr = (self.objpath[-1] != self.object.__name__)
-            # ------------------------------------------------------------------
-            # Trac #27692:
-            #
-            # For Python 3, we make use of self.object.__qualname__.
-            #
-            # Notes from trac #7448:
-            #
-            # The original goal of this was that if some class is aliased, the
-            # alias is generated as a link rather than duplicated. For example in
+            # -------------------------------------------------------------------
+            # Trac #27692, #7448: The original goal of this was that if some
+            # class is aliased, the alias is generated as a link rather than
+            # duplicated. For example in
             #
             #     class A:
             #         pass
@@ -1608,7 +1603,7 @@ class ClassDocumenter(DocstringSignatureMixin, ModuleLevelDocumenter):  # type: 
                     cls = getattr(cls, part, None)
                 self.doc_as_attr = (self.objpath != qualname_parts and
                                     self.object is cls)
-            # ------------------------------------------------------------------
+            # -------------------------------------------------------------------
             else:
                 self.doc_as_attr = True
         return ret
@@ -2291,13 +2286,13 @@ class MethodDocumenter(DocstringSignatureMixin, ClassLevelDocumenter):  # type: 
             kwargs.setdefault('unqualified_typehints', True)
 
         # -----------------------------------------------------------------
-        # Trac #9976: This function has been rewritten to support the
-        # _sage_argspec_ attribute which makes it possible to get argument
-        # specification of decorated callables in documentation correct.
-        # See e.g. sage.misc.decorators.sage_wraps.
+        # Trac #9976: Support the _sage_argspec_ attribute which makes it
+        # possible to get argument specification of decorated callables in
+        # documentation correct.  See e.g. sage.misc.decorators.sage_wraps.
         #
         # Note, however, that sage.misc.sageinspect.sage_getargspec already
-        # uses a method _sage_argspec_, that only works on objects, not on classes, though.
+        # uses a method _sage_argspec_, that only works on objects, not on
+        # classes, though.
         obj = self.object
         if hasattr(obj, "_sage_argspec_"):
             argspec = obj._sage_argspec_()
@@ -2341,6 +2336,11 @@ class MethodDocumenter(DocstringSignatureMixin, ClassLevelDocumenter):  # type: 
     def document_members(self, all_members: bool = False) -> None:
         pass
 
+    # ------------------------------------------------------------------------
+    # Trac #34730: The format_signature() of the class MethodDocumenter
+    # supports overloaded methods via inspect.signature(), which does not work
+    # with Sage yet. Hence the method was removed from here.
+    # ------------------------------------------------------------------------
 
     def merge_default_value(self, actual: Signature, overload: Signature) -> Signature:
         """Merge default values of actual implementation to the overload variants."""
@@ -2665,8 +2665,9 @@ class AttributeDocumenter(GenericAliasMixin, NewTypeMixin, SlotsMixin,  # type: 
                             ) -> bool:
         if isinstance(parent, ModuleDocumenter):
             return False
-        # -------------------------------------------------------------------
-        # Trac: Do not pass objects of class CachedMethodCallerNoArgs as attributes.
+        # ---------------------------------------------------------------------
+        # Trac #34730: Do not pass objects of the class CachedMethodCaller as
+        # attributes.
         #
         #   sage: from sphinx.util import inspect
         #   sage: A = AlgebrasWithBasis(QQ).example()
@@ -2678,14 +2679,14 @@ class AttributeDocumenter(GenericAliasMixin, NewTypeMixin, SlotsMixin,  # type: 
         #   sage: inspect.isroutine(member)
         #   True
         #
-        from sage.misc.classcall_metaclass import ClasscallMetaclass
         if inspect.isattributedescriptor(member) and not inspect.isroutine(member):
             return True
         # Trac #26522: Pass objects of classes that inherit ClasscallMetaclass
         # as attributes rather than method descriptors.
+        from sage.misc.classcall_metaclass import ClasscallMetaclass
         if isinstance(type(member), ClasscallMetaclass):
             return True
-        # -------------------------------------------------------------------
+        # ---------------------------------------------------------------------
         elif not inspect.isroutine(member) and not isinstance(member, type):
             return True
         else:

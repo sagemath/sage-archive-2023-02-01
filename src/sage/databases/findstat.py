@@ -256,7 +256,7 @@ from sage.graphs.graph_generators import graphs
 from sage.combinat.words.word import Word
 from sage.combinat.words.words import Words
 from sage.combinat.words.abstract_word import Word_class
-from sage.combinat.colored_permutations import SignedPermutations
+from sage.combinat.colored_permutations import SignedPermutation, SignedPermutations
 from sage.combinat.plane_partition import PlanePartition
 from sage.combinat.decorated_permutation import DecoratedPermutation, DecoratedPermutations
 
@@ -4486,158 +4486,159 @@ _SupportedFindStatCollection = namedtuple("SupportedFindStatCollection",
                                            "element_to_string",
                                            "elements_on_level", # return all elements on given level
                                            "element_level",     # return level of a given element
-                                           "is_element"]) # return whether element is member of this collection (and, ideally, of no other collection)
+                                           "is_element"])       # return whether element is member of this collection
 
-_SupportedFindStatCollections = {
-    "Permutations":
-    _SupportedFindStatCollection(lambda x: Permutation(literal_eval(x)),
-                                 str,
-                                 Permutations,
-                                 lambda x: x.size(),
-                                 lambda x: isinstance(x, Permutation)),
-    "BinaryWords":
-    _SupportedFindStatCollection(lambda x: Word((int(e) for e in str(x)), alphabet=[0,1]),
-                                 str,
-                                 lambda x: Words([0,1], length=x),
-                                 lambda x: x.length(),
-                                 lambda x: isinstance(x, Word_class)),
-
-    "AlternatingSignMatrices":
-    _SupportedFindStatCollection(lambda x: AlternatingSignMatrix(literal_eval(x)),
-                                 lambda x: str(list(map(list, x.to_matrix().rows()))),
-                                 AlternatingSignMatrices,
-                                 lambda x: x.to_matrix().nrows(),
-                                 lambda x: isinstance(x, AlternatingSignMatrix)),
-    "BinaryTrees":
-    _SupportedFindStatCollection(lambda x: BinaryTree(str(x)),
-                                 str,
-                                 BinaryTrees,
-                                 lambda x: x.node_number(),
-                                 lambda x: isinstance(x, BinaryTree)),
-    "Cores":
-    _SupportedFindStatCollection(lambda x: Core(*literal_eval(x)),
-                                 lambda X: "( " + X._repr_() + ", " + str(X.k()) + " )",
-                                 lambda x: Cores(x[1], x[0]),
-                                 lambda x: (x.length(), x.k()),
-                                 lambda x: isinstance(x, Core)),
-    "DyckPaths":
-    _SupportedFindStatCollection(lambda x: DyckWord(literal_eval(x)),
-                                 lambda x: str(list(DyckWord(x))),
-                                 DyckWords,
-                                 lambda x: x.semilength(),
-                                 lambda x: isinstance(x, DyckWord)),
-    "FiniteCartanTypes":
-    _SupportedFindStatCollection(lambda x: CartanType(*literal_eval(str(x))),
-                                 str,
-                                 _finite_irreducible_cartan_types_by_rank,
-                                 lambda x: x.rank(),
-                                 lambda x: isinstance(x, CartanType_abstract)),
-    "GelfandTsetlinPatterns":
-    _SupportedFindStatCollection(lambda x: GelfandTsetlinPattern(literal_eval(x)),
-                                 str,
-                                 lambda x: (P
-                                            for la in Partitions(x[1], max_length=x[0])
-                                            for P in GelfandTsetlinPatterns(top_row=la + [0]*(x[0]-len(la)))),
-                                 lambda x: (len(x[0]), sum(x[0])),
-                                 lambda x: (x == GelfandTsetlinPatterns
-                                            or isinstance(x, GelfandTsetlinPattern))),
-    "Graphs":
-    _SupportedFindStatCollection(lambda x: (lambda E, V: Graph([list(range(V)),
-                                                                lambda i,j: (i,j) in E or (j,i) in E],
-                                                               immutable=True))(*literal_eval(x)),
-                                 lambda X: str((X.edges(labels=False, sort=True), X.num_verts())),
-                                 lambda x: (g.copy(immutable=True) for g in graphs(x, copy=False)),
-                                 lambda x: x.num_verts(),
-                                 lambda x: isinstance(x, Graph)),
-    "IntegerCompositions":
-    _SupportedFindStatCollection(lambda x: Composition(literal_eval(x)),
-                                 str,
-                                 Compositions,
-                                 lambda x: x.size(),
-                                 lambda x: isinstance(x, Composition)),
-    "IntegerPartitions":
-    _SupportedFindStatCollection(lambda x: Partition(literal_eval(x)),
-                                 str,
-                                 Partitions,
-                                 lambda x: x.size(),
-                                 lambda x: isinstance(x, Partition)),
-    "OrderedTrees":
-    _SupportedFindStatCollection(lambda x: OrderedTree(literal_eval(x)),
-                                 str,
-                                 OrderedTrees,
-                                 lambda x: x.node_number(),
-                                 lambda x: isinstance(x, OrderedTree)),
-    "ParkingFunctions":
-    _SupportedFindStatCollection(lambda x: ParkingFunction(literal_eval(x)),
-                                 str,
-                                 ParkingFunctions,
-                                 len,
-                                 lambda x: isinstance(x, ParkingFunction)),
-    "PerfectMatchings":
-    _SupportedFindStatCollection(lambda x: PerfectMatching(literal_eval(x)),
-                                 str,
-                                 PerfectMatchings,
-                                 lambda x: x.size(),
-                                 lambda x: isinstance(x, PerfectMatching)),
-    "Posets":
-    _SupportedFindStatCollection(lambda x: (lambda R, E: Poset((list(range(E)), R)))(*literal_eval(x)),
-                                 lambda X: str((sorted(X._hasse_diagram.cover_relations()),
-                                                len(X._hasse_diagram.vertices(sort=False)))),
-                                 Posets,
-                                 lambda x: x.cardinality(),
-                                 lambda x: isinstance(x, FinitePoset)),
-    "StandardTableaux":
-    _SupportedFindStatCollection(lambda x: StandardTableau(literal_eval(x)),
-                                 str,
-                                 StandardTableaux,
-                                 lambda x: x.size(),
-                                 lambda x: isinstance(x, StandardTableau)),
-    "SemistandardTableaux": # apparently, isinstance(x, SemistandardTableau) is True for StandardTableaux x
-    _SupportedFindStatCollection(lambda x: SemistandardTableau(literal_eval(x)),
-                                 str,
-                                 lambda x: (T for T in SemistandardTableaux(size=x[0], max_entry=x[1])
-                                            if max(T.entries()) == x[1]),
-                                 lambda x: (x.size(), max(x.entries())),
-                                 lambda x: isinstance(x, SemistandardTableau) and not isinstance(x, StandardTableau)),
-    "SetPartitions":
-    _SupportedFindStatCollection(lambda x: SetPartition(literal_eval(x.replace('{','[').replace('}',']'))),
-                                 str,
-                                 SetPartitions,
-                                 lambda x: x.size(),
-                                 lambda x: isinstance(x, SetPartition)),
-    "SkewPartitions":
-    _SupportedFindStatCollection(lambda x: SkewPartition(literal_eval(x)),
-                                 str,
-                                 SkewPartitions,
-                                 lambda x: x.size(),
-                                 lambda x: isinstance(x, SkewPartition)),
-    "SignedPermutations":
-    _SupportedFindStatCollection(lambda x: SignedPermutations(len(literal_eval(x)))(list(literal_eval(x))),
-                                 str,
-                                 SignedPermutations,
-                                 lambda x: len(list(x)),
-                                 lambda x: isinstance(x, SignedPermutations.Element)),
-    "PlanePartitions":
-    _SupportedFindStatCollection(lambda x: PlanePartition(literal_eval(x)),
-                                 lambda X: str(list(X)).replace(" ",""),
-                                 _plane_partitions_by_size,
-                                 lambda x: sum(sum(la) for la in x),
-                                 lambda x: isinstance(x, PlanePartition)),
-    "DecoratedPermutations":
-    _SupportedFindStatCollection(lambda x: DecoratedPermutation([v if v > 0 else (i if v == 0 else -i)
-                                                                 for i, v in enumerate(literal_eval(x.replace("+","0").replace("-","-1")), 1)]),
-                                 lambda x: "[" + ",".join((str(v) if abs(v) != i else ("+" if v > 0 else "-")
-                                                           for i, v in enumerate(x, 1))) + "]",
-                                 DecoratedPermutations,
-                                 lambda x: x.size(),
-                                 lambda x: isinstance(x, DecoratedPermutation)),
-    "Lattices":
-    _SupportedFindStatCollection(lambda x: (lambda R, E: LatticePoset((list(range(E)), R)))(*literal_eval(x)),
-                                 lambda X: str((sorted(X._hasse_diagram.cover_relations()),
-                                                len(X._hasse_diagram.vertices(sort=False)))),
-                                 _finite_lattices,
-                                 lambda x: x.cardinality(),
-                                 lambda x: isinstance(x, FiniteLatticePoset))}
+# this dictionary must be sorted so that subclasses come before
+# superclasses, eg., "StandardTableaux" before "SemistandardTableaux"
+_SupportedFindStatCollections = OrderedDict([
+    ("Permutations",
+     _SupportedFindStatCollection(lambda x: Permutation(literal_eval(x)),
+                                  str,
+                                  Permutations,
+                                  lambda x: x.size(),
+                                  lambda x: isinstance(x, Permutation))),
+    ("BinaryWords",
+     _SupportedFindStatCollection(lambda x: Word((int(e) for e in str(x)), alphabet=[0,1]),
+                                  str,
+                                  lambda x: Words([0,1], length=x),
+                                  lambda x: x.length(),
+                                  lambda x: isinstance(x, Word_class))),
+    ("AlternatingSignMatrices",
+     _SupportedFindStatCollection(lambda x: AlternatingSignMatrix(literal_eval(x)),
+                                  lambda x: str(list(map(list, x.to_matrix().rows()))),
+                                  AlternatingSignMatrices,
+                                  lambda x: x.to_matrix().nrows(),
+                                  lambda x: isinstance(x, AlternatingSignMatrix))),
+    ("BinaryTrees",
+     _SupportedFindStatCollection(lambda x: BinaryTree(str(x)),
+                                  str,
+                                  BinaryTrees,
+                                  lambda x: x.node_number(),
+                                  lambda x: isinstance(x, BinaryTree))),
+    ("Cores",
+     _SupportedFindStatCollection(lambda x: Core(*literal_eval(x)),
+                                  lambda X: "( " + X._repr_() + ", " + str(X.k()) + " )",
+                                  lambda x: Cores(x[1], x[0]),
+                                  lambda x: (x.length(), x.k()),
+                                  lambda x: isinstance(x, Core))),
+    ("DyckPaths",
+     _SupportedFindStatCollection(lambda x: DyckWord(literal_eval(x)),
+                                  lambda x: str(list(DyckWord(x))),
+                                  DyckWords,
+                                  lambda x: x.semilength(),
+                                  lambda x: isinstance(x, DyckWord))),
+    ("FiniteCartanTypes",
+     _SupportedFindStatCollection(lambda x: CartanType(*literal_eval(str(x))),
+                                  str,
+                                  _finite_irreducible_cartan_types_by_rank,
+                                  lambda x: x.rank(),
+                                  lambda x: isinstance(x, CartanType_abstract))),
+    ("GelfandTsetlinPatterns",
+     _SupportedFindStatCollection(lambda x: GelfandTsetlinPattern(literal_eval(x)),
+                                  str,
+                                  lambda x: (P
+                                             for la in Partitions(x[1], max_length=x[0])
+                                             for P in GelfandTsetlinPatterns(top_row=la + [0]*(x[0]-len(la)))),
+                                  lambda x: (len(x[0]), sum(x[0])),
+                                  lambda x: (x == GelfandTsetlinPatterns
+                                             or isinstance(x, GelfandTsetlinPattern)))),
+    ("Graphs",
+     _SupportedFindStatCollection(lambda x: (lambda E, V: Graph([list(range(V)),
+                                                                 lambda i,j: (i,j) in E or (j,i) in E],
+                                                                immutable=True))(*literal_eval(x)),
+                                  lambda X: str((X.edges(labels=False, sort=True), X.num_verts())),
+                                  lambda x: (g.copy(immutable=True) for g in graphs(x, copy=False)),
+                                  lambda x: x.num_verts(),
+                                  lambda x: isinstance(x, Graph))),
+    ("IntegerPartitions",
+     _SupportedFindStatCollection(lambda x: Partition(literal_eval(x)),
+                                  str,
+                                  Partitions,
+                                  lambda x: x.size(),
+                                  lambda x: isinstance(x, Partition))),
+    ("IntegerCompositions",
+     _SupportedFindStatCollection(lambda x: Composition(literal_eval(x)),
+                                  str,
+                                  Compositions,
+                                  lambda x: x.size(),
+                                  lambda x: isinstance(x, Composition))),
+    ("OrderedTrees",
+     _SupportedFindStatCollection(lambda x: OrderedTree(literal_eval(x)),
+                                  str,
+                                  OrderedTrees,
+                                  lambda x: x.node_number(),
+                                  lambda x: isinstance(x, OrderedTree))),
+    ("ParkingFunctions",
+     _SupportedFindStatCollection(lambda x: ParkingFunction(literal_eval(x)),
+                                  str,
+                                  ParkingFunctions,
+                                  len,
+                                  lambda x: isinstance(x, ParkingFunction))),
+    ("Lattices",
+     _SupportedFindStatCollection(lambda x: (lambda R, E: LatticePoset((list(range(E)), R)))(*literal_eval(x)),
+                                  lambda X: str((sorted(X._hasse_diagram.cover_relations()),
+                                                 len(X._hasse_diagram.vertices(sort=False)))),
+                                  _finite_lattices,
+                                  lambda x: x.cardinality(),
+                                  lambda x: isinstance(x, FiniteLatticePoset))),
+    ("Posets",
+     _SupportedFindStatCollection(lambda x: (lambda R, E: Poset((list(range(E)), R)))(*literal_eval(x)),
+                                  lambda X: str((sorted(X._hasse_diagram.cover_relations()),
+                                                 len(X._hasse_diagram.vertices(sort=False)))),
+                                  Posets,
+                                  lambda x: x.cardinality(),
+                                  lambda x: isinstance(x, FinitePoset))),
+    ("StandardTableaux",
+     _SupportedFindStatCollection(lambda x: StandardTableau(literal_eval(x)),
+                                  str,
+                                  StandardTableaux,
+                                  lambda x: x.size(),
+                                  lambda x: isinstance(x, StandardTableau))),
+    ("SemistandardTableaux",
+     _SupportedFindStatCollection(lambda x: SemistandardTableau(literal_eval(x)),
+                                  str,
+                                  lambda x: (T for T in SemistandardTableaux(size=x[0], max_entry=x[1])
+                                             if max(T.entries()) == x[1]),
+                                  lambda x: (x.size(), max(x.entries())),
+                                  lambda x: isinstance(x, SemistandardTableau))),
+    ("PerfectMatchings",
+     _SupportedFindStatCollection(lambda x: PerfectMatching(literal_eval(x)),
+                                  str,
+                                  PerfectMatchings,
+                                  lambda x: x.size(),
+                                  lambda x: isinstance(x, PerfectMatching))),
+    ("SetPartitions",
+     _SupportedFindStatCollection(lambda x: SetPartition(literal_eval(x.replace('{','[').replace('}',']'))),
+                                  str,
+                                  SetPartitions,
+                                  lambda x: x.size(),
+                                  lambda x: isinstance(x, SetPartition))),
+    ("SkewPartitions",
+     _SupportedFindStatCollection(lambda x: SkewPartition(literal_eval(x)),
+                                  str,
+                                  SkewPartitions,
+                                  lambda x: x.size(),
+                                  lambda x: isinstance(x, SkewPartition))),
+    ("SignedPermutations",
+     _SupportedFindStatCollection(lambda x: SignedPermutations(len(literal_eval(x)))(list(literal_eval(x))),
+                                  str,
+                                  SignedPermutations,
+                                  lambda x: len(list(x)),
+                                  lambda x: isinstance(x, SignedPermutation))),
+    ("PlanePartitions",
+     _SupportedFindStatCollection(lambda x: PlanePartition(literal_eval(x)),
+                                  lambda X: str(list(X)).replace(" ",""),
+                                  _plane_partitions_by_size,
+                                  lambda x: sum(sum(la) for la in x),
+                                  lambda x: isinstance(x, PlanePartition))),
+    ("DecoratedPermutations",
+     _SupportedFindStatCollection(lambda x: DecoratedPermutation([v if v > 0 else (i if v == 0 else -i)
+                                                                  for i, v in enumerate(literal_eval(x.replace("+","0").replace("-","-1")), 1)]),
+                                  lambda x: "[" + ",".join((str(v) if abs(v) != i else ("+" if v > 0 else "-")
+                                                            for i, v in enumerate(x, 1))) + "]",
+                                  DecoratedPermutations,
+                                  lambda x: x.size(),
+                                  lambda x: isinstance(x, DecoratedPermutation)))])
 
 
 class FindStatCollections(UniqueRepresentation, Parent):
@@ -4689,9 +4690,8 @@ class FindStatCollections(UniqueRepresentation, Parent):
         """
         fields = "LevelsWithSizes,Name,NamePlural,NameWiki"
         url = FINDSTAT_API_COLLECTIONS + "?fields=" + fields
-        d = _get_json(url, object_pairs_hook=OrderedDict)
-        self._findstat_collections = d["included"]["Collections"]
-        for id, data in self._findstat_collections.items():
+        d = _get_json(url, object_pairs_hook=OrderedDict)["included"]["Collections"]
+        for id, data in d.items():
             data["LevelsWithSizes"] = OrderedDict((literal_eval(level), size)
                                                   for level, size in data["LevelsWithSizes"].items())
             if data["NameWiki"] in _SupportedFindStatCollections:
@@ -4706,7 +4706,14 @@ class FindStatCollections(UniqueRepresentation, Parent):
 #                fields = "SageCodeElementToString,SageCodeElementsOnLevel,SageCodeStringToElement"
 #                url = FINDSTAT_API_COLLECTIONS + id + "?fields=" + fields
 #                print(json.load(urlopen(url))["included"]["Collections"][id])
+        def position(item):
+            try:
+                return tuple(_SupportedFindStatCollections).index(item[1]["NameWiki"])
+            except ValueError:
+                return len(_SupportedFindStatCollections)
 
+        self._findstat_collections = OrderedDict(sorted(d.items(),
+                                                        key=position))
         Parent.__init__(self, category=Sets())
 
     def _element_constructor_(self, entry):
@@ -4733,7 +4740,6 @@ class FindStatCollections(UniqueRepresentation, Parent):
              Cc0012: Perfect matchings,
              Cc0013: Cores,
              Cc0014: Posets,
-             Cc0014: Posets,
              Cc0017: Alternating sign matrices,
              Cc0018: Gelfand-Tsetlin patterns,
              Cc0019: Semistandard tableaux,
@@ -4745,7 +4751,8 @@ class FindStatCollections(UniqueRepresentation, Parent):
              Cc0025: Plane partitions,
              Cc0026: Decorated permutations,
              Cc0027: Signed permutations,
-             Cc0028: Skew partitions]
+             Cc0028: Skew partitions,
+             Cc0029: Lattices]
 
             sage: FindStatCollection(Permutation([1,2,3]))                      # optional -- internet
             Cc0001: Permutations

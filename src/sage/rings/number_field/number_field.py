@@ -7417,6 +7417,12 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             sage: K.<a> = NumberField(1/2*x^2 + 1/6)
             sage: K.zeta(3)
             -3/2*a - 1/2
+
+        TESTS::
+
+            sage: K = NumberField(x**60+691*x**12-25,'a')
+            sage: K.zeta(15,all=True)
+            []
         """
         try:
             return self._unit_group.zeta(n, all)

@@ -595,7 +595,7 @@ def four_symbol_delta_code_smallcases(n, existence=False):
     EXAMPLES::
 
         sage: from sage.combinat.matrices.hadamard_matrix import four_symbol_delta_code_smallcases
-        sage: four_symbol_delta_code_smallcases(4)
+        sage: four_symbol_delta_code_smallcases(3)
         ([1, -1, 1], [1, -1, -1], [1, 1, 1], [1, 1, -1])
         sage: four_symbol_delta_code_smallcases(3, existence=True)
         True
@@ -618,12 +618,12 @@ def four_symbol_delta_code_smallcases(n, existence=False):
     }
 
     T1, T2, T3, T4 = None, None, None, None
-    if (n-1)//2 in db:
+    if n%2 == 1 and (n-1)//2 in db:
         if existence:
             return True
         X, Y, Z, W = db[(n-1)//2]
         T1, T2, T3, T4 = construction_four_symbol_delta_code_I(X, Y, Z, W)
-    elif (n-3)//4 in db:
+    elif n%4 == 3 and (n-3)//4 in db:
         if existence:
             return True
         X, Y, Z, W = db[(n-3)//4]
@@ -660,15 +660,15 @@ def _get_baumert_hall_units(n, existence=False):
     EXAMPLES::
 
         sage: from sage.combinat.matrices.hadamard_matrix import _get_baumert_hall_units
-        sage: _get_baumert_hall_units(236)
-        (236 x 236 dense matrix over Integer Ring,
-         236 x 236 dense matrix over Integer Ring,
-         236 x 236 dense matrix over Integer Ring,
-         236 x 236 dense matrix over Integer Ring)
+        sage: _get_baumert_hall_units(28)
+        (28 x 28 dense matrix over Integer Ring,
+         28 x 28 dense matrix over Integer Ring,
+         28 x 28 dense matrix over Integer Ring,
+         28 x 28 dense matrix over Integer Ring)
     
     TESTS::
 
-        sage: _get_baumert_hall_units(236, existence=True)
+        sage: _get_baumert_hall_units(116, existence=True)
         True
         sage: _get_baumert_hall_units(200, existence=True)
         False
@@ -749,14 +749,14 @@ def hadamard_matrix_turyn_type(a, b, c, d, e1, e2, e3, e4, check=True):
     EXAMPLES::
 
         sage: from sage.combinat.matrices.hadamard_matrix import hadamard_matrix_turyn_type, _get_baumert_hall_units
-        sage: A, B, C, D = _get_baumert_hall_units(236)
+        sage: A, B, C, D = _get_baumert_hall_units(28)
         sage: hadamard_matrix_turyn_type([1], [1], [1], [1], A, B, C, D)
-        236 x 236 dense matrix over Integer Ring...
+        28 x 28 dense matrix over Integer Ring...
 
     TESTS::
 
         sage: from sage.combinat.matrices.hadamard_matrix import hadamard_matrix_turyn_type, _get_baumert_hall_units, is_hadamard_matrix
-        sage: A, B, C, D = _get_baumert_hall_units(236)
+        sage: A, B, C, D = _get_baumert_hall_units(12)
         sage: is_hadamard_matrix(hadamard_matrix_turyn_type([1], [1], [1], [1], A, B, C, D))
         True
         sage: hadamard_matrix_turyn_type([1, -1], [1], [1], [1], A, B, C, D)
@@ -816,15 +816,15 @@ def turyn_type_hadamard_matrix_smallcases(n, existence=False, check=True):
     EXAMPLES::
 
         sage: from sage.combinat.matrices.hadamard_matrix import turyn_type_hadamard_matrix_smallcases
-        sage: turyn_type_hadamard_matrix_smallcases(40, existence=True)
+        sage: turyn_type_hadamard_matrix_smallcases(28, existence=True)
         True
-        sage: turyn_type_hadamard_matrix_smallcases(236)
-        236 x 236 dense matrix over Integer Ring...
+        sage: turyn_type_hadamard_matrix_smallcases(28)
+        28 x 28 dense matrix over Integer Ring...
 
     TESTS::
 
         sage: from sage.combinat.matrices.hadamard_matrix import turyn_type_hadamard_matrix_smallcases, is_hadamard_matrix
-        sage: is_hadamard_matrix(turyn_type_hadamard_matrix_smallcases(40))
+        sage: is_hadamard_matrix(turyn_type_hadamard_matrix_smallcases(236)) # long time
         True
         sage: turyn_type_hadamard_matrix_smallcases(64, existence=True)
         False

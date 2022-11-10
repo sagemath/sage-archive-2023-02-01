@@ -1,5 +1,5 @@
 papilo: Parallel presolve for integer and linear optimization
--------------------------------------------------------------
+=============================================================
 
 Description
 -----------

@@ -2,7 +2,7 @@ r"""
 Symbolic minimum and maximum
 
 Sage provides a symbolic maximum and minimum due to the fact that the
-Python builtin `\max` and `\min` are not able to deal with variables
+Python builtin :func:`max` and :func:`min` are not able to deal with variables
 as users might expect. These functions wait to evaluate if there are variables.
 
 Here you can see some differences::
@@ -156,7 +156,7 @@ class MaxSymbolic(MinMax_base):
         r"""
         Symbolic `\max` function.
 
-        The Python builtin `\max` function does not work as expected when symbolic
+        The Python builtin :func:`max` function does not work as expected when symbolic
         expressions are given as arguments. This function delays evaluation
         until all symbolic arguments are substituted with values.
 
@@ -248,7 +248,7 @@ class MinSymbolic(MinMax_base):
         r"""
         Symbolic `\min` function.
 
-        The Python builtin `\min` function does not work as expected when symbolic
+        The Python builtin :func:`min` function does not work as expected when symbolic
         expressions are given as arguments. This function delays evaluation
         until all symbolic arguments are substituted with values.
 

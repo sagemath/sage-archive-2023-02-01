@@ -84,7 +84,7 @@ The documentation can contain links toward modules, classes, or methods, e.g.::
 
 For links toward classes, methods, or function, replace **:mod:** by
 **:class:**, **:meth:** or **:func:** respectively.  See `Sphinx' documentation
-<http://www.sphinx-doc.org/markup/inline.html>`_.
+<https://www.sphinx-doc.org/en/master/usage/restructuredtext/roles.html>`_.
 
 **Short links:** the link ``:func:`~sage.mod1.mod2.mod3.func1``` is equivalent
 to ``:func:`func1 <sage.mod1.mod2.mod3.func1>```: the function's name will be

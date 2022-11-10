@@ -129,15 +129,15 @@ This works also for congruence subgroup::
     sage: QM.ngens()
     5
     sage: QM.polynomial_ring()
-    Multivariate Polynomial Ring in E2, A2, B2, A3, B3 over Rational Field
+    Multivariate Polynomial Ring in E2, E2_0, E2_1, E3_0, E3_1 over Rational Field
     sage: (QM.0 + QM.1*QM.0^2 + QM.3 + QM.4^3).polynomial()
-    B3^3 + E2^2*A2 + A3 + E2
+    E3_1^3 + E2^2*E2_0 + E3_0 + E2
 
 One can also convert a multivariate polynomial into a quasimodular form::
 
     sage: QM.polynomial_ring().inject_variables()
-    Defining E2, A2, B2, A3, B3
-    sage: QM.from_polynomial(B3^3 + E2^2*A2 + A3 + E2)
+    Defining E2, E2_0, E2_1, E3_0, E3_1
+    sage: QM.from_polynomial(E3_1^3 + E2^2*E2_0 + E3_0 + E2)
     3 - 72*q + 396*q^2 + 2081*q^3 + 19752*q^4 + 98712*q^5 + O(q^6)
 
 .. NOTE::
@@ -605,8 +605,18 @@ class QuasiModularForms(Parent, UniqueRepresentation):
         - ``names`` (str, default: ``None``) -- a list or tuple of names
           (strings), or a comma separated string. Defines the names for the
           generators of the multivariate polynomial ring. The default names are
-          of the form ``ABCk`` where ``k`` is a number corresponding to the
-          weight of the form ``ABC``.
+          of the following form:
+
+          - ``E2`` denotes the weight 2 Eisenstein series;
+
+          - ``Ek_i`` and ``Sk_i`` denote the `i`-th basis element of the weight
+            `k` Eisenstein subspace and cuspidal subspace respectively;
+
+          - If the level is one, the default names are ``E2``, ``E4`` and
+            ``E6``;
+
+          - In any other cases, we use the letters ``Fk``, ``Gk``, ``Hk``, ...,
+            ``FFk``, ``FGk``, ... to denote any generator of weight `k`.
 
         OUTPUT: A multivariate polynomial ring in the variables ``names``
 
@@ -623,30 +633,87 @@ class QuasiModularForms(Parent, UniqueRepresentation):
             4
             sage: E6.degree()
             6
-            sage: QM = QuasiModularForms(Gamma1(9))
-            sage: QM.polynomial_ring()
-            Multivariate Polynomial Ring in E2, A2, B2, C2, D2, F2, G2, H2, A3, B3, C3, D3, F3, G3, H3, AA3, AB3, AC3 over Rational Field
-            sage: QM = QuasiModularForms(Gamma0(6))
-            sage: QM.polynomial_ring(names="F")
-            Multivariate Polynomial Ring in F0, F1, F2, F3 over Rational Field
+
+        Example when the level is not one::
+
+            sage: QM = QuasiModularForms(Gamma0(29))
+            sage: P_29 = QM.polynomial_ring()
+            sage: P_29
+            Multivariate Polynomial Ring in E2, F2, S2_0, S2_1, E4_0, F4, G4, H4 over Rational Field
+            sage: P_29.inject_variables()
+            Defining E2, F2, S2_0, S2_1, E4_0, F4, G4, H4
+            sage: F2.degree()
+            2
+            sage: E4_0.degree()
+            4
+
+        The name ``Sk_i`` stands for the `i`-th basis element of the cuspidal subspace of weight `k`::
+
+            sage: F2 = QM.from_polynomial(S2_0)
+            sage: F2.qexp(10)
+            q - q^4 - q^5 - q^6 + 2*q^7 - 2*q^8 - 2*q^9 + O(q^10)
+            sage: CuspForms(Gamma0(29), 2).0.qexp(10)
+            q - q^4 - q^5 - q^6 + 2*q^7 - 2*q^8 - 2*q^9 + O(q^10)
+            sage: F2 == CuspForms(Gamma0(29), 2).0
+            True
+
+        The name ``Ek_i`` stands for the `i`-th basis element of the Eisenstein subspace of weight `k`::
+
+            sage: F4 = QM.from_polynomial(E4_0)
+            sage: F4.qexp(30)
+            1 + 240*q^29 + O(q^30)
+            sage: EisensteinForms(Gamma0(29), 4).0.qexp(30)
+            1 + 240*q^29 + O(q^30)
+            sage: F4 == EisensteinForms(Gamma0(29), 4).0
+            True
+
+        One may also choose the name of the variables::
+
+            sage: QM = QuasiModularForms(1)
+            sage: QM.polynomial_ring(names="P, Q, R")
+            Multivariate Polynomial Ring in P, Q, R over Rational Field
         """
-        weights = [f.weight() for f in self.__modular_forms_subring.gen_forms()]
+        M = self.__modular_forms_subring
+        gens = self.__modular_forms_subring.gen_forms()
+        weights = [f.weight() for f in gens]
+        gens = iter(gens)
         if names is None:
             if self.group() == Gamma0(1):
                 names = ["E2", "E4", "E6"]
             else:
                 names = ["E2"]
-                letters = "ABCDFGH"
+                letters = "FGHIJK"
                 for unique_weight in set(weights):
                     same_weights = [k for k in weights if k == unique_weight]
                     # create all the names of the form:
-                    # A, B, C, D, F, G, H, AA, AB, AC, AD,..., AAA, AAB, AAC,...
-                    # the letter E is reserved for the weight 2 Eisenstein series
+                    #     F, G, H, I, J, K, FF, FG, FH,..., FFF, FFG,...
+                    # the letters E and S are reserved for basis elements of the
+                    # Eisenstein subspaces and cuspidal subspaces respectively.
                     iter_names = (product(letters, repeat=r)
-                                  for r in range(1, len(same_weights)//7 + 2))
+                                    for r in range(1, len(same_weights)//len(letters) + 2))
                     iter_names = chain(*iter_names)
                     for k in same_weights:
-                        names.append("".join(next(iter_names)) + str(k))
+                        form = next(gens)
+                        Mk = self.__modular_forms_subring.modular_forms_of_weight(k)
+                        if form.is_eisenstein():
+                            Ek_basis = Mk.eisenstein_subspace().basis()
+                            # check if form is a basis element of the Eisenstein subspace of weight k
+                            try:
+                                n = Ek_basis.index(form)
+                                name = f"E{str(k)}_{str(n)}"
+                            except ValueError:
+                                name = "".join(next(iter_names)) + str(k)
+                        elif form.is_cuspidal():
+                            Sk_basis = Mk.cuspidal_subspace().basis()
+                            # check if form is a basis element of the cuspidal subspace of weight k
+                            try:
+                                n = Sk_basis.index(form)
+                                name = f"S{str(k)}_{str(n)}"
+                            except ValueError:
+                                name = "".join(next(iter_names)) + str(k)
+                        else:
+                            name = "".join(next(iter_names)) + str(k)
+                        names.append(name)
         weights.insert(0, 2) # add the weight 2 Eisenstein series
         return PolynomialRing(self.base_ring(), len(weights), names,
                               order=TermOrder('wdeglex', weights))
@@ -680,10 +747,10 @@ class QuasiModularForms(Parent, UniqueRepresentation):
             sage: QM = QuasiModularForms(Gamma0(2))
             sage: P = QM.polynomial_ring()
             sage: P.inject_variables()
-            Defining E2, A2, A4
+            Defining E2, E2_0, E4_0
             sage: QM.from_polynomial(E2)
             1 - 24*q - 72*q^2 - 96*q^3 - 168*q^4 - 144*q^5 + O(q^6)
-            sage: QM.from_polynomial(E2 + A4*A2) == QM.0 + QM.2*QM.1
+            sage: QM.from_polynomial(E2 + E4_0*E2_0) == QM.0 + QM.2*QM.1
             True
 
         Naturally, the number of variable must not exceed the number of generators::

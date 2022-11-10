@@ -74,13 +74,16 @@ class QuasiModularFormsElement(ModuleElement):
         sage: F.polynomial()
         E2*E4*E6 + E4^2 + E2^2
 
-    If the group is not the full modular group, the names of the generators will
-    of the form ``ABCk`` where ``k`` is the weight of the form ``ABC``::
+    If the group is not the full modular group, the default names of the
+    generators are given by ``Ek_i`` and ``Sk_i`` to denote the `i`-th basis
+    element of the weight `k` Eisenstein subspace and cuspidal subspace
+    respectively (for more details, see the documentation of
+    :meth:`~sage.modular.quasimodform.ring.QuasiModularFormsRing.polynomial_ring`) ::
 
         sage: QM = QuasiModularForms(Gamma1(4))
         sage: F = (QM.0^4)*(QM.1^3) + QM.3
         sage: F.polynomial()
-        -512*E2^4*B2^3 + E2^4*A3^2 + 48*E2^4*B3^2 + A3
+        -512*E2^4*E2_1^3 + E2^4*E3_0^2 + 48*E2^4*E3_1^2 + E3_0
     """
     def __init__(self, parent, polynomial):
         r"""
@@ -413,7 +416,7 @@ class QuasiModularFormsElement(ModuleElement):
             sage: QM.ngens()
             5
             sage: (QM.0 + QM.1 + QM.2*QM.1 + QM.3*QM.4).polynomial()
-            B3*A4 + A2*A3 + E2 + A2
+            E3_1*E4_0 + E2_0*E3_0 + E2 + E2_0
 
         """
         P = self.parent().polynomial_ring(names)

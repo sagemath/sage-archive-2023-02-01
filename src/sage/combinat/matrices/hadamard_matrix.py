@@ -467,7 +467,7 @@ def construction_four_symbol_delta_code_I(X, Y, Z, W):
     OUTPUT:
         A tuple containing the 4-symbol delta code of length 2*n+1
 
-    EXAMPLE::
+    EXAMPLES::
     
         sage: from sage.combinat.matrices.hadamard_matrix import construction_four_symbol_delta_code_I
         sage: construction_four_symbol_delta_code_I([1, 1], [1, -1], [1], [1])
@@ -537,7 +537,7 @@ def construction_four_symbol_delta_code_II(X, Y, Z, W):
     OUTPUT:
         A tuple containing the four 4-symbol delta code of length 2*n+1
 
-    EXAMPLE::
+    EXAMPLES::
     
         sage: from sage.combinat.matrices.hadamard_matrix import construction_four_symbol_delta_code_II
         sage: construction_four_symbol_delta_code_II([1, 1], [1, -1], [1], [1])
@@ -592,6 +592,7 @@ def four_symbol_delta_code_smallcases(n, existence=False):
         - ``n`` -- integer, the length of the desired 4-symbol delta code
 
         - ``existence`` -- boolean, if true only check if the sequences are available
+        
     EXAMPLES::
 
         sage: from sage.combinat.matrices.hadamard_matrix import four_symbol_delta_code_smallcases

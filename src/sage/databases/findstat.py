@@ -118,13 +118,14 @@ maps and a statistic known to FindStat.  We use the occasion to
 advertise yet another way to pass values to FindStat::
 
     sage: r = findstat(Permutations, lambda pi: pi.saliances()[0], depth=2); r  # optional -- internet
-    0: St000740oMp00087 with offset 1 (quality [100, 100])
+    0: St000740oMp00066 with offset 1 (quality [100, 100])
+    1: St000740oMp00087 with offset 1 (quality [100, 100])
     ...
 
 Note that some of the matches are up to a global offset.  For
 example, we have::
 
-    sage: r[0].info()                                                           # optional -- internet
+    sage: r[1].info()                                                           # optional -- internet
     after adding 1 to every value
     and applying
         Mp00087: inverse first fundamental transformation: Permutations -> Permutations
@@ -431,10 +432,10 @@ def _get_json(url, **kwargs):
     EXAMPLES::
 
         sage: from sage.databases.findstat import _get_json, FINDSTAT_API_MAPS
-        sage: _get_json(FINDSTAT_API_MAPS + "?xxx=yyy")                         # optional -- internet
+        sage: _get_json(FINDSTAT_API_MAPS + "?fields=yyy")                      # optional -- internet
         Traceback (most recent call last):
         ...
-        ValueError: E005: On filtering maps, the following parameters are not allowed: [u'xxx'].
+        ValueError: E018: Unknown fields in Map, Combinatorial map: to semistandard tableau via monotone triangles: ['yyy']
     """
     response = requests.get(url)
     if response.ok:
@@ -454,10 +455,10 @@ def _post_json(url, data, **kwargs):
     EXAMPLES::
 
         sage: from sage.databases.findstat import _post_json, FINDSTAT_API_STATISTICS
-        sage: _post_json(FINDSTAT_API_STATISTICS, {"xxx": "yyy"})               # optional -- internet
+        sage: _post_json(FINDSTAT_API_STATISTICS, {"fields": "yyy"})            # optional -- internet
         Traceback (most recent call last):
         ...
-        ValueError: E005: On filtering statistics, the following parameters are not allowed: ['xxx'].
+        ValueError: E018: Unknown fields in Statistic, Combinatorial statistic: St000001: ['yyy']
     """
     response = requests.post(url, data=data)
     if response.ok:

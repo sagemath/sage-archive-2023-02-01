@@ -570,9 +570,9 @@ cdef class NCPolynomialRing_plural(Ring):
                 _p = p_NSet(_n, _ring)
 
         else:
-            raise NotImplementedError(f"not able to interpret {element)}"
+            raise NotImplementedError(f"not able to interpret {element}"
                                       f" of type {type(element)}"
-                                      " as noncommutative polynomial")  # ????
+                                      " as noncommutative polynomial")  # ???
         return new_NCP(self, _p)
 
     cpdef _coerce_map_from_(self, S):

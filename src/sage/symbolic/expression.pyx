@@ -13724,7 +13724,10 @@ cpdef new_Expression(parent, x):
             return NaN
         exp = x
     elif isinstance(x, int):
-        exp = GEx(<long>x)
+        try:
+            exp = GEx(<int>x)
+        except OverflowError:
+            exp = x
     elif x is infinity:
         return new_Expression_from_GEx(parent, g_Infinity)
     elif x is minus_infinity:

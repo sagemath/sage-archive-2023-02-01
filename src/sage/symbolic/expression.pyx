@@ -13725,7 +13725,7 @@ cpdef new_Expression(parent, x):
         exp = x
     elif isinstance(x, int):
         try:
-            exp = GEx(<int>x)
+            exp = GEx(<long>x)
         except OverflowError:
             exp = x
     elif x is infinity:

@@ -4784,8 +4784,9 @@ class FindStatCollections(UniqueRepresentation, Parent):
 
         Check that we can override the automatic detection::
 
-            sage: qu = findstat("Semistandardtableaux", [(T, len(T)) for n in range(1,5) for T in StandardTableaux(n)], depth=1)
-            sage: qu[0]
+            sage: l = [(T, len(T)) for n in range(1,5) for T in StandardTableaux(n)]        # optional -- internet
+            sage: qu = findstat("Semistandardtableaux", l, depth=1)                         # optional -- internet
+            sage: qu[0]                                                                     # optional -- internet
             St000010oMp00077 (quality [100, 100])
         """
         if isinstance(entry, self.Element):

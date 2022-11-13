@@ -1023,6 +1023,8 @@ class SageOutputChecker(doctest.OutputChecker):
             did_fixup = True
 
         if "newer macOS version" in got:
+            # :trac:`34741` -- suppress warning arising after
+            # upgrading from macOS 12.X to 13.X.
             newer_macOS_version_regex = re.compile(r'.*dylib \(.*\) was built for newer macOS version \(.*\) than being linked \(.*\)')
             got = newer_macOS_version_regex.sub('', got)
             did_fixup = True

@@ -54,10 +54,7 @@ from sage.rings.integer import Integer
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.tensor.modules.finite_rank_free_module import FiniteRankFreeModule
-from sage.tensor.modules.reflexive_module import (
-    ReflexiveModule_abstract,
-    ReflexiveModule_base
-)
+from sage.tensor.modules.reflexive_module import ReflexiveModule_base
 
 if TYPE_CHECKING:
     from sage.manifolds.differentiable.diff_map import DiffMap

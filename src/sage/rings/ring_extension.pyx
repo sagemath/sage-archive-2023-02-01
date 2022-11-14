@@ -1921,9 +1921,21 @@ cdef class RingExtension_generic(CommutativeAlgebra):
 
         ::
 
-            sage: R = Zp(7).over(ZZ)
-            sage: R.characteristic()
-            0
+            sage: E = Fp(7).over(ZZ)
+            sage: E.characteristic()
+            7
+
+        TESTS::
+
+            Ensure ticket :trac:`34692` is fixed.
+
+            sage: Fq = GF(11)
+            sage: FqX.<X> = Fq[]
+            sage: k = Frac(FqX)
+            sage: i = Hom(FqX, k).natural_map()
+            sage: K = k.over(i)
+            sage: K.frobenius_endomorphism()
+            Frobenius endomorphism x |--> x^11 of Fraction Field of Univariate Polynomial Ring in X over Finite Field of size 11 over its base
         """
         return self._backend.characteristic()
 

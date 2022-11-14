@@ -1885,6 +1885,48 @@ cdef class RingExtension_generic(CommutativeAlgebra):
         parent = self.Hom(codomain, category=category)
         return RingExtensionHomomorphism(parent, im_gens, base_map, check)
 
+    def characteristic(self):
+        r"""
+        Return the characteristic of the extension as a ring.
+
+        OUTPUT:
+
+        A prime number.
+
+        EXAMPLES::
+
+            sage: F = GF(5^2).over()   # over GF(5)
+            sage: K = GF(5^4).over(F)
+            sage: L = GF(5^12).over(K)
+            sage: F.characteristic()
+            5
+            sage: K.characteristic()
+            5
+            sage: L.characteristic()
+            5
+
+        ::
+
+            sage: F = RR.over(ZZ)
+            sage: F.characteristic()
+            0
+
+        ::
+
+            sage: F = GF(11)
+            sage: A.<x> = F[]
+            sage: K = Frac(F).over(F)
+            sage: K.characteristic()
+            11
+
+        ::
+
+            sage: R = Zp(7).over(ZZ)
+            sage: R.characteristic()
+            0
+        """
+        return self._backend.characteristic()
+
 
 # Fraction fields
 #################

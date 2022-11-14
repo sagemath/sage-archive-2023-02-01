@@ -24178,7 +24178,7 @@ class GenericGraph(GenericGraph_pyx):
         other nodes. ::
 
             sage: G = DiGraph({1: [10], 2:[10,11], 3:[10,11], 4:[], 5:[11, 4], 6:[11], 7:[10,11], 8:[10,11], 9:[10], 10:[11, 5, 8], 11:[6]})
-            sage: G.katz_centrality(.85)
+            sage: G.katz_centrality(.85) # rel tol 1e-14
             {1: 0.000000000000000,
              2: 0.000000000000000,
              3: 0.000000000000000,

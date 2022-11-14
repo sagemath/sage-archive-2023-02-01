@@ -1775,6 +1775,82 @@ class MPolynomialIdeal_singular_repr(
         S = syz(self)
         return matrix(self.ring(), S)
 
+    @require_field
+    def free_resolution(self, *args, **kwds):
+        r"""
+        Return a free resolution of ``self``.
+
+        For input options, see
+        :class:`~sage.homology.free_resolution.FreeResolution`.
+
+        EXAMPLES::
+
+            sage: R.<x,y> = PolynomialRing(QQ)
+            sage: f = 2*x^2 + y
+            sage: g = y
+            sage: h = 2*f + g
+            sage: I = R.ideal([f,g,h])
+            sage: res = I.free_resolution()
+            sage: res
+            S^1 <-- S^2 <-- S^1 <-- 0
+            sage: ascii_art(res.chain_complex())
+                                        [-x^2]
+                        [  y x^2]       [   y]
+             0 <-- C_0 <---------- C_1 <------- C_2 <-- 0
+
+            sage: q = ZZ['q'].fraction_field().gen()
+            sage: R.<x,y,z> = q.parent()[]
+            sage: I = R.ideal([x^2+y^2+z^2, x*y*z^4])
+            sage: I.free_resolution()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: the ring must be a polynomial ring using Singular
+        """
+        from sage.rings.polynomial.multi_polynomial_libsingular import MPolynomialRing_libsingular
+        if isinstance(self.ring(), MPolynomialRing_libsingular):
+            from sage.homology.free_resolution import FiniteFreeResolution_singular
+            return FiniteFreeResolution_singular(self, *args, **kwds)
+        raise NotImplementedError("the ring must be a polynomial ring using Singular")
+
+    @require_field
+    def graded_free_resolution(self, *args, **kwds):
+        r"""
+        Return a graded free resolution of ``self``.
+
+        For input options, see
+        :class:`~sage.homology.graded_resolution.GradedFreeResolution`.
+
+        EXAMPLES::
+
+            sage: R.<x,y> = PolynomialRing(QQ)
+            sage: f = 2*x^2 + y^2
+            sage: g = y^2
+            sage: h = 2*f + g
+            sage: I = R.ideal([f,g,h])
+            sage: I.graded_free_resolution(shifts=[1])
+            S(-1) <-- S(-3)⊕S(-3) <-- S(-5) <-- 0
+
+            sage: f = 2*x^2 + y
+            sage: g = y
+            sage: h = 2*f + g
+            sage: I = R.ideal([f,g,h])
+            sage: I.graded_free_resolution(degrees=[1,2])
+            S(0) <-- S(-2)⊕S(-2) <-- S(-4) <-- 0
+
+            sage: q = ZZ['q'].fraction_field().gen()
+            sage: R.<x,y,z> = q.parent()[]
+            sage: I = R.ideal([x^2+y^2+z^2, x*y*z^4])
+            sage: I.graded_free_resolution()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: the ring must be a polynomial ring using Singular
+        """
+        from sage.rings.polynomial.multi_polynomial_libsingular import MPolynomialRing_libsingular
+        if isinstance(self.ring(), MPolynomialRing_libsingular):
+            from sage.homology.graded_resolution import GradedFiniteFreeResolution_singular
+            return GradedFiniteFreeResolution_singular(self, *args, **kwds)
+        raise NotImplementedError("the ring must be a polynomial ring using Singular")
+
     @handle_AA_and_QQbar
     @singular_gb_standard_options
     @libsingular_gb_standard_options
@@ -2373,9 +2449,6 @@ class MPolynomialIdeal_singular_repr(
             sage: I.variety(ring=AA)
             [{y: 1, x: 1},
              {y: 0.3611030805286474?, x: 2.769292354238632?}]
-            sage: I.variety(RBF, algorithm='msolve', proof=False) # optional - msolve
-            [{x: [2.76929235423863 +/- 2.08e-15], y: [0.361103080528647 +/- 4.53e-16]},
-             {x: 1.000000000000000, y: 1.000000000000000}]
 
         and a total of four intersections::
 
@@ -2393,6 +2466,14 @@ class MPolynomialIdeal_singular_repr(
               x: 0.11535382288068429? + 0.5897428050222055?*I},
              {y: 0.3611030805286474?, x: 2.769292354238632?},
              {y: 1, x: 1}]
+
+        We can also use the `optional package msolve <../spkg/msolve.html>`_
+        to compute the variety.
+        See :mod:`~sage.rings.polynomial.msolve` for more information. ::
+
+            sage: I.variety(RBF, algorithm='msolve', proof=False) # optional - msolve
+            [{x: [2.76929235423863 +/- 2.08e-15], y: [0.361103080528647 +/- 4.53e-16]},
+             {x: 1.000000000000000, y: 1.000000000000000}]
 
         Computation over floating point numbers may compute only a partial solution,
         or even none at all. Notice that x values are missing from the following variety::
@@ -2437,15 +2518,35 @@ class MPolynomialIdeal_singular_repr(
             sage: v["y"]
             -7.464101615137755?
 
+        msolve also works over finite fields::
+
+            sage: R.<x, y> = PolynomialRing(GF(536870909), 2, order='lex')
+            sage: I = Ideal([ x^2 - 1, y^2 - 1 ])
+            sage: sorted(I.variety(algorithm='msolve', proof=False), key=str) # optional - msolve
+            [{x: 1, y: 1},
+             {x: 1, y: 536870908},
+             {x: 536870908, y: 1},
+             {x: 536870908, y: 536870908}]
+
+        but may fail in small characteristic, especially with ideals of high
+        degree with respect to the characteristic::
+
+            sage: R.<x, y> = PolynomialRing(GF(3), 2, order='lex')
+            sage: I = Ideal([ x^2 - 1, y^2 - 1 ])
+            sage: I.variety(algorithm='msolve', proof=False) # optional - msolve
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: characteristic 3 too small
+
         ALGORITHM:
 
         - With ``algorithm`` = ``"triangular_decomposition"`` (default),
           uses triangular decomposition, via Singular if possible, falling back
           on a toy implementation otherwise.
 
-        - With ``algorithm`` = ``"msolve"``, calls the external program
-          `msolve <https://msolve.lip6.fr/>`_ (if available in the system
-          program search path). Note that msolve uses heuristics and therefore
+        - With ``algorithm`` = ``"msolve"``, uses the
+          `optional package msolve <../spkg/msolve.html>`_.
+          Note that msolve uses heuristics and therefore
           requires setting the ``proof`` flag to ``False``. See
           :mod:`~sage.rings.polynomial.msolve` for more information.
         """
@@ -2453,7 +2554,7 @@ class MPolynomialIdeal_singular_repr(
             return self._variety_triangular_decomposition(ring)
         elif algorithm == "msolve":
             from . import msolve
-            return msolve._variety(self, ring, proof)
+            return msolve.variety(self, ring, proof=proof)
         else:
             raise ValueError(f"unknown algorithm {algorithm!r}")
 
@@ -2715,37 +2816,41 @@ class MPolynomialIdeal_singular_repr(
             sage: I = Ideal([x^3*y^2 + 3*x^2*y^2*z + y^3*z^2 + z^5])
             sage: I.hilbert_polynomial()
             5*t - 5
+
+        Check for :trac:`33597`::
+
+            sage: R.<X, Y, Z> = QQ[]
+            sage: I = R.ideal([X^2*Y^3, X*Z])
+            sage: I.hilbert_polynomial()
+            t + 5
         """
         if not self.is_homogeneous():
             raise TypeError("ideal must be homogeneous")
-
         if algorithm == 'sage':
             from sage.misc.misc_c import prod
             hilbert_poincare = self.hilbert_series()
-            denom = hilbert_poincare.denominator().factor()
-            second_hilbert = hilbert_poincare.numerator()
-            t = second_hilbert.parent().gen()
-            if denom:
-                s = denom[0][1] # this is the pole order of the Hilbert-Poincaré series at t=1
-            else:
-                return t.parent().zero()
-            # we assume the denominator of the Hilbert series is of the form (1-t)^s, scale if needed
-            if hilbert_poincare.denominator().leading_coefficient() == 1:
-                second_hilbert = second_hilbert*(-1)**s
-            denom = ZZ(s-1).factorial()
-            out = sum(c / denom * prod(s - 1 - n - nu + t for nu in range(s-1))
-                      for n,c in enumerate(second_hilbert)) + t.parent().zero()
-            return out
-        elif algorithm == 'singular':
+            denom = hilbert_poincare.denominator()
+            if denom.degree() == 0:
+                return denom.parent().zero()
+            t = denom.parent().gen()
+            s = denom.valuation(t - 1)
+            numerator = hilbert_poincare.numerator()
+            # we assume the denominator of the Hilbert series is of
+            # the form (1 - t)^s, need to scale numerator
+            scalar = ~(denom[0] * (s - 1).factorial())
+            st = s - 1 + t
+            out = scalar * sum(c * prod(st - n - nu for nu in range(s - 1))
+                               for n, c in enumerate(numerator))
+            return t.parent().zero() + out
+        if algorithm == 'singular':
             from sage.libs.singular.function_factory import ff
             hilbPoly = ff.polylib__lib.hilbPoly
 
             hp = hilbPoly(self)
             t = ZZ['t'].gen()
-            fp = ZZ(len(hp)-1).factorial()
-            return sum(ZZ(coeff) * t**i for i,coeff in enumerate(hp)) / fp
-        else:
-            raise ValueError("'algorithm' must be 'sage' or 'singular'")
+            fp = ZZ(len(hp) - 1).factorial()
+            return sum(ZZ(coeff) * t**i for i, coeff in enumerate(hp)) / fp
+        raise ValueError("'algorithm' must be 'sage' or 'singular'")
 
     @require_field
     @handle_AA_and_QQbar
@@ -3988,6 +4093,10 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         'macaulay2:mgb'
             Macaulay2's ``GroebnerBasis`` command with the strategy "MGB" (if available)
 
+        'msolve'
+            `optional package msolve <../spkg/msolve.html>`_ (degrevlex order,
+            prime fields)
+
         'magma:GroebnerBasis'
             Magma's ``Groebnerbasis`` command (if available)
 
@@ -4110,6 +4219,14 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             sage: I = sage.rings.ideal.Katsura(R,3) # regenerate to prevent caching
             sage: I.groebner_basis('macaulay2:mgb') # optional - macaulay2
             [c^3 + 28*c^2 - 37*b + 13*c, b^2 - 41*c^2 + 20*b - 20*c, b*c - 19*c^2 + 10*b + 40*c, a + 2*b + 2*c - 1]
+
+        Over prime fields of small characteristic, we can also use the
+        `optional package msolve <../spkg/msolve.html>`_::
+
+            sage: R.<a,b,c> = PolynomialRing(GF(101), 3)
+            sage: I = sage.rings.ideal.Katsura(R,3) # regenerate to prevent caching
+            sage: I.groebner_basis('msolve')  # optional - msolve
+            [a + 2*b + 2*c - 1, b*c - 19*c^2 + 10*b + 40*c, b^2 - 41*c^2 + 20*b - 20*c, c^3 + 28*c^2 - 37*b + 13*c]
 
         ::
 
@@ -4248,8 +4365,8 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
 
         ALGORITHM:
 
-        Uses Singular, Magma (if available), Macaulay2 (if available),
-        Giac (if available), or a toy implementation.
+        Uses Singular, one of the other systems listed above (if available),
+        or a toy implementation.
 
         TESTS:
 
@@ -4329,6 +4446,15 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             sage: I = sage.rings.ideal.Katsura(P,3) # regenerate to prevent caching
             sage: I.groebner_basis('magma:GroebnerBasis') # optional - magma
             [a + (-60)*c^3 + 158/7*c^2 + 8/7*c - 1, b + 30*c^3 + (-79/7)*c^2 + 3/7*c, c^4 + (-10/21)*c^3 + 1/84*c^2 + 1/84*c]
+
+        msolve currently supports the degrevlex order only::
+
+            sage: R.<a,b,c> = PolynomialRing(GF(101), 3, order='lex')
+            sage: I = sage.rings.ideal.Katsura(R,3) # regenerate to prevent caching
+            sage: I.groebner_basis('msolve')  # optional - msolve
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: msolve only supports the degrevlex order (use transformed_basis())
         """
         from sage.rings.polynomial.multi_polynomial_sequence import PolynomialSequence
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
@@ -4414,7 +4540,14 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         elif algorithm == 'giac:gbasis':
             from sage.libs.giac import groebner_basis as groebner_basis_libgiac
             gb = groebner_basis_libgiac(self, prot=prot, *args, **kwds)
-
+        elif algorithm == 'msolve':
+            if self.ring().term_order() != 'degrevlex':
+                raise NotImplementedError("msolve only supports the degrevlex order "
+                                          "(use transformed_basis())")
+            if not (deg_bound is mult_bound is None) or prot:
+                raise NotImplementedError("unsupported options for msolve")
+            from . import msolve
+            return msolve.groebner_basis_degrevlex(self, *args, **kwds)
         else:
             raise NameError("Algorithm '%s' unknown."%algorithm)
 
@@ -5224,7 +5357,6 @@ class MPolynomialIdeal_quotient(MPolynomialIdeal):
         Ideal (w^2 + x + z - 1) of Quotient of Multivariate Polynomial Ring
         in x, y, z, w over Rational Field by the ideal (x*y - z^2, y^2 - w^2)
     """
-
     def reduce(self, f):
         r"""
         Reduce an element modulo a Gröbner basis for this ideal.

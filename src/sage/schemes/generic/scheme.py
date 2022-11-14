@@ -127,9 +127,9 @@ class Scheme(Parent):
             category = default_category
         else:
             assert category.is_subcategory(default_category), \
-                "%s is not a subcategory of %s"%(category, default_category)
+                "%s is not a subcategory of %s" % (category, default_category)
 
-        Parent.__init__(self, self.base_ring(), category = category)
+        Parent.__init__(self, self.base_ring(), category=category)
 
     def union(self, X):
         """
@@ -646,7 +646,7 @@ class Scheme(Parent):
 
             sage: E = EllipticCurve('37a1')
             sage: Hom(E, E).__class__
-            <class 'sage.schemes.generic.homset.SchemeHomset_generic_with_category'>
+            <class 'sage.schemes.projective.projective_homset.SchemeHomset_polynomial_projective_space_with_category'>
 
             sage: Hom(Spec(ZZ), Spec(ZZ)).__class__
             <class 'sage.schemes.generic.homset.SchemeHomset_generic_with_category_with_equality_by_id'>

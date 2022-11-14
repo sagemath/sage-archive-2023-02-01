@@ -2025,7 +2025,7 @@ class CartanType_affine(CartanType_simple, CartanType_crystallographic):
 
         We check that :meth:`classical`,
         :meth:`sage.combinat.root_system.cartan_type.CartanType_crystallographic.dynkin_diagram`,
-        and :meth:`.special_node` are consistent::
+        and :meth:`special_node` are consistent::
 
             sage: for ct in CartanType.samples(affine = True):
             ....:     g1 = ct.classical().dynkin_diagram()

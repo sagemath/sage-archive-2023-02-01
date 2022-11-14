@@ -1891,7 +1891,7 @@ cdef class RingExtension_generic(CommutativeAlgebra):
 
         OUTPUT:
 
-        A prime number.
+        A prime number or zero.
 
         EXAMPLES::
 

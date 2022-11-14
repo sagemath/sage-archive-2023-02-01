@@ -4,6 +4,8 @@ Tensors
 .. toctree::
    :maxdepth: 2
 
+   sage/tensor/modules/reflexive_module
+
    sage/tensor/modules/tensor_free_module
 
    sage/tensor/modules/tensor_free_submodule

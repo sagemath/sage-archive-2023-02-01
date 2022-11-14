@@ -7378,13 +7378,13 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             sage: K.zeta(2, all=True)
             [-1]
             sage: K.zeta(3)
-            1/2*z - 1/2
+            -1/2*z - 1/2
             sage: K.zeta(3, all=True)
-            [1/2*z - 1/2, -1/2*z - 1/2]
+            [-1/2*z - 1/2, 1/2*z - 1/2]
             sage: K.zeta(4)
             Traceback (most recent call last):
             ...
-            ValueError: There are no 4th roots of unity in self.
+            ValueError: there are no 4th roots of unity in self
 
         ::
 
@@ -7397,7 +7397,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             sage: K.zeta(3)
             Traceback (most recent call last):
             ...
-            ValueError: There are no 3rd roots of unity in self.
+            ValueError: there are no 3rd roots of unity in self
             sage: K.zeta(3,all=True)
             []
 
@@ -7407,6 +7407,12 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             sage: K.<a> = NumberField(1/2*x^2 + 1/6)
             sage: K.zeta(3)
             -3/2*a - 1/2
+
+        TESTS::
+
+            sage: K = NumberField(x**60+691*x**12-25,'a')
+            sage: K.zeta(15,all=True)
+            []
         """
         try:
             return self._unit_group.zeta(n, all)
@@ -7424,28 +7430,26 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         if n == 1:
             if all:
                 return [K.one()]
-            else:
-                return K.one()
+            return K.one()
         elif n == 2:
             if all:
                 return [K(-1)]
-            else:
-                return K(-1)
+            return K(-1)
 
-        # First check if the degree of K is compatible with an
-        # inclusion QQ(\zeta_n) -> K.
+        # First check if the degree of K is compatible
+        # with an inclusion QQ(\zeta_n) -> K.
         if sage.arith.all.euler_phi(n).divides(K.absolute_degree()):
-            # Factor the n-th cyclotomic polynomial over K.
-            f = K.pari_polynomial('y')
-            factors = f.nffactor(pari.polcyclo(n)).component(1)
-            roots = (K(-g.polcoef(0)) for g in factors if g.poldegree() == 1)
-            if all:
-                return list(roots)
-            try:
-                return next(roots)
-            except StopIteration:
-                pass
-        raise ValueError("There are no %s roots of unity in self." % n.ordinal_str())
+            w, zeta_w = self.pari_nf().nfrootsof1()
+            w = w.sage()
+            zeta_w = K(zeta_w)
+            if not w % n:
+                zeta_n = zeta_w**(w // n)
+                if all:
+                    return [zeta_n**i for i in n.coprime_integers(n)]
+                return zeta_n
+        if all:
+            return []
+        raise ValueError("there are no %s roots of unity in self" % n.ordinal_str())
 
     def zeta_order(self):
         r"""

@@ -35,7 +35,7 @@ def reduce_code(co):
         sage: sage.misc.fpickle.reduce_code(foo.__code__)
         (<cyfunction code_ctor at ...>, ...)
 
-    Test that the constructed code matches the original code:
+    Test that the constructed code matches the original code::
 
         sage: ctor, args = sage.misc.fpickle.reduce_code(foo.__code__)
         sage: ctor(*args) == foo.__code__

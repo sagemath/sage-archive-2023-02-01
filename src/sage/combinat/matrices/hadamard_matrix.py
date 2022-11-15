@@ -450,19 +450,22 @@ def construction_four_symbol_delta_code_I(X, Y, Z, W):
     .. MATH::
 
         T_1 = X;Z
+
         T_2 = X;-Z
+        
         T_3 = Y;W
+        
         T_4 = Y;-W
 
     INPUT:
 
-        - ``X`` -- a list, representing the first sequence (length n+1)
+    - ``X`` -- a list, representing the first sequence (length n+1)
 
-        - ``Y`` -- a list, representing the second sequence (length n+1)
+    - ``Y`` -- a list, representing the second sequence (length n+1)
 
-        - ``Z`` -- a list, representing the third sequence (length n)
+    - ``Z`` -- a list, representing the third sequence (length n)
 
-        - ``W`` -- a list, representing the fourth sequence (length n)
+    - ``W`` -- a list, representing the fourth sequence (length n)
 
     OUTPUT:
         A tuple containing the 4-symbol delta code of length 2*n+1
@@ -520,19 +523,22 @@ def construction_four_symbol_delta_code_II(X, Y, Z, W):
     .. MATH::
 
         T_1 = X/Z;Y/W;1
+
         T_2 = X/Z;Y/-W;-1
+
         T_3 = X/Z;-Y/-W;1
+        
         T_4 = X/Z;-Y/W;-1
 
     INPUT:
 
-        - ``X`` -- a list, representing the first sequence (length n+1)
+    - ``X`` -- a list, representing the first sequence (length n+1)
 
-        - ``Y`` -- a list, representing the second sequence (length n+1)
+    - ``Y`` -- a list, representing the second sequence (length n+1)
 
-        - ``Z`` -- a list, representing the third sequence (length n)
+    - ``Z`` -- a list, representing the third sequence (length n)
 
-        - ``W`` -- a list, representing the fourth sequence (length n)
+    - ``W`` -- a list, representing the fourth sequence (length n)
 
     OUTPUT:
         A tuple containing the four 4-symbol delta code of length 2*n+1
@@ -589,9 +595,9 @@ def four_symbol_delta_code_smallcases(n, existence=False):
 
     INPUT:
 
-        - ``n`` -- integer, the length of the desired 4-symbol delta code
+    - ``n`` -- integer, the length of the desired 4-symbol delta code
 
-        - ``existence`` -- boolean, if true only check if the sequences are available
+    - ``existence`` -- boolean, if true only check if the sequences are available
         
     EXAMPLES::
 
@@ -649,9 +655,9 @@ def _get_baumert_hall_units(n, existence=False):
 
     INPUT:
         
-        - ``n`` -- integer, the size of the Baumert-Hall units
+    - ``n`` -- integer, the size of the Baumert-Hall units
         
-        - ``existence`` -- boolean (default False): if true only check whether the units can be contructed
+    - ``existence`` -- boolean (default False): if true only check whether the units can be contructed
 
     OUTPUT:
 
@@ -729,23 +735,23 @@ def hadamard_matrix_turyn_type(a, b, c, d, e1, e2, e3, e4, check=True):
 
     INPUT:
 
-        - ``a`` -- 1,-1 list specifying the 1st row of `A`
+    - ``a`` -- 1,-1 list specifying the 1st row of `A`
 
-        - ``b`` -- 1,-1 list specifying the 1st row of `B`
+    - ``b`` -- 1,-1 list specifying the 1st row of `B`
 
-        - ``d`` -- 1,-1 list specifying the 1st row of `C`
+    - ``d`` -- 1,-1 list specifying the 1st row of `C`
 
-        - ``c`` -- 1,-1 list specifying the 1st row of `D`
+    - ``c`` -- 1,-1 list specifying the 1st row of `D`
 
-        - ``e1`` -- Matrix representing the first Baumert-Hall unit
+    - ``e1`` -- Matrix representing the first Baumert-Hall unit
 
-        - ``e2`` -- Matrix representing the second Baumert-Hall unit
+    - ``e2`` -- Matrix representing the second Baumert-Hall unit
 
-        - ``e3`` -- Matrix representing the third Baumert-Hall unit
+    - ``e3`` -- Matrix representing the third Baumert-Hall unit
         
-        - ``e4`` -- Matrix representing the fourth Baumert-Hall unit
+    - ``e4`` -- Matrix representing the fourth Baumert-Hall unit
 
-        - ``check`` -- Whether to check that the output is an hadamard matrix before returning it
+    - ``check`` -- Whether to check that the output is an hadamard matrix before returning it
 
     EXAMPLES::
 
@@ -808,11 +814,11 @@ def turyn_type_hadamard_matrix_smallcases(n, existence=False, check=True):
 
     INPUT:
         
-        - ``n`` -- integer, the order of the matrix to be constructed
+    - ``n`` -- integer, the order of the matrix to be constructed
 
-        - ``existence`` -- boolean (default False): if True, only check if matrix exists
+    - ``existence`` -- boolean (default False): if True, only check if matrix exists
 
-        - ``check`` -- bolean: if True (default), check the the matrix is an hadamard matrix before returning
+    - ``check`` -- bolean: if True (default), check the the matrix is an hadamard matrix before returning
 
     EXAMPLES::
 

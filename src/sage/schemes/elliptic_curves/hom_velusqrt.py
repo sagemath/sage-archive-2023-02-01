@@ -1389,7 +1389,7 @@ def _random_example_for_testing():
         sage: 5 <= K.order()
         True
     """
-    from sage.all import prime_range, choice, randrange, GF, gcd
+    from sage.all import prime_range, choice, randrange, GF, lcm, Mod
     while True:
         p = choice(prime_range(2, 100))
         e = randrange(1,5)
@@ -1411,9 +1411,10 @@ def _random_example_for_testing():
             deg = choice(ds)
             break
     G = A.torsion_subgroup(deg)
+    os = G.generator_orders()
     while True:
-        v = [randrange(deg) for _ in range(G.ngens())]
-        if gcd([deg] + v) == 1:
+        v = [randrange(o) for o in os]
+        if lcm(Mod(c,o).additive_order() for c,o in zip(v,os)) == deg:
             break
     K = G(v).element()
     assert K.order() == deg

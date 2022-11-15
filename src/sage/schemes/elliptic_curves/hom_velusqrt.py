@@ -897,23 +897,22 @@ class EllipticCurveHom_velusqrt(EllipticCurveHom):
             raise ValueError('cannot specify a codomain curve and model name simultaneously')
 
         try:
+            P = E(P)
+        except TypeError:
+            raise ValueError('given kernel point P does not lie on E')
+        self._degree = P.order()
+        if self._degree % 2 != 1 or self._degree < 9:
+            raise NotImplementedError('only implemented for odd degrees >= 9')
+
+        try:
             self._raw_domain = E.short_weierstrass_model()
         except ValueError:
             raise NotImplementedError('only implemented for curves having a short Weierstrass model')
         self._pre_iso = E.isomorphism_to(self._raw_domain)
-
-        try:
-            P = E(P)
-        except TypeError:
-            raise ValueError('given kernel point P does not lie on E')
         self._P = self._pre_iso(P)
 
-        self._degree = self._P.order()
-        if self._degree % 2 != 1 or self._degree < 9:
-            raise NotImplementedError('only implemented for odd degrees >= 9')
-
         if Q is not None:
-            self._Q = E(Q)
+            self._Q = self._pre_iso(E(Q))
             EE = E
         else:
             self._Q = _point_outside_subgroup(self._P)  # may extend base field

@@ -946,9 +946,34 @@ class BipartiteGraph(Graph):
             if v is None:
                 u, v = u
 
-        # check for endpoints in different partitions
+        # if endpoints are in the same partition
         if self.left.issuperset((u, v)) or self.right.issuperset((u, v)):
-            raise RuntimeError("edge vertices must lie in different partitions")
+
+            # save current left/right
+            old_left=frozenset(self.left)
+            old_right=frozenset(self.right)
+
+
+            # get v's connected component
+            v_connected_component=self._get_connected_component_from_vertex(v)
+
+            # if u is in it, then the edge still cannot exist
+            if u in v_connected_component:
+                raise RuntimeError("edge vertices must lie in different partitions")
+            
+            # if not, we can "flip" the connected component
+            # swapping which partition the vertices are in
+    
+            else:
+                for vertex in v_connected_component:
+                    if vertex in self.left:
+                        self.left.remove(vertex)
+                        self.right.add(vertex)
+                    elif vertex in self.right:
+                        self.right.remove(vertex)
+                        self.left.add(vertex)
+                    else:
+                        raise RuntimeError("Unreachable code!?")
 
         # automatically decide partitions for the newly created vertices
         if u not in self:
@@ -959,6 +984,20 @@ class BipartiteGraph(Graph):
         # add the edge
         Graph.add_edge(self, u, v, label)
         return
+    
+    def _get_connected_component_from_vertex(self, vertex):
+        component=[vertex]
+        converged=False
+        while not converged:
+            converged=True
+            toAdd=[]
+            for vertex1 in component:
+                for vertex2 in self.neighbors(vertex1):
+                    if vertex2 not in component and vertex2 not in toAdd:
+                        converged=False
+                        toAdd.append(vertex2)
+            component.extend(toAdd)
+        return set(component)
 
     def add_edges(self, edges, loops=True):
         """

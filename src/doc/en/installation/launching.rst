@@ -165,7 +165,7 @@ A command along the lines of
 
 .. CODE-BLOCK:: bash
 
-    ln -s $(sage -sh -c 'ls -d $SAGE_VENV/share/jupyter/kernels/sagemath') $HOME/.local/share/jupyter/sagemath-dev
+    ln -s $(sage -sh -c 'ls -d $SAGE_VENV/share/jupyter/kernels/sagemath') $HOME/.local/share/jupyter/kernels/sagemath-dev
 
 can then be used to create a symlink to the SageMath kernel description
 in a location where your own ``jupyter`` can find it.
@@ -174,7 +174,7 @@ If you have installed SageMath from source, the alternative command
 
 .. CODE-BLOCK:: bash
 
-    ln -s $(sage -sh -c 'ls -d $SAGE_ROOT/venv/share/jupyter/kernels/sagemath') $HOME/.local/share/jupyter/sagemath-dev
+    ln -s $(sage -sh -c 'ls -d $SAGE_ROOT/venv/share/jupyter/kernels/sagemath') $HOME/.local/share/jupyter/kernels/sagemath-dev
 
 creates a symlink that will stay current even if you switch to a different Python version
 later.

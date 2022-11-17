@@ -51,8 +51,7 @@ on:
            "opensuse-15.4-gcc_11-python3.10",
            "opensuse-tumbleweed-python3.10",
            "conda-forge",
-           "ubuntu-bionic-i386",
-           "manylinux-2_24-i686",
+           "ubuntu-bionic-gcc_8-i386",
            "debian-buster-i386",
            ]
       tox_packages_factors:

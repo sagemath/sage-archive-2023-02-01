@@ -1769,6 +1769,11 @@ REFERENCES:
              graphs from orthogonal groups* `O^+(6,2)` *and* `O^-(6,2)`.
              :arxiv:`1609.07133`
 
+.. [CRSKKY1989] \G. Cohen, D. Rubie, J. Seberry, C. Koukouvinos, S. Kounias, M. Yamada,
+                *A survey of base sequences, disjoint complementary sequences and OD(4t;t,t,t,t)*.
+                JCMCC. The Journal of Combinatorial Mathematics and Combinatorial Computing, 
+                vol 5, 1989.
+
 .. [CRST2006] \M. Chudnovsky, N. Robertson, P. Seymour, R. Thomas.
               *The strong perfect graph theorem*.
               Annals of Mathematics, vol 164, number 1, pages 51--230, 2006.
@@ -5260,6 +5265,10 @@ REFERENCES:
 .. [Sco1985] \R. Scott,
              *Wide-open encryption design offers flexible implementations*; in
              Cryptologia, (1985), pp. 75-91.
+
+.. [Seb2017] \J. Seberry, 
+             *Orthogonal designs: Hadamard matrices, quadratic forms and algebras*.
+             (2017). :doi:`10.1007/978-3-319-59032-5``
 
 .. [SE1962] \N. E. Steenrod and D. B. A. Epstein, Cohomology
             operations, Ann. of Math. Stud. 50 (Princeton University

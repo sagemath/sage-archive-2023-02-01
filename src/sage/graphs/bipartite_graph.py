@@ -890,6 +890,20 @@ class BipartiteGraph(Graph):
             else:
                 raise RuntimeError("vertex (%s) not found in partitions" % vertex)
 
+    def _flip_vertices(self, vertices):
+        for vertex in vertices:
+            self._flip_vertex(vertex)
+    
+    def _flip_vertex(self, vertex):
+        if vertex in self.left:
+            self.left.remove(vertex)
+            self.right.add(vertex)
+        elif vertex in self.right:
+            self.right.remove(vertex)
+            self.left.add(vertex)
+        else:
+            raise RuntimeError("Attempting to flip vertex in neither left nor right!")
+
     def add_edge(self, u, v=None, label=None):
         r"""
         Add an edge from `u` to `v`.
@@ -933,6 +947,16 @@ class BipartiteGraph(Graph):
             sage: bg.add_edge(5, 6); 5 in bg.left; 6 in bg.right
             True
             True
+            sage: G = BipartiteGraph()
+            sage: G.add_edges([(0, 1), (3, 2)])
+            sage: G.bipartition()
+            ({0, 3}, {1, 2})
+            sage: G.add_edge(1,2)
+            doctest:warning
+            ...
+            UserWarning: Warning! Restructuring graph to allow addition of edge (1,2)
+            sage: G.bipartition()
+            ({0, 2}, {1, 3})
         """
         # logic for getting endpoints copied from generic_graph.py
         if label is None:
@@ -953,27 +977,19 @@ class BipartiteGraph(Graph):
             old_left=frozenset(self.left)
             old_right=frozenset(self.right)
 
-
             # get v's connected component
-            v_connected_component=self._get_connected_component_from_vertex(v)
+            v_connected_component=self.connected_component_containing_vertex(v, sort=False)
 
             # if u is in it, then the edge still cannot exist
             if u in v_connected_component:
                 raise RuntimeError("edge vertices must lie in different partitions")
             
             # if not, we can "flip" the connected component
-            # swapping which partition the vertices are in
-    
+            # swapping which partition the vertices are in    
             else:
-                for vertex in v_connected_component:
-                    if vertex in self.left:
-                        self.left.remove(vertex)
-                        self.right.add(vertex)
-                    elif vertex in self.right:
-                        self.right.remove(vertex)
-                        self.left.add(vertex)
-                    else:
-                        raise RuntimeError("Unreachable code!?")
+                import warnings
+                warnings.warn(f"Warning! Restructuring graph to allow addition of edge ({u},{v})")
+                self._flip_vertices(v_connected_component)
 
         # automatically decide partitions for the newly created vertices
         if u not in self:
@@ -985,20 +1001,6 @@ class BipartiteGraph(Graph):
         Graph.add_edge(self, u, v, label)
         return
     
-    def _get_connected_component_from_vertex(self, vertex):
-        component=[vertex]
-        converged=False
-        while not converged:
-            converged=True
-            toAdd=[]
-            for vertex1 in component:
-                for vertex2 in self.neighbors(vertex1):
-                    if vertex2 not in component and vertex2 not in toAdd:
-                        converged=False
-                        toAdd.append(vertex2)
-            component.extend(toAdd)
-        return set(component)
-
     def add_edges(self, edges, loops=True):
         """
         Add edges from an iterable container.
@@ -1027,6 +1029,16 @@ class BipartiteGraph(Graph):
             ...
             RuntimeError: edge vertices must lie in different partitions
 
+            
+            sage: G = BipartiteGraph()
+            sage: G.add_edges([(0, 1), (3, 2),(1,2)])
+            doctest:warning
+            ...
+            UserWarning: Restructuring graph to allow addition of edge (1,2)
+            sage: G.bipartition()
+            ({0, 2}, {1, 3})
+
+
         Loops will raise an error::
 
             sage: bg.add_edges([[0, 3], [3, 3]])
@@ -1044,9 +1056,26 @@ class BipartiteGraph(Graph):
             except Exception:
                 raise TypeError("cannot interpret {!r} as graph edge".format(edge))
 
-            # check for endpoints in different partitions
+            # if endpoints are in the same partition
             if self.left.issuperset((u, v)) or self.right.issuperset((u, v)):
-                raise RuntimeError("edge vertices must lie in different partitions")
+
+                # save current left/right
+                old_left=frozenset(self.left)
+                old_right=frozenset(self.right)
+
+                # get v's connected component
+                v_connected_component=self.connected_component_containing_vertex(v, sort=False)
+
+                # if u is in it, then the edge still cannot exist
+                if u in v_connected_component:
+                    raise RuntimeError("edge vertices must lie in different partitions")
+                
+                # if not, we can "flip" the connected component
+                # swapping which partition the vertices are in    
+                else:
+                    import warnings
+                    warnings.warn(f"Restructuring graph to allow addition of edge ({u},{v})")
+                    self._flip_vertices(v_connected_component)
 
             # automatically decide partitions for the newly created vertices
             if u not in self:

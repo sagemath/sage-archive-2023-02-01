@@ -5225,6 +5225,11 @@ REFERENCES:
 .. [Sam2012] \P. Samanta: *Antipodal Graphs*
              :doi:`10.13140/RG.2.2.28238.46409`
 
+.. [Saw1985] \K. Sawade.
+             *A Hadamard matrix of order 268*,
+             Graphs and Combinatorics 1(1) (1985): 185-187.
+             :doi:`10.1007/BF02582942`
+
 .. [Sch1961] Craige Schensted. *Longest increasing and decreasing
              subsequences*, Canadian Journal of Mathematics, Vol 13
              (1961), pp. 179--191.

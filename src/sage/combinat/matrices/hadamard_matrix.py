@@ -792,10 +792,13 @@ def hadamard_matrix_cooper_wallis_smallcases(n, check=True, existence=False):
     r"""
     Construct hadamard matrices using the Cooper-Wallis construction for some small values of `n`.
 
-    This functions uses the data from :func:`sage.combinat.T_sequences.T_sequences_smallcases` 
-    and :func:`williamson_type_quadruples_smallcases`
-    to construct an hadamard matrix of order `n` using the Cooper-Wallis construction 
-    detailed at :func:`hadamard_matrix_cooper_wallis_construction`.
+    This function calls the function :func:`hadamard_matrix_cooper_wallis_construction`
+    with the appropriate arguments.
+    It constructs the matrices `X_1`, `X_2`, `X_3`, `X_4` using either
+    T-matrices or the T-sequences from :func:`sage.combinat.T_sequences.T_sequences_smallcases`.
+    The matrices `A`, `B`, `C`, `D` are taken from :func:`williamson_type_quadruples_smallcases`.
+    
+    Data for T-matrices of order 67 is taken from [Saw1985]_.
 
     INPUT:
         
@@ -846,14 +849,28 @@ def hadamard_matrix_cooper_wallis_smallcases(n, check=True, existence=False):
     """
     assert n%4 == 0 and n > 0
 
+    db = {
+        67: (
+            [1, 0, 0, 0, -1, 0, 0, 0, -1, 0, 0, 0, -1, -1, -1, 0, 0, -1, 0, 0, 0, 0, 0, 0, -1, 0, -1, 0, -1, 0, 1, -1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [0, 1, 0, 0, 0, 0, 0, -1, 0, 0, 0, -1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, 1, 1, 0, 0, -1, -1, -1, 0, 0, 0, 0, 0, -1, 1, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0],
+            [0, 0, 0, 0, 0, -1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, -1, 0, 0, 1, 0, -1, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, -1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 1, -1, -1, 0, 1, 0, 0, 0, 0, 0, 0],
+            [0, 0, -1, -1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, -1, 1, -1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, -1, 0, 0, -1, 0, 0, 0, 0, -1, 0, -1, 1, 1, 0, 0, 0]
+        )
+    }
+
     for T_seq_len in divisors(n//4):
         will_size = n//(4* T_seq_len)
-        if T_sequences_smallcases(T_seq_len, existence=True) and williamson_type_quadruples_smallcases(will_size, existence=True):
+        if (T_seq_len in db or T_sequences_smallcases(T_seq_len, existence=True)) and williamson_type_quadruples_smallcases(will_size, existence=True):
             if existence:
                 return True
             
-            e1, e2, e3, e4 = T_sequences_smallcases(T_seq_len, check=False)
-            will_matrices = williamson_type_quadruples_smallcases(will_size)
+            e1, e2, e3, e4 = None, None, None, None
+            if T_seq_len in db:
+                e1, e2, e3, e4 = db[T_seq_len]
+            else:
+                e1, e2, e3, e4 = T_sequences_smallcases(T_seq_len, check=False)
+            
+            will_matrices = williamson_type_quadruples_smallcases(will_size) 
             A, B, C, D = map(matrix.circulant, will_matrices)
             M = hadamard_matrix_cooper_wallis_construction(e1, e2, e3, e4, A, B, C, D, check=False)
             

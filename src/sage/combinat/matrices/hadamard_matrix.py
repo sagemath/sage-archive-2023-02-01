@@ -1304,6 +1304,10 @@ def hadamard_matrix(n,existence=False, check=True):
         if existence:
             return True
         M = hadamard_matrix_156()
+    elif hadamard_matrix_cooper_wallis_smallcases(n, existence=True):
+        if existence:
+            return True
+        M = hadamard_matrix_cooper_wallis_smallcases(n, check=False)    
     elif turyn_type_hadamard_matrix_smallcases(n, existence=True):
         if existence:
             return True

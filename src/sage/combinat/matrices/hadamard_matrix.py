@@ -527,7 +527,7 @@ def construction_four_symbol_delta_code_II(X, Y, Z, W):
         T_2 = X/Z;Y/-W;-1
 
         T_3 = X/Z;-Y/-W;1
-        
+
         T_4 = X/Z;-Y/W;-1
 
     INPUT:
@@ -644,6 +644,62 @@ def four_symbol_delta_code_smallcases(n, existence=False):
 
     return T1, T2, T3, T4
 
+def _construction_goethals_seidel_matrix(A, B ,C, D):
+    r"""
+    Construct the Goethals Seidel matrix.
+
+    The matrix is described in [GS70s]_. Given matrices `A`, `B`, `C`, `D`
+    the construction is:
+
+    .. MATH::
+
+        \left(\begin{array}{rrrr}
+        A & BR & CR & DR \\
+        -BR & A & -D\top R & C\top R \\
+        -CR & D\top R & A & -B\top R \\
+        -DR & -C\top R & B\top R & A
+        \end{array}\right)
+
+    Where `R` is the anti-diagonal matrix with all nonzero entries 
+    equal to one.
+
+    INPUT:
+
+    - ``A`` -- The first matrix used in the construction
+
+    - ``B`` -- The second matrix used in the construction
+
+    - ``C`` -- The third matrix used in the construction
+
+    - ``D`` -- The fourth matrix used in the construction
+
+    TESTS::
+
+        sage: from sage.combinat.matrices.hadamard_matrix import _construction_goethals_seidel_matrix
+        sage: A = matrix([[1, -1], [1, 1]])
+        sage: B = matrix([[-1, -1], [-1, 1]])
+        sage: C = matrix([[1, 1], [1, -1]])
+        sage: D = matrix([[-1, 1], [-1, 1]])
+        sage: _construction_goethals_seidel_matrix(A, B, C, D)
+        [ 1 -1|-1 -1| 1  1| 1 -1]
+        [ 1  1| 1 -1|-1  1| 1 -1]
+        [-----+-----+-----+-----]
+        [ 1  1| 1 -1| 1  1| 1  1]
+        [-1  1| 1  1|-1 -1|-1  1]
+        [-----+-----+-----+-----]
+        [-1 -1|-1 -1| 1 -1| 1  1]
+        [ 1 -1| 1  1| 1  1|-1  1]
+        [-----+-----+-----+-----]
+        [-1  1|-1 -1|-1 -1| 1 -1]
+        [-1  1| 1 -1| 1 -1| 1  1]
+    """
+    n = len(A[0])
+    R = matrix(ZZ, n, n, lambda i,j: 1 if i+j==n-1 else 0)
+    return block_matrix([[   A,    B*R,    C*R,    D*R],
+                         [-B*R,      A, -D.T*R,  C.T*R],
+                         [-C*R,  D.T*R,      A, -B.T*R],
+                         [-D*R, -C.T*R,  B.T*R,      A]])        
+
 def _get_baumert_hall_units(n, existence=False):
     r"""
     Construct Baumert-Hall units of size n from available 4-symbol delta codes.
@@ -690,13 +746,6 @@ def _get_baumert_hall_units(n, existence=False):
     """
     assert n%4 == 0 and n > 0
 
-    def construct_baumert_hall_unit(A, B ,C, D):
-        n = len(A[0])
-        R = matrix([[1 if i+j==(n)-1 else 0 for j in range(n)] for i in range(n)])
-        return block_matrix([[   A,    B*R,    C*R,    D*R],
-                             [-B*R,      A, -D.T*R,  C.T*R],
-                             [-C*R,  D.T*R,      A, -B.T*R],
-                             [-D*R, -C.T*R,  B.T*R,      A]])
 
     delta_codes_len = n//4
     if not four_symbol_delta_code_smallcases(delta_codes_len, existence=True):
@@ -718,10 +767,10 @@ def _get_baumert_hall_units(n, existence=False):
     M3hat = matrix(ZZ, 0.25*(M1+M2-M3-M4))
     M4hat = matrix(ZZ, 0.25*(M1-M2+M3-M4))
     
-    e1 = construct_baumert_hall_unit(M1hat, -M2hat, -M3hat, -M4hat) 
-    e2 = construct_baumert_hall_unit(M2hat, M1hat, M4hat, -M3hat)
-    e3 = construct_baumert_hall_unit(M3hat, -M4hat, M1hat, M2hat)
-    e4 = construct_baumert_hall_unit(M4hat, M3hat, -M2hat, M1hat)
+    e1 = _construction_goethals_seidel_matrix(M1hat, -M2hat, -M3hat, -M4hat) 
+    e2 = _construction_goethals_seidel_matrix(M2hat, M1hat, M4hat, -M3hat)
+    e3 = _construction_goethals_seidel_matrix(M3hat, -M4hat, M1hat, M2hat)
+    e4 = _construction_goethals_seidel_matrix(M4hat, M3hat, -M2hat, M1hat)
     return e1, e2, e3, e4
     
 def hadamard_matrix_turyn_type(a, b, c, d, e1, e2, e3, e4, check=True):
@@ -1580,16 +1629,12 @@ def williamson_goethals_seidel_skew_hadamard_matrix(a, b, c, d, check=True):
       Discrete Math. 308(2008) 2723-2731
     """
     n = len(a)
-    R = matrix(ZZ, n, n, lambda i,j: 1 if i+j==n-1 else 0)
     A,B,C,D=map(matrix.circulant, [a,b,c,d])
     if check:
         assert A*A.T+B*B.T+C*C.T+D*D.T==4*n*I(n)
         assert A+A.T==2*I(n)
 
-    M = block_matrix([[   A,    B*R,    C*R,    D*R],
-                      [-B*R,      A, -D.T*R,  C.T*R],
-                      [-C*R,  D.T*R,      A, -B.T*R],
-                      [-D*R, -C.T*R,  B.T*R,      A]])
+    M = _construction_goethals_seidel_matrix(A, B, C, D)
     if check:
         assert is_hadamard_matrix(M, normalized=False, skew=True)
     return M

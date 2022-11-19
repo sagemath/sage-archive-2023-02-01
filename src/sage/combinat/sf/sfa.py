@@ -228,6 +228,7 @@ from sage.categories.tensor import tensor
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.matrix.constructor import matrix
 from sage.structure.factorization import Factorization
+from sage.structure.element import parent
 from sage.misc.misc_c import prod
 from sage.data_structures.blas_dict import convert_remove_zeroes, linear_combination
 from copy import copy
@@ -3090,6 +3091,120 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             factors = [(L(factor), exponent) for factor, exponent in factors]
         return Factorization(factors, unit=unit)
 
+    def _floordiv_(self, other):
+        """
+        Perform division with remainder and return the quotient.
+
+        INPUT:
+
+        - ``right`` - something coercible to a symmetric function in
+          ``self.parent()``
+
+        EXAMPLES::
+
+            sage: e = SymmetricFunctions(ZZ).e()
+            sage: e[3,2,1] // e[2]
+            e[3, 1]
+
+        """
+        from sage.combinat.sf.multiplicative import SymmetricFunctionAlgebra_multiplicative
+        from sage.structure.element import get_coercion_model
+        cm = get_coercion_model()
+        L = cm.common_parent(self.parent(), parent(other))
+        if isinstance(L, SymmetricFunctionAlgebra_multiplicative):
+            M = L
+        else:
+            M = L.realization_of().h()
+        self = M(self)
+        other = M(other)
+
+        n1 = max((part[0] for part in self.support() if part), default=0)
+        n2 = max((part[0] for part in other.support() if part), default=0)
+        n = max(n1, n2, 1)
+        R = PolynomialRing(M.base_ring(),
+                           ["v%s" % a for a in range(1, n + 1)])
+        if n == 1:
+            p1 = R({part.to_exp(n)[0]: c for part, c in self})
+            p2 = R({part.to_exp(n)[0]: c for part, c in other})
+        else:
+            p1 = R({tuple(part.to_exp(n)): c for part, c in self})
+            p2 = R({tuple(part.to_exp(n)): c for part, c in other})
+        g = p1 // p2
+        if n == 1:
+            g = {_Partitions.from_exp([e]): c
+                 for e, c in g.dict().items()}
+        else:
+            g = {_Partitions.from_exp(e): c
+                 for e, c in g.iterator_exp_coeff(False)}
+        return L(M.element_class(M, g))
+
+    def gcd(self, other):
+        """
+        Return the greatest common divisor with ``other``.
+
+        INPUT:
+
+        - ``other`` -- the other symmetric function
+
+        EXAMPLES::
+
+            sage: e = SymmetricFunctions(ZZ).e()
+            sage: A = 5*e[3] + e[2,1] + e[1]
+            sage: B = 7*e[2] + e[5,1]
+            sage: C = 3*e[1,1] + e[2]
+            sage: gcd(A*B^2, B*C)
+            7*e[2] + e[5, 1]
+
+            sage: p = SymmetricFunctions(ZZ).p()
+            sage: gcd(e[2,1], p[1,1]-p[2])
+            e[2]
+            sage: gcd(p[2,1], p[3,2]-p[2,1])
+            p[2]
+
+        TESTS::
+
+            sage: s = SymmetricFunctions(ZZ).s()
+            sage: gcd(s(0), s[1])
+            s[1]
+
+            sage: gcd(s(0), s(1))
+            s[]
+
+            sage: gcd(s(9), s(6))
+            3*s[]
+
+        """
+        from sage.combinat.sf.multiplicative import SymmetricFunctionAlgebra_multiplicative
+        from sage.structure.element import get_coercion_model
+        cm = get_coercion_model()
+        L = cm.common_parent(self.parent(), parent(other))
+        if isinstance(L, SymmetricFunctionAlgebra_multiplicative):
+            M = L
+        else:
+            M = L.realization_of().h()
+        self = M(self)
+        other = M(other)
+
+        n1 = max((part[0] for part in self.support() if part), default=0)
+        n2 = max((part[0] for part in other.support() if part), default=0)
+        n = max(n1, n2, 1)
+        R = PolynomialRing(M.base_ring(),
+                           ["v%s" % a for a in range(1, n + 1)])
+        if n == 1:
+            p1 = R({part.to_exp(n)[0]: c for part, c in self})
+            p2 = R({part.to_exp(n)[0]: c for part, c in other})
+        else:
+            p1 = R({tuple(part.to_exp(n)): c for part, c in self})
+            p2 = R({tuple(part.to_exp(n)): c for part, c in other})
+        g = p1.gcd(p2)
+        if n == 1:
+            g = {_Partitions.from_exp([e]): c
+                 for e, c in g.dict().items()}
+        else:
+            g = {_Partitions.from_exp(e): c
+                 for e, c in g.iterator_exp_coeff(False)}
+        return L(M.element_class(M, g))
+
     def plethysm(self, x, include=None, exclude=None):
         r"""
         Return the outer plethysm of ``self`` with ``x``.
@@ -3171,6 +3286,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
 
         Sage can also do the plethysm with an element in the completion::
 
+            sage: s = SymmetricFunctions(QQ).s()
             sage: L = LazySymmetricFunctions(s)
             sage: f = s[2,1]
             sage: g = L(s[1]) / (1 - L(s[1])); g

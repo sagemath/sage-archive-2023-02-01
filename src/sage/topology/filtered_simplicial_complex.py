@@ -90,6 +90,7 @@ from sage.rings.integer import Integer
 from sage.rings.infinity import infinity
 from sage.misc.cachefunc import cached_method
 
+
 class FilteredSimplicialComplex(SageObject):
     r"""
     Define a filtered complex.
@@ -338,7 +339,7 @@ class FilteredSimplicialComplex(SageObject):
         else:
             self._insert(s, filtration_value)
 
-    def prune(self,threshold):
+    def prune(self, threshold):
         r"""
         Return a copy of the filtered complex, where simplices above
         the threshold value have been removed.
@@ -367,7 +368,7 @@ class FilteredSimplicialComplex(SageObject):
 
         return result_complex
 
-    @cached_method(key=lambda self,f,s,v:(f,s))
+    @cached_method(key=lambda self, f, s, v: (f, s))
     def _persistent_homology(self, field=2, strict=True, verbose=False):
         """
         Compute the homology intervals of the complex.
@@ -445,7 +446,7 @@ class FilteredSimplicialComplex(SageObject):
         # Initialize data structures for the algo
         self._marked = [False] * n
         self._T = [None] * n
-        intervals = [[] for i in range(self._dimension+1)]
+        intervals = [[] for i in range(self._dimension + 1)]
         self.pairs = []
 
         self._strict = strict
@@ -491,7 +492,7 @@ class FilteredSimplicialComplex(SageObject):
         Add a new interval (i.e. homology element).
 
         This method should not be called by users, it is used in
-        the ``_compute_persistence`` method. The simplex of
+        the ``_persistent_homology`` method. The simplex of
         death may be ``None``, in which case the interval is infinite.
 
         INPUT:
@@ -544,7 +545,7 @@ class FilteredSimplicialComplex(SageObject):
 
         This method implements the subroutine of the same name
         in [ZC2005]_. This method should not be called by users,
-        it is used in the ``compute_persistence`` method.
+        it is used in the ``_persistent_homology`` method.
 
         TESTS::
 
@@ -565,11 +566,11 @@ class FilteredSimplicialComplex(SageObject):
             return d
 
         # Initialize the boundary chain
-        for (i, f) in enumerate(s.faces()):
+        for i, f in enumerate(s.faces()):
             d += (-1)**i * self._chaingroup(f)
 
         # Remove all unmarked elements
-        for (s, x_s) in d:
+        for s, x_s in d:
             j = self._index_of_simplex[s]
             if not self._marked[j]:
                 d = d - x_s * self._chaingroup(s)
@@ -586,7 +587,7 @@ class FilteredSimplicialComplex(SageObject):
 
             c = self._T[max_index][1]
             q = c[t]
-            d = d - ((q**(-1))*c)
+            d = d - ((q**(-1)) * c)
 
         return d
 
@@ -596,7 +597,7 @@ class FilteredSimplicialComplex(SageObject):
         coefficient in ``d``.
 
         This method is called in ``_remove_pivot_rows`` and
-        ``compute_persistence``. It should not be called by users
+        ``_persistent_homology``. It should not be called by users
         outside of those methods.
 
         TESTS::
@@ -611,7 +612,7 @@ class FilteredSimplicialComplex(SageObject):
             6
         """
         currmax = -1
-        for (s, x_s) in d:
+        for s, x_s in d:
             j = self._index_of_simplex[s]
             if j > currmax:
                 currmax = j
@@ -686,7 +687,7 @@ class FilteredSimplicialComplex(SageObject):
         if verbose is None:
             verbose = self._verbose
         intervals = self._persistent_homology(field, strict, verbose=verbose)
-        return Integer(sum(1 for (i, j) in intervals[k]
+        return Integer(sum(1 for i, j in intervals[k]
                            if (i <= a and a + b < j) and a >= 0))
 
     def _repr_(self):
@@ -720,7 +721,7 @@ class FilteredSimplicialComplex(SageObject):
 
     def _simplicial_(self):
         """
-        Return the associated simplicial complex
+        Return the associated simplicial complex.
 
         All simplices of the filtered simplicial complex are
         included in the resulting simplicial complex.

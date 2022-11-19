@@ -322,7 +322,7 @@ class FilteredSimplicialComplex(SageObject):
 
         If ``filtration_value`` is set, this function inserts the
         simplex into the complex with the specified value.
-        See documentation of ``insert`` for more details.
+        See documentation of :meth:`insert` for more details.
 
         EXAMPLES::
 
@@ -492,7 +492,7 @@ class FilteredSimplicialComplex(SageObject):
         Add a new interval (i.e. homology element).
 
         This method should not be called by users, it is used in
-        the ``_persistent_homology`` method. The simplex of
+        the :meth:`_persistent_homology` method. The simplex of
         death may be ``None``, in which case the interval is infinite.
 
         INPUT:
@@ -545,7 +545,7 @@ class FilteredSimplicialComplex(SageObject):
 
         This method implements the subroutine of the same name
         in [ZC2005]_. This method should not be called by users,
-        it is used in the ``_persistent_homology`` method.
+        it is used in the :meth:`_persistent_homology` method.
 
         TESTS::
 
@@ -596,8 +596,8 @@ class FilteredSimplicialComplex(SageObject):
         Return the maximal index of all simplices with nonzero
         coefficient in ``d``.
 
-        This method is called in ``_remove_pivot_rows`` and
-        ``_persistent_homology``. It should not be called by users
+        This method is called in :meth:`_remove_pivot_rows` and
+        :meth:`_persistent_homology`. It should not be called by users
         outside of those methods.
 
         TESTS::
@@ -665,7 +665,7 @@ class FilteredSimplicialComplex(SageObject):
           persistent homology computation; the default is the verbosity
           of ``self``
 
-        The Betti number ``\beta_k^{a,a+b}`` counts the number of
+        The Betti number `\beta_k^{a,a+b}` counts the number of
         homology elements which are alive throughout the whole
         duration ``[a, a+b]``.
 

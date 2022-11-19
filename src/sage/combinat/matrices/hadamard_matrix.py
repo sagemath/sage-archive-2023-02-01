@@ -62,6 +62,7 @@ from sage.arith.all import is_square, is_prime_power, divisors
 from math import sqrt
 from sage.matrix.constructor import identity_matrix as I
 from sage.matrix.constructor import ones_matrix     as J
+from sage.matrix.constructor import zero_matrix
 from sage.misc.unknown import Unknown
 from sage.cpython.string import bytes_to_str
 from sage.modules.free_module_element import vector
@@ -698,7 +699,93 @@ def _construction_goethals_seidel_matrix(A, B ,C, D):
     return block_matrix([[   A,    B*R,    C*R,    D*R],
                          [-B*R,      A, -D.T*R,  C.T*R],
                          [-C*R,  D.T*R,      A, -B.T*R],
-                         [-D*R, -C.T*R,  B.T*R,      A]])        
+                         [-D*R, -C.T*R,  B.T*R,      A]])      
+
+def hadamard_matrix_cooper_wallis_construction(x1, x2, x3, x4, A, B, C, D, check=True):
+    r"""
+    Create an hadamard matrix using the contruction detailed in [CW1972]_.
+
+    Given four circulant matrices X1, X2, X3, X4 of order `n` with entries (0, 1, -1) such that the elementwise 
+    product of two distinct matrices is always equal to 0, and that `\sum_{i=1}^{4}X_iX_i\top = nI_n`, 
+    and four matrices A, B, C, D of order `m` with elements (1, -1) such that `MN\top = NM\top` for all distinct `M`, `N`
+    and `AA\top + BB\top + CC\top + DD\top =  4mI_n`, we construct an hadamard matrix of order `4nm`.
+
+    INPUT:
+
+    - ``x1`` -- a list or vector, representing the first row of the circulant matrix `X_1`
+
+    - ``x2`` -- a list or vector, representing the first row of the circulant matrix `X_2`
+
+    - ``x3`` -- a list or vector, representing the first row of the circulant matrix `X_3`
+
+    - ``x4`` -- a list or vector, representing the first row of the circulant matrix `X_4`
+
+    - ``A`` -- the matrix described above
+
+    - ``B`` -- the matrix described above
+
+    - ``C`` -- the matrix described above
+
+    - ``D`` -- the matrix described above
+
+    - ``check`` -- a boolean, if true (default) check that the resulting matrix is hadamard 
+    before returing it.
+
+    EXAMPLES::
+    
+        sage: from sage.combinat.matrices.hadamard_matrix import hadamard_matrix_cooper_wallis_construction
+        sage: from sage.combinat.T_sequences import T_sequences_smallcases
+        sage: seqs = T_sequences_smallcases(19)
+        sage: hadamard_matrix_cooper_wallis_construction(seqs[0], seqs[1], seqs[2], seqs[3], matrix([1]), matrix([1]), matrix([1]), matrix([1]))
+        76 x 76 dense matrix over Integer Ring...
+
+    TESTS::
+
+        sage: from sage.combinat.matrices.hadamard_matrix import hadamard_matrix_cooper_wallis_construction, is_hadamard_matrix
+        sage: seqs = T_sequences_smallcases(13)
+        sage: H = hadamard_matrix_cooper_wallis_construction(seqs[0], seqs[1], seqs[2], seqs[3], matrix([1]), matrix([1]), matrix([1]), matrix([1]))
+        sage: is_hadamard_matrix(H)
+        True
+        sage: len(H[0]) == 13*4*1
+        True
+        sage: hadamard_matrix_cooper_wallis_construction(seqs[0], seqs[1], seqs[2], seqs[3], matrix([1]), matrix([1, -1]), matrix([1]), matrix([1]))
+        Traceback (most recent call last):
+        ...
+        AssertionError
+        sage: hadamard_matrix_cooper_wallis_construction([1,-1], [1, 1], [1,1], [1,1], matrix([1]), matrix([1]), matrix([1]), matrix([1]))
+        Traceback (most recent call last):
+        ...
+        AssertionError
+    """
+
+    n = len(x1)
+    assert n == len(x2) == len(x3) == len(x4)
+
+    X1, X2, X3, X4 = map(matrix.circulant, [x1, x2, x3, x4])
+
+    matrices = [X1, X2, X3, X4]
+    for i in range(4):
+        for j in range(i+1, 4):
+            assert matrices[i].elementwise_product(matrices[j]) == zero_matrix(n)
+    assert X1*X1.T + X2*X2.T + X3*X3.T + X4*X4.T == n*I(n)
+
+    m = len(A[0])
+    assert m == len(B[0]) == len(C[0]) == len(D[0])
+    will_matrices = [A, B, C, D]
+    for i in range(4):
+        for j in range(i+1, 4):
+            assert will_matrices[i]*will_matrices[j].T == will_matrices[j]*will_matrices[i].T
+    assert A*A.T + B*B.T + C*C.T + D*D.T == 4*m*I(m)
+    
+    e1 = _construction_goethals_seidel_matrix(X1, X2, X3, X4)
+    e2 = _construction_goethals_seidel_matrix(X2, -X1, X4, -X3)
+    e3 = _construction_goethals_seidel_matrix(X3, -X4, -X1, X2)
+    e4 = _construction_goethals_seidel_matrix(X4, X3, -X2, -X1)
+    
+    H = e1.tensor_product(A) + e2.tensor_product(B) + e3.tensor_product(C) + e4.tensor_product(D)
+    if check:
+        assert is_hadamard_matrix(H)
+    return H  
 
 def _get_baumert_hall_units(n, existence=False):
     r"""

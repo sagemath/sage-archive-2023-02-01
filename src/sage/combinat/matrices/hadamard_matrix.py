@@ -730,7 +730,7 @@ def hadamard_matrix_cooper_wallis_construction(x1, x2, x3, x4, A, B, C, D, check
     - ``D`` -- the matrix described above
 
     - ``check`` -- a boolean, if true (default) check that the resulting matrix is hadamard 
-    before returing it.
+      before returing it.
 
     EXAMPLES::
 

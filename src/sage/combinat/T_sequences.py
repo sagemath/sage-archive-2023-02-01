@@ -56,7 +56,7 @@ def  _nonperiodic_autocorrelation(sequences, j):
     INPUT:
     
     - ``sequences`` - either a single Sequence or a list of sequences for which we want
-    to compute the nonperiodic autocorrelation
+      to compute the nonperiodic autocorrelation
     
     - ``j`` - integer, the parameter j used when calculating the nonperiodic autocorrelation
     """
@@ -82,7 +82,7 @@ def is_skew(seq, verbose=False):
     - ``seq`` -- the sequence that should be checked
 
     - ``verbose`` -- a boolean (default false). If true the function will be verbose
-    when the sequences do not satisfy the contraints.
+      when the sequences do not satisfy the contraints.
 
     EXAMPLES::
 
@@ -128,7 +128,7 @@ def is_symmetric(seq, verbose=False):
     - ``seq`` -- the sequence that should be checked
 
     - ``verbose`` -- a boolean (default false). If true the function will be verbose
-    when the sequences do not satisfy the contraints.
+      when the sequences do not satisfy the contraints.
 
     EXAMPLES::
 
@@ -178,7 +178,7 @@ def is_T_sequences_set(sequences, verbose=False):
     - ``sequences`` -- a list of four sequences.
 
     - ``verbose`` -- a boolean( (default false). If true the function will be verbose
-    when the sequences do not satisfy the contraints.
+      when the sequences do not satisfy the contraints.
 
     EXAMPLES::
 
@@ -249,7 +249,7 @@ def turyn_sequences_smallcases(l, existence=False):
     - ``l`` -- integer, the length of the Turyn sequences
 
     - ``existence`` -- boolean (default False). If true, only return whether the 
-    Turyn sequences are available for the given length.
+      Turyn sequences are available for the given length.
 
     EXAMPLES:
 
@@ -452,7 +452,7 @@ def T_sequences_smallcases(t, existence=False, check=True):
     - ``t`` -- integer, the length of the T-sequences to construct
 
     - ``existence`` -- boolean (default false). If true, thsi method only returns whether a T-sequences of 
-    the given size can be constructed.
+      the given size can be constructed.
 
     - ``check`` -- boolean, if true (default) check that the sequences are T-sequences before returning them.
 

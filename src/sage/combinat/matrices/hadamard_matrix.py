@@ -66,6 +66,7 @@ from sage.matrix.constructor import zero_matrix
 from sage.misc.unknown import Unknown
 from sage.cpython.string import bytes_to_str
 from sage.modules.free_module_element import vector
+from sage.combinat.T_sequences import T_sequences_smallcases
 
 
 def normalise_hadamard(H):
@@ -732,7 +733,7 @@ def hadamard_matrix_cooper_wallis_construction(x1, x2, x3, x4, A, B, C, D, check
     before returing it.
 
     EXAMPLES::
-    
+
         sage: from sage.combinat.matrices.hadamard_matrix import hadamard_matrix_cooper_wallis_construction
         sage: from sage.combinat.T_sequences import T_sequences_smallcases
         sage: seqs = T_sequences_smallcases(19)
@@ -786,6 +787,83 @@ def hadamard_matrix_cooper_wallis_construction(x1, x2, x3, x4, A, B, C, D, check
     if check:
         assert is_hadamard_matrix(H)
     return H  
+
+def hadamard_matrix_cooper_wallis_smallcases(n, check=True, existence=False):
+    r"""
+    Construct hadamard matrices using the Cooper-Wallis construction for some small values of `n`.
+
+    This functions uses the data from :func:`sage.combinat.T_sequences.T_sequences_smallcases` 
+    and :func:`williamson_type_quadruples_smallcases`
+    to construct an hadamard matrix of order `n` using the Cooper-Wallis construction 
+    detailed at :func:`hadamard_matrix_cooper_wallis_construction`.
+
+    INPUT:
+        
+    - ``n`` -- integer, the order of the matrix to be constructed
+
+    - ``check`` -- bolean: if True (default), check the the matrix is an hadamard matrix before returning
+
+    - ``existence`` -- boolean (default False): if True, only check if matrix exists
+
+    OUTPUT:
+
+    If ``existence`` is false, returns the hadamard matrix of order `n`. It raises an error if no data
+    is available to construct the matrix of the given order.
+    If ``existence`` is true, returns a boolean representing whether the matrix can be constructed or not.
+
+    .. SEEALSO::
+
+        :func:`hadamard_matrix_cooper_wallis_construction`
+
+    EXAMPLES:
+
+    By default The function returns the hadamard matrix ::
+
+        sage: from sage.combinat.matrices.hadamard_matrix import hadamard_matrix_cooper_wallis_smallcases
+        sage: hadamard_matrix_cooper_wallis_smallcases(28)
+        28 x 28 dense matrix over Integer Ring...
+
+    If ``existence`` is set to True, the function returns a boolean ::
+    
+        sage: hadamard_matrix_cooper_wallis_smallcases(20, existence=True)
+        True
+
+    TESTS::
+
+        sage: from sage.combinat.matrices.hadamard_matrix import hadamard_matrix_cooper_wallis_smallcases, is_hadamard_matrix
+        sage: is_hadamard_matrix(hadamard_matrix_cooper_wallis_smallcases(188))
+        True
+        sage: hadamard_matrix_cooper_wallis_smallcases(64, existence=True)
+        False
+        sage: hadamard_matrix_cooper_wallis_smallcases(64)
+        Traceback (most recent call last):
+        ...
+        ValueError: The Cooper-Wallis construction for hadamard matrices of order 64 is not yet implemented.
+        sage: hadamard_matrix_cooper_wallis_smallcases(14)
+        Traceback (most recent call last):
+        ...
+        AssertionError
+    """
+    assert n%4 == 0 and n > 0
+
+    for T_seq_len in divisors(n//4):
+        will_size = n//(4* T_seq_len)
+        if T_sequences_smallcases(T_seq_len, existence=True) and williamson_type_quadruples_smallcases(will_size, existence=True):
+            if existence:
+                return True
+            
+            e1, e2, e3, e4 = T_sequences_smallcases(T_seq_len, check=False)
+            will_matrices = williamson_type_quadruples_smallcases(will_size)
+            A, B, C, D = map(matrix.circulant, will_matrices)
+            M = hadamard_matrix_cooper_wallis_construction(e1, e2, e3, e4, A, B, C, D, check=False)
+            
+            if check:
+                assert is_hadamard_matrix(M)
+            return M
+    
+    if existence:
+        return False
+    raise ValueError("The Cooper-Wallis construction for hadamard matrices of order %s is not yet implemented." % n)
 
 def _get_baumert_hall_units(n, existence=False):
     r"""

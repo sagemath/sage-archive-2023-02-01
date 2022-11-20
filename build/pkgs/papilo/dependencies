@@ -1,1 +1,1 @@
-$(MP_LIBRARY) boost_cropped onetbb $(BLAS) | cmake
+$(MP_LIBRARY) boost_cropped onetbb $(BLAS) gfortran | cmake

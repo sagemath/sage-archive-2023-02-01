@@ -66,7 +66,7 @@ from sage.matrix.constructor import zero_matrix
 from sage.misc.unknown import Unknown
 from sage.cpython.string import bytes_to_str
 from sage.modules.free_module_element import vector
-from sage.combinat.T_sequences import T_sequences_smallcases
+from sage.combinat.t_sequences import T_sequences_smallcases
 
 
 def normalise_hadamard(H):
@@ -735,7 +735,7 @@ def hadamard_matrix_cooper_wallis_construction(x1, x2, x3, x4, A, B, C, D, check
     EXAMPLES::
 
         sage: from sage.combinat.matrices.hadamard_matrix import hadamard_matrix_cooper_wallis_construction
-        sage: from sage.combinat.T_sequences import T_sequences_smallcases
+        sage: from sage.combinat.t_sequences import T_sequences_smallcases
         sage: seqs = T_sequences_smallcases(19)
         sage: hadamard_matrix_cooper_wallis_construction(seqs[0], seqs[1], seqs[2], seqs[3], matrix([1]), matrix([1]), matrix([1]), matrix([1]))
         76 x 76 dense matrix over Integer Ring...
@@ -795,7 +795,7 @@ def hadamard_matrix_cooper_wallis_smallcases(n, check=True, existence=False):
     This function calls the function :func:`hadamard_matrix_cooper_wallis_construction`
     with the appropriate arguments.
     It constructs the matrices `X_1`, `X_2`, `X_3`, `X_4` using either
-    T-matrices or the T-sequences from :func:`sage.combinat.T_sequences.T_sequences_smallcases`.
+    T-matrices or the T-sequences from :func:`sage.combinat.t_sequences.t_sequences_smallcases`.
     The matrices `A`, `B`, `C`, `D` are taken from :func:`williamson_type_quadruples_smallcases`.
     
     Data for T-matrices of order 67 is taken from [Saw1985]_.

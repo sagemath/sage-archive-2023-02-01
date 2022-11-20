@@ -86,7 +86,7 @@ def is_skew(seq, verbose=False):
 
     EXAMPLES::
 
-        sage: from sage.combinat.T_sequences import is_skew
+        sage: from sage.combinat.t_sequences import is_skew
         sage: is_skew([1, -1, 1, -1, 1, -1])
         True
         sage: is_skew([1, -1, -1, -1], verbose=True)
@@ -132,7 +132,7 @@ def is_symmetric(seq, verbose=False):
 
     EXAMPLES::
 
-        sage: from sage.combinat.T_sequences import is_symmetric
+        sage: from sage.combinat.t_sequences import is_symmetric
         sage: is_symmetric([1, -1, 1, -1, 1])
         True
         sage: is_symmetric([1, -1, 1, 1, 1], verbose=True)
@@ -182,7 +182,7 @@ def is_T_sequences_set(sequences, verbose=False):
 
     EXAMPLES::
 
-        sage: from sage.combinat.T_sequences import is_T_sequences_set
+        sage: from sage.combinat.t_sequences import is_T_sequences_set
         sage: seqs = [[1, 1, 0, 0, 0], [0, 0, 1, 0, 0], [0, 0, 0, 1, -1], [0, 0, 0, 0, 0]]
         sage: is_T_sequences_set(seqs)
         True
@@ -255,7 +255,7 @@ def turyn_sequences_smallcases(l, existence=False):
 
     By default, this method returns the four Turyn sequences ::
 
-        sage: from sage.combinat.T_sequences import turyn_sequences_smallcases
+        sage: from sage.combinat.t_sequences import turyn_sequences_smallcases
         sage: turyn_sequences_smallcases(4)
         [[1, 1, -1, -1], [1, 1, -1, 1], [1, 1, 1], [1, -1, 1]]
 
@@ -320,7 +320,7 @@ def T_sequences_construction_I(turyn_sequences, check=True):
 
     EXAMPLES::
 
-        sage: from sage.combinat.T_sequences import turyn_sequences_smallcases, T_sequences_construction_I, is_T_sequences_set
+        sage: from sage.combinat.t_sequences import turyn_sequences_smallcases, T_sequences_construction_I, is_T_sequences_set
         sage: seqs = turyn_sequences_smallcases(4)
         sage: T_sequences_construction_I(seqs)
         [[1, 1, -1, 0, 0, 0, 0],
@@ -389,7 +389,7 @@ def T_sequences_construction_II(turyn_sequences, check=True):
 
     EXAMPLES::
 
-        sage: from sage.combinat.T_sequences import turyn_sequences_smallcases, T_sequences_construction_II, is_T_sequences_set
+        sage: from sage.combinat.t_sequences import turyn_sequences_smallcases, T_sequences_construction_II, is_T_sequences_set
         sage: seqs = turyn_sequences_smallcases(4)
         sage: T_sequences_construction_II(seqs)
         [[1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -442,9 +442,9 @@ def T_sequences_smallcases(t, existence=False, check=True):
     Construct T-sequences for some small values of `t`.
 
     This method will try to use the constructions defined in 
-    :func:`sage.combinat.T_sequences.T_sequences_construction_I` and 
-    :func:`sage.combinat.T_sequences.T_sequences_construction_II` 
-    together with the Turyn sequences stored in :func:`sage.combinat.T_sequences.turyn_sequences_smallcases`, 
+    :func:`sage.combinat.t_sequences.T_sequences_construction_I` and 
+    :func:`sage.combinat.t_sequences.T_sequences_construction_II` 
+    together with the Turyn sequences stored in :func:`sage.combinat.t_sequences.turyn_sequences_smallcases`, 
     or some T-sequences taken directly from [CRSKKY1989]_.
 
     INPUT:
@@ -460,7 +460,7 @@ def T_sequences_smallcases(t, existence=False, check=True):
 
     By default, this method returns the four T-sequences ::
         
-        sage: from sage.combinat.T_sequences import T_sequences_smallcases, is_T_sequences_set
+        sage: from sage.combinat.t_sequences import T_sequences_smallcases, is_T_sequences_set
         sage: T_sequences_smallcases(9)
         [[1, 1, 0, 1, 0, 0, 0, 0, 0],
         [0, 0, -1, 0, 1, 0, 0, 0, 0],

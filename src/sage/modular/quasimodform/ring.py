@@ -673,7 +673,6 @@ class QuasiModularForms(Parent, UniqueRepresentation):
             sage: QM.polynomial_ring(names="P, Q, R")
             Multivariate Polynomial Ring in P, Q, R over Rational Field
         """
-        M = self.__modular_forms_subring
         gens = self.__modular_forms_subring.gen_forms()
         weights = [f.weight() for f in gens]
         gens = iter(gens)

@@ -61,9 +61,6 @@ from sage.rings.polynomial.polynomial_quotient_ring_element import PolynomialQuo
 from sage.rings.finite_rings.finite_field_base import FiniteField
 import sage.groups.additive_abelian.additive_abelian_group as groups
 import sage.groups.generic as generic
-import sage.plot.all as plot
-from sage.misc.lazy_import import lazy_import
-lazy_import("sage.plot.plot", "generate_plot_points")
 
 from sage.arith.all import lcm
 import sage.rings.all as rings
@@ -3067,24 +3064,28 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
             else:
                 I.append((xmin, xmax, '='))
 
-        g = plot.Graphics()
+        from sage.plot.graphics import Graphics
+        from sage.plot.line import line
+        from sage.plot.plot import generate_plot_points
+
+        g = Graphics()
         plot_points = int(args.pop('plot_points',200))
         adaptive_tolerance = args.pop('adaptive_tolerance',0.01)
         adaptive_recursion = args.pop('adaptive_recursion',5)
         randomize = args.pop('randomize',True)
         for j in range(len(I)):
-            a,b,shape = I[j]
+            a, b, shape = I[j]
             v = generate_plot_points(f1, (a, b), plot_points, adaptive_tolerance, adaptive_recursion, randomize)
             w = generate_plot_points(f2, (a, b), plot_points, adaptive_tolerance, adaptive_recursion, randomize)
             if shape == 'o':
-                g += plot.line(v + list(reversed(w)) + [v[0]], **args)
+                g += line(v + list(reversed(w)) + [v[0]], **args)
             elif shape == '<':
-                g += plot.line(list(reversed(v)) + w, **args)
+                g += line(list(reversed(v)) + w, **args)
             elif shape == '>':
-                g += plot.line(v + list(reversed(w)), **args)
+                g += line(v + list(reversed(w)), **args)
             else:
-                g += plot.line(v, **args)
-                g += plot.line(w, **args)
+                g += line(v, **args)
+                g += line(w, **args)
         return g
 
     @cached_method

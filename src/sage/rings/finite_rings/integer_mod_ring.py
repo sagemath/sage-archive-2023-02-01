@@ -72,7 +72,6 @@ import sage.rings.quotient_ring as quotient_ring
 
 from sage.libs.pari.all import pari, PariError
 
-import sage.interfaces.all
 from sage.misc.cachefunc import cached_method
 
 from sage.structure.factory import UniqueFactory
@@ -1187,9 +1186,8 @@ In the latter case, please inform the developers.""".format(self.order()))
             raise TypeError("error coercing to finite field")
         except TypeError:
             if sage.interfaces.gap.is_GapElement(x):
-                from sage.interfaces.gap import intmod_gap_to_sage
-                y = intmod_gap_to_sage(x)
-                return integer_mod.IntegerMod(self, y)
+                from sage.libs.gap.libgap import libgap
+                return libgap(x).sage()
             raise  # Continue up with the original TypeError
 
     def __iter__(self):

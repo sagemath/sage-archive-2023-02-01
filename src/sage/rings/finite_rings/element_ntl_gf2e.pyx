@@ -46,13 +46,15 @@ from sage.libs.pari.all import pari
 from cypari2.gen cimport Gen
 from cypari2.stack cimport clear_stack
 
-from sage.interfaces.gap import is_GapElement
-
 from sage.misc.randstate import current_randstate
 from sage.arith.long cimport pyobject_to_long
 
 from .element_pari_ffelt import FiniteFieldElement_pari_ffelt
 from .finite_field_ntl_gf2e import FiniteField_ntl_gf2e
+
+from sage.libs.gap.element import GapElement_FiniteField
+
+from sage.interfaces.gap import is_GapElement
 
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
@@ -364,9 +366,13 @@ cdef class Cache_ntl_gf2e(Cache_base):
             # Reduce to pari
             e = e.__pari__()
 
+        elif isinstance(e, GapElement_FiniteField):
+            return e.sage(ring=self._parent)
+
         elif is_GapElement(e):
-            from sage.interfaces.gap import gfq_gap_to_sage
-            return gfq_gap_to_sage(e, self._parent)
+            from sage.libs.gap.libgap import libgap
+            return libgap(e).sage(ring=self._parent)
+
         else:
             raise TypeError("unable to coerce %r" % type(e))
 
@@ -1174,6 +1180,10 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
             sage: k.<b> = GF(2^16)
             sage: b._gap_init_()
             'Z(65536)^1'
+            sage: k(gap('Z(2^16)^3+Z(2^16)^5'))
+            b^5 + b^3
+            sage: k(libgap.Z(2^16)^3+libgap.Z(2^16)^5)
+            b^5 + b^3
         """
         F = self._parent
         if not F.is_conway():

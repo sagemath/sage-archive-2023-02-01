@@ -505,9 +505,15 @@ cdef class FiniteFieldElement_pari_ffelt(FinitePolyExtElement):
             self.construct_from(self._parent.polynomial_ring()(x))
 
         elif is_GapElement(x):
-            from sage.interfaces.gap import gfq_gap_to_sage
             try:
-                self.construct_from(gfq_gap_to_sage(x, self._parent))
+                from sage.libs.gap.libgap import libgap
+                self.construct_from(libgap(x).sage(ring=self._parent))
+            except (ValueError, IndexError, TypeError):
+                raise TypeError("no coercion defined")
+
+        elif isinstance(x, sage.libs.gap.element.GapElement_FiniteField):
+            try:
+                self.construct_from(x.sage(ring=self._parent))
             except (ValueError, IndexError, TypeError):
                 raise TypeError("no coercion defined")
 
@@ -1258,9 +1264,9 @@ cdef class FiniteFieldElement_pari_ffelt(FinitePolyExtElement):
 
         EXAMPLES::
 
-            sage: F = FiniteField(2^3, 'a', impl='pari_ffelt')
-            sage: a = F.multiplicative_generator()
-            sage: gap(a) # indirect doctest
+            sage: F = FiniteField(2^3, 'aa', impl='pari_ffelt')
+            sage: aa = F.multiplicative_generator()
+            sage: gap(aa) # indirect doctest
             Z(2^3)
             sage: b = F.multiplicative_generator()
             sage: a = b^3
@@ -1268,6 +1274,10 @@ cdef class FiniteFieldElement_pari_ffelt(FinitePolyExtElement):
             Z(2^3)^3
             sage: gap(a^3)
             Z(2^3)^2
+            sage: F(gap('Z(8)^3'))
+            aa + 1
+            sage: F(libgap.Z(8)^3)
+            aa + 1
 
         You can specify the instance of the Gap interpreter that is used::
 

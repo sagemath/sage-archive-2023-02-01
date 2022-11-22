@@ -70,7 +70,7 @@ from sage.combinat.t_sequences import T_sequences_smallcases
 
 
 def normalise_hadamard(H):
-    """
+    r"""
     Return the normalised Hadamard matrix corresponding to ``H``.
 
     The normalised Hadamard matrix corresponding to a Hadamard matrix `H` is a
@@ -588,7 +588,7 @@ def construction_four_symbol_delta_code_II(X, Y, Z, W):
     return T1, T2, T3, T4
 
 def four_symbol_delta_code_smallcases(n, existence=False):
-    """
+    r"""
     Return the 4-symobl delta code of length n if available.
     
     The 4-symbol delta codes are constructed using :func:`construction_four_symbol_delta_code_I`
@@ -1349,7 +1349,7 @@ def hadamard_matrix(n,existence=False, check=True):
 
 
 def hadamard_matrix_www(url_file, comments=False):
-    """
+    r"""
     Pull file from Sloane's database and return the corresponding Hadamard
     matrix as a Sage matrix.
 

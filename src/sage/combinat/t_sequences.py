@@ -164,7 +164,7 @@ def is_symmetric(seq, verbose=False):
 
 
 def is_T_sequences_set(sequences, verbose=False):
-    """
+    r"""
     Check if a family of sequences is composed of T-sequences.
 
     Given 4 (-1, 0, +1) sequences, they will be T-sequences if
@@ -296,7 +296,7 @@ def turyn_sequences_smallcases(l, existence=False):
     return list(map(Sequence, db[l]))
 
 def T_sequences_construction_I(turyn_sequences, check=True):
-    """
+    r"""
     Construct T-sequences of length `2l-1` from turyn sequences of length `l`.
 
     Given Turyn sequences `X, U, Y, V`, the T-sequences are constructed as described in
@@ -365,7 +365,7 @@ def T_sequences_construction_I(turyn_sequences, check=True):
     return res
 
 def T_sequences_construction_II(turyn_sequences, check=True):
-    """
+    r"""
     Construct T-sequences of length `4l-1` from turyn sequences of length `l`.
 
     Given Turyn sequences `X, U, Y, V`, the T-sequences are constructed as described in

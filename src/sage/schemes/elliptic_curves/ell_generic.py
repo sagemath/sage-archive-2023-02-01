@@ -2429,6 +2429,9 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
         """
         Return the set of isomorphisms from self to itself (as a list).
 
+        The identity and negation morphisms are guaranteed to appear
+        as the first and second entry of the returned list.
+
         INPUT:
 
         - ``field`` (default ``None``) -- a field into which the
@@ -2446,23 +2449,52 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
             sage: E = EllipticCurve_from_j(QQ(0))  # a curve with j=0 over QQ
             sage: E.automorphisms()
             [Elliptic-curve endomorphism of Elliptic Curve defined by y^2 + y = x^3 over Rational Field
-            Via:  (u,r,s,t) = (-1, 0, 0, -1), Elliptic-curve endomorphism of Elliptic Curve defined by y^2 + y = x^3 over Rational Field
-            Via:  (u,r,s,t) = (1, 0, 0, 0)]
+               Via:  (u,r,s,t) = (1, 0, 0, 0),
+             Elliptic-curve endomorphism of Elliptic Curve defined by y^2 + y = x^3 over Rational Field
+               Via:  (u,r,s,t) = (-1, 0, 0, -1)]
 
         We can also find automorphisms defined over extension fields::
 
             sage: K.<a> = NumberField(x^2+3)  # adjoin roots of unity
             sage: E.automorphisms(K)
             [Elliptic-curve endomorphism of Elliptic Curve defined by y^2 + y = x^3 over Number Field in a with defining polynomial x^2 + 3
-            Via:  (u,r,s,t) = (-1, 0, 0, -1),
-            ...
-            Elliptic-curve endomorphism of Elliptic Curve defined by y^2 + y = x^3 over Number Field in a with defining polynomial x^2 + 3
-            Via:  (u,r,s,t) = (1, 0, 0, 0)]
+               Via:  (u,r,s,t) = (1, 0, 0, 0),
+             Elliptic-curve endomorphism of Elliptic Curve defined by y^2 + y = x^3 over Number Field in a with defining polynomial x^2 + 3
+               Via:  (u,r,s,t) = (-1, 0, 0, -1),
+             Elliptic-curve endomorphism of Elliptic Curve defined by y^2 + y = x^3 over Number Field in a with defining polynomial x^2 + 3
+               Via:  (u,r,s,t) = (-1/2*a - 1/2, 0, 0, 0),
+             Elliptic-curve endomorphism of Elliptic Curve defined by y^2 + y = x^3 over Number Field in a with defining polynomial x^2 + 3
+               Via:  (u,r,s,t) = (1/2*a + 1/2, 0, 0, -1),
+             Elliptic-curve endomorphism of Elliptic Curve defined by y^2 + y = x^3 over Number Field in a with defining polynomial x^2 + 3
+               Via:  (u,r,s,t) = (1/2*a - 1/2, 0, 0, 0),
+             Elliptic-curve endomorphism of Elliptic Curve defined by y^2 + y = x^3 over Number Field in a with defining polynomial x^2 + 3
+               Via:  (u,r,s,t) = (-1/2*a + 1/2, 0, 0, -1)]
 
         ::
 
             sage: [len(EllipticCurve_from_j(GF(q,'a')(0)).automorphisms()) for q in [2,4,3,9,5,25,7,49]]
             [2, 24, 2, 12, 2, 6, 6, 6]
+
+        TESTS:
+
+        Random testing::
+
+            sage: p = random_prime(100)
+            sage: k = randrange(1,30)
+            sage: F.<t> = GF((p,k))
+            sage: while True:
+            ....:     try:
+            ....:         E = EllipticCurve(list((F^5).random_element()))
+            ....:     except ArithmeticError:
+            ....:         continue
+            ....:     break
+            sage: Aut = E.automorphisms()
+            sage: Aut[0] == E.multiplication_by_m_isogeny(1)
+            True
+            sage: Aut[1] == E.multiplication_by_m_isogeny(-1)
+            True
+            sage: sorted(Aut) == Aut
+            True
         """
         if field is not None:
             self = self.change_ring(field)
@@ -2492,9 +2524,9 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
             sage: F = EllipticCurve('27a3') # should be the same one
             sage: E.isomorphisms(F)
             [Elliptic-curve endomorphism of Elliptic Curve defined by y^2 + y = x^3 over Rational Field
-              Via:  (u,r,s,t) = (-1, 0, 0, -1),
+               Via:  (u,r,s,t) = (1, 0, 0, 0),
              Elliptic-curve endomorphism of Elliptic Curve defined by y^2 + y = x^3 over Rational Field
-              Via:  (u,r,s,t) = (1, 0, 0, 0)]
+               Via:  (u,r,s,t) = (-1, 0, 0, -1)]
 
         We can also find isomorphisms defined over extension fields::
 

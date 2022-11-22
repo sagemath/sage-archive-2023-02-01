@@ -27,13 +27,10 @@ from sage.structure.element import get_coercion_model
 
 from .constructor import EllipticCurve
 from sage.schemes.elliptic_curves.hom import EllipticCurveHom
-from sage.structure.richcmp import (richcmp_method, richcmp, richcmp_not_equal,
-                                    op_NE)
+from sage.structure.richcmp import (richcmp, richcmp_not_equal, op_EQ, op_NE)
 from sage.structure.sequence import Sequence
 from sage.rings.all import Integer, PolynomialRing
 
-
-@richcmp_method
 class baseWI():
     r"""
     This class implements the basic arithmetic of isomorphisms between
@@ -86,38 +83,6 @@ class baseWI():
         self.r = r
         self.s = s
         self.t = t
-
-    def __richcmp__(self, other, op):
-        """
-        Standard comparison function.
-
-        The ordering is just lexicographic on the tuple `(u,r,s,t)`.
-
-        .. NOTE::
-
-            In a list of automorphisms, there is no guarantee that the
-            identity will be first!
-
-        EXAMPLES::
-
-            sage: from sage.schemes.elliptic_curves.weierstrass_morphism import baseWI
-            sage: baseWI(1,2,3,4) == baseWI(1,2,3,4)
-            True
-            sage: baseWI(1,2,3,4) != baseWI(1,2,3,4)
-            False
-            sage: baseWI(1,2,3,4) < baseWI(1,2,3,5)
-            True
-            sage: baseWI(1,2,3,4) > baseWI(1,2,3,4)
-            False
-
-        It will never return equality if ``other`` is of another type::
-
-            sage: baseWI() == 1
-            False
-        """
-        if not isinstance(other, baseWI):
-            return op == op_NE
-        return richcmp(self.tuple(), other.tuple(), op)
 
     def tuple(self):
         r"""
@@ -310,8 +275,8 @@ def _isomorphisms(E, F):
         ....:      2: j not in (0, 1728),
         ....:      4: p >= 5 and j == 1728,
         ....:      6: p >= 5 and j == 0,
-        ....:     12: p == 3 and j in (0, 1728),
-        ....:     24: p == 2 and j in (0, 1728),
+        ....:     12: p == 3 and j == 0,  # note 1728 == 0
+        ....:     24: p == 2 and j == 0,  # note 1728 == 0
         ....: }[len(Aut)]
         True
         sage: u,r,s,t = (F^4).random_element()
@@ -543,7 +508,7 @@ class WeierstrassIsomorphism(EllipticCurveHom, baseWI):
             sage: w1 = E.isomorphism_to(F)
             sage: w1 == w1
             True
-            sage: w2 = F.automorphisms()[0] * w1
+            sage: w2 = F.automorphisms()[1] * w1
             sage: w1 == w2
             False
 
@@ -572,7 +537,21 @@ class WeierstrassIsomorphism(EllipticCurveHom, baseWI):
         if lx != rx:
             return richcmp_not_equal(lx, rx, op)
 
-        return baseWI.__richcmp__(left, right, op)
+        if op in (op_EQ, op_NE):
+            return richcmp(left.tuple(), right.tuple(), op)
+
+        # This makes sure that the identity and negation morphisms
+        # come first in a sorted list of WeierstrassIsomorphisms.
+        # More generally, we're making sure that a morphism and its
+        # negative appear next to each other, and that those pairs
+        # of isomorphisms satisfying u=+-1 come first.
+        def _sorting_key(iso):
+            v, w = iso.tuple(), (-iso).tuple()
+            i = 0 if (1,0,0,0) in (v,w) else 1
+            j = 0 if v[0] == 1 else 1 if w[0] == 1 else 2
+            return (i,) + min(v,w) + (j,) + v
+
+        return richcmp(_sorting_key(left), _sorting_key(right), op)
 
     def _eval(self, P):
         r"""

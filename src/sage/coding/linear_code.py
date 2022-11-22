@@ -1432,23 +1432,22 @@ class AbstractLinearCode(AbstractLinearCodeNoMetric):
         from sage.libs.gap.libgap import libgap
         n, k = self.length(), self.dimension()
         F = self.base_field()
-        Gmat = self.generator_matrix()
+        Gmat = libgap(self.generator_matrix())
 
         current_randstate().set_seed_gap()
 
         if algorithm == "guava":
             GapPackage("guava", spkg="gap_packages").require()
             libgap.LoadPackage("guava")
-            C = libgap(Gmat).GeneratorMatCode(F)
+            C = Gmat.GeneratorMatCode(F)
             cg = C.MinimumDistanceCodeword()
-            c = [cg[j].sage(ring=F) for j in range(1,n+1)]
+            c = [cg[j].sage(ring=F) for j in range(n)]
             return vector(F, c)
 
         from sage.modules.free_module_element import zero_vector
         q = F.order()
         ans = None
         dist_min = n + 1
-        Gmat = libgap(Gmat)
         K = libgap.GF(q)
         v = 0*libgap.Z(q)*libgap(zero_vector(n))
         for i in range(1,k+1):

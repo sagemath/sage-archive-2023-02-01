@@ -1444,15 +1444,13 @@ class AbstractLinearCode(AbstractLinearCodeNoMetric):
             c = [cg[j].sage(ring=F) for j in range(n)]
             return vector(F, c)
 
-        from sage.modules.free_module_element import zero_vector
         q = F.order()
         ans = None
-        dist_min = n + 1
+        dist_min = libgap(n + 1)
         K = libgap.GF(q)
-        v = 0*libgap.Z(q)*libgap(zero_vector(n))
+        v0 = (K**n).Zero()
         for i in range(1,k+1):
-            P = Gmat.AClosestVectorCombinationsMatFFEVecFFECoords(K,v,i,1)
-            v = P[0]
+            v = Gmat.AClosestVectorCombinationsMatFFEVecFFECoords(K,v0,i,1)[0]
             dist = v.WeightVecFFE()
             if dist and dist < dist_min:
                 dist_min = dist

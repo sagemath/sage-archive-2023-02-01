@@ -2530,7 +2530,11 @@ class FindStatStatistics(UniqueRepresentation, Parent):
             sage: findstat(domain="Permutations").an_element()                  # optional -- internet
             St000001: The number of reduced words for a permutation.
         """
-        return next(iter(self))
+        try:
+            return next(iter(self))
+        except StopIteration:
+            from sage.categories.sets_cat import EmptySetError
+            raise EmptySetError
 
     Element = FindStatStatistic
 
@@ -3474,7 +3478,11 @@ class FindStatMaps(UniqueRepresentation, Parent):
             sage: findmap(domain="Dyck paths", codomain="Posets").an_element()  # optional -- internet
             Mp00232: parallelogram poset
         """
-        return next(iter(self))
+        try:
+            return next(iter(self))
+        except StopIteration:
+            from sage.categories.sets_cat import EmptySetError
+            raise EmptySetError
 
     Element = FindStatMap
 

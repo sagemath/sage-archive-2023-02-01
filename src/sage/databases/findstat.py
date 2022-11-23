@@ -1007,7 +1007,9 @@ def findstat(query=None, values=None, distribution=None, domain=None,
         sage: findstat((PM, [1 for m in PM]))                                   # optional -- internet
         Traceback (most recent call last):
         ...
-        ValueError: E016: You passed too few elements (0 < 3) to FindStat!
+        ValueError: E016: The statistic finder was unable to perform a search on your data. The following errors have occured:
+        <BLANKLINE>
+        You passed too few elements (0 < 3) to FindStat!
 
     Finally, we can also retrieve all statistics with a given domain::
 

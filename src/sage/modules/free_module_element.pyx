@@ -371,7 +371,7 @@ def vector(arg0, arg1=None, arg2=None, sparse=None, immutable=False):
         ...
         TypeError: cannot convert 2-dimensional array to a vector
 
-    If any of the arguments to vector have Python type int, long, real,
+    If any of the arguments to vector have Python type int, real,
     or complex, they will first be coerced to the appropriate Sage
     objects. This fixes :trac:`3847`. ::
 
@@ -475,7 +475,7 @@ def vector(arg0, arg1=None, arg2=None, sparse=None, immutable=False):
     # We first efficiently handle the important special case of the zero vector
     # over a ring. See trac 11657.
     # !! PLEASE DO NOT MOVE THIS CODE LOWER IN THIS FUNCTION !!
-    arg1_integer = isinstance(arg1, (int, long, Integer))
+    arg1_integer = isinstance(arg1, (int, Integer))
     if arg2 is None and is_Ring(arg0) and arg1_integer:
         M = FreeModule(arg0, arg1, bool(sparse))
         v = M.zero_vector()
@@ -898,14 +898,14 @@ def random_vector(ring, degree=None, *args, **kwds):
         ...
         ValueError: degree of a random vector must be non-negative, not -9
     """
-    if isinstance(ring, (Integer, int, long)):
+    if isinstance(ring, (Integer, int)):
         if not degree is None:
             arglist = list(args)
             arglist.insert(0, degree)
             args = tuple(arglist)
         degree = ring
         ring = ZZ
-    if not isinstance(degree,(Integer, int, long)):
+    if not isinstance(degree, (Integer, int)):
         raise TypeError("degree of a random vector must be an integer, not %s" % degree)
     if degree < 0:
         raise ValueError("degree of a random vector must be non-negative, not %s" % degree)
@@ -1754,12 +1754,23 @@ cdef class FreeModuleElement(Vector):   # abstract base class
             True
             sage: vector(F, [0,0,0,0]) == vector(F, [0,2,0,y])
             False
+
+        Verify that :trac:`33697` is fixed::
+
+            sage: v = vector(SR, [x])
+            sage: w = vector(SR, [1])
+            sage: v == w
+            False
+            sage: assume(x > 0)
+            sage: v == w
+            False
+            sage: forget()
         """
         cdef Py_ssize_t i
         for i in range(left._degree):
             lx = left[i]
             rx = right[i]
-            if lx != rx:
+            if not(lx == rx):
                 return richcmp_not_equal(lx, rx, op)
         return rich_to_bool(op, 0)
 
@@ -2092,7 +2103,8 @@ cdef class FreeModuleElement(Vector):   # abstract base class
             '(theta^3 + sqrt(2) + 1/2, 1/2)'
         """
         cdef Py_ssize_t d = self._degree
-        if d == 0: return "()"
+        if d == 0:
+            return "()"
         # compute column widths
         S = [repr(x) for x in self.list(copy=False)]
         #width = max([len(x) for x in S])
@@ -3731,7 +3743,7 @@ cdef class FreeModuleElement(Vector):   # abstract base class
         from sage.misc.latex import latex
         vector_delimiters = latex.vector_delimiters()
         s = '\\left' + vector_delimiters[0]
-        s += ',\,'.join(latex(a) for a in self.list())
+        s += r',\,'.join(latex(a) for a in self.list())
         return s + '\\right' + vector_delimiters[1]
 
     def dense_vector(self):

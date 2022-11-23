@@ -467,7 +467,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
         """
         return fmpz_get_d(fmpz_mat_entry(self._matrix, i, j))
 
-    cdef bint get_is_zero_unsafe(self, Py_ssize_t i, Py_ssize_t j):
+    cdef bint get_is_zero_unsafe(self, Py_ssize_t i, Py_ssize_t j) except -1:
         """
         Return 1 if the entry (i, j) is zero, otherwise 0.
 
@@ -1639,7 +1639,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
         from .matrix_modn_dense_float import MAX_MODULUS as MAX_MODULUS_FLOAT
         from .matrix_modn_dense_double import MAX_MODULUS as MAX_MODULUS_DOUBLE
 
-        if isinstance(moduli, (int, long, Integer)):
+        if isinstance(moduli, (int, Integer)):
             return self._mod_int(moduli)
         elif isinstance(moduli, list):
             moduli = MultiModularBasis(moduli)
@@ -4740,7 +4740,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
             # Step 5: Apply p-adic solver
             C = B.matrix_from_columns(pivots)
             pivots_ = set(pivots)
-            non_pivots = [i for i in range(B.ncols()) if not i in pivots_]
+            non_pivots = [i for i in range(B.ncols()) if i not in pivots_]
             D = B.matrix_from_columns(non_pivots)
             t = verbose('calling %s solver'%solver, level=2, caller_name='p-adic echelon')
             if solver == 'iml':

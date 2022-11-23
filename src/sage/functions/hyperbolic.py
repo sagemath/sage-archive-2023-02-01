@@ -1,5 +1,5 @@
 r"""
-Hyperbolic Functions
+Hyperbolic functions
 
 The full set of hyperbolic and inverse hyperbolic functions is
 available:
@@ -604,6 +604,7 @@ class Function_arccoth(GinacFunction):
         GinacFunction.__init__(self, "arccoth",
                 latex_name=r"\operatorname{arcoth}",
                 conversions=dict(maxima='acoth', sympy='acoth',
+                                 mathematica='ArcCoth',
                                  giac='acoth', fricas='acoth'))
 
     def _eval_numpy_(self, x):
@@ -649,6 +650,7 @@ class Function_arcsech(GinacFunction):
         GinacFunction.__init__(self, "arcsech",
                 latex_name=r"\operatorname{arsech}",
                 conversions=dict(maxima='asech', sympy='asech',
+                                 mathematica='ArcSech',
                                  fricas='asech'))
 
     def _eval_numpy_(self, x):
@@ -701,7 +703,9 @@ class Function_arccsch(GinacFunction):
         """
         GinacFunction.__init__(self, "arccsch",
                 latex_name=r"\operatorname{arcsch}",
-                conversions=dict(maxima='acsch', sympy='acsch', fricas='acsch'))
+                conversions=dict(maxima='acsch',
+                                 mathematica='ArcCsch',
+                                 sympy='acsch', fricas='acsch'))
 
     def _eval_numpy_(self, x):
         """

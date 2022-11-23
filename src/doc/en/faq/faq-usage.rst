@@ -229,13 +229,13 @@ Can I do X in Sage?
 """""""""""""""""""
 
 You are encouraged to use Sage's tab autocompletion. Just type a few
-characters, hit the tab key, and see if the command you want appears
+characters, hit the :kbd:`Tab` key, and see if the command you want appears
 in the list of tab autocompletion. If you have a command called
-``mycmd``, then type ``mycmd.`` and hit the tab key to get a list of
+``mycmd``, then type ``mycmd.`` and hit the :kbd:`Tab` key to get a list of
 functionalities that are supported by that command. To read the
-documentation of ``mycmd``, type ``mycmd?`` and press the enter key to
+documentation of ``mycmd``, type ``mycmd?`` and press the :kbd:`Enter` key to
 read the documentation for that command. Similarly, type ``mycmd??``
-and hit the enter key to get the source code of that command. You are
+and hit the :kbd:`Enter` key to get the source code of that command. You are
 also encouraged to search through the source code and documentation of
 the Sage library. To search through the source code of the Sage
 library, use the command ``search_src("<search-keyword>")`` where you
@@ -321,7 +321,7 @@ ints. For example::
 
     sage: RealNumber = float; Integer = int
     sage: from scipy import stats
-    sage: stats.ttest_ind(list([1,2,3,4,5]),list([2,3,4,5,.6]))
+    sage: stats.ttest_ind([1,2,3,4,5], [2,3,4,5,.6])
     Ttest_indResult(statistic=0.0767529..., pvalue=0.940704...)
     sage: stats.uniform(0,15).ppf([0.5,0.7])
     array([  7.5,  10.5])

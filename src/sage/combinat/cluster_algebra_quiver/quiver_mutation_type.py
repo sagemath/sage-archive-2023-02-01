@@ -16,7 +16,7 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 # ***************************************************************************
 from __future__ import annotations
-import os
+from pathlib import Path
 import pickle
 
 from sage.structure.sage_object import SageObject
@@ -802,7 +802,7 @@ class QuiverMutationType_abstract(UniqueRepresentation, SageObject):
             [ 0  0  0 -1  0 -1]
             [ 0  0  0  0  2  0]
         """
-        return _edge_list_to_matrix(self._digraph.edges(), list(range(self._rank)), [])
+        return _edge_list_to_matrix(self._digraph.edges(sort=True), list(range(self._rank)), [])
 
     @cached_method
     def standard_quiver(self):
@@ -2272,9 +2272,9 @@ def _save_data_dig6(n, types='ClassicalExceptional', verbose=False):
         data.update(_construct_exceptional_mutation_classes(n))
 
     from sage.env import DOT_SAGE
-    types_path = os.path.join(DOT_SAGE, 'cluster_algebra_quiver')
-    types_file = os.path.join(types_path, 'mutation_classes_%s.dig6' % n)
-    os.makedirs(types_path, exist_ok=True)
+    types_path = Path(DOT_SAGE) / 'cluster_algebra_quiver'
+    types_path.mkdir(exist_ok=True)
+    types_file = types_path / f'mutation_classes_{n}.dig6'
     from sage.misc.temporary_file import atomic_write
     with atomic_write(types_file, binary=True) as f:
         pickle.dump(data, f)
@@ -2435,17 +2435,17 @@ def _edge_list_to_matrix(edges, nlist, mlist) -> matrix:
 
         sage: from sage.combinat.cluster_algebra_quiver.quiver_mutation_type import _edge_list_to_matrix
         sage: G = QuiverMutationType(['A', 2])._digraph
-        sage: _edge_list_to_matrix(G.edges(), [0, 1], [])
+        sage: _edge_list_to_matrix(G.edges(sort=True), [0, 1], [])
         [ 0  1]
         [-1  0]
 
         sage: G2 = DiGraph([('a', 'b', 1)])
-        sage: _edge_list_to_matrix(G2.edges(), ['a', 'b'], [])
+        sage: _edge_list_to_matrix(G2.edges(sort=True), ['a', 'b'], [])
         [ 0  1]
         [-1  0]
 
         sage: G3 = DiGraph([('a', 'b', 1), ('b', 'c', 1)])
-        sage: _edge_list_to_matrix(G3.edges(), ['a', 'b'], ['c'])
+        sage: _edge_list_to_matrix(G3.edges(sort=True), ['a', 'b'], ['c'])
         [ 0  1]
         [-1  0]
         [ 0 -1]

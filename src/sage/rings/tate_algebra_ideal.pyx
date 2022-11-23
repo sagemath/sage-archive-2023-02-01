@@ -292,7 +292,7 @@ class TateAlgebraIdeal(Ideal_generic):
 
             All ideals are saturated when `\pi` is invertible.
 
-        EXAMPLES::
+        EXAMPLES:
 
         Over classical Tate algebras (where `\pi` is invertible), this
         method always returns ``True``::
@@ -350,7 +350,7 @@ class TateAlgebraIdeal(Ideal_generic):
 
             When `\pi` is invertible in `A`, all ideals are saturated.
 
-        EXAMPLES::
+        EXAMPLES:
 
         Over classical Tate algebras (where `\pi` is invertible), this
         method always returns the same ideal::
@@ -625,7 +625,7 @@ cdef TateAlgebraElement regular_reduce(sgb, TateAlgebraTerm s, TateAlgebraElemen
 
     TESTS::
 
-        sage: cython('''
+        sage: cython('''  # optional - sage.misc.cython
         ....: from sage.rings.tate_algebra_ideal cimport regular_reduce
         ....: def python_regular_reduce(gb, s, v, stopval):
         ....:     return regular_reduce(gb, s, v, stopval)
@@ -703,7 +703,7 @@ cdef TateAlgebraElement reduce(gb, TateAlgebraElement v, stopval):
 
     TESTS::
 
-        sage: cython('''
+        sage: cython('''  # optional - sage.misc.cython
         ....: from sage.rings.tate_algebra_ideal cimport reduce
         ....: def python_reduce(gb, v, stopval):
         ....:     return reduce(gb, v, stopval)
@@ -874,7 +874,7 @@ def groebner_basis_pote(I, prec, verbose=0):
 
         # TODO: this should probably be a single function call
         f = f.monic() << f.valuation()
-    
+
         if verbose > 0:
             print("---")
             print("new generator: %s + ..." % f.leading_term())
@@ -952,7 +952,6 @@ def groebner_basis_pote(I, prec, verbose=0):
             if not v or v.valuation() >= prec:
                 # We have a new element in (I0:f) whose signature
                 # could be useful to strengthen the syzygy criterium
-                #print ("| add signature for syzygy criterium: %s" % s)
                 gb0.append(s)
             else:
                 # We update the current strong Grobner basis
@@ -1020,7 +1019,7 @@ def groebner_basis_pote(I, prec, verbose=0):
     gb.sort(reverse=True)
     return gb
 
-    
+
 def groebner_basis_vapote(I, prec, verbose=0, interrupt_red_with_val=False, interrupt_interred_with_val=False):
     r"""
     Run the VaPoTe algorithm to compute the Groebner basis of ``I``
@@ -1159,7 +1158,7 @@ def groebner_basis_vapote(I, prec, verbose=0, interrupt_red_with_val=False, inte
             continue
 
         f = f.monic() << f.valuation()
-        
+
         if f and f.valuation() > val:
             if verbose > 0:
                 print("reduction increases the valuation")

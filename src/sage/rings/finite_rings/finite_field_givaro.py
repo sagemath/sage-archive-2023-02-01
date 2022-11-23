@@ -1,5 +1,5 @@
 """
-Givaro Finite Field
+Givaro finite fields
 
 Finite fields that are implemented using Zech logs and the
 cardinality must be less than `2^{16}`. By default, Conway polynomials are
@@ -205,7 +205,7 @@ class FiniteField_givaro(FiniteField):
         """
         if key == 'element_is_atomic':
             return self._cache.repr != 0   # 0 means repr='poly'
-        return super(FiniteField_givaro, self)._repr_option(key)
+        return super()._repr_option(key)
 
     def random_element(self, *args, **kwds):
         """

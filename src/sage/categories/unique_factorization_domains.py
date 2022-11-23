@@ -16,9 +16,11 @@ from sage.categories.gcd_domains import GcdDomains
 
 class UniqueFactorizationDomains(Category_singleton):
     """
-    The category of unique factorization domains
-    constructive unique factorization domains, i.e. where one can constructively
-    factor members into a product of a finite number of irreducible elements
+    The category of (constructive) unique factorization domains.
+
+    In a constructive unique factorization domain we can
+    constructively factor members into a product of a finite number
+    of irreducible elements.
 
     EXAMPLES::
 
@@ -30,6 +32,7 @@ class UniqueFactorizationDomains(Category_singleton):
     TESTS::
 
         sage: TestSuite(UniqueFactorizationDomains()).run()
+
     """
 
     def super_categories(self):
@@ -74,7 +77,7 @@ class UniqueFactorizationDomains(Category_singleton):
 
         This implementation will not be needed anymore once every
         field in Sage will be properly declared in the category
-        :class:`UniqueFactorizationDomains`().
+        :class:`UniqueFactorizationDomains() <UniqueFactorizationDomains>`.
         """
         try:
             return self._contains_helper(x) or x.is_unique_factorization_domain()
@@ -221,7 +224,7 @@ class UniqueFactorizationDomains(Category_singleton):
             This default implementation calls ``squarefree_decomposition`` if
             available, and ``factor`` otherwise.
 
-            .. seealso:: :meth:`squarefree_part`
+            .. SEEALSO:: :meth:`squarefree_part`
 
             EXAMPLES::
 
@@ -271,7 +274,7 @@ class UniqueFactorizationDomains(Category_singleton):
 
             This default implementation calls ``squarefree_decomposition``.
 
-            .. seealso:: :meth:`radical`
+            .. SEEALSO:: :meth:`radical`
 
             EXAMPLES::
 

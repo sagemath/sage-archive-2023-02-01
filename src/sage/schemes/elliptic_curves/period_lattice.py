@@ -142,10 +142,10 @@ class PeriodLattice_ell(PeriodLattice):
           - use the built-in coercion to `\RR` for `K=\QQ`;
 
           - use the first embedding into `\RR` given by
-          ``K.embeddings(RealField())``, if there are any;
+            ``K.embeddings(RealField())``, if there are any;
 
           - use the first embedding into `\CC` given by
-          ``K.embeddings(ComplexField())``, if `K` is totally complex.
+            ``K.embeddings(ComplexField())``, if `K` is totally complex.
 
         .. NOTE::
 
@@ -802,7 +802,7 @@ class PeriodLattice_ell(PeriodLattice):
             return self.real_flag == +1
         raise RuntimeError("Not defined for non-real lattices.")
 
-    def real_period(self, prec = None, algorithm='sage'):
+    def real_period(self, prec=None, algorithm='sage'):
         """
         Return the real period of this period lattice.
 
@@ -840,8 +840,9 @@ class PeriodLattice_ell(PeriodLattice):
             return self.basis(prec,algorithm)[0]
         raise RuntimeError("Not defined for non-real lattices.")
 
-    def omega(self, prec = None, bsd_normalise = False):
-        r"""Return the real or complex volume of this period lattice.
+    def omega(self, prec=None, bsd_normalise=False):
+        r"""
+        Return the real or complex volume of this period lattice.
 
         INPUT:
 
@@ -974,7 +975,7 @@ class PeriodLattice_ell(PeriodLattice):
             [ 2.49021256085505 0.000000000000000]
             [0.000000000000000 -1.97173770155165]
         """
-        from sage.matrix.all import Matrix
+        from sage.matrix.constructor import Matrix
 
         if normalised:
             return Matrix([list(w) for w in self.normalised_basis(prec)])
@@ -1014,7 +1015,7 @@ class PeriodLattice_ell(PeriodLattice):
         w1,w2 = self.basis(prec)
         return (w1*w2.conjugate()).imag().abs()
 
-    def sigma(self, z, prec = None, flag=0):
+    def sigma(self, z, prec=None, flag=0):
         r"""
         Return the value of the Weierstrass sigma function for this elliptic curve  period lattice.
 
@@ -1177,7 +1178,7 @@ class PeriodLattice_ell(PeriodLattice):
                 except TypeError:
                     raise TypeError("%s is not a complex number"%z)
         prec = C.precision()
-        from sage.matrix.all import Matrix
+        from sage.matrix.constructor import Matrix
         from sage.modules.free_module_element import vector
         if self.real_flag:
             w1,w2 = self.basis(prec)
@@ -1940,6 +1941,7 @@ def normalise_periods(w1, w2):
 def extended_agm_iteration(a, b, c):
     r"""
     Internal function for the extended AGM used in elliptic logarithm computation.
+
     INPUT:
 
     - ``a``, ``b``, ``c`` (real or complex) -- three real or complex numbers.

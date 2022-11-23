@@ -1136,7 +1136,7 @@ class AlgebraicRealField(Singleton, AlgebraicField_common, sage.rings.abc.Algebr
         """
         if key == 'element_is_atomic':
             return True
-        return super(AlgebraicRealField, self)._repr_option(key)
+        return super()._repr_option(key)
 
     # Is there a standard representation for this?
     def _latex_(self):
@@ -1258,7 +1258,7 @@ class AlgebraicRealField(Singleton, AlgebraicField_common, sage.rings.abc.Algebr
             False
         """
         try:
-            return im_gens[0] == codomain._coerce_(self.gen(0))
+            return im_gens[0] == codomain.coerce(self.gen(0))
         except TypeError:
             return False
 
@@ -1757,7 +1757,7 @@ class AlgebraicField(Singleton, AlgebraicField_common, sage.rings.abc.AlgebraicF
             (AlgebraicClosureFunctor, Rational Field)
         """
         from sage.categories.pushout import AlgebraicClosureFunctor
-        from sage.all import QQ
+        from sage.rings.rational_field import QQ
         return (AlgebraicClosureFunctor(), QQ)
 
     def gens(self):
@@ -1970,17 +1970,17 @@ class AlgebraicField(Singleton, AlgebraicField_common, sage.rings.abc.AlgebraicF
             sage: v                                 # random
             (0.4694381338921299?, -0.500000000000000? + 0.866025403784439?*I)
         """
-        import sage.rings.all
+        from sage.rings.integer_ring import ZZ
         import sage.misc.prandom
         try:
-            poly_degree = sage.rings.all.ZZ(poly_degree)
+            poly_degree = ZZ(poly_degree)
         except TypeError:
             msg = "polynomial degree must be an integer, not {0}"
             raise TypeError(msg.format(poly_degree))
         if poly_degree < 1:
             msg = "polynomial degree must be greater than zero, not {0}"
             raise ValueError(msg.format(poly_degree))
-        R = PolynomialRing(sage.rings.all.ZZ, 'x')
+        R = PolynomialRing(ZZ, 'x')
         p = R.random_element(degree=poly_degree, *args, **kwds)
         # degree zero polynomials have no roots
         # totally zero poly has degree -1
@@ -4059,7 +4059,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
         self.exactify()
         return bool(self)
 
-    
+
 
     def is_square(self):
         """
@@ -4709,6 +4709,34 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
                 return candidates[0]
             roots = candidates
             interval_field = interval_field.to_prec(interval_field.prec() * 2)
+
+    def _maxima_init_(self, I=None):
+        r"""
+        EXAMPLES::
+
+            sage: maxima(AA(7))
+            7
+            sage: maxima(QQbar(sqrt(5/2)))
+            sqrt(10)/2
+            sage: maxima(AA(-sqrt(5)))
+            -sqrt(5)
+            sage: maxima(QQbar(sqrt(-2)))
+            sqrt(2)*%i
+            sage: maxima(AA(2+sqrt(5)))
+            sqrt(5)+2
+            sage: maxima(QQ[x](x^7 - x - 1).roots(AA, False)[0])
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: cannot find radical expression
+        """
+        try:
+            return self._rational_()._maxima_init_()
+        except ValueError:
+            pass
+        rad = self.radical_expression()
+        if isinstance(rad.parent(), sage.rings.abc.SymbolicRing):
+            return rad._maxima_init_()
+        raise NotImplementedError('cannot find radical expression')
 
 
 class AlgebraicNumber(AlgebraicNumber_base):

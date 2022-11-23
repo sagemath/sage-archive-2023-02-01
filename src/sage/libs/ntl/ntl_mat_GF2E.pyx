@@ -45,9 +45,9 @@ from sage.misc.randstate cimport randstate, current_randstate
 
 from sage.libs.ntl.ntl_ZZ import unpickle_class_args
 
-cdef class ntl_mat_GF2E(object):
+cdef class ntl_mat_GF2E():
     r"""
-    The \class{mat_GF2E} class implements arithmetic with matrices over $GF(2**x)$.
+    The \class{mat_GF2E} class implements arithmetic with matrices over `GF(2**x)`.
     """
     def __init__(self, modulus = None, nrows=0, ncols=0, v=None):
         """
@@ -445,17 +445,18 @@ cdef class ntl_mat_GF2E(object):
         sig_off()
         return r
 
-    def gauss(self,ncols=-1):
-        """
-        Performs unitary row operations so as to bring this matrix
-        into row echelon form.  If the optional argument \code{ncols}
-        is supplied, stops when first ncols columns are in echelon
-        form.  The return value is the rank (or the rank of the first
-        ncols columns).
+    def gauss(self, ncols=-1):
+        r"""
+        Perform unitary row operations so as to bring this matrix
+        into row echelon form.
+
+        If the optional argument ``ncols`` is supplied, stops when
+        first ``ncols`` columns are in echelon form.  The return value
+        is the rank (or the rank of the first ``ncols`` columns).
 
         INPUT:
 
-        - ``ncols`` - number of columns to process (default: all)
+        - ``ncols`` -- number of columns to process (default: all)
 
         EXAMPLES::
 
@@ -571,7 +572,7 @@ cdef class ntl_mat_GF2E(object):
 
     def __invert__(self):
         """
-        Return $X = A^{-1}$; an error is raised if A is singular.
+        Return `X = A^{-1}`; an error is raised if A is singular.
 
         EXAMPLES::
 

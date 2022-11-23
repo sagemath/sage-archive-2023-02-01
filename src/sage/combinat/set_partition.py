@@ -2735,7 +2735,7 @@ class SetPartitions_set(SetPartitions):
             sage: S1 is S2, S1 is S3
             (True, True)
         """
-        return super(SetPartitions_set, cls).__classcall__(cls, frozenset(s))
+        return super().__classcall__(cls, frozenset(s))
 
     def __init__(self, s):
         """
@@ -2914,13 +2914,13 @@ class SetPartitions_setparts(SetPartitions_set):
         """
         if isinstance(s, (int, Integer)):
             s = list(range(1, s + 1))
-        return super(SetPartitions_setparts, cls).__classcall__(cls, frozenset(s), Partition(parts))
+        return super().__classcall__(cls, frozenset(s), Partition(parts))
 
     def __init__(self, s, parts):
         """
         Initialize the data structure.
 
-        We can assume here that `parts` is a :cls:`Partition`.
+        We can assume here that ``parts`` is a :class:`Partition`.
 
         TESTS::
 
@@ -3170,7 +3170,7 @@ class SetPartitions_setn(SetPartitions_set):
             sage: S1 is S2, S1 is S3
             (True, True)
         """
-        return super(SetPartitions_setn, cls).__classcall__(cls, frozenset(s), k)
+        return super().__classcall__(cls, frozenset(s), k)
 
     def __init__(self, s, k):
         """

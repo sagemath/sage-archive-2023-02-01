@@ -84,7 +84,7 @@ coordinates where the codomain is not implemented as a toric variety::
       From: Projective Space of dimension 2 over Rational Field
       To:   2-d CPR-Fano toric variety covered by 3 affine patches
     sage: type(native_to_toric)
-    <class 'sage.schemes.generic.homset.SchemeHomset_generic_with_category'>
+    <class 'sage.schemes.projective.projective_homset.SchemeHomset_polynomial_projective_space_with_category'>
     sage: native_to_toric([u^2, v^2, w^2])
     Scheme morphism:
       From: Projective Space of dimension 2 over Rational Field
@@ -250,7 +250,7 @@ class SchemeHomset_toric_variety(SchemeHomset_generic):
             return SchemeMorphism_polynomial_toric_variety(self, x, check=check)
 
         from sage.categories.map import Map
-        from sage.categories.all import Rings
+        from sage.categories.rings import Rings
         if isinstance(x, Map) and x.category_for().is_subcategory(Rings()):
             # x is a morphism of Rings
             assert x.domain() is self.codomain().coordinate_ring()
@@ -472,8 +472,8 @@ class SchemeHomset_points_toric_field(SchemeHomset_points_toric_base):
          [1 : 3 : 6]]
 
     As for a non-compact example, the blow-up of the plane is the line
-    bundle $O_{\mathbf{P}^1}(-1)$. Its point set is the Cartesian
-    product of the points on the base $\mathbf{P}^1$ with the points
+    bundle `O_{\mathbf{P}^1}(-1)`. Its point set is the Cartesian
+    product of the points on the base `\mathbf{P}^1` with the points
     on the fiber::
 
         sage: fan = Fan([Cone([(1,0), (1,1)]), Cone([(1,1), (0,1)])])
@@ -568,7 +568,7 @@ class SchemeHomset_points_toric_field(SchemeHomset_points_toric_base):
             try:
                 return self._enumerator().cardinality()
             except AttributeError:
-                return super(SchemeHomset_points_toric_field, self).cardinality()
+                return super().cardinality()
         q = variety.base_ring().order()
         n = variety.dimension()
         d = map(len, variety.fan().cones())
@@ -613,9 +613,7 @@ class SchemeHomset_points_subscheme_toric_field(SchemeHomset_points_toric_base):
             sage: point_set._enumerator()
             <sage.schemes.toric.points.FiniteFieldPointEnumerator object at 0x...>
         """
-        ambient = super(
-            SchemeHomset_points_subscheme_toric_field, self
-        )._enumerator()
+        ambient = super()._enumerator()
         ring = self.domain().base_ring()
         if ring in FiniteFields():
             from sage.schemes.toric.points import FiniteFieldSubschemePointEnumerator
@@ -665,4 +663,4 @@ class SchemeHomset_points_subscheme_toric_field(SchemeHomset_points_toric_base):
         try:
             return self._enumerator().cardinality()
         except AttributeError:
-            return super(SchemeHomset_points_subscheme_toric_field, self).cardinality()
+            return super().cardinality()

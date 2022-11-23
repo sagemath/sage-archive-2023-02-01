@@ -126,7 +126,7 @@ from sage.interfaces.interface import AsciiArtString
 from sage.misc.multireplace import multiple_replace
 from sage.misc.superseded import deprecated_function_alias
 from sage.interfaces.tab_completion import ExtraTabCompletion
-from sage.docs.instancedoc import instancedoc
+from sage.misc.instancedoc import instancedoc
 from sage.structure.global_options import GlobalOptions
 
 
@@ -216,14 +216,14 @@ class Macaulay2(ExtraTabCompletion, Expect):
             )
         command = "%s --no-debug --no-readline --silent -e '%s'" % (command, init_str)
         Expect.__init__(self,
-                        name = 'macaulay2',
-                        prompt = PROMPT,
-                        command = command,
-                        server = server,
-                        server_tmpdir = server_tmpdir,
-                        script_subdirectory = script_subdirectory,
-                        verbose_start = False,
-                        logfile = logfile,
+                        name='macaulay2',
+                        prompt=PROMPT,
+                        command=command,
+                        server=server,
+                        server_tmpdir=server_tmpdir,
+                        script_subdirectory=script_subdirectory,
+                        verbose_start=False,
+                        logfile=logfile,
                         eval_using_file_cutoff=500)
 
     # Macaulay2 provides no "clear" function. However, Macaulay2 does provide
@@ -1179,8 +1179,6 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
         P = self.parent()
         return P.eval('{0}===false or {0}==0'.format(self._name)) != 'true'
 
-    
-
     def sage_polystring(self):
         """
         If this Macaulay2 element is a polynomial, return a string
@@ -1632,7 +1630,7 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
                     graph_cls = DiGraph
                 adj_mat = self.adjacencyMatrix().sage()
                 g = graph_cls(adj_mat, format='adjacency_matrix')
-                g.relabel(self.vertices())
+                g.relabel(self.vertices(sort=True))
                 return g
             elif cls_str == "ChainComplex":
                 from sage.homology.chain_complex import ChainComplex
@@ -1866,7 +1864,6 @@ def macaulay2_console():
     os.system('M2')
 
 
-
 def reduce_load_macaulay2():
     """
     Used for reconstructing a copy of the Macaulay2 interpreter from a pickle.
@@ -1878,4 +1875,3 @@ def reduce_load_macaulay2():
         Macaulay2
     """
     return macaulay2
-

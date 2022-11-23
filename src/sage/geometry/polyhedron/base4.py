@@ -1,6 +1,6 @@
 # sage.doctest: optional - sage.graphs
 r"""
-Base class for polyhedra, part 4
+Base class for polyhedra: Graph-theoretic methods
 
 Define methods relying on :mod:`sage.graphs`.
 """
@@ -120,7 +120,7 @@ class Polyhedron_base4(Polyhedron_base3):
             sage: G.is_isomorphic(H)
             False
             sage: G2 = copy(G)
-            sage: G2.reverse_edges(G2.edges())
+            sage: G2.reverse_edges(G2.edges(sort=True))
             sage: G2.is_isomorphic(H)
             True
 
@@ -139,17 +139,30 @@ class Polyhedron_base4(Polyhedron_base3):
         """
         return self.combinatorial_polyhedron().vertex_facet_graph(names=labels)
 
-    def vertex_graph(self):
+    def vertex_graph(self, **kwds):
         """
         Return a graph in which the vertices correspond to vertices
         of the polyhedron, and edges to edges.
 
-        ..NOTE::
+        INPUT:
+
+        - ``names`` -- boolean (default: ``True``); if ``False``,
+          then the nodes of the graph are labeld by the
+          indices of the Vrepresentation
+
+        - ``algorithm`` -- string (optional);
+          specify whether the face generator starts with facets or vertices:
+
+          * ``'primal'`` -- start with the facets
+          * ``'dual'`` -- start with the vertices
+          * ``None`` -- choose automatically
+
+        .. NOTE::
 
             The graph of a polyhedron with lines has no vertices,
             as the polyhedron has no vertices (`0`-faces).
 
-            The method :meth:`Polyhedron_base:vertices` returns
+            The method :meth:`~sage.geometry.polyhedron.base0.Polyhedron_base0.vertices` returns
             the defining points in this case.
 
         EXAMPLES::
@@ -181,10 +194,10 @@ class Polyhedron_base4(Polyhedron_base3):
 
         Check for a line segment (:trac:`30545`)::
 
-            sage: polytopes.simplex(1).graph().edges()
+            sage: polytopes.simplex(1).graph().edges(sort=True)
             [(A vertex at (0, 1), A vertex at (1, 0), None)]
         """
-        return self.combinatorial_polyhedron().vertex_graph()
+        return self.combinatorial_polyhedron().vertex_graph(**kwds)
 
     graph = vertex_graph
 
@@ -199,7 +212,7 @@ class Polyhedron_base4(Polyhedron_base3):
         - ``f`` -- a linear form. The linear form can be provided as:
 
             - a vector space morphism with one-dimensional codomain, (see
-              :meth:`sage.modules.vector_space_morphism.linear_transformation`
+              :func:`sage.modules.vector_space_morphism.linear_transformation`
               and
               :class:`sage.modules.vector_space_morphism.VectorSpaceMorphism`)
             - a vector ; in this case the linear form is obtained by duality
@@ -766,7 +779,7 @@ class Polyhedron_base4(Polyhedron_base3):
         - For ``output="abstract"`` and ``output="permutation"``:
           a :class:`PermutationGroup<sage.groups.perm_gps.permgroup.PermutationGroup_generic>`.
 
-        - For ``output="matrix"``: a :class:`MatrixGroup`.
+        - For ``output="matrix"``: a :func:`~sage.groups.matrix_gps.finitely_generated.MatrixGroup`.
 
         - For ``output="matrixlist"``: a list of matrices.
 
@@ -1040,8 +1053,8 @@ class Polyhedron_base4(Polyhedron_base3):
         INPUT:
 
         - ``other`` -- a polyhedron object
-        - ``algorithm`` (default = ``bipartite_graph``) -- the algorithm to use.
-          The other possible value is ``face_lattice``.
+        - ``algorithm`` (default = ``'bipartite_graph'``) -- the algorithm to use.
+          The other possible value is ``'face_lattice'``.
 
         OUTPUT:
 

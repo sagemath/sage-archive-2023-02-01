@@ -1474,7 +1474,7 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
 
         UHP = self.model()
         # Both geodesic need to be UHP geodesics for this to work
-        if(other.model() != UHP):
+        if other.model() != UHP:
             other = other.to_model(UHP)
         # Get endpoints and ideal endpoints
         i_start_1, i_end_1 = sorted(self.ideal_endpoints(), key=str)
@@ -2325,12 +2325,14 @@ class HyperbolicGeodesicKM(HyperbolicGeodesic):
         opts = {'axes': False, 'aspect_ratio': 1}
         opts.update(self.graphics_options())
         opts.update(options)
+
         def map_pt(pt):
             if pt in CC:
                 return CC(pt)
             return CC(*pt)
         end_1, end_2 = [map_pt(k.coordinates()) for k in self.endpoints()]
-        pic = bezier_path([[(real(end_1), imag(end_1)), (real(end_2), imag(end_2))]], **opts)
+        pic = bezier_path([[(real(end_1), imag(end_1)),
+                            (real(end_2), imag(end_2))]], **opts)
         if boundary:
             pic += self._model.get_background_graphic()
         return pic

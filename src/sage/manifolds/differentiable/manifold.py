@@ -852,10 +852,10 @@ class DifferentiableManifold(TopologicalManifold):
 
         INPUT:
 
-        - ``resu`` -- an instance of ``:class:`TopologicalManifold` or
+        - ``resu`` -- an instance of :class:`TopologicalManifold` or
           a subclass.
 
-        - ``coord_def`` -- (default: {}) definition of the subset in
+        - ``coord_def`` -- (default: ``{}``) definition of the subset in
           terms of coordinates; ``coord_def`` must a be dictionary with keys
           charts on the manifold and values the symbolic expressions formed
           by the coordinates to define the subset
@@ -1438,9 +1438,9 @@ class DifferentiableManifold(TopologicalManifold):
             Free module T^(2,1)(U) of type-(2,1) tensors fields on the Open
              subset U of the 3-dimensional differentiable manifold M
             sage: TU.category()
-            Category of finite dimensional modules over Algebra of
-             differentiable scalar fields on the Open subset U of the
-             3-dimensional differentiable manifold M
+            Category of tensor products of finite dimensional modules
+             over Algebra of differentiable scalar fields
+              on the Open subset U of the 3-dimensional differentiable manifold M
             sage: TU.base_ring()
             Algebra of differentiable scalar fields on the Open subset U of
              the 3-dimensional differentiable manifold M
@@ -3403,7 +3403,7 @@ class DifferentiableManifold(TopologicalManifold):
         """
         return bool(self._covering_frames)
 
-    def tangent_space(self, point):
+    def tangent_space(self, point, base_ring=None):
         r"""
         Tangent space to ``self`` at a given point.
 
@@ -3411,6 +3411,8 @@ class DifferentiableManifold(TopologicalManifold):
 
         - ``point`` -- :class:`~sage.manifolds.point.ManifoldPoint`;
           point `p` on the manifold
+
+        - ``base_ring`` -- (default: the symbolic ring) the base ring
 
         OUTPUT:
 
@@ -3445,7 +3447,7 @@ class DifferentiableManifold(TopologicalManifold):
             raise TypeError("{} is not a manifold point".format(point))
         if point not in self:
             raise ValueError("{} is not a point on the {}".format(point, self))
-        return TangentSpace(point)
+        return TangentSpace(point, base_ring=base_ring)
 
     def curve(self, coord_expression, param, chart=None,
               name=None, latex_name=None):

@@ -584,7 +584,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
         # This method is here for speed!
         return FfToInt(FfExtract(MatGetPtr(self.Data,i), j))
 
-    cdef bint get_is_zero_unsafe(self, Py_ssize_t i, Py_ssize_t j):
+    cdef bint get_is_zero_unsafe(self, Py_ssize_t i, Py_ssize_t j) except -1:
         r"""
         Return 1 if the entry ``(i, j)`` is zero, otherwise 0.
 
@@ -1937,7 +1937,7 @@ def mtx_unpickle(f, int nr, int nc, data, bint m):
     # in the following line, we use a helper function that would return bytes,
     # regardless whether the input is bytes or str.
     cdef bytes Data = str_to_bytes(data, encoding='latin1')
-    if isinstance(f, (int, long)):
+    if isinstance(f, int):
         # This is for old pickles created with the group cohomology spkg
         MS = MatrixSpace(GF(f, 'z'), nr, nc, implementation=Matrix_gfpn_dense)
     else:

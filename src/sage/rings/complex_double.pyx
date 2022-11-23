@@ -380,7 +380,7 @@ cdef class ComplexDoubleField_class(sage.rings.abc.ComplexDoubleField):
             return x
         elif isinstance(x, tuple):
             return ComplexDoubleElement(x[0], x[1])
-        elif isinstance(x, (float, int, long)):
+        elif isinstance(x, (float, int)):
             return ComplexDoubleElement(x, 0)
         elif isinstance(x, complex):
             return ComplexDoubleElement(x.real, x.imag)
@@ -415,9 +415,9 @@ cdef class ComplexDoubleField_class(sage.rings.abc.ComplexDoubleField):
 
         EXAMPLES::
 
-            sage: CDF._coerce_(5) # indirect doctest
+            sage: CDF.coerce(5) # indirect doctest
             5.0
-            sage: CDF._coerce_(RDF(3.4))
+            sage: CDF.coerce(RDF(3.4))
             3.4
 
         Thus the sum of a CDF and a symbolic object is symbolic::
@@ -1637,7 +1637,7 @@ cdef class ComplexDoubleElement(FieldElement):
         return self.real().is_NaN() or self.imag().is_NaN()
 
     cpdef _pow_(self, other):
-        """
+        r"""
         The complex number ``self`` raised to the power ``other``.
 
         This is computed using complex logarithms and exponentials

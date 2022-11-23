@@ -798,7 +798,7 @@ class QuaternionAlgebra_ab(QuaternionAlgebra_abstract):
         e_new_gens = []
 
         # For each prime at which R is not yet maximal, make it bigger
-        for (p, p_val) in d_R.factor():
+        for p, _ in d_R.factor():
             e = R.basis()
             while self.quaternion_order(e).discriminant().valuation(p) > d_A.valuation(p):
                 # Compute a normalized basis at p
@@ -1221,7 +1221,7 @@ class QuaternionAlgebra_ab(QuaternionAlgebra_abstract):
         if self.discriminant() % p == 0:
             raise ValueError("p (=%s) must be an unramified prime" % p)
 
-        i, j, k = self.gens()
+        i, j, _ = self.gens()
         F = GF(p)
         i2 = F(i * i)
         j2 = F(j * j)
@@ -1230,9 +1230,9 @@ class QuaternionAlgebra_ab(QuaternionAlgebra_abstract):
         I = M([0, i2, 1, 0])
         if i2 == 0:
             raise NotImplementedError("algorithm for computing local splittings not implemented in general (currently require the first invariant to be coprime to p)")
-        i2inv = 1/i2
+        i2inv = ~i2
         a = None
-        for b in list(F):
+        for b in F:
             if not b:
                 continue
             c = j2 + i2inv * b*b
@@ -2690,15 +2690,13 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
         R = self.quaternion_algebra()
         return R.ideal(basis, check=False)
 
-    def is_equivalent(I, J, B=10):
+    def is_equivalent(self, J, B=10) -> bool:
         """
-        Return ``True`` if ``I`` and ``J`` are equivalent as right ideals.
+        Return ``True`` if ``self`` and ``J`` are equivalent as right ideals.
 
         INPUT:
 
-        - ``I`` -- a fractional quaternion ideal (self)
-
-        - ``J`` -- a fractional quaternion ideal with same order as ``I``
+        - ``J`` -- a fractional quaternion ideal with same order as ``self``
 
         - ``B`` -- a bound to compute and compare theta series before
           doing the full equivalence test
@@ -2718,15 +2716,16 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
             sage: R[0].is_equivalent(S)
             True
         """
-        if not isinstance(I, QuaternionFractionalIdeal_rational):
+        # shorthand: let I be self
+        if not isinstance(self, QuaternionFractionalIdeal_rational):
             return False
 
-        if I.right_order() != J.right_order():
-            raise ValueError("I and J must be right ideals")
+        if self.right_order() != J.right_order():
+            raise ValueError("self and J must be right ideals")
 
         # Just test theta series first.  If the theta series are
         # different, the ideals are definitely not equivalent.
-        if B > 0 and I.theta_series_vector(B) != J.theta_series_vector(B):
+        if B > 0 and self.theta_series_vector(B) != J.theta_series_vector(B):
             return False
 
         # The theta series are the same, so perhaps the ideals are
@@ -2734,7 +2733,7 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
         # 1. Compute I * Jbar
         # see Prop. 1.17 in Pizer.  Note that we use IJbar instead of
         # JbarI since we work with right ideals
-        IJbar = I.multiply_by_conjugate(J)
+        IJbar = self.multiply_by_conjugate(J)
 
         # 2. Determine if there is alpha in K such
         #    that N(alpha) = N(I)*N(J) as explained by Pizer.
@@ -2865,7 +2864,7 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
         else:
             x = alpha
             lines = []
-            for i in range(p+1):
+            for _ in range(p + 1):
                 lines.append(P1.normalize(x[0, 0], x[0, 1]))
                 x *= alpha
 

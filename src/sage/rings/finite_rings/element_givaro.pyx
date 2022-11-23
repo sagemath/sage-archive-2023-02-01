@@ -1,7 +1,7 @@
 # distutils: libraries = givaro gmp m
 # distutils: language = c++
 r"""
-Givaro Field Elements
+Givaro finite field elements
 
 Sage includes the Givaro finite field library, for highly optimized
 arithmetic in finite fields.
@@ -378,7 +378,7 @@ cdef class Cache_givaro(Cache_base):
             else:
                 raise TypeError("unable to coerce from a finite field other than the prime subfield")
 
-        elif isinstance(e, (int, Integer, long)) or is_IntegerMod(e):
+        elif isinstance(e, (int, Integer)) or is_IntegerMod(e):
             try:
                 e_int = e % self.characteristic()
                 self.objectptr.initi(res, e_int)

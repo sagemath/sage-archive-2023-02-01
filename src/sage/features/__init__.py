@@ -302,7 +302,7 @@ class FeatureNotPresentError(RuntimeError):
         return "\n".join(lines)
 
 
-class FeatureTestResult(object):
+class FeatureTestResult():
     r"""
     The result of a :meth:`Feature.is_present` call.
 
@@ -371,8 +371,6 @@ class FeatureTestResult(object):
         """
         return bool(self.is_present)
 
-    
-
     def __repr__(self):
         r"""
         TESTS::
@@ -385,6 +383,7 @@ class FeatureTestResult(object):
 
 
 _cache_package_systems = None
+
 
 def package_systems():
     """

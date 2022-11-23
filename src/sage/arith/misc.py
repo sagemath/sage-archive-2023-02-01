@@ -1,6 +1,10 @@
 # -*- coding: utf-8 -*-
 r"""
 Miscellaneous arithmetic functions
+
+AUTHORS:
+
+- Kevin Stueve (2010-01-17): in ``is_prime(n)``, delegated calculation to ``n.is_prime()``
 """
 
 # ****************************************************************************
@@ -29,6 +33,7 @@ from sage.rings.rational import Rational
 from sage.rings.abc import RealField, ComplexField
 
 from sage.rings.fast_arith import arith_int, arith_llong, prime_range
+from sage.arith.functions import LCM_list
 
 
 ##################################################################
@@ -471,24 +476,28 @@ def factorial(n, algorithm='gmp'):
 
 def is_prime(n):
     r"""
-    Return ``True`` if `n` is a prime number, and ``False`` otherwise.
-
-    Use a provable primality test or a strong pseudo-primality test depending
-    on the global :mod:`arithmetic proof flag <sage.structure.proof.proof>`.
+    Determine whether `n` is a prime element of its parent ring.
 
     INPUT:
 
-    -  ``n`` - the object for which to determine primality
+    - ``n`` -- the object for which to determine primality
+
+    Exceptional special cases:
+
+    - For integers, determine whether `n` is a *positive* prime.
+    - For number fields except `\QQ`, determine whether `n`
+      is a prime element *of the maximal order*.
+
+    ALGORITHM:
+
+    For integers, this function uses a provable primality test
+    or a strong pseudo-primality test depending on the global
+    :mod:`arithmetic proof flag <sage.structure.proof.proof>`.
 
     .. SEEALSO::
 
         - :meth:`is_pseudoprime`
         - :meth:`sage.rings.integer.Integer.is_prime`
-
-    AUTHORS:
-
-    - Kevin Stueve kstueve@uw.edu (2010-01-17):
-      delegated calculation to ``n.is_prime()``
 
     EXAMPLES::
 
@@ -505,18 +514,59 @@ def is_prime(n):
         sage: is_prime(-2)
         False
 
+    ::
+
         sage: a = 2**2048 + 981
         sage: is_prime(a)    # not tested - takes ~ 1min
         sage: proof.arithmetic(False)
         sage: is_prime(a)    # instantaneous!
         True
         sage: proof.arithmetic(True)
+
+    TESTS:
+
+    Make sure the warning from :trac:`25046` works as intended::
+
+        sage: is_prime(7/1)
+        doctest:warning
+        ...
+        UserWarning: Testing primality in Rational Field, which is a field,
+        hence the result will always be False. To test whether n is a prime
+        integer, use is_prime(ZZ(n)) or ZZ(n).is_prime(). Using n.is_prime()
+        instead will silence this warning.
+        False
+        sage: ZZ(7/1).is_prime()
+        True
+        sage: QQ(7/1).is_prime()
+        False
+
+    However, number fields redefine ``.is_prime()`` in an incompatible fashion
+    (cf. :trac:`32340`) and we should not warn::
+
+        sage: K.<i> = NumberField(x^2+1)
+        sage: is_prime(1+i)
+        True
     """
     try:
-        return n.is_prime()
+        ret = n.is_prime()
     except (AttributeError, NotImplementedError):
         return ZZ(n).is_prime()
 
+    R = n.parent()
+    if R.is_field():
+        # number fields redefine .is_prime(), see #32340
+        from sage.rings.number_field.number_field import NumberField_generic
+        if not isinstance(R, NumberField_generic):
+            import warnings
+            s = f'Testing primality in {R}, which is a field, ' \
+                 'hence the result will always be False. '
+            if R is QQ:
+                s += 'To test whether n is a prime integer, use ' \
+                     'is_prime(ZZ(n)) or ZZ(n).is_prime(). '
+            s += 'Using n.is_prime() instead will silence this warning.'
+            warnings.warn(s)
+
+    return ret
 
 def is_pseudoprime(n):
     r"""
@@ -967,7 +1017,7 @@ def primes(start, stop=None, proof=None):
     argument proof controls whether the numbers returned are
     guaranteed to be prime or not.
 
-    This command is like the Python 2 ``xrange`` command, except it only iterates
+    This command is like the Python 3 ``range`` command, except it only iterates
     over primes. In some cases it is better to use primes than
     ``prime_range``, because primes does not build a list of all primes in
     the range in memory all at once. However, it is potentially much
@@ -1374,8 +1424,7 @@ def random_prime(n, proof=None, lbound=2):
         sage: random_prime(126, lbound=114)
         Traceback (most recent call last):
         ...
-        ValueError: There are no primes between 114 and 126 (inclusive)
-
+        ValueError: there are no primes between 114 and 126 (inclusive)
 
     AUTHORS:
 
@@ -1407,7 +1456,7 @@ def random_prime(n, proof=None, lbound=2):
                     else:
                         smallest_prime = ZZ(lbound-1).next_probable_prime()
                     if smallest_prime > n:
-                        raise ValueError("There are no primes between %s and %s (inclusive)" % (lbound, n))
+                        raise ValueError("there are no primes between %s and %s (inclusive)" % (lbound, n))
 
     if proof:
         prime_test = is_prime
@@ -2033,7 +2082,7 @@ def xkcd(n=""):
     import contextlib
     import json
     from sage.misc.html import html
-    from ssl import SSLContext
+    from ssl import create_default_context as default_context
 
     from urllib.request import urlopen
     from urllib.error import HTTPError, URLError
@@ -2046,11 +2095,11 @@ def xkcd(n=""):
         url = "https://xkcd.com/{}/info.0.json".format(n)
 
     try:
-        with contextlib.closing(urlopen(url, context=SSLContext())) as f:
+        with contextlib.closing(urlopen(url, context=default_context())) as f:
             data = f.read()
     except HTTPError as error:
         if error.getcode() == 400:  # this error occurs when asking for a non valid comic number
-            raise RuntimeError("Could not obtain comic data from {}. Maybe you should enable time travel!".format(url))
+            raise RuntimeError("could not obtain comic data from {}".format(url))
     except URLError:
         pass
 
@@ -2163,28 +2212,38 @@ def get_inverse_mod(order):
 
 def power_mod(a, n, m):
     """
-    Return the ``n``-th power of ``a`` modulo the integer ``m``.
+    Return the `n`-th power of `a` modulo `m`, where `a` and `m`
+    are elements of a ring that implements the modulo operator ``%``.
+
+    ALGORITHM: square-and-multiply
 
     EXAMPLES::
 
-        sage: power_mod(0,0,5)
-        Traceback (most recent call last):
-        ...
-        ArithmeticError: 0^0 is undefined.
+        sage: power_mod(2,388,389)
+        1
         sage: power_mod(2,390,391)
         285
         sage: power_mod(2,-1,7)
         4
         sage: power_mod(11,1,7)
         4
+
+    This function works for fairly general rings::
+
         sage: R.<x> = ZZ[]
         sage: power_mod(3*x, 10, 7)
         4*x^10
+        sage: power_mod(-3*x^2+4, 7, 2*x^3-5)
+        x^14 + x^8 + x^6 + x^3 + 962509*x^2 - 791910*x - 698281
 
+    TESTS::
+
+        sage: power_mod(0,0,5)
+        1
         sage: power_mod(11,1,0)
         Traceback (most recent call last):
         ...
-        ZeroDivisionError: modulus must be nonzero.
+        ZeroDivisionError: modulus must be nonzero
 
     Tests with numpy and gmpy2 numbers::
 
@@ -2195,29 +2254,33 @@ def power_mod(a, n, m):
         sage: power_mod(mpz(2),mpz(390),mpz(391))
         mpz(285)
     """
-    if m == 0:
-        raise ZeroDivisionError("modulus must be nonzero.")
-    if m == 1:
-        return 0
-    if n < 0:
-        ainv = inverse_mod(a, m)
-        return power_mod(ainv, -n, m)
-    if n == 0:
-        if a == 0:
-            raise ArithmeticError("0^0 is undefined.")
-        return 1
+    if not m:
+        raise ZeroDivisionError("modulus must be nonzero")
 
-    apow = a % m
-    while n & 1 == 0:
-        apow = (apow*apow) % m
-        n = n >> 1
+    a = a % m  # this should coerce into a ring containing both a and m
+
+    if m == 1:
+        return a.parent().zero()
+
+    n = Integer(n)
+    if not n:
+        return a.parent().one()
+    if n < 0:
+        a = inverse_mod(a, m)
+        n = -n
+
+    apow = a
+    while not n & 1:
+        apow = apow * apow % m
+        n >>= 1
+
     power = apow
-    n = n >> 1
-    while n != 0:
-        apow = (apow*apow) % m
-        if n & 1 != 0:
-            power = (power*apow) % m
-        n = n >> 1
+    n >>= 1
+    while n:
+        apow = apow * apow % m
+        if n & 1:
+            power = power * apow % m
+        n >>= 1
 
     return power
 
@@ -3072,6 +3135,156 @@ class Euler_Phi:
 euler_phi = Euler_Phi()
 
 
+def carmichael_lambda(n):
+    r"""
+    Return the Carmichael function of a positive integer ``n``.
+
+    The Carmichael function of `n`, denoted `\lambda(n)`, is the smallest
+    positive integer `k` such that `a^k \equiv 1 \pmod{n}` for all
+    `a \in \ZZ/n\ZZ` satisfying `\gcd(a, n) = 1`. Thus, `\lambda(n) = k`
+    is the exponent of the multiplicative group `(\ZZ/n\ZZ)^{\ast}`.
+
+    INPUT:
+
+    - ``n`` -- a positive integer.
+
+    OUTPUT:
+
+    - The Carmichael function of ``n``.
+
+    ALGORITHM:
+
+    If `n = 2, 4` then `\lambda(n) = \varphi(n)`. Let `p \geq 3` be an odd
+    prime and let `k` be a positive integer. Then
+    `\lambda(p^k) = p^{k - 1}(p - 1) = \varphi(p^k)`. If `k \geq 3`, then
+    `\lambda(2^k) = 2^{k - 2}`. Now consider the case where `n > 3` is
+    composite and let `n = p_1^{k_1} p_2^{k_2} \cdots p_t^{k_t}` be the
+    prime factorization of `n`. Then
+
+    .. MATH::
+
+        \lambda(n)
+        = \lambda(p_1^{k_1} p_2^{k_2} \cdots p_t^{k_t})
+        = \text{lcm}(\lambda(p_1^{k_1}), \lambda(p_2^{k_2}), \dots, \lambda(p_t^{k_t}))
+
+    EXAMPLES:
+
+    The Carmichael function of all positive integers up to and including 10::
+
+        sage: from sage.arith.misc import carmichael_lambda
+        sage: list(map(carmichael_lambda, [1..10]))
+        [1, 1, 2, 2, 4, 2, 6, 2, 6, 4]
+
+    The Carmichael function of the first ten primes::
+
+        sage: list(map(carmichael_lambda, primes_first_n(10)))
+        [1, 2, 4, 6, 10, 12, 16, 18, 22, 28]
+
+    Cases where the Carmichael function is equivalent to the Euler phi
+    function::
+
+        sage: carmichael_lambda(2) == euler_phi(2)
+        True
+        sage: carmichael_lambda(4) == euler_phi(4)
+        True
+        sage: p = random_prime(1000, lbound=3, proof=True)
+        sage: k = randint(1, 1000)
+        sage: carmichael_lambda(p^k) == euler_phi(p^k)
+        True
+
+    A case where `\lambda(n) \neq \varphi(n)`::
+
+        sage: k = randint(3, 1000)
+        sage: carmichael_lambda(2^k) == 2^(k - 2)
+        True
+        sage: carmichael_lambda(2^k) == 2^(k - 2) == euler_phi(2^k)
+        False
+
+    Verifying the current implementation of the Carmichael function using
+    another implementation. The other implementation that we use for
+    verification is an exhaustive search for the exponent of the
+    multiplicative group `(\ZZ/n\ZZ)^{\ast}`. ::
+
+        sage: from sage.arith.misc import carmichael_lambda
+        sage: n = randint(1, 500)
+        sage: c = carmichael_lambda(n)
+        sage: def coprime(n):
+        ....:     return [i for i in range(n) if gcd(i, n) == 1]
+        sage: def znpower(n, k):
+        ....:     L = coprime(n)
+        ....:     return list(map(power_mod, L, [k]*len(L), [n]*len(L)))
+        sage: def my_carmichael(n):
+        ....:     if n == 1:
+        ....:         return 1
+        ....:     for k in range(1, n):
+        ....:         L = znpower(n, k)
+        ....:         ones = [1] * len(L)
+        ....:         T = [L[i] == ones[i] for i in range(len(L))]
+        ....:         if all(T):
+        ....:             return k
+        sage: c == my_carmichael(n)
+        True
+
+    Carmichael's theorem states that `a^{\lambda(n)} \equiv 1 \pmod{n}`
+    for all elements `a` of the multiplicative group `(\ZZ/n\ZZ)^{\ast}`.
+    Here, we verify Carmichael's theorem. ::
+
+        sage: from sage.arith.misc import carmichael_lambda
+        sage: n = randint(2, 1000)
+        sage: c = carmichael_lambda(n)
+        sage: ZnZ = IntegerModRing(n)
+        sage: M = ZnZ.list_of_elements_of_multiplicative_group()
+        sage: ones = [1] * len(M)
+        sage: P = [power_mod(a, c, n) for a in M]
+        sage: P == ones
+        True
+
+    TESTS:
+
+    The input ``n`` must be a positive integer::
+
+        sage: from sage.arith.misc import carmichael_lambda
+        sage: carmichael_lambda(0)
+        Traceback (most recent call last):
+        ...
+        ValueError: Input n must be a positive integer.
+        sage: carmichael_lambda(randint(-10, 0))
+        Traceback (most recent call last):
+        ...
+        ValueError: Input n must be a positive integer.
+
+    Bug reported in :trac:`8283`::
+
+        sage: from sage.arith.misc import carmichael_lambda
+        sage: type(carmichael_lambda(16))
+        <class 'sage.rings.integer.Integer'>
+
+    REFERENCES:
+
+    - :wikipedia:`Carmichael_function`
+    """
+    n = Integer(n)
+    # sanity check
+    if n < 1:
+        raise ValueError("Input n must be a positive integer.")
+
+    L = list(n.factor())
+    t = []
+
+    # first get rid of the prime factor 2
+    if n & 1 == 0:
+        two,e = L.pop(0)
+        assert two == 2
+        k = e - 2 if e >= 3 else e - 1
+        t.append(1 << k)
+
+    # then other prime factors
+    t += [p**(k - 1) * (p - 1) for p, k in L]
+
+    # finish the job
+    return LCM_list(t)
+
+
 def crt(a, b, m=None, n=None):
     r"""
     Return a solution to a Chinese Remainder Theorem problem.
@@ -3160,7 +3373,7 @@ def crt(a, b, m=None, n=None):
         sage: crt(4,6,8,12)
         Traceback (most recent call last):
         ...
-        ValueError: No solution to crt problem since gcd(8,12) does not divide 4-6
+        ValueError: no solution to crt problem since gcd(8,12) does not divide 4-6
 
         sage: x = polygen(QQ)
         sage: crt(2,3,x-1,x+1)
@@ -3170,7 +3383,7 @@ def crt(a, b, m=None, n=None):
         sage: crt(2,x,x^2-1,x^3-1)
         Traceback (most recent call last):
         ...
-        ValueError: No solution to crt problem since gcd(x^2 - 1,x^3 - 1) does not divide 2-x
+        ValueError: no solution to crt problem since gcd(x^2 - 1,x^3 - 1) does not divide 2-x
 
         sage: crt(int(2), int(3), int(7), int(11))
         58
@@ -3201,7 +3414,7 @@ def crt(a, b, m=None, n=None):
     g, alpha, beta = XGCD(m, n)
     q, r = f(g)
     if r != 0:
-        raise ValueError("No solution to crt problem since gcd(%s,%s) does not divide %s-%s" % (m, n, a, b))
+        raise ValueError("no solution to crt problem since gcd(%s,%s) does not divide %s-%s" % (m, n, a, b))
     from sage.arith.functions import lcm
 
     x = a + q*alpha*py_scalar_to_element(m)
@@ -3211,10 +3424,10 @@ def crt(a, b, m=None, n=None):
 CRT = crt
 
 
-def CRT_list(v, moduli):
-    r""" Given a list ``v`` of elements and a list of corresponding
+def CRT_list(values, moduli):
+    r""" Given a list ``values`` of elements and a list of corresponding
     ``moduli``, find a single element that reduces to each element of
-    ``v`` modulo the corresponding moduli.
+    ``values`` modulo the corresponding moduli.
 
     .. SEEALSO::
 
@@ -3240,18 +3453,18 @@ def CRT_list(v, moduli):
         sage: CRT_list([32,2,1],[60,90,150])
         Traceback (most recent call last):
         ...
-        ValueError: No solution to crt problem since gcd(180,150) does not divide 92-1
+        ValueError: no solution to crt problem since gcd(180,150) does not divide 92-1
 
     The arguments must be lists::
 
         sage: CRT_list([1,2,3],"not a list")
         Traceback (most recent call last):
         ...
-        ValueError: Arguments to CRT_list should be lists
+        ValueError: arguments to CRT_list should be lists
         sage: CRT_list("not a list",[2,3])
         Traceback (most recent call last):
         ...
-        ValueError: Arguments to CRT_list should be lists
+        ValueError: arguments to CRT_list should be lists
 
     The list of moduli must have the same length as the list of elements::
 
@@ -3260,11 +3473,11 @@ def CRT_list(v, moduli):
         sage: CRT_list([1,2,3],[2,3])
         Traceback (most recent call last):
         ...
-        ValueError: Arguments to CRT_list should be lists of the same length
+        ValueError: arguments to CRT_list should be lists of the same length
         sage: CRT_list([1,2,3],[2,3,5,7])
         Traceback (most recent call last):
         ...
-        ValueError: Arguments to CRT_list should be lists of the same length
+        ValueError: arguments to CRT_list should be lists of the same length
 
     TESTS::
 
@@ -3276,22 +3489,37 @@ def CRT_list(v, moduli):
         sage: from gmpy2 import mpz
         sage: CRT_list([mpz(2),mpz(3),mpz(2)], [mpz(3),mpz(5),mpz(7)])
         23
+
+    Make sure we are not mutating the input lists::
+
+        sage: xs = [1,2,3]
+        sage: ms = [5,7,9]
+        sage: CRT_list(xs, ms)
+        156
+        sage: xs
+        [1, 2, 3]
+        sage: ms
+        [5, 7, 9]
     """
-    if not isinstance(v, list) or not isinstance(moduli, list):
-        raise ValueError("Arguments to CRT_list should be lists")
-    if len(v) != len(moduli):
-        raise ValueError("Arguments to CRT_list should be lists of the same length")
-    if not v:
+    if not isinstance(values, list) or not isinstance(moduli, list):
+        raise ValueError("arguments to CRT_list should be lists")
+    if len(values) != len(moduli):
+        raise ValueError("arguments to CRT_list should be lists of the same length")
+    if not values:
         return ZZ.zero()
-    if len(v) == 1:
-        return moduli[0].parent()(v[0])
-    x = v[0]
-    m = moduli[0]
+    if len(values) == 1:
+        return moduli[0].parent()(values[0])
+
+    # The result is computed using a binary tree. In typical cases,
+    # this scales much better than folding the list from one side.
     from sage.arith.functions import lcm
-    for i in range(1, len(v)):
-        x = CRT(x, v[i], m, moduli[i])
-        m = lcm(m, moduli[i])
-    return x % m
+    while len(values) > 1:
+        vs, ms = values[::2], moduli[::2]
+        for i, (v, m) in enumerate(zip(values[1::2], moduli[1::2])):
+            vs[i] = CRT(vs[i], v, ms[i], m)
+            ms[i] = lcm(ms[i], m)
+        values, moduli = vs, ms
+    return values[0] % moduli[0]
 
 
 def CRT_basis(moduli):
@@ -4611,10 +4839,10 @@ def hilbert_symbol(a, b, p, algorithm="pari"):
         ans_pari = hilbert_symbol(a,b,p,algorithm='pari')
         ans_direct = hilbert_symbol(a,b,p,algorithm='direct')
         if ans_pari != ans_direct:
-            raise RuntimeError("There is a bug in hilbert_symbol; two ways of computing the Hilbert symbol (%s,%s)_%s disagree" % (a,b,p))
+            raise RuntimeError("there is a bug in hilbert_symbol; two ways of computing the Hilbert symbol (%s,%s)_%s disagree" % (a,b,p))
         return ans_pari
     else:
-        raise ValueError("Algorithm %s not defined" % algorithm)
+        raise ValueError(f"algorithm {algorithm} not defined")
 
 
 def hilbert_conductor(a, b):
@@ -5103,7 +5331,7 @@ def two_squares(n):
 
     ALGORITHM:
 
-    See http://www.schorn.ch/howto.html
+    See https://schorn.ch/lagrange.html
     """
     n = ZZ(n)
 
@@ -5228,7 +5456,7 @@ def three_squares(n):
 
     ALGORITHM:
 
-    See http://www.schorn.ch/howto.html
+    See https://schorn.ch/lagrange.html
     """
     n = ZZ(n)
 

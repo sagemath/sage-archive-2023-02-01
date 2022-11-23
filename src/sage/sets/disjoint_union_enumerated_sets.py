@@ -258,12 +258,11 @@ class DisjointUnionEnumeratedSets(UniqueRepresentation, Parent):
         """
         # facade  = options.pop('facade', True);
         # keepkey = options.pop('keepkey', False);
-        assert(isinstance(facade,  bool))
+        assert(isinstance(facade, bool))
         assert(isinstance(keepkey, bool))
-        return super(DisjointUnionEnumeratedSets, cls).__classcall__(
+        return super().__classcall__(
             cls, Family(fam),
             facade=facade, keepkey=keepkey, category=category)
-
 
     def __init__(self, family, facade=True, keepkey=False, category=None):
         """
@@ -277,7 +276,7 @@ class DisjointUnionEnumeratedSets(UniqueRepresentation, Parent):
             sage: TestSuite(X).run()
         """
         self._family = family
-        self._facade  = facade
+        self._facade = facade
         if facade:
             # Note that family is not copied when it is a finite enumerated
             # set, thus, any subclass must ensure that it does not mutate this
@@ -543,11 +542,11 @@ class DisjointUnionEnumeratedSets(UniqueRepresentation, Parent):
             sage: p = X._element_constructor_((0, []))  # indirect doctest
             sage: p[1].parent()
             Partitions of the integer 0
- 
+
         Test that facade parents can create and properly access elements
         that are tuples (fixed by :trac:`22382`)::
 
-            sage: f = lambda mu: cartesian_product([mu.standard_tableaux(), 
+            sage: f = lambda mu: cartesian_product([mu.standard_tableaux(),
             ....:                                   mu.standard_tableaux()])
             sage: tabs = DisjointUnionEnumeratedSets(Family(Partitions(4), f))
             sage: s = StandardTableau([[1,3],[2,4]])
@@ -603,6 +602,4 @@ class DisjointUnionEnumeratedSets(UniqueRepresentation, Parent):
         """
         if not self._facade:
             return ElementWrapper
-        else:
-            return NotImplemented
-
+        return NotImplemented

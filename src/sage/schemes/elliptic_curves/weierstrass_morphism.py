@@ -34,7 +34,7 @@ from sage.rings.all import Integer, PolynomialRing
 
 
 @richcmp_method
-class baseWI(object):
+class baseWI():
     r"""
     This class implements the basic arithmetic of isomorphisms between
     Weierstrass models of elliptic curves.
@@ -473,6 +473,12 @@ class WeierstrassIsomorphism(EllipticCurveHom, baseWI):
               From: Elliptic Curve defined by y^2 + 6*x*y + 8*y = x^3 + 68*x^2 + 64*x + 7 over Finite Field in z2 of size 71^2
               To:   Elliptic Curve defined by y^2 = x^3 + 5*x + 5 over Finite Field in z2 of size 71^2
               Via:  (u,r,s,t) = (1, 69, 68, 2)
+
+        Test for :trac:`33312`::
+
+            sage: from sage.schemes.elliptic_curves.weierstrass_morphism import WeierstrassIsomorphism
+            sage: type(iso.degree())
+            <class 'sage.rings.integer.Integer'>
         """
         from .ell_generic import is_EllipticCurve
 
@@ -525,11 +531,15 @@ class WeierstrassIsomorphism(EllipticCurveHom, baseWI):
 
         self._domain = E
         self._codomain = F
+        self._degree = Integer(1)
         EllipticCurveHom.__init__(self, self._domain, self._codomain)
 
-    def _richcmp_(self, other, op):
+    @staticmethod
+    def _comparison_impl(left, right, op):
         r"""
-        Standard comparison function for the WeierstrassIsomorphism class.
+        Compare an isomorphism to another elliptic-curve morphism.
+
+        Called by :meth:`EllipticCurveHom._richcmp_`.
 
         EXAMPLES::
 
@@ -555,20 +565,20 @@ class WeierstrassIsomorphism(EllipticCurveHom, baseWI):
             sage: a == c
             True
         """
-        if isinstance(other, WeierstrassIsomorphism):
-            lx = self._domain
-            rx = other._domain
-            if lx != rx:
-                return richcmp_not_equal(lx, rx, op)
+        if not isinstance(left, WeierstrassIsomorphism) or not isinstance(right, WeierstrassIsomorphism):
+            return NotImplemented
 
-            lx = self._codomain
-            rx = other._codomain
-            if lx != rx:
-                return richcmp_not_equal(lx, rx, op)
+        lx = left._domain
+        rx = right._domain
+        if lx != rx:
+            return richcmp_not_equal(lx, rx, op)
 
-            return baseWI.__richcmp__(self, other, op)
+        lx = left._codomain
+        rx = right._codomain
+        if lx != rx:
+            return richcmp_not_equal(lx, rx, op)
 
-        return EllipticCurveHom._richcmp_(self, other, op)
+        return baseWI.__richcmp__(left, right, op)
 
     def _eval(self, P):
         r"""
@@ -579,7 +589,7 @@ class WeierstrassIsomorphism(EllipticCurveHom, baseWI):
 
         INPUT: a sequence of 3 coordinates defining a point on ``self``
 
-        OUTPUT: the result of evaluating ``self'' at the given point
+        OUTPUT: the result of evaluating ``self`` at the given point
 
         EXAMPLES::
 
@@ -597,9 +607,9 @@ class WeierstrassIsomorphism(EllipticCurveHom, baseWI):
         """
         if self._domain.defining_polynomial()(*P):
             raise ValueError(f'{P} not on {self._domain}')
+        k = Sequence(P).universe()
 
         Q = baseWI.__call__(self, P)
-        k = Sequence(tuple(P) + tuple(Q)).universe()
         return self._codomain.base_extend(k).point(Q)
 
     def __call__(self, P):
@@ -624,12 +634,28 @@ class WeierstrassIsomorphism(EllipticCurveHom, baseWI):
             (-3/4 : 3/4 : 1)
             sage: w(P).curve() == E.change_weierstrass_model((2,3,4,5))
             True
+
+        TESTS:
+
+        Check that copying the order over works::
+
+            sage: E = EllipticCurve(GF(431^2), [1,0])
+            sage: i = next(a for a in E.automorphisms() if a^2 == -a^24)
+            sage: P,_ = E.gens()
+            sage: P._order
+            432
+            sage: i(P)._order
+            432
+            sage: E(i(P))._order
+            432
         """
         if P[2] == 0:
             return self._codomain(0)
-        return self._codomain.point(baseWI.__call__(self,
-                                                          tuple(P._coords)),
-                                          check=False)
+        res = baseWI.__call__(self, tuple(P._coords))
+        Q = self._codomain.point(res, check=False)
+        if hasattr(P, '_order'):
+            Q._order = P._order
+        return Q
 
     def __invert__(self):
         r"""
@@ -716,29 +742,6 @@ class WeierstrassIsomorphism(EllipticCurveHom, baseWI):
         return EllipticCurveHom.__repr__(self) + "\n  Via:  (u,r,s,t) = " + baseWI.__repr__(self)
 
     # EllipticCurveHom methods
-
-    def degree(self):
-        """
-        Return the degree as a rational map of this isomorphism.
-
-        Isomorphisms always have degree `1` by definition.
-
-        EXAMPLES::
-
-            sage: E1 = EllipticCurve([1,2,3,4,5])
-            sage: E2 = EllipticCurve_from_j(E1.j_invariant())
-            sage: E1.isomorphism_to(E2).degree()
-            1
-
-        TESTS:
-
-        Test for :trac:`33312`::
-
-            sage: from sage.schemes.elliptic_curves.weierstrass_morphism import WeierstrassIsomorphism
-            sage: type(WeierstrassIsomorphism.degree(None))
-            <class 'sage.rings.integer.Integer'>
-        """
-        return Integer(1)
 
     def rational_maps(self):
         """
@@ -898,3 +901,25 @@ class WeierstrassIsomorphism(EllipticCurveHom, baseWI):
         w = baseWI(-1, 0, -a1, -a3)
         urst = baseWI.__mul__(self, w).tuple()
         return WeierstrassIsomorphism(self._domain, urst, self._codomain)
+
+    def scaling_factor(self):
+        r"""
+        Return the Weierstrass scaling factor associated to this
+        Weierstrass isomorphism.
+
+        The scaling factor is the constant `u` (in the base field)
+        such that `\varphi^* \omega_2 = u \omega_1`, where
+        `\varphi: E_1\to E_2` is this isomorphism and `\omega_i` are
+        the standard Weierstrass differentials on `E_i` defined by
+        `\mathrm dx/(2y+a_1x+a_3)`.
+
+        EXAMPLES::
+
+            sage: E = EllipticCurve(QQbar, [0,1])
+            sage: all(f.scaling_factor() == f.formal()[1] for f in E.automorphisms())
+            True
+
+        ALGORITHM: The scaling factor equals the `u` component of
+        the tuple `(u,r,s,t)` defining the isomorphism.
+        """
+        return self.u

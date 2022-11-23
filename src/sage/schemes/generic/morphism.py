@@ -479,6 +479,48 @@ class SchemeMorphism(Element):
         """
         return self.parent().is_endomorphism_set()
 
+    def base_ring(self):
+        r"""
+        Return the base ring of ``self``, that is, the ring over which
+        the defining polynomials of ``self`` are defined.
+
+        OUTPUT:
+
+        - ring
+
+        EXAMPLES::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: H = Hom(P,P)
+            sage: f = H([3/5*x^2, 6*y^2])
+            sage: f.base_ring()
+            Rational Field
+
+        ::
+
+            sage: R.<t> = PolynomialRing(ZZ, 1)
+            sage: P.<x,y> = ProjectiveSpace(R, 1)
+            sage: H = Hom(P, P)
+            sage: f = H([3*x^2, y^2])
+            sage: f.base_ring()
+            Multivariate Polynomial Ring in t over Integer Ring
+
+        Points have correct base rings too (:trac:`34336`)::
+
+            sage: x = P(t, 5); x
+            (t : 5)
+            sage: x.base_ring()
+            Multivariate Polynomial Ring in t over Integer Ring
+
+        ::
+
+            sage: E = EllipticCurve(GF((17,2)), [1,2,3,4,5])
+            sage: P = E.random_point()
+            sage: P.base_ring()
+            Finite Field in z2 of size 17^2
+        """
+        return self.domain().base_ring()
+
     def _composition(self, right):
         """
         A helper for multiplying maps by composition.
@@ -624,6 +666,7 @@ class SchemeMorphism(Element):
         """
         from . import glue
         return glue.GluedScheme(self, other)
+
 
 class SchemeMorphism_id(SchemeMorphism):
     """
@@ -777,7 +820,7 @@ class SchemeMorphism_spec(SchemeMorphism):
         """
         SchemeMorphism.__init__(self, parent)
         if check:
-            from sage.categories.all import Rings
+            from sage.categories.rings import Rings
             if not (isinstance(phi, Map) and phi.category_for().is_subcategory(Rings())):
                 raise TypeError("phi (=%s) must be a ring homomorphism" % phi)
             if phi.domain() != parent.codomain().coordinate_ring():
@@ -885,11 +928,11 @@ class SchemeMorphism_spec(SchemeMorphism):
 
 
 ############################################################################
-# Morphisms between schemes given on points
-# The _affine and _projective below refer to the CODOMAIN.
-# The domain can be either affine or projective regardless
-# of the class
+# Morphisms between schemes given on points. The _affine and _projective below
+# refer to the CODOMAIN. The domain can be either affine or projective
+# regardless of the class
 ############################################################################
+
 class SchemeMorphism_polynomial(SchemeMorphism):
     r"""
     A morphism of schemes determined by polynomials that define what
@@ -976,6 +1019,26 @@ class SchemeMorphism_polynomial(SchemeMorphism):
         self._polys = tuple(polys)
 
         SchemeMorphism.__init__(self, parent)
+
+    def __eq__(self, other):
+        """
+        Check equality of ``self`` and ``other``.
+
+        INPUT:
+
+        - ``other`` -- a morphism
+
+        EXAMPLES::
+
+            sage: A.<x,y> = AffineSpace(2, QQ)
+            sage: I = A.identity_morphism()
+            sage: I.parent().identity() == I
+            True
+        """
+        if isinstance(other, SchemeMorphism_polynomial):
+            if self.parent() == other.parent() and self._polys == other._polys:
+                return True
+        raise TypeError('cannot determine equality')
 
     def defining_polynomials(self):
         """
@@ -1165,7 +1228,6 @@ class SchemeMorphism_polynomial(SchemeMorphism):
         P = [f(x._coords) for f in self.defining_polynomials()]
         return self._codomain.point(P,check)
 
-
     def _repr_defn(self):
         """
         Return a string representation of the definition of ``self``.
@@ -1239,34 +1301,6 @@ class SchemeMorphism_polynomial(SchemeMorphism):
             True
         """
         return self.parent()(self._polys)
-
-    def base_ring(self):
-        r"""
-        Return the base ring of ``self``, that is, the ring over which the coefficients
-        of ``self`` is given as polynomials.
-
-        OUTPUT:
-
-        - ring
-
-        EXAMPLES::
-
-            sage: P.<x,y>=ProjectiveSpace(QQ,1)
-            sage: H=Hom(P,P)
-            sage: f=H([3/5*x^2,6*y^2])
-            sage: f.base_ring()
-            Rational Field
-
-        ::
-
-            sage: R.<t>=PolynomialRing(ZZ,1)
-            sage: P.<x,y>=ProjectiveSpace(R,1)
-            sage: H=Hom(P,P)
-            sage: f=H([3*x^2,y^2])
-            sage: f.base_ring()
-            Multivariate Polynomial Ring in t over Integer Ring
-        """
-        return self.domain().base_ring()
 
     def coordinate_ring(self):
         r"""
@@ -1713,8 +1747,39 @@ class SchemeMorphism_polynomial(SchemeMorphism):
         try:
             opolys = tuple(other._polys)
         except AttributeError:
-            return super(SchemeMorphism_polynomial, self)._composition_(other, homset)
+            return super()._composition_(other, homset)
         return homset([p(*opolys) for p in self._polys])
+
+
+class SchemeMorphism_polynomial_id(SchemeMorphism_id, SchemeMorphism_polynomial):
+    """
+    Return the identity morphism from `X` to itself.
+
+    INPUT:
+
+    - ``X`` -- an affine or projective scheme
+
+    EXAMPLES::
+
+        sage: X = Spec(ZZ)
+        sage: X.identity_morphism()  # indirect doctest
+        Scheme endomorphism of Spectrum of Integer Ring
+          Defn: Identity map
+    """
+    def __init__(self, X):
+        """
+        Initialize.
+
+        TESTS::
+
+            sage: A = AffineSpace(2, GF(3))
+            sage: A.identity_morphism().defining_polynomials()
+            (x0, x1)
+        """
+        super().__init__(X)
+        variables = X.ambient_space().coordinate_ring().gens()
+        SchemeMorphism_polynomial.__init__(self, X.Hom(X), variables, check=False)
+
 
 ############################################################################
 # Rational points on schemes, which we view as morphisms determined

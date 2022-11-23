@@ -958,7 +958,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
                 real, imag = (<ComplexNumber>real).real(), (<ComplexNumber>real).imag()
             elif isinstance(real, sage.libs.pari.all.pari_gen):
                 real, imag = real.real(), real.imag()
-            elif isinstance(real, list) or isinstance(real, tuple):
+            elif isinstance(real, (list, tuple)):
                 re, imag = real
                 real = re
             elif isinstance(real, complex):
@@ -1714,7 +1714,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             sage: float(5)^(0.5 + 14.1347251*I)
             -1.62414637645790 - 1.53692828324508*I
         """
-        if isinstance(right, (int, long, Integer)):
+        if isinstance(right, (int, Integer)):
             return RingElement.__pow__(self, right)
 
         try:
@@ -2549,7 +2549,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
 
     # Other special functions
     def agm(self, right, algorithm="optimal"):
-        """
+        r"""
         Return the Arithmetic-Geometric Mean (AGM) of ``self`` and ``right``.
 
         INPUT:

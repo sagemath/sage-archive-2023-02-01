@@ -79,7 +79,21 @@ the following source types:
      (see :ref:`section-spkg-install`);
 
    - Sage records the version number of the package installed using a file in
-     ``$SAGE_LOCAL/var/lib/sage/installed/`` and will re-run the installation
+     ``$SAGE_LOCAL/var/lib/sage/installed/`` and will rerun the installation
+     if ``package-version.txt`` changes.
+
+#. A ``wheel`` package:
+
+   - comes from the wheel file named in the required file ``checksums.ini``
+     and hosted on the Sage mirrors;
+
+   - per policy, only platform-independent wheels are allowed, i.e.,
+     ``*-none-any.whl`` files;
+
+   - its version number is defined by the required file ``package-version.txt``;
+
+   - Sage records the version number of the package installed using a file in
+     ``$SAGE_LOCAL/var/lib/sage/installed/`` and will rerun the installation
      if ``package-version.txt`` changes.
 
 #. A ``pip`` package:
@@ -103,17 +117,25 @@ the following source types:
 
    - the file ``package-version.txt`` is optional;
 
-   - installing the package runs the build and install scripts
+   - installing the package runs the installation script ``spkg-install``
      (see :ref:`section-spkg-install`);
 
    - Sage records the version number of the package installed using a file in
-     ``$SAGE_LOCAL/var/lib/sage/installed/`` and will re-run the installation
+     ``$SAGE_LOCAL/var/lib/sage/installed/`` and will rerun the installation
      if ``package-version.txt`` changes.
+
+#. A ``dummy`` package:
+
+   - is only used for recording the names of equivalent system packages;
+
+   - there is no ``spkg-install`` script, and attempts to install the package
+     using Sage will give an error message.
 
 To summarize: the package source type is determined as follows: if
 there is a file ``requirements.txt``, it is a ``pip`` package. If not,
-then if there is a ``checksums.ini`` file, it is ``normal``;
-otherwise, it is a ``script`` package.
+then if there is a ``checksums.ini`` file, it is ``normal`` or ``wheel``.
+Otherwise, if it has an ``spkg-install`` script, it is a ``script`` package,
+and if it does not, then it is a ``dummy`` package.
 
 
 .. _section-directory-structure:
@@ -576,7 +598,7 @@ For example, the ``scipy`` ``spkg-check.in`` file contains the line
 
     exec python3 spkg-check.py
 
-All normal Python packages must have a file ``install-requires.txt``.
+All normal Python packages and all wheel packages must have a file ``install-requires.txt``.
 If a Python package is available on PyPI, this file must contain the
 name of the package as it is known to PyPI.  Optionally,
 ``install-requires.txt`` can encode version constraints (such as lower
@@ -678,7 +700,6 @@ for ``eclib``:
 
     ----------
     All lines of this file are ignored except the first.
-    It is copied by SAGE_ROOT/build/make/install into SAGE_ROOT/build/make/Makefile.
 
 For Python packages, common dependencies include ``pip``,
 ``setuptools``, and ``future``. If your package depends on any of
@@ -699,7 +720,6 @@ If there are no dependencies, you can use
 
     ----------
     All lines of this file are ignored except the first.
-    It is copied by SAGE_ROOT/build/make/install into SAGE_ROOT/build/make/Makefile.
 
 There are actually two kinds of dependencies: there are normal
 dependencies and order-only dependencies, which are weaker. The syntax
@@ -718,11 +738,21 @@ If there is no ``|``, then all dependencies are normal.
   dependency (for example, a dependency on pip simply because the
   ``spkg-install`` file uses pip).
 
+  Alternatively, you can put the order-only dependencies in a separate
+  file ``dependencies_order_only``.
+
 - If A has a **normal dependency** on B, it means additionally that A
   should be rebuilt every time that B gets updated. This is the most
   common kind of dependency. A normal dependency is what you need for
   libraries: if we upgrade NTL, we should rebuild everything which
   uses NTL.
+
+Some packages are only needed for self-tests of a package (``spkg-check``).
+These dependencies should be declared in a separate file ``dependencies_check``.
+
+Some dependencies are optional in the sense that they are only
+a dependency if they are configured to be installed. These dependencies
+should be declared in a separate file ``dependencies_optional``.
 
 In order to check that the dependencies of your package are likely
 correct, the following command should work without errors::
@@ -762,7 +792,7 @@ Where packages are installed
 The Sage distribution has the notion of several installation trees.
 
 - ``$SAGE_VENV`` is the default installation tree for all Python packages, i.e.,
-  normal packages with an ``install-requires.txt`` and pip packages
+  normal packages with an ``install-requires.txt``, wheel packages, and pip packages
   with a ``requirements.txt``.
 
 - ``$SAGE_LOCAL`` is the default installation tree for all non-Python packages.
@@ -1076,7 +1106,7 @@ set the ``upstream_url`` field in ``checksums.ini`` described above.
 
 For Python packages available from PyPI, you can use::
 
-    [user@localhost]$ sage -package create scikit_spatial --pypi --type optional
+    [user@localhost]$ sage --package create scikit_spatial --pypi --type optional
 
 This automatically downloads the most recent version from PyPI and also
 obtains most of the necessary information by querying PyPI.
@@ -1087,7 +1117,11 @@ in the file ``install-requires.txt``.
 
 To create a pip package rather than a normal package, you can use::
 
-    [user@localhost]$ sage -package create scikit_spatial --pypi --source pip --type optional
+    [user@localhost]$ sage --package create scikit_spatial --pypi --source pip --type optional
+
+To create a wheel package rather than a normal package, you can use::
+
+    [user@localhost]$ sage --package create scikit_spatial --pypi --source wheel --type optional
 
 
 .. _section-manual-build:
@@ -1183,6 +1217,9 @@ must meet the following requirements:
 
 - **Build Support**. The code must build on all the fully supported
   platforms (Linux, macOS, Cygwin); see :ref:`chapter-portability_testing`.
+  It must be installed either from source as a normal package,
+  or as a Python (platform-independent) wheel package, see
+  :ref:`section-package-source-types`.
 
 - **Quality**. The code should be "better" than any other available
   code (that passes the two above criteria), and the authors need to

@@ -959,7 +959,7 @@ cdef class RealIntervalField_class(sage.rings.abc.RealIntervalField):
             False
         """
         try:
-            s = codomain._coerce_(self(1))
+            s = codomain.coerce(self(1))
         except TypeError:
             return False
         return s == im_gens[0]
@@ -977,7 +977,7 @@ cdef class RealIntervalField_class(sage.rings.abc.RealIntervalField):
         """
         if key == 'element_is_atomic':
             return True
-        return super(RealIntervalField_class, self)._repr_option(key)
+        return super()._repr_option(key)
 
     def characteristic(self):
         """
@@ -1943,12 +1943,12 @@ cdef class RealIntervalFieldElement(RingElement):
 
         cdef long digits
         digits = strlen(lower_s)
-        if lower_s[0] == '-':
+        if lower_s[0] == b'-':
             digits -= 1
         lower_expo -= digits
 
         digits = strlen(upper_s)
-        if upper_s[0] == '-':
+        if upper_s[0] == b'-':
             digits -= 1
         upper_expo -= digits
 
@@ -2117,7 +2117,7 @@ cdef class RealIntervalFieldElement(RingElement):
             raise MemoryError("Unable to allocate memory for the mantissa of an interval")
         mpz_get_str(tmp_cstr, base, lower_mpz)
         digits = strlen(tmp_cstr)
-        if tmp_cstr[0] == '-':
+        if tmp_cstr[0] == b'-':
             digits -= 1
             mant_string = bytes_to_str(tmp_cstr+1)
             sign_string = bytes_to_str(b'-')
@@ -2912,7 +2912,7 @@ cdef class RealIntervalFieldElement(RingElement):
             sage: RIF(1.0) << 32
             4294967296
         """
-        if isinstance(x, RealIntervalFieldElement) and isinstance(y, (int,long, Integer)):
+        if isinstance(x, RealIntervalFieldElement) and isinstance(y, (int, Integer)):
             return x._lshift_(y)
         return sage.structure.element.bin_op(x, y, operator.lshift)
 
@@ -2944,7 +2944,7 @@ cdef class RealIntervalFieldElement(RingElement):
             0.062500000000000000?
         """
         if isinstance(x, RealIntervalFieldElement) and \
-               isinstance(y, (int,long,Integer)):
+               isinstance(y, (int, Integer)):
             return x._rshift_(y)
         return sage.structure.element.bin_op(x, y, operator.rshift)
 
@@ -4411,7 +4411,7 @@ cdef class RealIntervalFieldElement(RingElement):
         """
         if exponent == 2:
             return self.square()
-        if isinstance(exponent, (int, long, Integer)):
+        if isinstance(exponent, (int, Integer)):
             q, r = divmod (exponent, 2)
             if r == 0:  # x^(2q) = (x^q)^2
                 xq = RingElement.__pow__(self, q)

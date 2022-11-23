@@ -201,9 +201,10 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
             self.__dimension = self.defining_ideal().dimension() - 1
             return self.__dimension
 
-    def affine_patch(self, i, AA = None):
+    def affine_patch(self, i, AA=None):
         r"""
         Return the `i^{th}` affine patch of this projective scheme.
+
         This is the intersection with this `i^{th}` affine patch of
         its ambient space.
 
@@ -598,16 +599,16 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
             raise TypeError("must be a forward orbit")
         return self.orbit(f,[n,n+1])[0]
 
-    def _forward_image(self, f, check = True):
+    def _forward_image(self, f, check=True):
         r"""
         Compute the forward image of this subscheme by the morphism ``f``.
 
         The forward image is computed through elimination and ``f`` must be
         a morphism for this to be well defined.
-        In particular, let $X = V(h_1,\ldots, h_t)$ and define the ideal
-        $I = (h_1,\ldots,h_t,y_0-f_0(\bar{x}), \ldots, y_n-f_n(\bar{x}))$.
-        Then the elimination ideal $I_{n+1} = I \cap K[y_0,\ldots,y_n]$ is a homogeneous
-        ideal and $self(X) = V(I_{n+1})$.
+        In particular, let `X = V(h_1,\ldots, h_t)` and define the ideal
+        `I = (h_1,\ldots,h_t,y_0-f_0(\bar{x}), \ldots, y_n-f_n(\bar{x}))`.
+        Then the elimination ideal `I_{n+1} = I \cap K[y_0,\ldots,y_n]` is a homogeneous
+        ideal and `self(X) = V(I_{n+1})`.
 
         INPUT:
 
@@ -771,11 +772,11 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
         m = CR_codom.ngens()
         #can't call eliminate if the base ring is polynomial so we do it ourselves
         #with a lex ordering
-        R = PolynomialRing(f.base_ring(), n+m, 'tempvar', order = 'lex')
+        R = PolynomialRing(f.base_ring(), n + m, 'tempvar', order='lex')
         Rvars = R.gens()[0 : n]
-        phi = CR_dom.hom(Rvars,R)
+        phi = CR_dom.hom(Rvars, R)
         zero = n*[0]
-        psi = R.hom(zero + list(CR_codom.gens()),CR_codom)
+        psi = R.hom(zero + list(CR_codom.gens()), CR_codom)
         #set up ideal
         L = R.ideal([phi(t) for t in self.defining_polynomials()] + [R.gen(n+i) - phi(f[i]) for i in range(m)])
         G = L.groebner_basis()  # eliminate

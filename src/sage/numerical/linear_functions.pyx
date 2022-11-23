@@ -1077,7 +1077,7 @@ cdef class LinearFunction(LinearFunctionOrConstraint):
             return ''
         try:
             from sage.rings.integer_ring import ZZ
-            coeff = ZZ(coeff)    # print as integer if possible
+            coeff = ZZ(coeff)
         except (TypeError, ValueError):
             pass
         if constant_term:
@@ -1427,7 +1427,7 @@ cdef class LinearConstraint(LinearFunctionOrConstraint):
             x_0 + 2*x_1 <= -5 + x_2
         """
         assert len(terms) > 0
-        super(LinearConstraint, self).__init__(parent)
+        super().__init__(parent)
         self.equality = equality
         LF = parent.linear_functions_parent()
         self.constraints = [ LF(term) for term in terms ]

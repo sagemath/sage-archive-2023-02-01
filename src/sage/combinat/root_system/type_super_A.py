@@ -442,7 +442,7 @@ class AmbientSpace(ambient_space.AmbientSpace):
             """
             alpha = self.parent().simple_roots()
             l = self.parent().cartan_type().symmetrizer()
-            from sage.rings.semirings.all import NN
+            from sage.rings.semirings.non_negative_integer_semiring import NN
             return all(l[i] * self.inner_product(alpha[i]) in NN
                        for i in self.parent().index_set())
 
@@ -601,7 +601,7 @@ class CartanType(SuperCartanType_standard):
             O---O---O---O---X---O---O
             -4  -3  -2  -1  0   1   2
             A4|2
-            sage: sorted(a.edges())
+            sage: a.edges(sort=True)
             [(-4, -3, 1), (-3, -4, 1), (-3, -2, 1), (-2, -3, 1),
              (-2, -1, 1), (-1, -2, 1), (-1, 0, 1), (0, -1, 1),
              (0, 1, 1), (1, 0, -1), (1, 2, 1), (2, 1, 1)]
@@ -612,21 +612,21 @@ class CartanType(SuperCartanType_standard):
             X
             0
             A0|0
-            sage: a.vertices(), a.edges()
+            sage: a.vertices(sort=False), a.edges(sort=False)
             ([0], [])
 
             sage: a = DynkinDiagram(['A', [1,0]]); a
             O---X
             -1  0
             A1|0
-            sage: a.vertices(), a.edges()
+            sage: a.vertices(sort=True), a.edges(sort=True)
             ([-1, 0], [(-1, 0, 1), (0, -1, 1)])
 
             sage: a = DynkinDiagram(['A', [0,1]]); a
             X---O
             0   1
             A0|1
-            sage: a.vertices(), a.edges()
+            sage: a.vertices(sort=True), a.edges(sort=True)
             ([0, 1], [(0, 1, 1), (1, 0, -1)])
         """
         from .dynkin_diagram import DynkinDiagram_class

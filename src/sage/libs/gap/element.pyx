@@ -264,7 +264,7 @@ cdef Obj make_gap_string(sage_string) except NULL:
     try:
         GAP_Enter()
         b = str_to_bytes(sage_string)
-        C_NEW_STRING(result, len(b), b)
+        result = MakeStringWithLen(b, len(b))
         return result
     finally:
         GAP_Leave()
@@ -3246,7 +3246,7 @@ cdef class GapElement_Record(GapElement):
         return result
 
 
-cdef class GapElement_RecordIterator(object):
+cdef class GapElement_RecordIterator():
     r"""
     Iterator for :class:`GapElement_Record`
 
@@ -3314,6 +3314,6 @@ cdef class GapElement_RecordIterator(object):
 
 
 # Add support for _instancedoc_
-from sage.docs.instancedoc import instancedoc
+from sage.misc.instancedoc import instancedoc
 instancedoc(GapElement_Function)
 instancedoc(GapElement_MethodProxy)

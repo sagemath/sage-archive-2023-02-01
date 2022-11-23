@@ -1,4 +1,4 @@
-"""
+r"""
 Finite residue fields
 
 We can take the residue field of maximal ideals in the ring of integers
@@ -151,7 +151,9 @@ from sage.rings.rational cimport Rational
 from sage.categories.homset import Hom
 from sage.categories.basic import Fields, Rings
 from sage.categories.pushout import AlgebraicExtensionFunctor
-from sage.rings.all import ZZ, QQ, Integers
+from sage.rings.finite_rings.integer_mod_ring import Integers
+from sage.rings.integer_ring import ZZ
+from sage.rings.rational_field import QQ
 from sage.rings.finite_rings.finite_field_constructor import zech_log_bound, FiniteField as GF
 from sage.rings.finite_rings.finite_field_givaro import FiniteField_givaro
 from sage.rings.finite_rings.finite_field_ntl_gf2e import FiniteField_ntl_gf2e
@@ -1844,7 +1846,7 @@ class ResidueFiniteField_ntl_gf2e(ResidueField_generic, FiniteField_ntl_gf2e):
     """
     # we change the order for consistency with FiniteField_ntl_gf2e's __cinit__
     def __init__(self, q, name, modulus, repr, p, to_vs, to_order, PB):
-        """
+        r"""
         INPUT:
 
         - ``p`` -- the prime ideal defining this residue field

@@ -358,7 +358,7 @@ def rgbcolor(c, space='rgb'):
 to_mpl_color = rgbcolor
 
 
-class Color(object):
+class Color():
     def __init__(self, r='#0000ff', g=None, b=None, space='rgb'):
         """
         An Red-Green-Blue (RGB) color model color object.  For most
@@ -1123,7 +1123,7 @@ class ColorsDict(dict):
             True
         """
         methods = ['__dir__', '__getattr__']
-        return dir(super(ColorsDict, self)) + methods + sorted(self)
+        return dir(super()) + methods + sorted(self)
 
 
 colors = ColorsDict()
@@ -1482,7 +1482,7 @@ class Colormaps(MutableMapping):
         methods = ['load_maps', '__dir__', '__len__', '__iter__',
                    '__contains__', '__getitem__', '__getattr__',
                    '__setitem__', '__delitem__']
-        return dir(super(Colormaps, self)) + methods + sorted(self)
+        return dir(super()) + methods + sorted(self)
 
     def __len__(self):
         """

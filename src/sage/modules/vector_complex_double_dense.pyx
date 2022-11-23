@@ -1,5 +1,5 @@
 r"""
-Dense complex double vectors using a NumPy backend.
+Dense complex double vectors using a NumPy backend
 
 EXAMPLES::
 
@@ -113,5 +113,3 @@ def unpickle_v1(parent, entries, degree, is_mutable=None):
     if is_mutable is not None:
         v._is_immutable = not is_mutable
     return v
-
-

@@ -415,6 +415,8 @@ bool mul::info(unsigned inf) const
                 return overall_coeff.info(inf);
         }
         case info_flags::even: {
+                if (not overall_coeff.is_integer())
+                        return false;
                 bool even_seen = false;
                 for (const auto &elem : seq) {
                         const ex &e = recombine_pair_to_ex(elem);
@@ -1457,7 +1459,7 @@ const epvector & mul::get_sorted_seq() const
 
 /** Member-wise expand the expairs representing this sequence.  This must be
  *  overridden from expairseq::expandchildren() and done iteratively in order
- *  to allow for early cancallations and thus safe memory.
+ *  to allow for early cancellations and thus save memory.
  *
  *  @see mul::expand()
  *  @return pointer to epvector containing expanded representation or zero

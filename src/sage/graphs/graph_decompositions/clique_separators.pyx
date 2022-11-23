@@ -35,6 +35,7 @@ from sage.graphs.base.static_sparse_graph cimport has_edge
 from sage.sets.set import Set
 from sage.graphs.traversals cimport maximum_cardinality_search_M_short_digraph
 
+
 def make_tree(atoms, cliques):
     r"""
     Return a tree of atoms and cliques.
@@ -88,13 +89,14 @@ def make_tree(atoms, cliques):
         j = len(cliques)
         T.add_edges((s, (i + j, a)) for s, (i, a) in zip(enumerate(cliques), enumerate(atoms)))
         # We have |atoms| = |cliques| + 1. So |atoms| + |cliques| = 2 * j + 1
-        T.add_edge((j - 1, cliques[-1]), ( 2 * j, atoms[-1]))
+        T.add_edge((j - 1, cliques[-1]), (2 * j, atoms[-1]))
 
     elif atoms:
         # The graph has no clique separator
         T.add_vertex(atoms[0])
 
     return T
+
 
 def make_labelled_rooted_tree(atoms, cliques):
     r"""
@@ -133,7 +135,7 @@ def make_labelled_rooted_tree(atoms, cliques):
     def to_tree(i, n):
         if i < n:
             return LabelledRootedTree([LabelledRootedTree([], label=atoms[i]), to_tree(i + 1, n)],
-                                          label=cliques[i])
+                                      label=cliques[i])
         return LabelledRootedTree([], label=atoms[i])
 
     return to_tree(0, len(cliques))
@@ -148,7 +150,7 @@ cdef inline bint is_clique(short_digraph sd, vector[int] Hx):
     cdef size_t Hx_size = Hx.size()
     cdef size_t i, j
     cdef int u
-    for i in range(Hx_size -1):
+    for i in range(Hx_size - 1):
         u = Hx[i]
         for j in range(i + 1, Hx_size):
             if not has_edge(sd, u, Hx[j]):
@@ -285,7 +287,7 @@ def atoms_and_clique_separators(G, tree=False, rooted_tree=False, separators=Fal
                                       {0, 1, 5} {0, 1, 6}
 
         sage: G = graphs.StarGraph(3)
-        sage: G.subdivide_edges(G.edges(), 2)
+        sage: G.subdivide_edges(G.edges(sort=False), 2)
         sage: ascii_art(G.atoms_and_clique_separators(rooted_tree=True))
           ______{5}______
          /              /
@@ -357,7 +359,7 @@ def atoms_and_clique_separators(G, tree=False, rooted_tree=False, separators=Fal
         sage: G.allow_loops(True)
         sage: G.add_edges([(u, u) for u in G])
         sage: G.allow_multiple_edges(True)
-        sage: G.add_edges(G.edges())
+        sage: G.add_edges(G.edges(sort=False))
         sage: ascii_art(G.atoms_and_clique_separators(rooted_tree=True))
           ______{1}______
          /              /
@@ -424,8 +426,8 @@ def atoms_and_clique_separators(G, tree=False, rooted_tree=False, separators=Fal
 
         for cc in G.connected_components():
             g = Graph([cc, G.edge_boundary(cc, cc, False, False)],
-                          format='vertices_and_edges',
-                          loops=True, multiedges=True)
+                      format='vertices_and_edges',
+                      loops=True, multiedges=True)
             res = g.atoms_and_clique_separators(tree=False, rooted_tree=False, separators=separators)
 
             # Update lists of atoms, separators and clique separators

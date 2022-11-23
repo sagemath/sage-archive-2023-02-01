@@ -1,7 +1,5 @@
 r"""
-Base class for polyhedra, part 0
-
-Initialization and access to Vrepresentation and Hrepresentation.
+Base class for polyhedra: Initialization and access to Vrepresentation and Hrepresentation
 """
 
 # ****************************************************************************
@@ -33,6 +31,7 @@ Initialization and access to Vrepresentation and Hrepresentation.
 # ****************************************************************************
 
 from sage.misc.cachefunc import cached_method
+from sage.misc.abstract_method import abstract_method
 from sage.structure.element import Element
 import sage.geometry.abc
 
@@ -181,6 +180,7 @@ class Polyhedron_base0(Element, sage.geometry.abc.Polyhedron):
         else:
             self._init_empty_polyhedron()
 
+    @abstract_method
     def _init_from_Vrepresentation(self, vertices, rays, lines, **kwds):
         """
         Construct polyhedron from V-representation data.
@@ -206,10 +206,10 @@ class Polyhedron_base0(Element, sage.geometry.abc.Polyhedron):
             sage: Polyhedron_base._init_from_Vrepresentation(p, [], [], [])
             Traceback (most recent call last):
             ...
-            NotImplementedError: a derived class must implement this method
+            TypeError: 'AbstractMethod' object is not callable
         """
-        raise NotImplementedError('a derived class must implement this method')
 
+    @abstract_method
     def _init_from_Hrepresentation(self, ieqs, eqns, **kwds):
         """
         Construct polyhedron from H-representation data.
@@ -231,9 +231,8 @@ class Polyhedron_base0(Element, sage.geometry.abc.Polyhedron):
             sage: Polyhedron_base._init_from_Hrepresentation(p, [], [])
             Traceback (most recent call last):
             ...
-            NotImplementedError: a derived class must implement this method
+            TypeError: 'AbstractMethod' object is not callable
         """
-        raise NotImplementedError('a derived class must implement this method')
 
     def _init_empty_polyhedron(self):
         """
@@ -314,8 +313,8 @@ class Polyhedron_base0(Element, sage.geometry.abc.Polyhedron):
             sage: P = Polyhedron(vertices = [[1, 0], [0, 1]], rays = [[1, 1]], backend='normaliz') # optional - pynormaliz
             sage: sage_input(P)                                                                    # optional - pynormaliz
             Polyhedron(backend='normaliz', base_ring=QQ, rays=[(QQ(1), QQ(1))], vertices=[(QQ(0), QQ(1)), (QQ(1), QQ(0))])
-            sage: P = Polyhedron(vertices = [[1, 0], [0, 1]], rays = [[1, 1]], backend='polymake') # optional - polymake
-            sage: sage_input(P)                                                                    # optional - polymake
+            sage: P = Polyhedron(vertices = [[1, 0], [0, 1]], rays = [[1, 1]], backend='polymake') # optional - jupymake
+            sage: sage_input(P)                                                                    # optional - jupymake
             Polyhedron(backend='polymake', base_ring=QQ, rays=[(QQ(1), QQ(1))], vertices=[(QQ(1), QQ(0)), (QQ(0), QQ(1))])
        """
         kwds = dict()
@@ -908,7 +907,7 @@ class Polyhedron_base0(Element, sage.geometry.abc.Polyhedron):
 
             It is recommended to use :meth:`inequalities` or
             :meth:`inequality_generator` instead to iterate over the
-            list of :class:`Inequality` objects.
+            list of :class:`~sage.geometry.polyhedron.representation.Inequality` objects.
 
         EXAMPLES::
 
@@ -990,7 +989,7 @@ class Polyhedron_base0(Element, sage.geometry.abc.Polyhedron):
         .. NOTE::
 
             It is recommended to use :meth:`vertex_generator` instead to
-            iterate over the list of :class:`Vertex` objects.
+            iterate over the list of :class:`~sage.geometry.polyhedron.representation.Vertex` objects.
 
         .. WARNING::
 
@@ -1201,7 +1200,7 @@ class Polyhedron_base0(Element, sage.geometry.abc.Polyhedron):
 
             It is recommended to use :meth:`rays` or
             :meth:`ray_generator` instead to iterate over the list of
-            :class:`Ray` objects.
+            :class:`~sage.geometry.polyhedron.representation.Ray` objects.
 
         OUTPUT:
 
@@ -1256,7 +1255,7 @@ class Polyhedron_base0(Element, sage.geometry.abc.Polyhedron):
         .. NOTE::
 
             It is recommended to use :meth:`line_generator` instead to
-            iterate over the list of :class:`Line` objects.
+            iterate over the list of :class:`~sage.geometry.polyhedron.representation.Line` objects.
 
         EXAMPLES::
 
@@ -1367,11 +1366,9 @@ class Polyhedron_base0(Element, sage.geometry.abc.Polyhedron):
         except AttributeError:
             from sage.rings.integer_ring import ZZ
             from sage.rings.rational_field import QQ
-            from sage.rings.real_double import RDF
-
             if self.base_ring() is ZZ or self.base_ring() is QQ:
                 cdd_type = 'rational'
-            elif self.base_ring() is RDF:
+            elif isinstance(self.base_ring(), sage.rings.abc.RealDoubleField):
                 cdd_type = 'real'
             else:
                 raise TypeError('the base ring must be ZZ, QQ, or RDF')
@@ -1432,11 +1429,9 @@ class Polyhedron_base0(Element, sage.geometry.abc.Polyhedron):
         except AttributeError:
             from sage.rings.integer_ring import ZZ
             from sage.rings.rational_field import QQ
-            from sage.rings.real_double import RDF
-
             if self.base_ring() is ZZ or self.base_ring() is QQ:
                 cdd_type = 'rational'
-            elif self.base_ring() is RDF:
+            elif isinstance(self.base_ring(), sage.rings.abc.RealDoubleField):
                 cdd_type = 'real'
             else:
                 raise TypeError('the base ring must be ZZ, QQ, or RDF')

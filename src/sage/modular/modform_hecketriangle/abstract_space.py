@@ -6,30 +6,28 @@ AUTHORS:
 - Jonas Jermann (2013): initial version
 
 """
-
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2013-2014 Jonas Jermann <jjermann2@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-
-from sage.rings.integer_ring import ZZ
-from sage.rings.rational_field import QQ
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
+from sage.matrix.constructor import matrix
+from sage.misc.cachefunc import cached_method
+from sage.modules.free_module_element import is_FreeModuleElement
+from sage.modules.free_module_element import vector
+from sage.rings.imaginary_unit import I
 from sage.rings.infinity import infinity
-from sage.rings.all import AlgebraicField, I
+from sage.rings.integer import Integer
+from sage.rings.integer_ring import ZZ
+from sage.rings.laurent_series_ring import is_LaurentSeriesRing
 from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
 from sage.rings.power_series_ring import is_PowerSeriesRing
-from sage.rings.laurent_series_ring import is_LaurentSeriesRing
-from sage.modules.free_module_element import is_FreeModuleElement
-from sage.matrix.constructor import matrix
-from sage.modules.free_module_element import vector
-from sage.rings.integer import Integer
-from sage.structure.all import parent
-
-from sage.misc.cachefunc import cached_method
+from sage.rings.qqbar import AlgebraicField
+from sage.rings.rational_field import QQ
+from sage.structure.element import parent
 
 from .abstract_ring import FormsRing_abstract
 
@@ -84,16 +82,15 @@ class FormsSpace_abstract(FormsRing_abstract):
             sage: MF.is_homogeneous()
             True
         """
-
         #from space import canonical_parameters
         #(group, base_ring, k, ep, n) = canonical_parameters(group, base_ring, k, ep, n)
 
-        super(FormsSpace_abstract, self).__init__(group=group, base_ring=base_ring, red_hom=True, n=n)
+        super().__init__(group=group, base_ring=base_ring, red_hom=True, n=n)
         #self.register_embedding(self.hom(lambda f: f.parent().graded_ring()(f), codomain=self.graded_ring()))
 
         self._weight = k
         self._ep = ep
-        (self._l1,self._l2) = self.weight_parameters()
+        (self._l1, self._l2) = self.weight_parameters()
         self._module = None
         self._ambient_space = self
 
@@ -324,19 +321,19 @@ class FormsSpace_abstract(FormsRing_abstract):
 
         from .space import ZeroForm
         from .subspace import SubSpaceForms
-        if   (  isinstance(S, ZeroForm)):
+        if isinstance(S, ZeroForm):
             return True
-        elif (  isinstance(S, SubSpaceForms)\
-            and isinstance(self, SubSpaceForms) ):
+        if (isinstance(S, SubSpaceForms)
+            and isinstance(self, SubSpaceForms)):
                 if (self.ambient_space().has_coerce_map_from(S.ambient_space())):
                     S2 = S.change_ambient_space(self.ambient_space())
                     return self.module().has_coerce_map_from(S2.module())
                 else:
                     return False
-        elif (  isinstance(S, FormsSpace_abstract)\
-            and self.graded_ring().has_coerce_map_from(S.graded_ring())\
-            and S.weight()    == self._weight\
-            and S.ep()        == self._ep\
+        elif (  isinstance(S, FormsSpace_abstract)
+            and self.graded_ring().has_coerce_map_from(S.graded_ring())
+            and S.weight() == self._weight
+            and S.ep() == self._ep
             and not isinstance(self, SubSpaceForms)):
                 return True
         else:
@@ -1744,10 +1741,8 @@ class FormsSpace_abstract(FormsRing_abstract):
         if (len(coefficients) == 0):
             return self(0)
 
-        rat = sum([\
-                  coefficients[j] * self.F_basis_pol(exponents[j], order_1=order_1)\
-                  for j in range(ZZ(len(coefficients)))
-              ])
+        rat = sum([coefficients[j] * self.F_basis_pol(exponents[j], order_1=order_1)
+                   for j in range(ZZ(len(coefficients)))])
 
         el = self(rat)
 
@@ -2277,8 +2272,8 @@ class FormsSpace_abstract(FormsRing_abstract):
             True
         """
 
-        from sage.rings.all import prime_range
         from sage.misc.misc_c import prod
+        from sage.rings.fast_arith import prime_range
         from warnings import warn
 
         denom_factor = ZZ(denom_factor)

@@ -397,7 +397,7 @@ cdef class LeanMatrix:
                 return (<LeanMatrix>left)._matrix_times_matrix_(right)
             else:
                 return NotImplemented
-        if not left in (<LeanMatrix>right).base_ring():
+        if left not in (<LeanMatrix>right).base_ring():
             try:
                 left = (<LeanMatrix>right).base_ring()(left)
             except (TypeError, NotImplemented, ValueError):
@@ -3682,4 +3682,3 @@ cdef class RationalMatrix(LeanMatrix):
         version = 0
         data = (self.nrows(), self.ncols(), entries)
         return unpickle_rational_matrix, (version, data)
-

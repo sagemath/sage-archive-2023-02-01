@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 r"""
-Parametric Surface
+Parametric surface
 
 Graphics 3D object for triangulating surfaces, and a base class for many other
 objects that can be represented by a 2D parametrization.
@@ -87,12 +87,6 @@ Another colored example::
     def g(x,y): return x, y, x**2 + y**2
     def c(x,y): return sin((x+y)/2)**2
     sphinx_plot(ParametricSurface(g, (srange(-10,10,0.1), srange(-5,5.0,0.1)), color=(c,colm)))
-
-.. WARNING::
-
-    This kind of coloring using a colormap can be visualized using
-    Jmol, Tachyon (option ``viewer='tachyon'``) and Canvas3D
-    (option ``viewer='canvas3d'`` in the notebook).
 
 .. NOTE::
 
@@ -375,7 +369,7 @@ cdef class ParametricSurface(IndexFaceSet):
 
     def threejs_repr(self, render_params):
         r"""
-        Return a represention of the surface suitable for plotting with three.js.
+        Return a representation of the surface suitable for plotting with three.js.
 
         EXAMPLES::
 

@@ -25,16 +25,15 @@ AUTHORS:
 - Ben Hutz (June 2012): added support for projective ring
 """
 
-
-#*****************************************************************************
-#       Copyright (C) 2011 Volker Braun <vbraun.name@gmail.com>
-#       Copyright (C) 2006 William Stein <wstein@gmail.com>
+# *****************************************************************************
+#        Copyright (C) 2011 Volker Braun <vbraun.name@gmail.com>
+#        Copyright (C) 2006 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#  as published by the Free Software Foundation; either version 2 of
-#  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#   Distributed under the terms of the GNU General Public License (GPL)
+#   as published by the Free Software Foundation; either version 2 of
+#   the License, or (at your option) any later version.
+#                   http://www.gnu.org/licenses/
+# *****************************************************************************
 
 from sage.categories.homset import HomsetWithBase
 from sage.structure.factory import UniqueFactory
@@ -70,9 +69,10 @@ def is_SchemeHomset(H):
     return isinstance(H, SchemeHomset_generic)
 
 
-#*******************************************************************
-# Factory for Hom sets of schemes
-#*******************************************************************
+# *******************************************************************
+#  Factory for Hom sets of schemes
+# *******************************************************************
+
 class SchemeHomsetFactory(UniqueFactory):
     """
     Factory for Hom-sets of schemes.
@@ -105,12 +105,12 @@ class SchemeHomsetFactory(UniqueFactory):
     TESTS::
 
         sage: Hom.base()
-        Integer Ring
+        Rational Field
         sage: Hom.base_ring()
-        Integer Ring
+        Rational Field
     """
 
-    def create_key_and_extra_args(self, X, Y, category=None, base=ZZ,
+    def create_key_and_extra_args(self, X, Y, category=None, base=None,
                                   check=True, as_point_homset=False):
         """
         Create a key that uniquely determines the Hom-set.
@@ -142,17 +142,20 @@ class SchemeHomsetFactory(UniqueFactory):
             sage: SHOMfactory = SchemeHomsetFactory('test')
             sage: key, extra = SHOMfactory.create_key_and_extra_args(A3,A2,check=False)
             sage: key
-            (..., ..., Category of schemes over Integer Ring, False)
+            (..., ..., Category of schemes over Rational Field, False)
             sage: extra
             {'X': Affine Space of dimension 3 over Rational Field,
              'Y': Affine Space of dimension 2 over Rational Field,
-             'base_ring': Integer Ring,
+             'base_ring': Rational Field,
              'check': False}
         """
         if isinstance(X, CommutativeRing):
             X = AffineScheme(X)
         if isinstance(Y, CommutativeRing):
             Y = AffineScheme(Y)
+        if base is None:
+            from sage.structure.element import coercion_model
+            base = coercion_model.common_parent(X.base_ring(), Y.base_ring())
         if is_AffineScheme(base):
             base_spec = base
             base_ring = base.coordinate_ring()
@@ -209,10 +212,10 @@ class SchemeHomsetFactory(UniqueFactory):
 SchemeHomset = SchemeHomsetFactory('sage.schemes.generic.homset.SchemeHomset')
 
 
+# *******************************************************************
+#  Base class
+# *******************************************************************
 
-#*******************************************************************
-# Base class
-#*******************************************************************
 class SchemeHomset_generic(HomsetWithBase):
     r"""
     The base class for Hom-sets of schemes.
@@ -383,16 +386,18 @@ class SchemeHomset_generic(HomsetWithBase):
             return self.domain()._morphism(self, x, check=check)
 
         from sage.categories.map import Map
-        from sage.categories.all import Rings
+        from sage.categories.rings import Rings
         if isinstance(x, Map) and x.category_for().is_subcategory(Rings()):
             # x is a morphism of Rings
             return SchemeMorphism_spec(self, x, check=check)
 
         raise TypeError("x must be a ring homomorphism, list or tuple")
 
-#*******************************************************************
-# Base class for points
-#*******************************************************************
+
+# *******************************************************************
+#  Base class for points
+# *******************************************************************
+
 class SchemeHomset_points(SchemeHomset_generic):
     """
     Set of rational points of the scheme.

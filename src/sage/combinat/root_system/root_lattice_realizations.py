@@ -804,6 +804,7 @@ class RootLatticeRealizations(Category_over_base_ring):
 
             # Start with the classical positive roots
             alpha = self.simple_roots()
+
             def lift(x):
                 """
                 Lift up the classical element into ``self``.
@@ -1133,6 +1134,7 @@ class RootLatticeRealizations(Category_over_base_ring):
                 for multilist in combinations_with_replacement(list(range(len(chain))), m):
                     if len(set(multilist)) == len(chain):
                         multichains.append(tuple([chain[i] for i in multilist]))
+
             def is_saturated_chain(chain):
                 for i in range(1, m + 1):
                     for j in range(1, m - i + 1):
@@ -1281,7 +1283,7 @@ class RootLatticeRealizations(Category_over_base_ring):
 
                 (-1, 0, 1)
 
-            .. todo:: add a non simply laced example
+            .. TODO:: add a non simply laced example
 
             Finally, here is an affine example::
 
@@ -1710,6 +1712,7 @@ class RootLatticeRealizations(Category_over_base_ring):
             t = W.from_reduced_word(J)
             simple_roots = self.simple_roots()
             other_negative_simple_roots = set(-simple_roots[i] for i in self.index_set() if i not in J)
+
             def tau_epsilon(alpha):
                 if alpha in other_negative_simple_roots:
                     return alpha
@@ -1786,6 +1789,7 @@ class RootLatticeRealizations(Category_over_base_ring):
             # orbits under the action of a group:
             # def orbits(seeds, operators)
             #     INPUT:
+
             #     - seeds: a list of elements
             #     - operators: a list of functions
             #
@@ -2702,6 +2706,7 @@ class RootLatticeRealizations(Category_over_base_ring):
             def alcove_in_bounding_box(w):
                 return any(plot_options.in_bounding_box(w.action(fundamental_alcove_rays[i]))
                            for i in I)
+
             def alcove_facet(w, i):
                 # Alcove facets with degenerate intersection with the
                 # bounding box bring no information; we might as well
@@ -2712,6 +2717,7 @@ class RootLatticeRealizations(Category_over_base_ring):
                                          thickness=plot_options.thickness(i),
                                          wireframe=wireframe,
                                          draw_degenerate=False)
+
             def alcove_label(w):
                 label = "$1$" if w.is_one() else "$s_{"+"".join(str(j) for j in w.reduced_word())+"}$"
                 position = plot_options.projection(w.action(rho))
@@ -3196,7 +3202,7 @@ class RootLatticeRealizations(Category_over_base_ring):
                         # TODO: Destack the multiple weights
                         G += plot_options.text(elt, positions[wt], rgbcolor=label_color)
 
-            for h,t,i in g.edges():
+            for h,t,i in g.edges(sort=True):
                 G += arrow(positions[self(h.weight())], positions[self(t.weight())],
                            zorder=1, rgbcolor=plot_options.color(i),
                            arrowsize=plot_options._arrowsize)
@@ -3497,6 +3503,7 @@ class RootLatticeRealizations(Category_over_base_ring):
                  (2, 0, 1), (0, 1, 2), (0, 2, 1)]
             """
             I = self.parent().index_set()
+
             def apply_action(la):
                 return [la.dot_action([i]) for i in I]
             R = RecursivelyEnumeratedSet([self], apply_action, structure=None,
@@ -3842,7 +3849,7 @@ class RootLatticeRealizations(Category_over_base_ring):
                True
             """
             alphacheck = self.parent().simple_coroots()
-            from sage.rings.semirings.all import NN
+            from sage.rings.semirings.non_negative_integer_semiring import NN
             return all(self.inner_product(alphacheck[i]) in NN
                        for i in self.parent().index_set())
 
@@ -4116,8 +4123,9 @@ class RootLatticeRealizations(Category_over_base_ring):
         def translation(self, x):
             """
             INPUT:
-             - ``self`` - an element `t` at level `0`
-             - ``x`` - an element of the same space
+
+             - ``self`` -- an element `t` at level `0`
+             - ``x`` -- an element of the same space
 
             Returns `x` translated by `t`, that is `x+level(x) t`
 
@@ -4514,4 +4522,3 @@ class RootLatticeRealizations(Category_over_base_ring):
                 False
             """
             return self.norm_squared() > 0
-

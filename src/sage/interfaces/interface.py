@@ -47,7 +47,7 @@ from sage.structure.richcmp import rich_to_bool
 
 import sage.misc.sage_eval
 from sage.misc.fast_methods import WithEqualityById
-from sage.docs.instancedoc import instancedoc
+from sage.misc.instancedoc import instancedoc
 
 
 class AsciiArtString(str):
@@ -173,7 +173,9 @@ class Interface(WithEqualityById, ParentWithBase):
     def interact(self):
         r"""
         This allows you to interactively interact with the child
-        interpreter. Press Ctrl-D or type 'quit' or 'exit' to exit and
+        interpreter.
+
+        Press :kbd:`Ctrl` + :kbd:`D` or type 'quit' or 'exit' to exit and
         return to Sage.
 
         .. note::
@@ -248,15 +250,16 @@ class Interface(WithEqualityById, ParentWithBase):
         return self.eval(*args, **kwds)
 
     def __call__(self, x, name=None):
-
         r"""
-        Create a new object in self from x.
+        Create a new object in ``self`` from ``x``.
 
-        The object X returned can be used like any Sage object, and
-        wraps an object in self.  The standard arithmetic operators
-        work.  Moreover if foo is a function then
-                      X.foo(y,z,...)
-        calls foo(X, y, z, ...) and returns the corresponding object.
+        The object ``X`` returned can be used like any Sage object, and
+        wraps an object in ``self``.  The standard arithmetic operators
+        work.  Moreover if ``foo`` is a function then::
+
+            ``X.foo(y,z,...)``
+
+        calls ``foo(X, y, z, ...)`` and returns the corresponding object.
 
         EXAMPLES::
 
@@ -446,7 +449,7 @@ class Interface(WithEqualityById, ParentWithBase):
 
     def _exponent_symbol(self):
         """
-        Return the symbol used to denote *10^ in floats, e.g 'e' in 1.5e6
+        Return the symbol used to denote ``*10^`` in floats, e.g 'e' in 1.5e6
 
         EXAMPLES::
 
@@ -1336,8 +1339,6 @@ class InterfaceElement(Element):
         cmd = '%s %s %s' % (self._name, P._equality_symbol(),
                             P._false_symbol())
         return P.eval(cmd) != P._true_symbol()
-
-    
 
     def __float__(self):
         """

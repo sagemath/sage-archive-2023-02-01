@@ -1,5 +1,5 @@
 r"""
-Plotting Functions
+Plotting functions
 
 EXAMPLES::
 
@@ -224,7 +224,7 @@ from sage.functions.trig import cos, sin
 from sage.misc.sageinspect import sage_getargspec, is_function_or_cython_function
 
 
-class _Coordinates(object):
+class _Coordinates():
     """
     This abstract class encapsulates a new coordinate system for plotting.
     Sub-classes must implement the :meth:`transform` method which, given
@@ -404,17 +404,19 @@ class _Coordinates(object):
                         params = ['u', 'v']
                 else:
                     raise ValueError("function is not callable")
+
             def subs_func(t):
                 # We use eval so that the lambda function has the same
                 # variable names as the original function
-                ll="""lambda {x},{y}: t.subs({{
+                ll = """lambda {x},{y}: t.subs({{
                     dep_var_dummy: float(func({x}, {y})),
                     indep_var_dummies[0]: float({x}),
                     indep_var_dummies[1]: float({y})
                 }})""".format(x=params[0], y=params[1])
-                return eval(ll,dict(t=t, func=func, dep_var_dummy=dep_var_dummy,
-                                    indep_var_dummies=indep_var_dummies))
-            return [subs_func(_) for _ in transformation]
+                return eval(ll, dict(t=t, func=func,
+                                     dep_var_dummy=dep_var_dummy,
+                                     indep_var_dummies=indep_var_dummies))
+            return [subs_func(m) for m in transformation]
 
     def __repr__(self):
         """
@@ -1298,7 +1300,7 @@ def plot3d(f, urange, vrange, adaptive=False, transformation=None, **kwds):
         sage: @interact
         ....: def _(which_plot=[A,B,C,D,E]):
         ....:     show(which_plot)
-        Interactive function <function _ at ...> with 1 widget
+        ...Interactive function <function _ at ...> with 1 widget
           which_plot: Dropdown(description='which_plot', options=(Graphics3d Object, Graphics3d Object, Graphics3d Object, Graphics3d Object, Graphics3d Object), value=Graphics3d Object)
 
     Now plot a function::
@@ -1312,7 +1314,7 @@ def plot3d(f, urange, vrange, adaptive=False, transformation=None, **kwds):
         sage: @interact
         ....: def _(which_plot=[F, G, H, I, J]):
         ....:     show(which_plot)
-        Interactive function <function _ at ...> with 1 widget
+        ...Interactive function <function _ at ...> with 1 widget
           which_plot: Dropdown(description='which_plot', options=(Graphics3d Object, Graphics3d Object, Graphics3d Object, Graphics3d Object, Graphics3d Object), value=Graphics3d Object)
 
     TESTS:

@@ -1006,7 +1006,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         from sage.graphs.digraph import DiGraph
         M3 = DiGraph({0: [1, 2, 3], 1: [4], 2: [4], 3: [4]})
-        diamond = next(self._hasse_diagram.subgraph_search_iterator(M3))
+        diamond = next(self._hasse_diagram.subgraph_search_iterator(M3, return_graphs=False))
         return (False, self[diamond[0]])
 
     def is_meet_distributive(self, certificate=False):
@@ -1094,7 +1094,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         from sage.graphs.digraph import DiGraph
         M3 = DiGraph({0: [1, 2, 3], 1: [4], 2: [4], 3: [4]})
-        diamond = next(self._hasse_diagram.subgraph_search_iterator(M3))
+        diamond = next(self._hasse_diagram.subgraph_search_iterator(M3, return_graphs=False))
         return (False, self[diamond[4]])
 
     def is_stone(self, certificate=False):
@@ -1261,7 +1261,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         if not result:
             return (False, (cert[2], cert[1], cert[0]))
         M3 = DiGraph({0: [1, 2, 3], 1: [4], 2: [4], 3: [4]})
-        diamond = next(self._hasse_diagram.subgraph_search_iterator(M3))
+        diamond = next(self._hasse_diagram.subgraph_search_iterator(M3, return_graphs=False))
         return (False, (self._vertex_to_element(diamond[1]),
                         self._vertex_to_element(diamond[2]),
                         self._vertex_to_element(diamond[3])))
@@ -1307,9 +1307,9 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         """
         H = self._hasse_diagram
         # See trac #21528 for explanation.
-        return ( (H.in_degree_sequence().count(1) ==
+        return ((H.in_degree_sequence().count(1) ==
                  H.out_degree_sequence().count(1)) and
-                 self.is_meet_semidistributive() )
+                self.is_meet_semidistributive())
 
     def is_meet_semidistributive(self, certificate=False):
         r"""
@@ -1693,11 +1693,11 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         H = self._hasse_diagram
         jn = H.join_matrix()
         n = H.order()
-        for e in range(n-2, -1, -1):
+        for e in range(n - 2, -1, -1):
             t = 0
             for uc in H.neighbors_out(e):
                 t = jn[t, uc]
-                if t == n-1:
+                if t == n - 1:
                     break
             else:
                 if certificate:
@@ -1882,8 +1882,8 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         H = self._hasse_diagram
         mt = H.meet_matrix()
-        n = H.order()-1
-        for e in range(2, n+1):
+        n = H.order() - 1
+        for e in range(2, n + 1):
             t = n
             for lc in H.neighbors_in(e):
                 t = mt[t, lc]
@@ -2022,7 +2022,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         EXAMPLES::
 
-            sage: L=LatticePoset({0:['a','b','c'], 'a':[1], 'b':[1], 'c':[1]})
+            sage: L = LatticePoset({0:['a','b','c'],'a':[1],'b':[1],'c':[1]})
             sage: C = L.complements()
 
         Let us check that 'a' and 'b' are complements of each other::
@@ -2037,7 +2037,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
             sage: L.complements() # random order
             {0: [1], 1: [0], 'a': ['b', 'c'], 'b': ['c', 'a'], 'c': ['b', 'a']}
 
-            sage: L=LatticePoset({0:[1,2],1:[3],2:[3],3:[4]})
+            sage: L = LatticePoset({0:[1,2],1:[3],2:[3],3:[4]})
             sage: L.complements() # random order
             {0: [4], 4: [0]}
             sage: L.complements(1)
@@ -2047,7 +2047,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         TESTS::
 
-            sage: L=LatticePoset({0:['a','b','c'], 'a':[1], 'b':[1], 'c':[1]})
+            sage: L = LatticePoset({0:['a','b','c'], 'a':[1], 'b':[1], 'c':[1]})
             sage: for v,v_complements in L.complements().items():
             ....:     for v_c in v_complements:
             ....:         assert L.meet(v,v_c) == L.bottom()
@@ -3085,9 +3085,9 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         if elements_only:
             return [self[e] for e in
                     self._hasse_diagram.vertical_decomposition(return_list=True)]
-        elms = ( [0] +
-                 self._hasse_diagram.vertical_decomposition(return_list=True) +
-                 [self.cardinality() - 1] )
+        elms = ([0] +
+                self._hasse_diagram.vertical_decomposition(return_list=True) +
+                [self.cardinality() - 1])
         n = len(elms)
         result = []
         for i in range(n - 1):
@@ -3163,7 +3163,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
 
         EXAMPLES::
 
-            sage: L=LatticePoset(( [], [[1,2],[1,17],[1,8],[2,3],[2,22],[2,5],[2,7],[17,22],[17,13],[8,7],[8,13],[3,16],[3,9],[22,16],[22,18],[22,10],[5,18],[5,14],[7,9],[7,14],[7,10],[13,10],[16,6],[16,19],[9,19],[18,6],[18,33],[14,33],[10,19],[10,33],[6,4],[19,4],[33,4]] ))
+            sage: L = LatticePoset(([], [[1,2],[1,17],[1,8],[2,3],[2,22],[2,5],[2,7],[17,22],[17,13],[8,7],[8,13],[3,16],[3,9],[22,16],[22,18],[22,10],[5,18],[5,14],[7,9],[7,14],[7,10],[13,10],[16,6],[16,19],[9,19],[18,6],[18,33],[14,33],[10,19],[10,33],[6,4],[19,4],[33,4]]))
             sage: L.sublattice([14, 13, 22]).list()
             [1, 2, 8, 7, 14, 17, 13, 22, 10, 33]
 
@@ -3409,7 +3409,7 @@ class FiniteLatticePoset(FiniteMeetSemilattice, FiniteJoinSemilattice):
         jn = H.join_matrix()
         self_closure = H.transitive_closure()
         other_closure = other._hasse_diagram.transitive_closure()
-        for g in self_closure.subgraph_search_iterator(other_closure, induced=True):
+        for g in self_closure.subgraph_search_iterator(other_closure, induced=True, return_graphs=False):
             if all(mt[a, b] in g and jn[a, b] in g for a, b in combinations(g, 2)):
                 yield self.sublattice([self._vertex_to_element(v) for v in g])
 
@@ -4974,6 +4974,7 @@ def _log_2(n):
     if 1 << bits == n:
         return bits
     return bits + 1
+
 
 ############################################################################
 

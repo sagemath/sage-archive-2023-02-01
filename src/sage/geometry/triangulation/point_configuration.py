@@ -325,9 +325,8 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
             if len(star_point)<len(points[0]):
                 star_point = tuple(star)+(1,)
             star = points.index(star_point)
-        return super(PointConfiguration, cls)\
-            .__classcall__(cls, points, connected, fine, regular, star, defined_affine)
-
+        return super().__classcall__(cls, points, connected, fine,
+                                     regular, star, defined_affine)
 
     def __init__(self, points, connected, fine, regular, star, defined_affine):
         """
@@ -709,7 +708,7 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
             # points2triangs
             # [[0,0,1],[0,1,1],[1,0,1],[1,1,1],[-1,-1,1]]
             #### TOPCOM output ####
-            # T[0]:=[0->5,3:{{0,1,2},{1,2,3},{0,2,4},{0,1,4}}];
+            # T[0] := {{0,1,2},{0,1,4},{0,2,4},{1,2,3}};
             (<0,1,2>, <0,1,4>, <0,2,4>, <1,2,3>)
         """
         command = 'points2'
@@ -1378,8 +1377,7 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
         #change the next line to only take the regular triangulations,
         #since they are the vertices of the secondary polytope anyway.
         l = self.triangulations_list()
-        return Polyhedron(vertices = [x.gkz_phi() for x in l])
-
+        return Polyhedron(vertices=[x.gkz_phi() for x in l])
 
     def circuits_support(self):
         r"""
@@ -1834,7 +1832,7 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
           :class:`~sage.geometry.triangulation.base.Point` or ``None``
           (default). A specific point to start with when picking the
           simplex vertices.
-          
+
         - ``point_order`` -- a list or tuple of (some or all)
           :class:`~sage.geometry.triangulation.base.Point` s or ``None``
           (default).
@@ -1873,7 +1871,7 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
 
             sage: pc.contained_simplex(point_order = [pc[0],pc[3],pc[4]])
             (P(0, 0), P(1, 1))
-            
+
         TESTS::
 
             sage: pc = PointConfiguration([[0,0],[0,1],[1,0]])
@@ -1901,7 +1899,7 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
             # PointConfiguration are actually ignored.
         if not points:
             return tuple()
-                         
+
         if initial_point is None:
             origin = points.pop()
         else:
@@ -1978,6 +1976,7 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
             (<0,2,4>, <0,3,4>, <1,2,4>, <1,3,4>)
         """
         facet_normals = dict()
+
         def facets_of_simplex(simplex):
             """
             Return the facets of the simplex and store the normals in facet_normals
@@ -2006,7 +2005,7 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
 
         # input verification
         self._assert_is_affine()
-        
+
         point_order_is_given = point_order is not None
         if point_order is None:
             point_order = list(self.points())
@@ -2019,7 +2018,7 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
 
         # construct the initial simplex
         if point_order_is_given:
-            simplices = [frozenset(self.contained_simplex(large=False, point_order = point_order))]
+            simplices = [frozenset(self.contained_simplex(large=False, point_order=point_order))]
         else:
             simplices = [frozenset(self.contained_simplex(large=True))]
         for s in simplices[0]:

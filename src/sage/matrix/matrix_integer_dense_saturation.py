@@ -118,7 +118,7 @@ def random_sublist_of_size(k, n):
 
 def solve_system_with_difficult_last_row(B, A):
     """
-    Solve the matrix equation B*Z = A when the last row of $B$
+    Solve the matrix equation B*Z = A when the last row of `B`
     contains huge entries.
 
     INPUT:
@@ -339,13 +339,11 @@ def index_in_saturation(A, proof=True):
     """
     r = A.rank()
     if r == 0:
-        return ZZ(1)
+        return ZZ.one()
     if r < A.nrows():
         A = A.hermite_form(proof=proof, include_zero_rows=False)
     if A.is_square():
         return abs(A.determinant(proof=proof))
     A = A.transpose()
-    A = A.hermite_form(proof=proof,include_zero_rows=False)
+    A = A.hermite_form(proof=proof, include_zero_rows=False)
     return abs(A.determinant(proof=proof))
-
-

@@ -1,3 +1,4 @@
+# sage.doctest: optional - sage.misc.cython
 """
 Cython support functions
 
@@ -25,8 +26,7 @@ import shutil
 
 from sage.env import (SAGE_LOCAL, cython_aliases,
                       sage_include_directories)
-from sage.misc.misc import SPYX_TMP
-from .temporary_file import tmp_filename
+from .temporary_file import spyx_tmp, tmp_filename
 from sage.repl.user_globals import get_globals
 from sage.misc.sage_ostools import restore_cwd, redirection
 from sage.cpython.string import str_to_bytes
@@ -171,7 +171,7 @@ def cython(filename, verbose=0, compile_message=False,
         sage: os.chdir(d)
         sage: with open("helper.pxd", 'w') as f:
         ....:     _ = f.write("cdef inline int the_answer(): return 42")
-        sage: cython('''
+        sage: cython('''  # optional - sage.misc.cython
         ....: from helper cimport the_answer
         ....: print(the_answer())
         ....: ''')
@@ -187,7 +187,7 @@ def cython(filename, verbose=0, compile_message=False,
         ....: '''
         sage: cython(code, verbose=-1)
         sage: cython(code, verbose=0)
-        warning: ...:4:4: Unreachable code
+        warning: ...:4:4: Unreachable code...
 
         sage: cython("foo = bar\n")
         Traceback (most recent call last):
@@ -208,7 +208,7 @@ def cython(filename, verbose=0, compile_message=False,
 
     As of :trac:`29139` the default is ``cdivision=True``::
 
-        sage: cython('''
+        sage: cython('''  # optional - sage.misc.cython
         ....: cdef size_t foo = 3/2
         ....: ''')
     """
@@ -229,9 +229,9 @@ def cython(filename, verbose=0, compile_message=False,
     base = sanitize(base)
 
     # This is the *temporary* directory where we store the pyx file.
-    # This is deleted when Sage exits, which means pyx files must be
-    # rebuilt every time Sage is restarted at present.
-    target_dir = os.path.join(SPYX_TMP, base)
+    # spyx_tmp changes when we start Sage, so old (but not stale) pyx
+    # files must be rebuilt at the moment.
+    target_dir = os.path.join(spyx_tmp(), base)
 
     # Build directory for Cython/distutils
     build_dir = os.path.join(target_dir, "build")
@@ -240,13 +240,20 @@ def cython(filename, verbose=0, compile_message=False,
         # There is already a module here. Maybe we do not have to rebuild?
         # Find the name.
         if use_cache:
-            from sage.misc.sageinspect import loadable_module_extension
-            prev_so = [F for F in os.listdir(target_dir) if F.endswith(loadable_module_extension())]
-            if len(prev_so) > 0:
-                prev_so = prev_so[0]     # should have length 1 because of deletes below
-                if os.path.getmtime(filename) <= os.path.getmtime('%s/%s' % (target_dir, prev_so)):
+            from importlib.machinery import EXTENSION_SUFFIXES
+            for f in os.listdir(target_dir):
+                for suffix in EXTENSION_SUFFIXES:
+                    if f.endswith(suffix):
+                        # use the first matching extension
+                        prev_file = os.path.join(target_dir, f)
+                        prev_name = f[:-len(suffix)]
+                        break
+                else:
+                    # no match, try next file
+                    continue
+                if os.path.getmtime(filename) <= os.path.getmtime(prev_file):
                     # We do not have to rebuild.
-                    return prev_so[:-len(loadable_module_extension())], target_dir
+                    return prev_name, target_dir
 
         # Delete all ordinary files in target_dir
         for F in os.listdir(target_dir):
@@ -290,9 +297,6 @@ def cython(filename, verbose=0, compile_message=False,
     import Cython.Compiler.Options
 
     try:
-        # Import setuptools before importing distutils, so that setuptools
-        # can replace distutils by its own vendored copy.
-        import setuptools
         from setuptools.dist import Distribution
         from setuptools.extension import Extension
     except ImportError:
@@ -342,20 +346,22 @@ def cython(filename, verbose=0, compile_message=False,
                     libraries=standard_libs,
                     library_dirs=standard_libdirs)
 
-    directives = dict(language_level=sys.version_info[0], cdivision=True)
+    directives = dict(language_level=3, cdivision=True)
 
     try:
         # Change directories to target_dir so that Cython produces the correct
         # relative path; https://trac.sagemath.org/ticket/24097
         with restore_cwd(target_dir):
             try:
-                ext, = cythonize([ext],
-                                 aliases=aliases,
-                                 include_path=includes,
-                                 compiler_directives=directives,
-                                 quiet=(verbose <= 0),
-                                 errors_to_stderr=False,
-                                 use_listing_file=True)
+                from sage.misc.package_dir import cython_namespace_package_support
+                with cython_namespace_package_support():
+                    ext, = cythonize([ext],
+                                     aliases=aliases,
+                                     include_path=includes,
+                                     compiler_directives=directives,
+                                     quiet=(verbose <= 0),
+                                     errors_to_stderr=False,
+                                     use_listing_file=True)
             finally:
                 # Read the "listing file" which is the file containing
                 # warning and error messages generated by Cython.
@@ -410,9 +416,11 @@ def cython(filename, verbose=0, compile_message=False,
 
     if create_local_so_file:
         # Copy module to current directory
-        from sage.misc.sageinspect import loadable_module_extension
-        shutil.copy(os.path.join(target_dir, name + loadable_module_extension()),
-                    os.curdir)
+        from importlib.machinery import EXTENSION_SUFFIXES
+        for ext in EXTENSION_SUFFIXES:
+            path = os.path.join(target_dir, name + ext)
+            if os.path.exists(path):
+                shutil.copy(path, os.curdir)
 
     return name, target_dir
 
@@ -528,6 +536,10 @@ def cython_import(filename, **kwds):
     oldpath = sys.path
     try:
         sys.path.append(build_dir)
+        return builtins.__import__(name)
+    except ModuleNotFoundError:
+        import importlib
+        importlib.invalidate_caches()
         return builtins.__import__(name)
     finally:
         sys.path = oldpath

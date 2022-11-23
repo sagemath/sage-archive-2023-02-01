@@ -63,6 +63,8 @@ AUTHORS:
   Pfaffian
 
 - Moritz Firsching(2020-10-05): added ``quantum_determinant``
+
+- Dima Pasechnik (2022-11-08): fixed ``echelonize`` for inexact matrices
 """
 
 # ****************************************************************************
@@ -783,14 +785,13 @@ cdef class Matrix(Matrix1):
             sage: b = vector(QQ[I], [1+I, 2])
             sage: x = A.solve_right(b)
 
-        Calling this method with anything but a vector or matrix is
-        deprecated::
+        This method must be called with a vector or a matrix::
 
-            sage: A = matrix(CDF, 5, [1/(i+j+1) for i in range(5) for j in range(5)])
-            sage: x = A.solve_right([1]*5)
-            doctest:...: DeprecationWarning: solve_right should be called with
-            a vector or matrix
-            See http://trac.sagemath.org/17405 for details.
+            sage: A = matrix(CDF, 2, [1 for i in range(4)])
+            sage: x = A.solve_right([1]*2)
+            Traceback (most recent call last):
+            ...
+            TypeError: the second argument must be a vector or a matrix
 
         Over inexact rings, the ``check`` parameter is ignored as the result is
         only an approximate solution (:trac:`13932`)::
@@ -798,7 +799,7 @@ cdef class Matrix(Matrix1):
             sage: RF = RealField(52)
             sage: B = matrix(RF, 2, 2, 1)
             sage: A = matrix(RF, [[0.24, 1, 0], [1, 0, 0]])
-            sage: 0 < (A * A.solve_right(B) - B).norm() < 1e-14
+            sage: 0 <= (A * A.solve_right(B) - B).norm() < 1e-14
             True
 
         Over the inexact ring ``SR``, we can still verify the solution
@@ -838,11 +839,7 @@ cdef class Matrix(Matrix1):
         try:
             L = B.base_ring()
         except AttributeError:
-            from sage.misc.superseded import deprecation
-            deprecation(17405, "solve_right should be called with a vector "
-                               "or matrix")
-            from sage.modules.free_module_element import vector
-            B = vector(B)
+            raise TypeError("the second argument must be a vector or a matrix")
         b_is_vec = is_Vector(B)
         if b_is_vec:
             if self.nrows() != B.degree():
@@ -1539,19 +1536,15 @@ cdef class Matrix(Matrix1):
         Beware that the ``exact`` algorithm is not numerically stable,
         but the default ``numpy`` algorithm is::
 
-            sage: M = matrix(RR, 3, 3, [1,2,3,1/3,2/3,3/3,1/5,2/5,3/5])
-            sage: M.pseudoinverse()  # tol 1e-15
-            [0.0620518477661335 0.0206839492553778 0.0124103695532267]
-            [ 0.124103695532267 0.0413678985107557 0.0248207391064534]
-            [ 0.186155543298400 0.0620518477661335 0.0372311086596801]
-            sage: M.pseudoinverse(algorithm="numpy")  # tol 1e-15
-            [0.0620518477661335 0.0206839492553778 0.0124103695532267]
-            [ 0.124103695532267 0.0413678985107557 0.0248207391064534]
-            [ 0.186155543298400 0.0620518477661335 0.0372311086596801]
-            sage: M.pseudoinverse(algorithm="exact")
-            [ 0.125000000000000 0.0625000000000000 0.0312500000000000]
-            [ 0.250000000000000  0.125000000000000 0.0625000000000000]
-            [ 0.000000000000000  0.000000000000000 0.0625000000000000]
+            sage: M = matrix.hilbert(12,ring=RR)
+            sage: (~M*M).norm()  # a considerable error
+            1.3...
+            sage: Mx = M.pseudoinverse(algorithm="exact")
+            sage: (Mx*M).norm()  # huge error
+            11.5...
+            sage: Mx = M.pseudoinverse(algorithm="numpy")
+            sage: (Mx*M).norm()  # still OK
+            1.00...
 
         When multiplying the given matrix with the pseudoinverse, the
         result is symmetric for the ``exact`` algorithm or hermitian
@@ -1584,6 +1577,11 @@ cdef class Matrix(Matrix1):
             sage: M.pseudoinverse(algorithm="numpy")  # random
             [-1286742750677287/643371375338643 1000799917193445/1000799917193444]
             [  519646110850445/346430740566963  -300239975158034/600479950316067]
+
+        Although it is not too far off::
+
+            sage: (~M-M.pseudoinverse(algorithm="numpy")).norm() < 1e-14
+            True
 
         TESTS::
 
@@ -1644,7 +1642,7 @@ cdef class Matrix(Matrix1):
         Q = (At * A) * (B * Bt)
         return Bt * ~Q * At
 
-    def rook_vector(self, algorithm="ButeraPernici", complement=False, use_complement=None):
+    def rook_vector(self, algorithm=None, complement=False, use_complement=None):
         r"""
         Return the rook vector of this matrix.
 
@@ -1798,6 +1796,9 @@ cdef class Matrix(Matrix1):
         cdef Matrix B
         zero = self.base_ring().zero()
         one  = self.base_ring().one()
+
+        if algorithm is None:
+            algorithm = "ButeraPernici"
 
         # we first run through the coefficients of the matrix to compute the
         # number of non-zero coefficients and to see whether or not it contains
@@ -2315,7 +2316,8 @@ cdef class Matrix(Matrix1):
         the implementation raises an error because correct results cannot be
         guaranteed.
 
-        To access the algorithm using the above defintion, use ``'definition'``.
+        To access the algorithm using the above definition,
+        use ``'definition'``.
         However, notice that this algorithm is usually very slow.
 
         By default, i.e. if no options are set, the implementation tries to
@@ -2794,20 +2796,28 @@ cdef class Matrix(Matrix1):
 
             sage: factor(A.minpoly('y'))
             (y + 1) * (y + 2)^2
-
         """
         f = self.fetch('minpoly')
         if not f is None:
             return f.change_variable_name(var)
         f = self.charpoly(var=var, **kwds)
-        if f.is_squarefree():  # is_squarefree for polys much faster than factor.
-            # Then f must be the minpoly
-            self.cache('minpoly', f)
-            return f
+        try:
+            no_sq = f.is_squarefree()
+            # is_squarefree for polys much faster than factor.
+        except (TypeError, NotImplementedError):
+            pass
+        else:
+            if no_sq:
+                # Then f must be the minpoly
+                self.cache('minpoly', f)
+                return f
 
         # Now we have to work harder.  We find the power of each
         # irreducible factor that divides the minpoly.
-        mp = f.radical()
+        try:
+            mp = f.radical()
+        except (TypeError, NotImplementedError):
+            raise NotImplementedError("minimal polynomial not implemented")
         for h, e in f.factor():
             if e > 1:
                 # Find the power of B so that the dimension
@@ -2824,6 +2834,20 @@ cdef class Matrix(Matrix1):
                 mp *= h**(n-1)
         self.cache('minpoly', mp)
         return mp
+
+    def _test_minpoly(self, **options):
+        """
+        Check that :meth:`minpoly` works.
+
+        EXAMPLES::
+
+            sage: a = matrix([[1,2],[3,4]])
+            sage: a._test_minpoly()
+        """
+        if self.nrows() == self.ncols() and self.base_ring().is_exact():
+            tester = self._tester(**options)
+            # At least check that the minimal polynomial kills the matrix
+            tester.assertTrue(self.minpoly().subs(x=self).is_zero())
 
     def charpoly(self, var = 'x', algorithm = None):
         r"""
@@ -4390,7 +4414,7 @@ cdef class Matrix(Matrix1):
         algorithm = kwds.pop('algorithm', None)
         if algorithm is None:
             algorithm = 'default'
-        elif not algorithm in ['default', 'generic', 'flint', 'pari', 'padic', 'pluq']:
+        elif algorithm not in ['default', 'generic', 'flint', 'pari', 'padic', 'pluq']:
             raise ValueError("matrix kernel algorithm '%s' not recognized" % algorithm )
         elif algorithm == 'padic' and not (is_IntegerRing(R) or is_RationalField(R)):
             raise ValueError("'padic' matrix kernel algorithm only available over the rationals and the integers, not over %s" % R)
@@ -4407,7 +4431,7 @@ cdef class Matrix(Matrix1):
         basis = kwds.pop('basis', None)
         if basis is None:
             basis = 'echelon'
-        elif not basis in ['computed', 'echelon', 'pivot', 'LLL']:
+        elif basis not in ['computed', 'echelon', 'pivot', 'LLL']:
             raise ValueError("matrix kernel basis format '%s' not recognized" % basis )
         elif basis == 'pivot' and R not in _Fields:
             raise ValueError('pivot basis only available over a field, not over %s' % R)
@@ -5206,7 +5230,7 @@ cdef class Matrix(Matrix1):
             [1 0]
             [0 2]
         """
-        M = self.row_ambient_module(base_ring = base_ring)
+        M = self.row_ambient_module(base_ring=base_ring)
         if (base_ring is None or base_ring == self.base_ring()) and self.fetch('in_echelon_form'):
             if self.rank() != self.nrows():
                 rows = self.matrix_from_rows(range(self.rank())).rows()
@@ -5939,7 +5963,7 @@ cdef class Matrix(Matrix1):
             sage: A._eigenspace_format(None) == 'all'
             True
         """
-        if not format in [None, 'all', 'galois']:
+        if format not in [None, 'all', 'galois']:
             msg = "format keyword must be None, 'all' or 'galois', not {0}"
             raise ValueError(msg.format(format))
 
@@ -6227,7 +6251,7 @@ cdef class Matrix(Matrix1):
             ...
             ValueError: algebraic_multiplicity keyword must be True or False
         """
-        if not algebraic_multiplicity in [True, False]:
+        if algebraic_multiplicity not in [True, False]:
             msg = 'algebraic_multiplicity keyword must be True or False'
             raise ValueError(msg.format(algebraic_multiplicity))
         if not self.is_square():
@@ -6469,7 +6493,7 @@ cdef class Matrix(Matrix1):
             ...
             ValueError: algebraic_multiplicity keyword must be True or False
         """
-        if not algebraic_multiplicity in [True, False]:
+        if algebraic_multiplicity not in [True, False]:
             msg = 'algebraic_multiplicity keyword must be True or False'
             raise ValueError(msg.format(algebraic_multiplicity))
         if not self.is_square():
@@ -7578,8 +7602,18 @@ cdef class Matrix(Matrix1):
             sage: transformation_matrix = m.echelonize(transformation=True)
             sage: m == transformation_matrix * m_original
             True
+
+        TESTS::
+
+        Check that :trac:`34724` is fixed (indirect doctest)::
+
+            sage: a=6.12323399573677e-17
+            sage: m=matrix(RR,[[-a, -1.72508242466029], [ 0.579682446302195, a]])
+            sage: (~m*m).norm()
+            1.0
         """
         self.check_mutability()
+        basring = self.base_ring()
 
         if algorithm == 'default':
             from sage.categories.discrete_valuation import DiscreteValuationFields
@@ -7589,16 +7623,22 @@ cdef class Matrix(Matrix1):
             # In general, we would like to do so in any rank one valuation ring,
             # but this should be done by introducing a category of general valuation rings and fields,
             # which we don't have at the moment
-            elif self.base_ring() in DiscreteValuationFields():
+            elif basring in DiscreteValuationFields():
                 try:
-                    self.base_ring().one().abs()
+                    basring.one().abs()
                     algorithm = 'scaled_partial_pivoting'
                 except (AttributeError, TypeError):
                     algorithm = 'scaled_partial_pivoting_valuation'
-            else:
+            elif basring.is_exact():
                 algorithm = 'classical'
+            else:
+                try:
+                    (basring(0.42)).abs()
+                    algorithm = 'scaled_partial_pivoting'
+                except (AttributeError, ArithmeticError, TypeError):
+                    algorithm = 'classical'
         try:
-            if self.base_ring() in _Fields:
+            if basring in _Fields:
                 if algorithm in ['classical', 'partial_pivoting', 'scaled_partial_pivoting', 'scaled_partial_pivoting_valuation']:
                     self._echelon_in_place(algorithm)
                 elif algorithm == 'strassen':
@@ -7610,11 +7650,11 @@ cdef class Matrix(Matrix1):
                     kwds['algorithm'] = algorithm
                 return self._echelonize_ring(**kwds)
         except ArithmeticError as msg:
-            raise NotImplementedError("%s\nEchelon form not implemented over '%s'."%(msg,self.base_ring()))
+            raise NotImplementedError("%s\nEchelon form not implemented over '%s'."%(msg,basring))
 
     def echelon_form(self, algorithm="default", cutoff=0, **kwds):
-        """
-        Return the echelon form of self.
+        r"""
+        Return the echelon form of ``self``.
 
         .. NOTE::
 
@@ -8146,7 +8186,7 @@ cdef class Matrix(Matrix1):
             ...
             TypeError: subdivide must be True or False, not junk
         """
-        if not subdivide in [True, False]:
+        if subdivide not in [True, False]:
             raise TypeError("subdivide must be True or False, not %s" % subdivide)
         R = self.base_ring()
         ident = self.matrix_space(self.nrows(), self.nrows()).one()
@@ -8194,7 +8234,7 @@ cdef class Matrix(Matrix1):
             sage: B = M.as_bipartite_graph()
             sage: B
             Bipartite graph on 5 vertices
-            sage: B.edges()
+            sage: B.edges(sort=True)
             [(1, 4, 1/3), (1, 5, 7), (2, 4, 6), (2, 5, 1/4), (3, 4, 8), (3, 5, -5)]
             sage: len(B.left) == M.nrows()
             True
@@ -9762,7 +9802,7 @@ cdef class Matrix(Matrix1):
         return img
 
     def density(self):
-        """
+        r"""
         Return the density of the matrix.
 
         By density we understand the ratio of the number of nonzero
@@ -12340,7 +12380,7 @@ cdef class Matrix(Matrix1):
                 raise TypeError('polynomial variable must be a string or polynomial ring generator, not {0}'.format(var))
             elif var.base_ring() != R:
                 raise TypeError('polynomial generator must be over the same ring as the matrix entries')
-        if not basis in ['echelon', 'iterates']:
+        if basis not in ['echelon', 'iterates']:
             raise ValueError("basis format must be 'echelon' or 'iterates', not {0}".format(basis))
         if not self.is_square():
             raise TypeError('matrix must be square, not {0} x {1}'.format(self.nrows(), self.ncols()))
@@ -13224,18 +13264,18 @@ cdef class Matrix(Matrix1):
             sage: P, L, U = C.LU(pivot='partial')
             sage: C == P*L*U
             True
-            
+
         Check that :trac:`32736` is solved::
-        
+
             sage: M = Matrix(FiniteField(11), [[2,3],[4,5]])
             sage: P, L, U = M.LU()
             sage: P.base_ring()
             Finite Field of size 11
         """
-        if not pivot in [None, 'partial', 'nonzero']:
+        if pivot not in [None, 'partial', 'nonzero']:
             msg = "pivot strategy must be None, 'partial' or 'nonzero', not {0}"
             raise ValueError(msg.format(pivot))
-        if not format in ['compact', 'plu']:
+        if format not in ['compact', 'plu']:
             msg = "format must be 'plu' or 'compact', not {0}"
             raise ValueError(msg.format(format))
 
@@ -13524,7 +13564,7 @@ cdef class Matrix(Matrix1):
         cdef Py_ssize_t m, i, j, k
         cdef Matrix L
 
-        if not algorithm in ['symmetric', 'hermitian']:
+        if algorithm not in ['symmetric', 'hermitian']:
             msg = "'algorithm' must be 'symmetric' or 'hermitian', not {0}"
             raise ValueError(msg.format(algorithm))
         cache_string = 'indefinite_factorization_' + algorithm
@@ -13534,7 +13574,7 @@ cdef class Matrix(Matrix1):
             if not self.is_square():
                 msg = "matrix must be square, not {0} x {1}"
                 raise ValueError(msg.format(self.nrows(), self.ncols()))
-            if not algorithm in ['symmetric', 'hermitian']:
+            if algorithm not in ['symmetric', 'hermitian']:
                 msg = "'algorithm' must be 'symmetric' or 'hermitian', not {0}"
                 raise ValueError(msg.format(algorithm))
             if not R.is_exact():

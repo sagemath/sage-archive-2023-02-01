@@ -47,6 +47,7 @@ from sage.matrix.constructor import matrix
 from sage.misc.cachefunc import cached_method
 from sage.rings.all import Zmod
 
+
 def find_generator_polynomial(code, check=True):
     r"""
     Returns a possible generator polynomial for ``code``.
@@ -334,7 +335,7 @@ class CyclicCode(AbstractLinearCode):
             ...
             ValueError: The code is not cyclic.
 
-        If the `primitive_root` does not lie in an extension of `field`,
+        If the ``primitive_root`` does not lie in an extension of ``field``,
         or is not a primitive `n`-th root of unity, then
         an exception is raised::
 
@@ -382,7 +383,7 @@ class CyclicCode(AbstractLinearCode):
                 self._generator_polynomial = generator_pol.monic()
             else:
                 self._generator_polynomial = generator_pol
-            super(CyclicCode, self).__init__(F, length, "Vector", "Syndrome")
+            super().__init__(F, length, "Vector", "Syndrome")
 
         # Case (2) : a code is provided.
         elif (code is not None and
@@ -400,8 +401,7 @@ class CyclicCode(AbstractLinearCode):
             self._polynomial_ring = g.parent()
             self._generator_polynomial = g
             self._dimension = code.dimension()
-            super(CyclicCode, self).__init__(code.base_ring(), n,
-                                             "Vector", "Syndrome")
+            super().__init__(code.base_ring(), n, "Vector", "Syndrome")
 
         # Case (3) : a defining set, a length and a field are provided
         elif (D is not None and length is not None and field is not None and
@@ -456,7 +456,7 @@ class CyclicCode(AbstractLinearCode):
             self._polynomial_ring = R
             self._generator_polynomial = g
             self._dimension = n - g.degree()
-            super(CyclicCode, self).__init__(F, n, "Vector", "SurroundingBCH")
+            super().__init__(F, n, "Vector", "SurroundingBCH")
 
         else:
             raise AttributeError("You must provide either a code, or a list "
@@ -850,7 +850,7 @@ class CyclicCodePolynomialEncoder(Encoder):
         if not isinstance(code, CyclicCode):
             raise ValueError("code has to be a CyclicCode")
         self._polynomial_ring = code._polynomial_ring
-        super(CyclicCodePolynomialEncoder, self).__init__(code)
+        super().__init__(code)
 
     def __eq__(self, other):
         r"""
@@ -1025,7 +1025,7 @@ class CyclicCodeVectorEncoder(Encoder):
         if not isinstance(code, CyclicCode):
             raise ValueError("code has to be a CyclicCode")
         self._polynomial_ring = code._polynomial_ring
-        super(CyclicCodeVectorEncoder, self).__init__(code)
+        super().__init__(code)
 
     def __eq__(self, other):
         r"""
@@ -1102,7 +1102,7 @@ class CyclicCodeVectorEncoder(Encoder):
             (1, 1, 1, 0, 0, 1, 0)
         """
         if self.generator_matrix.cache is not None:
-            return super(CyclicCodeVectorEncoder, self).encode(m)
+            return super().encode(m)
 
         k = self.code().dimension()
         n = self.code().length()
@@ -1219,8 +1219,7 @@ class CyclicCodeSurroundingBCHDecoder(Decoder):
         self._bch_code = code.surrounding_bch_code()
         self._bch_decoder = self._bch_code.decoder(**kwargs)
         self._decoder_type = copy(self._bch_decoder.decoder_type())
-        super(CyclicCodeSurroundingBCHDecoder, self).__init__(
-            code, code.ambient_space(), "Vector")
+        super().__init__(code, code.ambient_space(), "Vector")
 
     def __eq__(self, other):
         r"""
@@ -1323,7 +1322,7 @@ class CyclicCodeSurroundingBCHDecoder(Decoder):
         return self._bch_decoder.decoding_radius()
 
 
-####################### registration ###############################
+# ###################### registration ##############################
 
 CyclicCode._registered_encoders["Polynomial"] = CyclicCodePolynomialEncoder
 CyclicCode._registered_encoders["Vector"] = CyclicCodeVectorEncoder

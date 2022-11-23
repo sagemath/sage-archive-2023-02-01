@@ -162,7 +162,7 @@ cdef class MatrixGroupElement_generic(MultiplicativeGroupElement):
             if M.parent() is not parent.matrix_space():
                 raise TypeError('M must be a in the matrix space of the group')
             parent._check_matrix(M)
-        super(MatrixGroupElement_generic, self).__init__(parent)
+        super().__init__(parent)
         if M.is_immutable():
             self._matrix = M
         else:
@@ -823,4 +823,3 @@ def _unpickle_generic_element(G, mat):
         True
     """
     return G.element_class(G, mat, False, False)
-

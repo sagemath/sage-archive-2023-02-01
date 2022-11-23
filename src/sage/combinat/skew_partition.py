@@ -126,6 +126,7 @@ AUTHORS:
 
 - Mike Hansen: Initial version
 - Travis Scrimshaw (2013-02-11): Factored out ``CombinatorialClass``
+- Trevor K. Karn (2022-08-03): Add ``outside_corners``
 """
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
@@ -636,13 +637,14 @@ class SkewPartition(CombinatorialElement):
 
     def is_ribbon(self):
         r"""
-        Return ``True`` if and only if ``self`` is a ribbon, that is,
-        if it has exactly one cell in each of `q` consecutive
-        diagonals for some nonnegative integer `q`.
+        Return ``True`` if and only if ``self`` is a ribbon.
+
+        This means that if it has exactly one cell in each of `q`
+        consecutive diagonals for some nonnegative integer `q`.
 
         EXAMPLES::
 
-            sage: P=SkewPartition([[4,4,3,3],[3,2,2]])
+            sage: P = SkewPartition([[4,4,3,3],[3,2,2]])
             sage: P.pp()
                *
               **
@@ -651,7 +653,7 @@ class SkewPartition(CombinatorialElement):
             sage: P.is_ribbon()
             True
 
-            sage: P=SkewPartition([[4,3,3],[1,1]])
+            sage: P = SkewPartition([[4,3,3],[1,1]])
             sage: P.pp()
              ***
              **
@@ -659,7 +661,7 @@ class SkewPartition(CombinatorialElement):
             sage: P.is_ribbon()
             False
 
-            sage: P=SkewPartition([[4,4,3,2],[3,2,2]])
+            sage: P = SkewPartition([[4,4,3,2],[3,2,2]])
             sage: P.pp()
                *
               **
@@ -668,7 +670,7 @@ class SkewPartition(CombinatorialElement):
             sage: P.is_ribbon()
             False
 
-            sage: P=SkewPartition([[4,4,3,3],[4,2,2,1]])
+            sage: P = SkewPartition([[4,4,3,3],[4,2,2,1]])
             sage: P.pp()
             <BLANKLINE>
               **
@@ -677,7 +679,7 @@ class SkewPartition(CombinatorialElement):
             sage: P.is_ribbon()
             True
 
-            sage: P=SkewPartition([[4,4,3,3],[4,2,2]])
+            sage: P = SkewPartition([[4,4,3,3],[4,2,2]])
             sage: P.pp()
             <BLANKLINE>
               **
@@ -739,6 +741,22 @@ class SkewPartition(CombinatorialElement):
     def outer_corners(self):
         """
         Return a list of the outer corners of ``self``.
+
+        These are corners that are contained inside of the shape.
+        For the corners which are outside of the shape,
+        use :meth:`outside_corners`.
+
+        .. WARNING::
+
+            In the case that ``self`` is an honest (rather than skew) partition,
+            these are the :meth:`~sage.combinat.partition.Partition.corners`
+            of the outer partition. In the language of [Sag2001]_ these would
+            be the "inner corners" of the outer partition.
+
+        .. SEEALSO::
+
+            - :meth:`sage.combinat.skew_partition.SkewPartition.outside_corners`
+            - :meth:`sage.combinat.partition.Partition.outside_corners`
 
         EXAMPLES::
 
@@ -1028,17 +1046,17 @@ class SkewPartition(CombinatorialElement):
         EXAMPLES::
 
             sage: dag = SkewPartition([[3, 3, 1], [1, 1]]).to_dag()
-            sage: dag.edges()
+            sage: dag.edges(sort=True)
             [('0,1', '0,2', None),
             ('0,1', '1,1', None),
             ('0,2', '1,2', None),
             ('1,1', '1,2', None)]
-            sage: dag.vertices()
+            sage: dag.vertices(sort=True)
             ['0,1', '0,2', '1,1', '1,2', '2,0']
             sage: dag = SkewPartition([[3, 2, 1], [1, 1]]).to_dag(format="tuple")
-            sage: dag.edges()
+            sage: dag.edges(sort=True)
             [((0, 1), (0, 2), None), ((0, 1), (1, 1), None)]
-            sage: dag.vertices()
+            sage: dag.vertices(sort=True)
             [(0, 1), (0, 2), (1, 1), (2, 0)]
         """
         outer = list(self.outer())
@@ -1207,6 +1225,32 @@ class SkewPartition(CombinatorialElement):
                     row.append(h([v]))
             m.append(row)
         return H(m)
+
+    def outside_corners(self):
+        r"""
+        Return the outside corners of ``self``.
+
+        The outside corners are corners which are outside of the shape. This
+        should not be confused with :meth:`outer_corners` which consists of
+        corners inside the shape. It returns a result analogous to the
+        ``.outside_corners()`` method on (non-skew) ``Partitions``.
+
+        .. SEEALSO::
+
+            - :meth:`sage.combinat.skew_partition.SkewPartition.outer_corners`
+            - :meth:`sage.combinat.partition.Partition.outside_corners`
+
+        EXAMPLES::
+
+            sage: mu = SkewPartition([[3,2,1],[2,1]])
+            sage: mu.pp()
+              *
+             *
+            *
+            sage: mu.outside_corners()
+            [(0, 3), (1, 2), (2, 1), (3, 0)]
+        """
+        return self.outer().outside_corners()
 
 def row_lengths_aux(skp):
     """
@@ -1575,6 +1619,7 @@ class SkewPartitions_all(SkewPartitions):
                 yield self.element_class(self, p)
             n += 1
 
+
 class SkewPartitions_n(SkewPartitions):
     """
     The set of skew partitions of ``n`` with overlap at least
@@ -1612,7 +1657,7 @@ class SkewPartitions_n(SkewPartitions):
         """
         if overlap == 'connected':
             overlap = 1
-        return super(cls, SkewPartitions_n).__classcall__(cls, n, overlap)
+        return super().__classcall__(cls, n, overlap)
 
     def __init__(self, n, overlap):
         """
@@ -1823,7 +1868,7 @@ class SkewPartitions_rowlengths(SkewPartitions):
         co = Compositions()(co)
         if overlap == 'connected':
             overlap = 1
-        return super(SkewPartitions_rowlengths, cls).__classcall__(cls, co, overlap)
+        return super().__classcall__(cls, co, overlap)
 
     def __init__(self, co, overlap):
         """
@@ -1922,3 +1967,4 @@ class SkewPartitions_rowlengths(SkewPartitions):
 
 from sage.misc.persist import register_unpickle_override
 register_unpickle_override('sage.combinat.skew_partition', 'SkewPartition_class', SkewPartition)
+

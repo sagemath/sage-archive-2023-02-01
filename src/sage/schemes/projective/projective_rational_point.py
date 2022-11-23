@@ -56,8 +56,10 @@ AUTHORS:
 #*****************************************************************************
 
 
-from sage.arith.all import gcd, srange, next_prime, previous_prime, crt
-from sage.rings.all import ZZ, RR
+from sage.arith.misc import gcd, next_prime, previous_prime, crt
+from sage.arith.srange import srange
+from sage.rings.integer_ring import ZZ
+from sage.rings.real_mpfr import RR
 from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
 from sage.misc.mrange import cartesian_product_iterator
 from sage.misc.misc_c import prod
@@ -165,7 +167,7 @@ def enum_projective_number_field(X, **kwds):
 
     This is an implementation of the revised algorithm (Algorithm 4) in
     [DK2013]_. Algorithm 5 is used for imaginary quadratic fields.
-    
+
     INPUT:
 
     kwds:
@@ -189,8 +191,7 @@ def enum_projective_number_field(X, **kwds):
         sage: P.<x,y,z> = ProjectiveSpace(K, 2)
         sage: X = P.subscheme([x - y])
         sage: enum_projective_number_field(X(K), bound=RR(5^(1/3)), prec=2^10)
-        [(0 : 0 : 1), (-1 : -1 : 1), (1 : 1 : 1), (-1/5*v^2 : -1/5*v^2 : 1), (-v : -v : 1),
-        (1/5*v^2 : 1/5*v^2 : 1), (v : v : 1), (1 : 1 : 0)]
+        [(0 : 0 : 1), (1 : 1 : 0), (-1 : -1 : 1), (1 : 1 : 1)]
 
     ::
 

@@ -179,11 +179,10 @@ class Gnuplot(SageObject):
             self(cmd)
 
     def interact(self, cmd):
-        from sage.misc.misc import SAGE_TMP
-        file = os.path.join(SAGE_TMP, 'gnuplot')
-        with open(file, 'w') as f:
+        import tempfile
+        with tempfile.NamedTemporaryFile(mode="w+t") as f:
             f.write(cmd + '\n pause -1 "Press return to continue (no further rotation possible)"')
-        os.system('gnuplot -persist %s'%file)
+            os.system(f'gnuplot -persist {f.name}')
 
     def console(self):
         gnuplot_console()
@@ -197,7 +196,3 @@ def gnuplot_console():
     if not get_display_manager().is_in_terminal():
         raise RuntimeError('Can use the console only in the terminal. Try %%gnuplot magics instead.')
     os.system('gnuplot')
-
-
-
-

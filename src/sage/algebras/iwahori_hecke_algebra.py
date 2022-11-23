@@ -449,7 +449,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
         else:
             q1 = base_ring(q1)
         q2 = base_ring(q2)
-        return super(IwahoriHeckeAlgebra, cls).__classcall__(cls, W, q1, q2, base_ring)
+        return super().__classcall__(cls, W, q1, q2, base_ring)
 
     def __init__(self, W, q1, q2, base_ring):
         r"""
@@ -1732,7 +1732,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
                 sage: T1.parent()
                 Iwahori-Hecke algebra of type A2 in 1,-1 over Integer Ring in the T-basis
             """
-            def inverse(self):
+            def __invert__(self):
                 r"""
                 Return the inverse if ``self`` is a basis element.
 
@@ -1746,7 +1746,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
                     sage: R.<q> = LaurentPolynomialRing(QQ)
                     sage: H = IwahoriHeckeAlgebra("A2", q).T()
                     sage: [T1,T2] = H.algebra_generators()
-                    sage: x = (T1*T2).inverse(); x
+                    sage: x = (T1*T2).inverse(); x   # indirect doctest
                     (q^-2)*T[2,1] + (q^-2-q^-1)*T[1] + (q^-2-q^-1)*T[2] + (q^-2-2*q^-1+1)
                     sage: x*T1*T2
                     1
@@ -1770,8 +1770,6 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
                 w = self.support_of_term()
 
                 return H.prod(H.inverse_generator(i) for i in reversed(w.reduced_word()))
-
-            __invert__ = inverse
 
     standard = T
 
@@ -2498,7 +2496,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
             except (TypeError, ZeroDivisionError):
                 raise TypeError('the A-basis is defined only when 2 is invertible')
 
-            super(IwahoriHeckeAlgebra.A, self).__init__(IHAlgebra, prefix)
+            super().__init__(IHAlgebra, prefix)
 
             # Define and register coercions from the A basis to the T basis and back again
             from_A_to_T = self.module_morphism(self.to_T_basis, codomain=IHAlgebra.T(),
@@ -2630,7 +2628,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
             except (TypeError, ZeroDivisionError):
                 raise TypeError('the B-basis is defined only when 2 is invertible')
 
-            super(IwahoriHeckeAlgebra.B, self).__init__(IHAlgebra, prefix)
+            super().__init__(IHAlgebra, prefix)
 
             # Define and register coercions from the B basis to the T basis and back again
             from_B_to_T = self.module_morphism(self.to_T_basis, codomain=IHAlgebra.T(),
@@ -2745,7 +2743,7 @@ class IwahoriHeckeAlgebra_nonstandard(IwahoriHeckeAlgebra):
         """
         if W not in CoxeterGroups():
             W = CoxeterGroup(W)
-        return super(IwahoriHeckeAlgebra_nonstandard, cls).__classcall__(cls, W)
+        return super().__classcall__(cls, W)
 
     def __init__(self, W):
         r"""

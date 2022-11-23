@@ -52,7 +52,7 @@ Functions
 
 from sage.categories.sets_cat import EmptySetError
 from sage.misc.unknown import Unknown
-from .design_catalog import transversal_design  # type: ignore
+from .design_catalog import transversal_design  # type:ignore
 from sage.arith.all import binomial, is_prime_power
 from .group_divisible_designs import GroupDivisibleDesign
 from .designs_pyx import is_pairwise_balanced_design
@@ -260,7 +260,7 @@ def balanced_incomplete_block_design(v, k, lambd=1, existence=False, use_LJCR=Fa
             return False
         raise EmptySetError("There exists no ({},{},{})-BIBD".format(v, k, lambd))
 
-    # Non-esistence by BRC Theoerem
+    # Non-existence by BRC Theorem
     if BruckRyserChowla_check(v, k, lambd) is False:
         if existence:
             return False

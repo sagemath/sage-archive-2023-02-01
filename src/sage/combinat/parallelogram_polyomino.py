@@ -384,7 +384,7 @@ class LocalOptions:
         """
         return self._available_options.__iter__()
 
-    def keys(self) -> list:
+    def keys(self) -> list[str]:
         r"""
         Return the list of the options in ``self``.
 
@@ -425,10 +425,9 @@ class LocalOptions:
         specifications for the options and then to add the options to the
         class.
 
-        The _dispatch method will then call:
-
-            obj.``<option name> + '_' + <current value of option>``(
-                *get_values, **set_values)
+        The ``_dispatch`` method will then call the method named
+        ``<option name> + '_' + <current value of option>`` of ``obj``
+        with arguments ``*get_values, **set_values``.
 
         Note that the argument ``self`` is necessary here because the
         dispatcher is a method of the options class and not of ``self``.
@@ -1637,6 +1636,7 @@ class ParallelogramPolyomino(ClonableList,
             the binary tree and the virtual root.
 
             The edges are defined as follow:
+
             - if v1 is a left (resp. right) son of v2 and v2 is a right
               (resp. left) son of v3, then, in the ordered tree, v2 is the
               father of v1;
@@ -1659,6 +1659,7 @@ class ParallelogramPolyomino(ClonableList,
                       5
                        \
                         6
+
             becomes
 
             ::
@@ -4156,7 +4157,7 @@ class ParallelogramPolyominoes_size(
         Return the number of parallelogram polyominoes.
 
         The number of parallelogram polyominoes of size n is given by
-        the Catalan number $c_{n-1}$.
+        the Catalan number `c_{n-1}`.
 
         EXAMPLES::
 

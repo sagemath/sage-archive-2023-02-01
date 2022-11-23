@@ -34,9 +34,9 @@ Built-in matroids
 
 For built-in matroids, do the following:
 
-* Within a Sage session, type ``matroids.`` (Do not press "Enter", and do not
-  forget the final period ".")
-* Hit "tab".
+* Within a Sage session, type ``matroids.`` (Do not press :kbd:`Enter`,
+  and do not forget the final period ".")
+* Hit :kbd:`Tab`.
 
 You will see a list of methods which will construct matroids. For example::
 
@@ -140,9 +140,9 @@ def Matroid(groundset=None, data=None, **kwds):
     There are two main entry points to Sage's matroid functionality. For
     built-in matroids, do the following:
 
-    * Within a Sage session, type "matroids." (Do not press "Enter", and do
+    * Within a Sage session, type "matroids." (Do not press :kbd:`Enter`, and do
       not forget the final period ".")
-    * Hit "tab".
+    * Hit :kbd:`Tab`.
 
     You will see a list of methods which will construct matroids. For
     example::
@@ -794,7 +794,7 @@ def Matroid(groundset=None, data=None, **kwds):
             # NOTE: we are not using Sage's built-in method because
             # 1) we would need to fix the loops anyway
             # 2) Sage will sort the columns, making it impossible to keep labels!
-            V = G.vertices()
+            V = G.vertices(sort=True)
             n = G.num_verts()
             A = Matrix(ZZ, n, m, 0)
             mm = 0

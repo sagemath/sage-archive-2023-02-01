@@ -197,7 +197,7 @@ AUTHORS:
   magma.functions...
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -210,8 +210,8 @@ AUTHORS:
 #  The full text of the GPL is available at:
 #
 #                  http://www.gnu.org/licenses/
-#*****************************************************************************
-
+# ****************************************************************************
+from __future__ import annotations
 import re
 import sys
 
@@ -226,7 +226,7 @@ from sage.env import SAGE_EXTCODE, DOT_SAGE
 import sage.misc.misc
 import sage.misc.sage_eval
 from sage.interfaces.tab_completion import ExtraTabCompletion
-from sage.docs.instancedoc import instancedoc
+from sage.misc.instancedoc import instancedoc
 
 INTRINSIC_CACHE = '%s/magma_intrinsic_cache.sobj' % DOT_SAGE
 EXTCODE_DIR = None
@@ -1042,13 +1042,13 @@ class Magma(ExtraTabCompletion, Expect):
 
         EXAMPLES::
 
-            sage: filename = os.path.join(SAGE_TMP, 'a.m')
-            sage: with open(filename, 'w') as f:
+            sage: from tempfile import NamedTemporaryFile as NTF
+            sage: with NTF(mode="w+t", suffix=".m") as f:  # optional - magma
             ....:     _ = f.write('function f(n) return n^2; end function;\nprint "hi";')
-            sage: print(magma.load(filename))      # optional - magma
+            ....:     print(magma.load(f.name))
             Loading ".../a.m"
             hi
-            sage: magma('f(12)')       # optional - magma
+            sage: magma('f(12)')  # optional - magma
             144
         """
         return self.eval('load "%s"' % filename)
@@ -1982,7 +1982,7 @@ class MagmaElement(ExtraTabCompletion, ExpectElement):
             sage: m.sage()                           # optional - magma
             [1 2 3]
             [4 5 6]
-            
+
         Multivariate polynomials::
 
             sage: R.<x,y,z> = QQ[]                   # optional - magma
@@ -2057,9 +2057,9 @@ class MagmaElement(ExtraTabCompletion, ExpectElement):
             sage: R = Zmod(137)
             sage: magma(R).sage()  # optional - magma
             Ring of integers modulo 137
-            
+
         TESTS:
-        
+
         Tests for :trac:`30341`::
 
             sage: P.<t> = PolynomialRing(QQ)
@@ -2067,7 +2067,7 @@ class MagmaElement(ExtraTabCompletion, ExpectElement):
             sage: u = P(l)
             sage: u == P(magma(u).sage()) # optional - magma
             True
-            
+
             sage: P.<x,y> = PolynomialRing(QQ, 2)
             sage: u = x + 27563611963/4251528*y
             sage: magma(u).sage() # optional - magma
@@ -2133,14 +2133,14 @@ class MagmaElement(ExtraTabCompletion, ExpectElement):
         """
         if n <= 0:
             raise IndexError("index must be positive since Magma indexes are 1-based")
-        return self.gens()[n-1]
+        return self.gens()[n - 1]
 
-    def gens(self):
+    def gens(self) -> tuple:
         """
-        Return generators for self.
+        Return generators for ``self``.
 
         If self is named X in Magma, this function evaluates X.1, X.2,
-        etc., in Magma until an error occurs. It then returns a Sage list
+        etc., in Magma until an error occurs. It then returns a Sage tuple
         of the resulting X.i. Note - I don't think there is a Magma command
         that returns the list of valid X.i. There are numerous ad hoc
         functions for various classes but nothing systematic. This function
@@ -2154,9 +2154,9 @@ class MagmaElement(ExtraTabCompletion, ExpectElement):
         EXAMPLES::
 
             sage: magma("VectorSpace(RationalField(),3)").gens()         # optional - magma
-            [(1 0 0), (0 1 0), (0 0 1)]
+            ((1 0 0), (0 1 0), (0 0 1))
             sage: magma("AbelianGroup(EllipticCurve([1..5]))").gens()    # optional - magma
-            [$.1]
+            ($.1,)
         """
         try:
             return self._magma_gens
@@ -2172,8 +2172,9 @@ class MagmaElement(ExtraTabCompletion, ExpectElement):
             except (RuntimeError, TypeError):
                 break
             i += 1
-        self._magma_gens = G
-        return G
+        tG = tuple(G)
+        self._magma_gens = tG
+        return tG
 
     def gen_names(self):
         """
@@ -2626,17 +2627,17 @@ class MagmaElement(ExtraTabCompletion, ExpectElement):
             True
             sage: bool(magma(0))                          # optional - magma
             False
-            
-        TESTS::
-        
+
+        TESTS:
+
         Verify that :trac:`32602` is fixed::
-        
+
             sage: magma("1 eq 0").bool()                  # optional - magma
             False
             sage: magma("1 eq 1").bool()                  # optional - magma
             True
-            sage: Q.<x> = PolynomialRing(GF(3))           
-            sage: u = x^6+x^4+2*x^3+2*x+1 
+            sage: Q.<x> = PolynomialRing(GF(3))
+            sage: u = x^6+x^4+2*x^3+2*x+1
             sage: F0 = magma.FunctionField(GF(3))         # optional - magma
             sage: bool(F0.1)                              # optional - magma
             True
@@ -2651,17 +2652,13 @@ class MagmaElement(ExtraTabCompletion, ExpectElement):
                 pass
         return True
 
-    
-
     def sub(self, gens):
         """
         Return the sub-object of self with given gens.
 
         INPUT:
 
-
-        -  ``gens`` - object or list/tuple of generators
-
+        -  ``gens`` -- object or list/tuple of generators
 
         EXAMPLES::
 

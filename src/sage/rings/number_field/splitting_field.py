@@ -46,10 +46,11 @@ class SplittingFieldAbort(Exception):
         self.degree_divisor = div
         self.degree_multiple = mult
         if div == mult:
-            msg = "degree of splitting field equals %s"%div
+            msg = "degree of splitting field equals %s" % div
         else:
-            msg = "degree of splitting field is a multiple of %s"%div
-        super(SplittingFieldAbort, self).__init__(msg)
+            msg = "degree of splitting field is a multiple of %s" % div
+        super().__init__(msg)
+
 
 class SplittingData:
     """
@@ -377,7 +378,7 @@ def splitting_field(poly, name, map=False, degree_multiple=None, abort_degree=No
         abort_rel_degree = abort_degree//absolute_degree
         if abort_rel_degree and rel_degree_divisor > abort_rel_degree:
             raise SplittingFieldAbort(absolute_degree * rel_degree_divisor, degree_multiple)
-        
+
         # First, factor polynomials in Lred and store the result in L
         verbose("SplittingData to factor: %s"%[s._repr_tuple() for s in Lred])
         t = cputime()

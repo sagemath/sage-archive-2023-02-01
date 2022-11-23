@@ -643,6 +643,7 @@ cdef class RingExtension_generic(CommutativeAlgebra):
             method = getattr(self._backend, name)
         if not callable(method):
             raise AttributeError(AttributeErrorMessage(self, name))
+
         def wrapper(*args, **kwargs):
             output = method(*to_backend(args), **to_backend(kwargs))
             return from_backend(output, self)
@@ -1177,7 +1178,7 @@ cdef class RingExtension_generic(CommutativeAlgebra):
 
         .. SEEALSO::
 
-            !meth:`base`, :meth:`bases`, :meth:`absolute_base`
+            :meth:`base`, :meth:`bases`, :meth:`absolute_base`
         """
         cdef CommutativeRing b
         b = self
@@ -1883,6 +1884,59 @@ cdef class RingExtension_generic(CommutativeAlgebra):
             codomain = Sequence(im_gens).universe()
         parent = self.Hom(codomain, category=category)
         return RingExtensionHomomorphism(parent, im_gens, base_map, check)
+
+    def characteristic(self):
+        r"""
+        Return the characteristic of the extension as a ring.
+
+        OUTPUT:
+
+        A prime number or zero.
+
+        EXAMPLES::
+
+            sage: F = GF(5^2).over()   # over GF(5)
+            sage: K = GF(5^4).over(F)
+            sage: L = GF(5^12).over(K)
+            sage: F.characteristic()
+            5
+            sage: K.characteristic()
+            5
+            sage: L.characteristic()
+            5
+
+        ::
+
+            sage: F = RR.over(ZZ)
+            sage: F.characteristic()
+            0
+
+        ::
+
+            sage: F = GF(11)
+            sage: A.<x> = F[]
+            sage: K = Frac(F).over(F)
+            sage: K.characteristic()
+            11
+
+        ::
+
+            sage: E = GF(7).over(ZZ)
+            sage: E.characteristic()
+            7
+
+        TESTS:
+
+            Ensure ticket :trac:`34692` is fixed::
+
+            sage: Fq = GF(11)
+            sage: FqX.<X> = Fq[]
+            sage: k = Frac(FqX)
+            sage: K = k.over(FqX)
+            sage: K.frobenius_endomorphism()
+            Frobenius endomorphism x |--> x^11 of Fraction Field of Univariate Polynomial Ring in X over Finite Field of size 11 over its base
+        """
+        return self._backend.characteristic()
 
 
 # Fraction fields
@@ -2601,7 +2655,7 @@ cdef class RingExtensionWithGen(RingExtensionWithBasis):
         if base is None:
             return (self(self._gen),)
         base = self._check_base(base)
-        gens = tuple([])
+        gens = tuple()
         b = self
         while b is not base:
             gens += b.gens()

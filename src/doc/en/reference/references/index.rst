@@ -95,7 +95,7 @@ REFERENCES:
              graphs and isoperimetric inequalities*, The Annals of Probability
              32 (2004), no.  3A, 1727-1745.
 
-.. [ASV2020] Federico Ardila, Mariel Supina, and Andrés R. Vindas-Meléndez, 
+.. [ASV2020] Federico Ardila, Mariel Supina, and Andrés R. Vindas-Meléndez,
          *The Equivariant Ehrhart Theory of the Permutahedron*,
          Proc. Amer. Math. Soc. Volume 148, Number 12, 2020, pp. 5091--5107.
 
@@ -591,6 +591,11 @@ REFERENCES:
              for Computing p-Adic Polylogarithms." Mathematics of Computation
              (2008): 1105-1134.
 
+.. [BDLS2020] Daniel J. Bernstein, Luca De Feo, Antonin Leroux, and Benjamin
+              Smith: Faster computation of isogenies of large prime degree.
+              ANTS XIV, Open Book Series Vol. 4, No. 1, 2020.
+              :arxiv:`2003.10118`
+
 .. [BD1989] \R. J. Bradford and J. H. Davenport, *Effective tests for
             cyclotomic polynomials*, Symbolic and Algebraic
             Computation (1989), pp. 244--251,
@@ -774,6 +779,12 @@ REFERENCES:
             `\mathsf{P}_k(n)` *with* `2k > n` *and the fundamental theorems
             of invariant theory for the symmetric group* `\mathsf{S}_n`.
             Preprint (2017). :arxiv:`1707.1410`
+
+.. [BHKP2008] Anand Bhalgat, Ramesh Hariharan, Telikepalli Kavitha and Debmalya
+              Panigrah. *Fast edge splitting and Edmonds' arborescence
+              construction for unweighted graphs*. ACM-SIAM Symposium on
+              Discrete Algorithms (SODA), pp 455-464, 2008.
+              :doi:`10.5555/1347082.1347132`
 
 .. [BHS2008] Robert Bradshaw, David Harvey and William
              Stein. strassen_window_multiply_c. strassen.pyx, Sage
@@ -968,7 +979,7 @@ REFERENCES:
 .. [BDGRTW2019] Bonderson, Delaney, Galindo, Rowell, Tran, and Wang,
         On invariants of modular categories beyond modular data.
         J. Pure Appl. Algebra 223 (2019), no. 9, 4065–4088.
-        :arXiv:`1805.05736`.
+        :arxiv:`1805.05736`.
 
 .. [BM2004] John M. Boyer and Wendy J. Myrvold, *On the Cutting Edge:
             *Simplified `O(n)` Planarity by Edge Addition*. Journal of Graph
@@ -997,6 +1008,9 @@ REFERENCES:
 .. [BMBL2008] A. Blondin-Massé, S. Brlek, S. Labbé, *Palindromic
               lacunas of the Thue-Morse word*, Proc. GASCOM 2008 (June
               16-20 2008, Bibbiena, Arezzo-Italia), 53--67.
+
+.. [BMFPR] \M. Bousquet-Melou, E. Fusy, L.-F. Preville Ratelle.
+           *The number of intervals in the m-Tamari lattices*. :arxiv:`1106.1498`
 
 .. [BMS2006] Bugeaud, Mignotte, and Siksek. "Classical and modular
              approaches to exponential Diophantine
@@ -1569,6 +1583,10 @@ REFERENCES:
              \J. Algebr. Comb. **39** (2014) pp. 17-51.
              :doi:`10.1007/s10801-013-0437-x`, :arxiv:`1108.1776`.
 
+.. [CM2012] \M. Cabanes, I. Marin, *On ternary quotients of cubic Hecke
+             algebras*, Comm. Math. Phys. (2012), Volume 314, Issue 1,
+             pp 57-92. :doi:`10.1007/s00220-012-1519-7`, :arxiv:`1010.1465`.
+
 .. [CMN2014] David Coudert, Dorian Mazauric, and Nicolas Nisse, *Experimental
              Evaluation of a Branch and Bound Algorithm for computing
              Pathwidth*. In Symposium on Experimental Algorithms (SEA), volume
@@ -1778,6 +1796,9 @@ REFERENCES:
             Proceedings: F.Hess, S.Pauli and M.Pohst (eds.), ANTS VII, Lecture
             Notes in Computer Science 4076 (2006), pages 275-286.
 
+.. [CS2018] Craig Costello and Benjamin Smith: Montgomery curves and
+            their arithmetic. J. Cryptogr. Eng. 8 (2018), 227-240.
+
 .. [CST2010] Tullio Ceccherini-Silberstein, Fabio Scarabotti,
              Filippo Tolli.
              *Representation Theory of the Symmetric Groups: The
@@ -1814,6 +1835,14 @@ REFERENCES:
 
 .. [CW2005] \J. E. Cremona and M. Watkins. Computing isogenies of elliptic
             curves. preprint, 2005.
+
+.. [CHW2015] Shawn X.; Hong, Seung-Moon; Wang, Zhenghan Universal quantum computation 
+             with weakly integral anyons. Quantum Inf. Process. 14 (2015),
+             no. 8, 2687-2727. 
+
+.. [CW2015] Cui, S. X. and Wang, Z. (2015). Universal quantum computation with
+            metaplectic anyons. Journal of Mathematical Physics, 56(3), 032202.
+            :doi:`10.1063/1.4914941`
 
 .. _ref-D:
 
@@ -2057,7 +2086,7 @@ REFERENCES:
 .. [Dragan2018] Feodor Dragan, Michel Habib, Laurent Viennot.
                *Revisiting Radius, Diameter, and all Eccentricity Computation
                in Graphs through Certificates*.
-               http://arxiv.org/abs/1803.04660
+               :arxiv:`1803.04660`
 
 .. [Dro1987] Carl Droms. *Isomorphisms of graph groups*. Proc. of the
              Amer. Math. Soc. **100**
@@ -2128,6 +2157,9 @@ REFERENCES:
 
 .. [Dy1993] \M. J. Dyer. *Hecke algebras and shellings of Bruhat
             intervals*. Compositio Mathematica, 1993, 89(1): 91-115.
+
+.. [Dy1994] \M. J. Dyer. *Bruhat intervals, polyhedral cones and 
+            Kazhdan-Lusztig-Stanley polynomials*. Math.Z., 215(2):223-236, 1994.
 
 .. _ref-E:
 
@@ -2445,6 +2477,11 @@ REFERENCES:
 .. [Ga02] Shuhong Gao, A new algorithm for decoding Reed-Solomon
           Codes, January 31, 2002
 
+.. [Gabow1995] Harold N. Gabow. *A Matroid Approach to Finding Edge Connectivity
+               and Packing Arborescences*.  Journal of Computer and System Sciences,
+               50(2):259-273, 1995.
+               :doi:`10.1006/jcss.1995.1022`
+
 .. [Gallai] T. Gallai, Elementare Relationen bezueglich der
             Glieder und trennenden Punkte von Graphen, Magyar
             Tud. Akad. Mat. Kutato Int. Kozl. 9 (1964) 235-236
@@ -2566,6 +2603,18 @@ REFERENCES:
 .. [GK2013] Roland Grinis and Alexander Kasprzyk, Normal forms of
             convex lattice polytopes, :arxiv:`1301.6641`
 
+.. [GKLP2021] Loukas Georgiadis, Dionysios Kefallinos, Luigi Laura, Nikos
+              Parotsidis. *An Experimental Study of Algorithms for Computing the
+              Edge Connectivity of a Directed Graph*.  SIAM Symposium on
+              Algorithm Engineering and Experiments (ALENEX), pp 85-97, 2021.
+              :doi:`10.1137/1.9781611976472.7`
+
+.. [GKP2011] Sylvain Gravier, Matjaz Kovse and Aline Parreau.
+             *Generalized Sierpinski graphs*. Poster, European Conference on
+             Combinatorics, Graph Theory and Applications (EuroComb’11),
+             Budapest, 2011.
+             https://www.renyi.hu/conferences/ec11/posters/parreau.pdf
+
 .. [GKZ1994] Gelfand, I. M.; Kapranov, M. M.; and
              Zelevinsky, A. V. "Discriminants, Resultants and
              Multidimensional Determinants" Birkhauser 1994
@@ -2623,6 +2672,10 @@ REFERENCES:
 
 .. [Gop1981] \V. D. Goppa, “Codes on algebraic curves,” Sov. Math. Dokl., vol.
              24, no. 1, pp. 170–172, 1981.
+
+.. [Gor2016] \D. Gorodkov, *A 15-vertex triangulation of the quaternionic
+             projective plane*, Discrete & Computational Geometry, vol. 62,
+             pp. 348-373 (2019). :doi:`10.1007/s00454-018-00055-w`
 
 .. [Gos1972] Bill Gosper, "Continued Fraction Arithmetic"
              https://perl.plover.com/classes/cftalk/INFO/gosper.txt
@@ -3292,10 +3345,19 @@ REFERENCES:
             *Combinatorics of symmetric designs*.
             Cambridge University Press, 2006.
 
+.. [JS2000] \A. Joellenbeck, M. Schocker.
+            "Cyclic Characters of Symmetric Groups".
+            J. Algebraic Combin., **12** (2000), 155-161.
+            :doi:`10.1023/A:1026592027019`.
+
 .. [JS2010] \B. Jones, A. Schilling.
             "Affine structures and a tableau model for `E_6` crystals",
             J. Algebra. **324** (2010). 2512-2542.
             :doi:`10.1016/j.bbr.2011.03.031`, :arxiv:`0909.2442`.
+
+.. [JS2021] \D. Jahn, C. Stump.
+            *Bruhat intervals, subword complexes and brick polyhedra for 
+            finite Coxeter groups*, 2021, :arxiv:`2103.03715`.
 
 .. [JV2000] \J. Justin, L. Vuillon, *Return words in Sturmian and
             episturmian words*, Theor. Inform. Appl. 34 (2000)
@@ -3375,6 +3437,9 @@ REFERENCES:
 .. [Kau1968] \W. H. Kautz. "Bounds on directed (d, k) graphs". Theory of
              cellular logic networks and machines, AFCRL-68-0668, SRI Project
              7258, Final Rep., pp. 20-28, 1968.
+
+.. [Kau1991] \Louis Kauffman. *Knots and Physics*, World Scientific, 1991
+             :doi:`10.1142/4256`.
 
 .. [Kaw2009] Kawahira, Tomoki. *An algorithm to draw external rays of the
              Mandelbrot set*, Nagoya University, 23 Apr. 2009.
@@ -3486,6 +3551,11 @@ REFERENCES:
             Crystal bases and tensor product decompositions of `U_q(G_2)`-modules.
             J. Algebra 163, pp. 675--691, 1994.
 
+.. [KM1997] Sandi Klavžar and Uroš Milutinović. *Graphs S(n,k) and a variant of
+            the Tower of Hanoi problem*, Czechoslovak Mathematical Journal,
+            47:95-104, 1997.
+            :doi:`10.1023/A:1022444205860`
+
 .. [KMAUTOM2000] Masayuki Kanda, Shiho Moriai, Kazumaro Aoki, Hiroki Ueda,
                  Youichi Takashima, Kazuo Ohta, and Tsutomu Matsumoto,
                  *E2 - a new 128-bit block cipher*; in IEICE Transactions on
@@ -3589,7 +3659,7 @@ REFERENCES:
             Springer-Verlag, 2011.
 
 .. [KP2020] Lars Kastner and Marta Panizzut, *Hyperplane arrangements
-            in polymake*, arxiv:`2003.13548`.
+            in polymake*, :arxiv:`2003.13548`.
 
 .. [KPRWZ2010] \M. H. Klin, C. Pech, S. Reichard, A. Woldar, M. Zvi-Av,
                *Examples of computer experimentation in algebraic
@@ -3616,6 +3686,10 @@ REFERENCES:
 .. [Kr2016] Stefan Kranich, An epsilon-delta bound for plane algebraic curves
             and its use for certified homotopy continuation of systems of plane
             algebraic curves, :arxiv:`1505.03432`
+
+.. [Krumm2016] Daid Krumm, *Computing Points of Bounded Height in Projective Space over a Number Field*,
+               MATHEMATICS OF COMPUTATION, Volume 85, Number 297, January 2016, Pages 423–447.
+               http://dx.doi.org/10.1090/mcom/2984
 
 .. [KR2001] \J. Kahane and A. Ryba. *The hexad game*, Electronic
             Journal of Combinatorics, **8**
@@ -4005,6 +4079,11 @@ REFERENCES:
                and of planar binary trees.
                :arxiv:`math/0102066v1`.
 
+.. [LR2004] Dingjun Lou and Dongning Rao.
+            *Characterizing factor critical graphs and an algorithm*,
+            The Australasian Journal of Combinatorics, 30: 51–56, 2004.
+            http://ajc.maths.uq.edu.au/pdf/30/ajc_v30_p051.pdf
+
 .. [LRS2017] Julien Leroy, Michel Rigo, Manon Stipulanti, *Counting the
              number of non-zero coefficients in rows of generalized Pascal
              triangles*, Discrete Math. 340 (2017), no. 5, 862--881.
@@ -4142,6 +4221,7 @@ REFERENCES:
 .. [MagmaHGM] *Hypergeometric motives* in Magma,
    http://magma.maths.usyd.edu.au/~watkins/papers/HGM-chapter.pdf
 
+
 .. [Mar1980] Jacques Martinet, Petits discriminants des corps de
              nombres, Journ. Arithm. 1980, Cambridge Univ. Press,
              1982, 151--193.
@@ -4152,6 +4232,14 @@ REFERENCES:
 
 .. [Mar2004] \S. Marcus, Quasiperiodic infinite words,
              Bull. Eur. Assoc.  Theor. Comput. Sci. 82 (2004) 170-174.
+
+.. [Mar2012] \I. Marin, *The cubic Hecke algebra on at most 5 strands*,
+             Journal of Pure and Applied Algebra 216 (2012) 2754-2782.
+             :doi:`10.1016/j.jpaa.2012.04.013`, :arxiv:`1110.6621`.
+
+.. [Mar2018] \I. Marin, *Maximal cubic quotient of the braid algebra*,
+             preprint, 2018. available at
+             http://www.lamfa.u-picardie.fr/marin/arts/GQ.pdf
 
 .. [Mas1994] James L. Massey,
            *SAFER K-64: A byte-oriented block-ciphering algorithm*; in
@@ -4288,6 +4376,9 @@ REFERENCES:
              polynomials*. Trans. Amer. Math. Soc., 245 (1978),
              89-118.
 
+.. [MilStu2005] Ezra Miller and Bernd Sturmfels, *Combinatorial Commutative Algebra*,
+                GTM Vol. 227, Springer Science & Business Media, 2005.
+
 .. [Mil2004] Victor S. Miller, "The Weil pairing, and its
              efficient calculation", J. Cryptol., 17(4):235-261, 2004
 
@@ -4317,6 +4408,11 @@ REFERENCES:
             *Symmetric cyclotomic Hecke algebras* J. Algebra.
             **205** (1998) pp. 275-293.
 
+.. [MM2008] Manel Maia and Miguel Méndez.
+            On the arithmetic product of combinatorial species.
+            Discrete Mathematics (2008), Volume 308, Issue 23, pp. 5407-5427,
+            :arxiv:`math/0503436v2`.
+
 .. [MM2015] \J. Matherne and \G. Muller, *Computing upper cluster algebras*,
             Int. Math. Res. Not. IMRN, 2015, 3121-3149.
 
@@ -4342,6 +4438,9 @@ REFERENCES:
 
 .. [Mon2010] \T. Monteil, The asymptotic language of smooth curves, talk
              at LaCIM2010.
+
+.. [Mont1987] Peter L. Montgomery: Speeding the Pollard and elliptic curve
+              methods of factorization. Math. Comp. 48 (1987), 243-264.
 
 .. [Mo2009] \D. Moody, Des. Codes Cryptogr. (2009)
             52: 381. :doi:`10.1007/s10623-009-9287-x`
@@ -4469,13 +4568,16 @@ REFERENCES:
 .. [MW2009] Meshulam and Wallach, "Homological connectivity of random
             `k`-dimensional complexes", preprint, math.CO/0609773.
 
+.. [MW2012] Ivan Marin and Emmanuel Wagner, *A CUBIC DEFINING ALGEBRA FOR THE
+            LINKS-GOULD POLYNOMIAL* (:arxiv:`1203.5981v1` [mathGT] 27. Mar 2012)
+
 .. _ref-N:
 
 **N**
 
 .. [NaiRow2011] Naidu and Rowell, A finiteness property for braided fusion
                 categories. Algebr. Represent. Theory 14 (2011), no. 5, 837–855.
-                :arXiv:`0903.4157`.
+                :arxiv:`0903.4157`.
 
 .. [NAR2018] Jamie R. Nunez, Christopher R. Anderson, Ryan S. Renslow
              *Optimizing colormaps with consideration for color vision
@@ -4775,6 +4877,10 @@ REFERENCES:
              *PICARO - a block cipher allowing efficient higher-order side-channel
              resistance*; in ACNS, (2012), pp. 311-328.
 
+.. [PRV2017] \L.-F. Préville-Ratelle and X. Viennot,
+             *The enumeration of generalized Tamari intervals*.
+             Trans. Amer. Math. Soc. 369 (2017), pp 5219--5239
+
 .. [Prototype_pattern] Prototype pattern,
                        :wikipedia:`Prototype_pattern`
 
@@ -4898,6 +5004,10 @@ REFERENCES:
              linear codes, and cryptography. STOC, pp. 84--93,
              ACM, 2005.
 
+.. [Ren2018] Joost Renes: Computing Isogenies Between Montgomery Curves
+             Using the Action of `(0,0)`. PQCrypto 2018, pp. 229--247.
+             https://eprint.iacr.org/2017/1198.pdf
+
 .. [Reu1993] \C. Reutenauer. *Free Lie Algebras*. Number 7 in London
              Math. Soc. Monogr. (N.S.). Oxford University
              Press. (1993).
@@ -4991,7 +5101,7 @@ REFERENCES:
 .. [Row2006] Eric Rowell, *From quantum groups to unitary modular tensor categories*.
              In Representations of algebraic groups, quantum groups, and Lie algebras,
              Contemp. Math., **413**, Amer. Math. Soc., Providence, RI, 2006.
-             :arXiv:`math/0503226`.
+             :arxiv:`math/0503226`.
 
 .. [RoStWa2009] Eric Rowell, Richard Stong and Zhenghan Wang, *On classification
         of modular tensor categories*, Comm. Math. Phys. 292, 343--389, 2009.
@@ -5003,6 +5113,9 @@ REFERENCES:
 
 .. [RSS] :wikipedia:`Residual_sum_of_squares`, accessed 13th
          October 2009.
+
+.. [RS1995] Victor Reiner, Mark Shimozono, *Plactification*,
+            J. Algebraic Combin. **4** (1995), pp. 331-351.
 
 .. [RS2012] G. Rudolph and M. Schmidt, "Differential Geometry and Mathematical Physics.
             Part I. Manifolds, Lie Groups and Hamiltonian Systems", Springer, 2012.
@@ -5076,7 +5189,7 @@ REFERENCES:
 
 .. [Sag2011] Bruce E. Sagan,
              *The cyclic sieving phenomenon: a survey*,
-             :arXiv:`1008.0790v3`
+             :arxiv:`1008.0790v3`
 
 .. [Sah2000] Sartaj Sahni. *Data Structures, Algorithms, and Applications
              in Java*. McGraw-Hill, 2000.
@@ -5089,15 +5202,18 @@ REFERENCES:
              York, 1958.
 
 .. [Sal1965] \G. Salmon: "A Treatise on the Analytic Geometry of Three
-             Dimensions", Vol II, Chelsea Publishing Co., New
-             York, 1965.
+             Dimensions", Vol II, Chelsea Publishing Co., New York, 1965.
 
 .. [Sal2014] \B. Salisbury.
              The flush statistic on semistandard Young tableaux.
-             :arXiv:`1401.1185`
+             :arxiv:`1401.1185`
 
 .. [Sam2012] \P. Samanta: *Antipodal Graphs*
              :doi:`10.13140/RG.2.2.28238.46409`
+
+.. [Sch1961] Craige Schensted. *Longest increasing and decreasing
+             subsequences*, Canadian Journal of Mathematics, Vol 13
+             (1961), pp. 179--191.
 
 .. [Sch1990] Schnyder, Walter. *Embedding Planar Graphs on the Grid*.
              Proc. 1st Annual ACM-SIAM Symposium on Discrete Algorithms,
@@ -5259,6 +5375,10 @@ REFERENCES:
 .. [Sma1998] \N.P. Smart, *The algorithmic resolution of Diophantine equations*,
              Number 41 in Student Texts. London Mathematical Society, 1998.
 
+.. [Sma1999] \N.P. Smart, *The Discrete Logarithm Problem on Elliptic Curves of Trace One*,
+             Journal of Cryptology. 12. 193-196. 1999.
+             :doi:`10.1007/s001459900052`.
+
 .. [SP2010] Fernando Solano and Michal Pioro, *Lightpath Reconfiguration in WDM
             networks*, IEEE/OSA Journal of Optical Communication and Networking
             2(12):1010-1021, 2010. :doi:`10.1364/JOCN.2.001010`.
@@ -5359,7 +5479,7 @@ REFERENCES:
 .. [St1986] Richard Stanley. *Two poset polytopes*,
             Discrete Comput. Geom. (1986), :doi:`10.1007/BF02187680`
 
-.. [Stap2011] Alan Stapledon. *Equivariant Ehrhart Theory*. 
+.. [Stap2011] Alan Stapledon. *Equivariant Ehrhart Theory*.
               Advances in Mathematics 226 (2011), no. 4, 3622-3654
 
 .. [Sta1973] \H. M. Stark, Class-Numbers of Complex Quadratic
@@ -5703,6 +5823,9 @@ REFERENCES:
 
 .. [TOPCOM] \J. Rambau, TOPCOM
             <http://www.rambau.wm.uni-bayreuth.de/TOPCOM/>.
+
+.. [TTWL2009] Trebst, Troyer, Wang and Ludwig, A short introduction to
+              Fibonacci anyon models, :arxiv:`0902.3275`.
 
 .. [TW1980] \A.D. Thomas and G.V. Wood, Group Tables (Exeter: Shiva
             Publishing, 1980)

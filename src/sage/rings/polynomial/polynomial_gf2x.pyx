@@ -100,14 +100,14 @@ cdef class Polynomial_GF2X(Polynomial_template):
             sage: pari(f)
             Mod(1, 2)*x^3 + Mod(1, 2)*x^2 + Mod(1, 2)
         """
-        #TODO: put this in a superclass
+        # TODO: put this in a superclass
         parent = self._parent
         if variable is None:
             variable = parent.variable_name()
         return pari(self.list()).Polrev(variable) * pari(1).Mod(2)
 
     def modular_composition(Polynomial_GF2X self, Polynomial_GF2X g, Polynomial_GF2X h, algorithm=None):
-        """
+        r"""
         Compute `f(g) \pmod h`.
 
         Both implementations use Brent-Kung's Algorithm 2.1 (*Fast Algorithms
@@ -147,7 +147,7 @@ cdef class Polynomial_GF2X(Polynomial_template):
         from sage.misc.verbose import verbose
         from sage.functions.all import ceil
         from sage.matrix.constructor import Matrix
-        from sage.rings.all import FiniteField as GF
+        from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
 
         cdef Polynomial_GF2X res
         cdef GF2XModulus_c modulus

@@ -308,7 +308,7 @@ cdef class NumberFieldElement(FieldElement):
         self.__fld_numerator, self.__fld_denominator = parent.absolute_polynomial_ntl()
 
         cdef ZZ_c coeff
-        if isinstance(f, (int, long, Integer_sage)):
+        if isinstance(f, (int, Integer_sage)):
             # set it up and exit immediately
             # fast pathway
             mpz_to_ZZ(&coeff, (<Integer>ZZ(f)).value)
@@ -493,7 +493,7 @@ cdef class NumberFieldElement(FieldElement):
         return codomain(f(im_gens[0]))
 
     def _latex_(self):
-        """
+        r"""
         Returns the latex representation for this element.
 
         EXAMPLES::
@@ -2927,6 +2927,17 @@ cdef class NumberFieldElement(FieldElement):
             sage: SR(b)
             1/8*(sqrt(4*(1/9*sqrt(109)*sqrt(3) + 2)^(1/3) - 4/3/(1/9*sqrt(109)*sqrt(3) + 2)^(1/3) + 17) + 5)^3 + 1/2*sqrt(4*(1/9*sqrt(109)*sqrt(3) + 2)^(1/3) - 4/3/(1/9*sqrt(109)*sqrt(3) + 2)^(1/3) + 17) + 5/2
 
+        TESTS:
+
+        :trac:`33804`::
+
+            sage: Pol.<x> = QQ[]
+            sage: p = x^8 + x^7 - 9*x^6 - 3*x^5 - 6*x^4 + x^3 - 14*x^2 + 2*x + 2
+            sage: rt = sorted(p.roots(AA, multiplicities=False))[1]
+            sage: K.<a> = NumberField(p, embedding=rt)
+            sage: SR(a)
+            -0.3056815681115094?
+
         """
         K = self._parent.fraction_field()
 
@@ -2937,7 +2948,11 @@ cdef class NumberFieldElement(FieldElement):
         from .number_field import NumberField_cyclotomic
         if isinstance(K, NumberField_cyclotomic):
             # solution by radicals may be difficult, but we have a closed form
-            from sage.all import exp, I, pi, ComplexField, RR
+            from sage.functions.log import exp
+            from sage.rings.complex_mpfr import ComplexField
+            from sage.rings.imaginary_unit import I
+            from sage.rings.real_mpfr import RR
+            from sage.symbolic.constants import pi
             CC = ComplexField(53)
             two_pi_i = 2 * pi * I
             k = ( K._n()*CC(K.gen()).log() / CC(two_pi_i) ).real().round() # n ln z / (2 pi i)
@@ -2952,7 +2967,7 @@ cdef class NumberFieldElement(FieldElement):
                 return a
             # Once #17516 gets fixed, the next three lines can be dropped
             # and the remaining lines be simplified to undo df03633.
-            b = embedding.im_gens()[0].radical_expression()
+            b = embedding(K.gen()).radical_expression()
             if b.parent() == SR:
                 return self.polynomial()(b)
             return SR(a)
@@ -3973,8 +3988,8 @@ cdef class NumberFieldElement(FieldElement):
         return ht
 
     def global_height_non_arch(self, prec=None):
-        """
-        Returns the total non-archimedean component of the height of self.
+        r"""
+        Return the total non-archimedean component of the height of ``self``.
 
         INPUT:
 
@@ -5451,7 +5466,7 @@ cdef class OrderElement_relative(NumberFieldElement_relative):
 
 
 
-class CoordinateFunction(object):
+class CoordinateFunction():
     r"""
     This class provides a callable object which expresses
     elements in terms of powers of a fixed field generator `\alpha`.

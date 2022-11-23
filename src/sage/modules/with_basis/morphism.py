@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 r"""
-Module with basis morphisms
+Morphisms of modules with a basis
 
 This module contains a hierarchy of classes for morphisms of modules
 with a basis (category :class:`Modules.WithBasis`):
@@ -849,6 +849,7 @@ class TriangularModuleMorphism(ModuleMorphism):
             retract_dom = None
         else:
             on_basis = self.on_basis()
+
             def retract_dom(i):
                 self._dominant_item(on_basis(i))[0]
 
@@ -1550,6 +1551,7 @@ def pointwise_inverse_function(f):
         return f.pointwise_inverse()
     return PointwiseInverseFunction(f)
 
+
 from sage.structure.sage_object import SageObject
 class PointwiseInverseFunction(SageObject):
     r"""
@@ -1629,4 +1631,3 @@ class PointwiseInverseFunction(SageObject):
             True
         """
         return self._pointwise_inverse
-

@@ -16,14 +16,15 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from sage.algebras.free_algebra import FreeAlgebra
+from sage.misc.cachefunc import cached_method
+from sage.rings.fraction_field import FractionField
 from sage.rings.infinity import infinity
 from sage.rings.integer_ring import ZZ
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+from sage.rings.power_series_ring import PowerSeriesRing
 from sage.rings.rational_field import QQ
-from sage.rings.all import FractionField, PolynomialRing, PowerSeriesRing
-from sage.algebras.free_algebra import FreeAlgebra
-
 from sage.structure.parent import Parent
-from sage.misc.cachefunc import cached_method
 
 from .constructor import FormsRing, FormsSpace
 from .series_constructor import MFSeriesConstructor
@@ -52,7 +53,7 @@ class FormsRing_abstract(Parent):
 
         - ``group``      -- The Hecke triangle group (default: ``HeckeTriangleGroup(3)``)
 
-        - ``base_ring``  -- The base_ring (default: `\Z).
+        - ``base_ring``  -- The base_ring (default: `\Z`).
 
         - ``red_hom``    -- If ``True`` then results of binary operations are considered
                             homogeneous whenever it makes sense (default: ``False``).
@@ -104,7 +105,7 @@ class FormsRing_abstract(Parent):
         self.disp_prec(5)
         self.default_num_prec(53)
 
-        #super(FormsRing_abstract, self).__init__(self.coeff_ring())
+        # super().__init__(self.coeff_ring())
 
     def _repr_(self):
         r"""
@@ -221,23 +222,21 @@ class FormsRing_abstract(Parent):
             sage: MR4.has_coerce_map_from(MF2)
             True
         """
-
         from .space import FormsSpace_abstract
         from .functors import _common_subgroup
-        if (    isinstance(S, FormsRing_abstract)\
-            and self._group         == _common_subgroup(self._group, S._group)\
-            and self._analytic_type >= S._analytic_type\
-            and self.base_ring().has_coerce_map_from(S.base_ring()) ):
+        if (isinstance(S, FormsRing_abstract)
+            and self._group == _common_subgroup(self._group, S._group)
+            and self._analytic_type >= S._analytic_type
+            and self.base_ring().has_coerce_map_from(S.base_ring())):
                 return True
-        elif isinstance(S, FormsRing_abstract):
+        if isinstance(S, FormsRing_abstract):
             return False
-        elif isinstance(S, FormsSpace_abstract):
-            raise RuntimeError( "This case should not occur." )
+        if isinstance(S, FormsSpace_abstract):
+            raise RuntimeError("this case should not occur")
             # return self._coerce_map_from_(S.graded_ring())
-        elif (self.AT("holo") <= self._analytic_type) and (self.coeff_ring().has_coerce_map_from(S)):
+        if (self.AT("holo") <= self._analytic_type) and (self.coeff_ring().has_coerce_map_from(S)):
             return True
-        else:
-            return False
+        return False
 
     def _an_element_(self):
         r"""

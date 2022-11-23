@@ -451,6 +451,7 @@ class WeightSpace(CombinatorialFreeModule):
             raise TypeError("No implemented map from the coweight space to the ambient space")
         L = self.cartan_type().root_system().ambient_space()
         basis = L.fundamental_weights()
+
         def basis_value(basis, i):
             return basis[i]
         return self.module_morphism(on_basis = functools.partial(basis_value, basis), codomain=L)
@@ -462,7 +463,7 @@ class WeightSpaceElement(CombinatorialFreeModule.Element):
         The canonical scalar product between the weight lattice and
         the coroot lattice.
 
-        .. todo::
+        .. TODO::
 
             - merge with_apply_multi_module_morphism
             - allow for any root space / lattice

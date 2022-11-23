@@ -161,7 +161,7 @@ def unimod_matrices_from_infty(r, s):
         return []
 
 
-class ManinMap(object):
+class ManinMap():
     r"""
     Map from a set of right coset representatives of `\Gamma_0(N)` in
     `SL_2(\ZZ)` to a coefficient module that satisfies the Manin
@@ -762,7 +762,7 @@ class ManinMap(object):
         return self.__class__(self._codomain.specialize(*args), self._manin,
                               D, check=False)
 
-    def hecke(self, ell, algorithm = 'prep'):
+    def hecke(self, ell, algorithm='prep'):
         r"""
         Return the image of this Manin map under the Hecke operator `T_{\ell}`.
 

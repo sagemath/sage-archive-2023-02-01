@@ -2416,6 +2416,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
         cdef TateAlgebraElement ans = self._new_c()
         # Hmm, shouldn't we add a keyword argument to lift_to_precision()
         # to specify that we don't want it to raise an error
+
         def lift_without_error(elt):
             try:
                 return elt.lift_to_precision(prec)
@@ -3501,7 +3502,7 @@ cdef class TateAlgebraElement(CommutativeAlgebraElement):
 
         - ``other`` -- a Tate series
 
-        TESTS::
+        TESTS:
 
         We check that the S-polynomial of two monomials vanishes::
 

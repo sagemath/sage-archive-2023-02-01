@@ -1,8 +1,7 @@
 r"""
-Base class for polyhedra, part 3
+Base class for polyhedra: Methods regarding the combinatorics of a polyhedron
 
-Define methods related to the combinatorics of a polyhedron
-excluding methods relying on :mod:`sage.graphs`.
+Excluding methods relying on :mod:`sage.graphs`.
 """
 
 # ****************************************************************************
@@ -104,9 +103,9 @@ class Polyhedron_base3(Polyhedron_base2):
         .. NOTE::
 
             The columns correspond to inequalities/equations in the
-            order :meth:`Hrepresentation`, the rows correspond to
+            order :meth:`~sage.geometry.polyhedron.base0.Polyhedron_base0.Hrepresentation`, the rows correspond to
             vertices/rays/lines in the order
-            :meth:`Vrepresentation`.
+            :meth:`~sage.geometry.polyhedron.base0.Polyhedron_base0.Vrepresentation`.
 
         .. SEEALSO::
 
@@ -136,8 +135,8 @@ class Polyhedron_base3(Polyhedron_base2):
             [1 0 1 0 0 1]
             [1 0 0 0 1 1]
 
-            sage: P = polytopes.dodecahedron().faces(2)[0].as_polyhedron()
-            sage: P.slack_matrix()
+            sage: P = polytopes.dodecahedron().faces(2)[0].as_polyhedron()                          # optional - sage.rings.number_field
+            sage: P.slack_matrix()                                                                  # optional - sage.rings.number_field
             [1/2*sqrt5 - 1/2               0               0               1 1/2*sqrt5 - 1/2               0]
             [              0               0 1/2*sqrt5 - 1/2 1/2*sqrt5 - 1/2               1               0]
             [              0 1/2*sqrt5 - 1/2               1               0 1/2*sqrt5 - 1/2               0]
@@ -181,9 +180,9 @@ class Polyhedron_base3(Polyhedron_base2):
         .. NOTE::
 
             The columns correspond to inequalities/equations in the
-            order :meth:`Hrepresentation`, the rows correspond to
+            order :meth:`~sage.geometry.polyhedron.base0.Polyhedron_base0.Hrepresentation`, the rows correspond to
             vertices/rays/lines in the order
-            :meth:`Vrepresentation`.
+            :meth:`~sage.geometry.polyhedron.base0.Polyhedron_base0.Vrepresentation`.
 
         .. SEEALSO::
 
@@ -369,7 +368,7 @@ class Polyhedron_base3(Polyhedron_base2):
         tester.info("\n  Running the test suite of self.combinatorial_polyhedron()")
         TestSuite(self.combinatorial_polyhedron()).run(verbose=tester._verbose,
                                                        prefix=tester._prefix+"  ")
-        tester.info(tester._prefix+" ", newline = False)
+        tester.info(tester._prefix + " ", newline=False)
 
     def face_generator(self, face_dimension=None, algorithm=None, **kwds):
         r"""
@@ -381,8 +380,10 @@ class Polyhedron_base3(Polyhedron_base2):
 
         - ``face_dimension`` -- integer (default ``None``),
           yield only faces of this dimension if specified
+
         - ``algorithm`` -- string (optional);
           specify whether to start with facets or vertices:
+
           * ``'primal'`` -- start with the facets
           * ``'dual'`` -- start with the vertices
           * ``None`` -- choose automatically
@@ -645,13 +646,13 @@ class Polyhedron_base3(Polyhedron_base2):
 
         A tuple of
         :class:`~sage.geometry.polyhedron.face.PolyhedronFace`. See
-        :mod:`~sage.geometry.polyhedron.face` for details. The order
+        module :mod:`sage.geometry.polyhedron.face` for details. The order
         is random but fixed.
 
         .. SEEALSO::
 
             :meth:`face_generator`,
-            :meth:`facet`.
+            :meth:`~sage.geometry.polyhedron.base0.Polyhedron_base0.facet`.
 
         EXAMPLES:
 
@@ -781,8 +782,8 @@ class Polyhedron_base3(Polyhedron_base2):
             return ()
         return self.faces(self.dimension()-1)
 
-    @cached_method(do_pickle=True)
-    def f_vector(self, num_threads=None, parallelization_depth=None):
+    @cached_method(do_pickle=True, key=lambda self, x, y, z: None)
+    def f_vector(self, num_threads=None, parallelization_depth=None, algorithm=None):
         r"""
         Return the f-vector.
 
@@ -794,6 +795,13 @@ class Polyhedron_base3(Polyhedron_base2):
         - ``parallelization_depth`` -- integer (optional); specify
           how deep in the lattice the parallelization is done
 
+        - ``algorithm`` -- string (optional);
+          specify whether the face generator starts with facets or vertices:
+
+          * ``'primal'`` -- start with the facets
+          * ``'dual'`` -- start with the vertices
+          * ``None`` -- choose automatically
+
         OUTPUT:
 
         Return a vector whose `i`-th entry is the number of
@@ -801,10 +809,10 @@ class Polyhedron_base3(Polyhedron_base2):
 
         .. NOTE::
 
-            The ``vertices`` as given by :meth:`Polyhedron_base.vertices`
+            The ``vertices`` as given by :meth:`~sage.geometry.polyhedron.base0.Polyhedron_base0.vertices`
             do not need to correspond to `0`-dimensional faces. If a polyhedron
             contains `k` lines they correspond to `k`-dimensional faces.
-            See example below
+            See example below.
 
         EXAMPLES::
 
@@ -849,7 +857,7 @@ class Polyhedron_base3(Polyhedron_base2):
             sage: Q.f_vector.is_in_cache()
             True
         """
-        return self.combinatorial_polyhedron().f_vector(num_threads, parallelization_depth)
+        return self.combinatorial_polyhedron().f_vector(num_threads, parallelization_depth, algorithm=algorithm)
 
     def bounded_edges(self):
         """
@@ -879,9 +887,18 @@ class Polyhedron_base3(Polyhedron_base2):
                 yield (obj[i], obj[j])
 
     @cached_method
-    def vertex_adjacency_matrix(self):
+    def vertex_adjacency_matrix(self, algorithm=None):
         """
         Return the binary matrix of vertex adjacencies.
+
+        INPUT:
+
+        - ``algorithm`` -- string (optional);
+          specify whether the face generator starts with facets or vertices:
+
+          * ``'primal'`` -- start with the facets
+          * ``'dual'`` -- start with the vertices
+          * ``None`` -- choose automatically
 
         EXAMPLES::
 
@@ -1003,14 +1020,23 @@ class Polyhedron_base3(Polyhedron_base2):
                 sage: P.adjacency_matrix().is_immutable()
                 True
         """
-        return self.combinatorial_polyhedron().vertex_adjacency_matrix()
+        return self.combinatorial_polyhedron().vertex_adjacency_matrix(algorithm=algorithm)
 
     adjacency_matrix = vertex_adjacency_matrix
 
     @cached_method
-    def facet_adjacency_matrix(self):
+    def facet_adjacency_matrix(self, algorithm=None):
         """
         Return the adjacency matrix for the facets.
+
+        INPUT:
+
+        - ``algorithm`` -- string (optional);
+          specify whether the face generator starts with facets or vertices:
+
+          * ``'primal'`` -- start with the facets
+          * ``'dual'`` -- start with the vertices
+          * ``None`` -- choose automatically
 
         EXAMPLES::
 
@@ -1053,7 +1079,7 @@ class Polyhedron_base3(Polyhedron_base2):
             [1 0 1]
             [1 1 0]
         """
-        return self.combinatorial_polyhedron().facet_adjacency_matrix()
+        return self.combinatorial_polyhedron().facet_adjacency_matrix(algorithm=algorithm)
 
     def a_maximal_chain(self):
         r"""
@@ -1078,7 +1104,7 @@ class Polyhedron_base3(Polyhedron_base2):
             sage: [face.ambient_V_indices() for face in chain]
             [(), (5,), (0, 5), (0, 3, 4, 5), (0, 1, 2, 3, 4, 5, 6, 7)]
 
-        TESTS::
+        TESTS:
 
         Check output for the empty polyhedron::
 
@@ -1125,7 +1151,7 @@ class Polyhedron_base3(Polyhedron_base2):
         A polytope `P` is `k`-simple, if every `(d-1-k)`-face
         is contained in exactly `k+1` facets of `P` for `1 \leq k \leq d-1`.
         Equivalently it is `k`-simple if the polar/dual polytope is `k`-simplicial.
-        If `self` is a simplex, it returns its dimension.
+        If ``self`` is a simplex, it returns its dimension.
 
         EXAMPLES::
 
@@ -1148,7 +1174,7 @@ class Polyhedron_base3(Polyhedron_base2):
             ...
             NotImplementedError: this function is implemented for polytopes only
         """
-        if not(self.is_compact()):
+        if not self.is_compact():
             raise NotImplementedError("this function is implemented for polytopes only")
         return self.combinatorial_polyhedron().simplicity()
 
@@ -1176,7 +1202,7 @@ class Polyhedron_base3(Polyhedron_base2):
         Return the largest integer `k` such that the polytope is `k`-simplicial.
 
         A polytope is `k`-simplicial, if every `k`-face is a simplex.
-        If `self` is a simplex, returns its dimension.
+        If ``self`` is a simplex, returns its dimension.
 
         EXAMPLES::
 
@@ -1199,7 +1225,7 @@ class Polyhedron_base3(Polyhedron_base2):
             ...
             NotImplementedError: this function is implemented for polytopes only
         """
-        if not(self.is_compact()):
+        if not self.is_compact():
             raise NotImplementedError("this function is implemented for polytopes only")
         return self.combinatorial_polyhedron().simpliciality()
 
@@ -1238,7 +1264,7 @@ class Polyhedron_base3(Polyhedron_base2):
             ...
             NotImplementedError: this function is implemented for polytopes only
         """
-        if not(self.is_compact()):
+        if not self.is_compact():
             raise NotImplementedError("this function is implemented for polytopes only")
         return self.combinatorial_polyhedron().is_simplicial()
 
@@ -1669,7 +1695,8 @@ class Polyhedron_base3(Polyhedron_base2):
         INPUT:
 
         - ``Hrepresentatives`` -- facets or indices of Hrepresentatives;
-          the indices are assumed to be the indices of the Hrepresentation
+          the indices are assumed to be the indices of the
+          :meth:`~sage.geometry.polyhedron.base0.Polyhedron_base0.Hrepresentation`
 
         OUTPUT: a :class:`~sage.geometry.polyhedron.face.PolyhedronFace`
 
@@ -1687,7 +1714,8 @@ class Polyhedron_base3(Polyhedron_base2):
             sage: P.meet_of_Hrep(1,3,7).ambient_H_indices()
             (0, 1, 3, 7)
 
-        The indices are the indices of the Hrepresentation.
+        The indices are the indices of the
+        :meth:`~sage.geometry.polyhedron.base0.Polyhedron_base0.Hrepresentation`.
         ``0`` corresponds to an equation and is ignored::
 
             sage: P.meet_of_Hrep(0)
@@ -1720,7 +1748,8 @@ class Polyhedron_base3(Polyhedron_base2):
         TESTS:
 
         Equations are not considered by the combinatorial polyhedron.
-        We check that the index corresponds to the Hrepresentation index::
+        We check that the index corresponds to the
+        :meth:`~sage.geometry.polyhedron.base0.Polyhedron_base0.Hrepresentation` index::
 
             sage: P = polytopes.permutahedron(3, backend='field')
             sage: P.Hrepresentation()
@@ -1841,6 +1870,7 @@ class Polyhedron_base3(Polyhedron_base2):
             D2._test_bitsets(tester, **options)
             try:
                 import sage.graphs.graph
+                assert sage.graphs.graph  # to muffle pyflakes
             except ImportError:
                 pass
             else:

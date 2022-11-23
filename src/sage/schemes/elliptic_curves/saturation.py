@@ -601,16 +601,16 @@ def p_projections(Eq, Plist, p, debug=False):
 
     OUTPUT:
 
-    A list of $r\le2$ vectors in $\GF{p^n}$, the images of the points in
-    $G \otimes \GF{p}$, where $r$ is the number of vectors is the
-    $p$-rank of `Eq`.
+    A list of `r\le2` vectors in `\GF{p^n}`, the images of the points in
+    `G \otimes \GF{p}`, where `r` is the number of vectors is the
+    `p`-rank of `Eq`.
 
     ALGORITHM:
 
-    First project onto the $p$-primary part of `Eq`.  If that has
-    $p$-rank 1 (i.e. is cyclic), use discrete logs there to define a
-    map to $\GF{p}$, otherwise use the Weil pairing to define two
-    independent maps to $\GF{p}$.
+    First project onto the `p`-primary part of `Eq`.  If that has
+    `p`-rank 1 (i.e. is cyclic), use discrete logs there to define a
+    map to `\GF{p}`, otherwise use the Weil pairing to define two
+    independent maps to `\GF{p}`.
 
     EXAMPLES:
 
@@ -618,9 +618,9 @@ def p_projections(Eq, Plist, p, debug=False):
 
         sage: E = EllipticCurve([0,0,1,-7,6])
 
-    We reduce modulo $409$ where its order is $3^2\cdot7^2$; the
-    $3$-primary part is non-cyclic while the $7$-primary part is
-    cyclic of order $49$::
+    We reduce modulo `409` where its order is `3^2\cdot7^2`; the
+    `3`-primary part is non-cyclic while the `7`-primary part is
+    cyclic of order `49`::
 
         sage: F = GF(409)
         sage: EF = E.change_ring(F)
@@ -630,9 +630,9 @@ def p_projections(Eq, Plist, p, debug=False):
         sage: G.order().factor()
         3^2 * 7^2
 
-    We construct three points and project them to the $p$-primary
-    parts for $p=2,3,5,7$, yielding 0,2,0,1 vectors of length 3 modulo
-    $p$ respectively.  The exact vectors output depend on the computed
+    We construct three points and project them to the `p`-primary
+    parts for `p=2,3,5,7`, yielding 0,2,0,1 vectors of length 3 modulo
+    `p` respectively.  The exact vectors output depend on the computed
     generators of `G`::
 
         sage: Plist = [EF([-2,3]), EF([0,2]), EF([1,0])]
@@ -674,10 +674,10 @@ def p_projections(Eq, Plist, p, debug=False):
         if debug:
             print("Cyclic case, taking dlogs to base {} of order {}".format(g,pp))
         # logs are well-defined mod pp, hence mod p
-        v = [dlog(pt, g, ord = pp, operation = '+') for pt in pts]
+        v = [dlog(pt, g, ord=pp, operation='+') for pt in pts]
         if debug:
             print("dlogs: {}".format(v))
-        return [vector(Fp,v)]
+        return [vector(Fp, v)]
 
     # We make no assumption about which generator order divides the
     # other, since conventions differ!
@@ -693,12 +693,14 @@ def p_projections(Eq, Plist, p, debug=False):
     # roots of unity with p1|p2, together with discrete log in the
     # multiplicative group.
 
-    zeta = g1.weil_pairing(g2,p2) # a primitive p1'th root of unity
+    zeta = g1.weil_pairing(g2, p2)  # a primitive p1'th root of unity
     if debug:
         print("wp of gens = {} with order {}".format(zeta, zeta.multiplicative_order()))
-        assert zeta.multiplicative_order() == p1, "Weil pairing error during saturation: p={}, G={}, Plist={}".format(p,G,Plist)
+        assert zeta.multiplicative_order() == p1, "Weil pairing error during saturation: p={}, G={}, Plist={}".format(p, G, Plist)
 
     # logs are well-defined mod p1, hence mod p
 
-    return [vector(Fp, [dlog(pt.weil_pairing(g1,p2), zeta, ord = p1, operation = '*') for pt in pts]),
-        vector(Fp, [dlog(pt.weil_pairing(g2,p2), zeta, ord = p1, operation = '*') for pt in pts])]
+    return [vector(Fp, [dlog(pt.weil_pairing(g1, p2), zeta,
+                             ord=p1, operation='*') for pt in pts]),
+            vector(Fp, [dlog(pt.weil_pairing(g2, p2), zeta,
+                             ord=p1, operation='*') for pt in pts])]

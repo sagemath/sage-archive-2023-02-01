@@ -887,7 +887,9 @@ class LatticePolytopeClass(ConvexSet_compact, Hashable, sage.geometry.abc.Lattic
         - ``data`` - point or matrix of points (as columns) in the affine
           subspace spanned by this polytope
 
-        OUTPUT: The same point(s) in the coordinates of the ambient space of
+        OUTPUT:
+
+        The same point(s) in the coordinates of the ambient space of
         this polytope.
 
         TESTS::
@@ -1053,7 +1055,9 @@ class LatticePolytopeClass(ConvexSet_compact, Hashable, sage.geometry.abc.Lattic
         - ``data`` -- rational point or matrix of points (as columns) in the
           ambient space
 
-        OUTPUT: The same point(s) in the coordinates of the affine subspace
+        OUTPUT:
+
+        The same point(s) in the coordinates of the affine subspace
         space spanned by this polytope.
 
         TESTS::
@@ -1566,7 +1570,8 @@ class LatticePolytopeClass(ConvexSet_compact, Hashable, sage.geometry.abc.Lattic
         if self._ambient is self:
             return tuple(range(self.npoints()))
         points = self._ambient.points()
-        return tuple(points.index(p) for p in self.points())
+        point_to_index = {p: i for i, p in enumerate(points)}
+        return tuple(point_to_index[p] for p in self.points())
 
     @cached_method
     def ambient_ordered_point_indices(self):
@@ -1600,7 +1605,8 @@ class LatticePolytopeClass(ConvexSet_compact, Hashable, sage.geometry.abc.Lattic
         if self._ambient is self:
             return tuple(range(self.npoints()))
         points = self._ambient.points()
-        return tuple(points.index(p) for p in sorted(self.points()))
+        point_to_index = {p: i for i, p in enumerate(points)}
+        return tuple(point_to_index[p] for p in sorted(self.points()))
 
     def ambient_vertex_indices(self):
         r"""
@@ -2020,7 +2026,7 @@ class LatticePolytopeClass(ConvexSet_compact, Hashable, sage.geometry.abc.Lattic
                                             ambient_facet_indices=facets)
 
             return lattice_from_incidences(
-                vertex_to_facets, facet_to_vertices, LPFace, key = id(self))
+                vertex_to_facets, facet_to_vertices, LPFace, key=id(self))
         else:
             # Get face lattice as a sublattice of the ambient one
             allowed_indices = frozenset(self._ambient_vertex_indices)
@@ -2059,7 +2065,7 @@ class LatticePolytopeClass(ConvexSet_compact, Hashable, sage.geometry.abc.Lattic
                     L.add_edge(face_to_index[face], next_index)
             D = {i:f for i,f in enumerate(faces)}
             L.relabel(D)
-            return FinitePoset(L, faces, key = id(self))
+            return FinitePoset(L, faces, key=id(self))
 
     def faces(self, dim=None, codim=None):
         r"""
@@ -3501,8 +3507,9 @@ class LatticePolytopeClass(ConvexSet_compact, Hashable, sage.geometry.abc.Lattic
         By default, everything is shown with more or less pretty
         combination of size and color parameters.
 
-        INPUT: Most of the parameters are self-explanatory:
+        INPUT:
 
+        Most of the parameters are self-explanatory:
 
         -  ``show_facets`` - (default:True)
 
@@ -3614,8 +3621,9 @@ class LatticePolytopeClass(ConvexSet_compact, Hashable, sage.geometry.abc.Lattic
             elif dim == 3:
                 if facet_colors is None:
                     facet_colors = [facet_color] * self.nfacets()
+                vertex_to_index = {v: i for i, v in enumerate(self.vertices())}
                 for f, c in zip(self.facets(), facet_colors):
-                    pplot += IndexFaceSet([[self.vertices().index(v) for v in f.vertices(f.traverse_boundary())]],
+                    pplot += IndexFaceSet([[vertex_to_index[v] for v in f.vertices(f.traverse_boundary())]],
                         vertices, opacity=facet_opacity, rgbcolor=c)
         if show_edges:
             if dim == 1:
@@ -3646,7 +3654,7 @@ class LatticePolytopeClass(ConvexSet_compact, Hashable, sage.geometry.abc.Lattic
                 pplot += text3d(i+self.nvertices(), bc+index_shift*(p-bc), rgbcolor=pindex_color)
         return pplot
 
-    def polyhedron(self):
+    def polyhedron(self, **kwds):
         r"""
         Return the Polyhedron object determined by this polytope's vertices.
 
@@ -3657,7 +3665,7 @@ class LatticePolytopeClass(ConvexSet_compact, Hashable, sage.geometry.abc.Lattic
             A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 4 vertices
         """
         from sage.geometry.polyhedron.constructor import Polyhedron
-        return Polyhedron(vertices=[list(v) for v in self._vertices])
+        return Polyhedron(vertices=[list(v) for v in self._vertices], **kwds)
 
     def show3d(self):
         """
@@ -3895,14 +3903,12 @@ class LatticePolytopeClass(ConvexSet_compact, Hashable, sage.geometry.abc.Lattic
 
         INPUT:
 
-
         -  ``keys`` - a string of options passed to poly.x. The
            key "f" is added automatically.
 
         -  ``reduce_dimension`` - (default: False) if ``True`` and this
            polytope is not full-dimensional, poly.x will be called for the
            vertices of this polytope in some basis of the spanned affine space.
-
 
         OUTPUT: the output of poly.x as a string.
 
@@ -3966,7 +3972,7 @@ class LatticePolytopeClass(ConvexSet_compact, Hashable, sage.geometry.abc.Lattic
             sage: d = lattice_polytope.cross_polytope(2)
             sage: g = d.skeleton(); g                                           # optional - palp
             Graph on 4 vertices
-            sage: g.edges()                                                     # optional - palp
+            sage: g.edges(sort=True)                                            # optional - palp
             [(0, 1, None), (0, 3, None), (1, 2, None), (2, 3, None)]
         """
         skeleton = Graph()
@@ -4081,7 +4087,8 @@ class LatticePolytopeClass(ConvexSet_compact, Hashable, sage.geometry.abc.Lattic
             if next == l[-2]:
                 next = prev
             l.append(next)
-        return [self.vertices().index(v.vertex(0)) for v in l]
+        vertex_to_index = {v: i for i, v in enumerate(self.vertices())}
+        return [vertex_to_index[v.vertex(0)] for v in l]
 
     def vertex(self, i):
         r"""
@@ -4209,8 +4216,8 @@ class NefPartition(SageObject, Hashable):
 
     INPUT:
 
-    - ``data`` -- a list of integers, the $i$-th element of this list must be
-      the part of the $i$-th vertex of ``Delta_polar`` in this nef-partition;
+    - ``data`` -- a list of integers, the `i`-th element of this list must be
+      the part of the `i`-th vertex of ``Delta_polar`` in this nef-partition;
 
     - ``Delta_polar`` -- a :class:`lattice polytope
       <sage.geometry.lattice_polytope.LatticePolytopeClass>`;
@@ -4224,20 +4231,20 @@ class NefPartition(SageObject, Hashable):
 
     - a nef-partition of ``Delta_polar``.
 
-    Let $M$ and $N$ be dual lattices. Let $\Delta \subset M_\RR$ be a reflexive
-    polytope with polar $\Delta^\circ \subset N_\RR$. Let $X_\Delta$ be the
-    toric variety associated to the normal fan of $\Delta$. A **nef-partition**
-    is a decomposition of the vertex set $V$ of $\Delta^\circ$ into a disjoint
-    union $V = V_0 \sqcup V_1 \sqcup \dots \sqcup V_{k-1}$ such that divisors
-    $E_i = \sum_{v\in V_i} D_v$ are Cartier (here $D_v$ are prime
-    torus-invariant Weil divisors corresponding to vertices of $\Delta^\circ$).
-    Equivalently, let $\nabla_i \subset N_\RR$ be the convex hull of vertices
-    from $V_i$ and the origin. These polytopes form a nef-partition if their
-    Minkowski sum $\nabla \subset N_\RR$ is a reflexive polytope.
+    Let `M` and `N` be dual lattices. Let `\Delta \subset M_\RR` be a reflexive
+    polytope with polar `\Delta^\circ \subset N_\RR`. Let `X_\Delta` be the
+    toric variety associated to the normal fan of `\Delta`. A **nef-partition**
+    is a decomposition of the vertex set `V` of `\Delta^\circ` into a disjoint
+    union `V = V_0 \sqcup V_1 \sqcup \dots \sqcup V_{k-1}` such that divisors
+    `E_i = \sum_{v\in V_i} D_v` are Cartier (here `D_v` are prime
+    torus-invariant Weil divisors corresponding to vertices of `\Delta^\circ`).
+    Equivalently, let `\nabla_i \subset N_\RR` be the convex hull of vertices
+    from `V_i` and the origin. These polytopes form a nef-partition if their
+    Minkowski sum `\nabla \subset N_\RR` is a reflexive polytope.
 
-    The **dual nef-partition** is formed by polytopes $\Delta_i \subset M_\RR$
-    of $E_i$, which give a decomposition of the vertex set of $\nabla^\circ
-    \subset M_\RR$ and their Minkowski sum is $\Delta$, i.e. the polar duality
+    The **dual nef-partition** is formed by polytopes `\Delta_i \subset M_\RR`
+    of `E_i`, which give a decomposition of the vertex set of `\nabla^\circ
+    \subset M_\RR` and their Minkowski sum is `\Delta`, i.e. the polar duality
     of reflexive polytopes switches convex hull and Minkowski sum for dual
     nef-partitions:
 
@@ -4259,25 +4266,25 @@ class NefPartition(SageObject, Hashable):
         \mathrm{Conv} \left(\Delta_0, \Delta_1, \dots, \Delta_{k-1}\right).
 
     One can also interpret the duality of nef-partitions as the duality of the
-    associated cones. Below $\overline{M} = M \times \ZZ^k$ and
-    $\overline{N} = N \times \ZZ^k$ are dual lattices.
+    associated cones. Below `\overline{M} = M \times \ZZ^k` and
+    `\overline{N} = N \times \ZZ^k` are dual lattices.
 
-    The **Cayley polytope** $P \subset \overline{M}_\RR$ of a nef-partition is
-    given by $P = \mathrm{Conv}(\Delta_0 \times e_0, \Delta_1 \times e_1,
-    \ldots, \Delta_{k-1} \times e_{k-1})$, where $\{e_i\}_{i=0}^{k-1}$ is the
-    standard basis of $\ZZ^k$. The **dual Cayley polytope**
-    $P^* \subset \overline{N}_\RR$ is the Cayley polytope of the dual
+    The **Cayley polytope** `P \subset \overline{M}_\RR` of a nef-partition is
+    given by `P = \mathrm{Conv}(\Delta_0 \times e_0, \Delta_1 \times e_1,
+    \ldots, \Delta_{k-1} \times e_{k-1})`, where `\{e_i\}_{i=0}^{k-1}` is the
+    standard basis of `\ZZ^k`. The **dual Cayley polytope**
+    `P^* \subset \overline{N}_\RR` is the Cayley polytope of the dual
     nef-partition.
 
-    The **Cayley cone** $C \subset \overline{M}_\RR$ of a nef-partition is the
+    The **Cayley cone** `C \subset \overline{M}_\RR` of a nef-partition is the
     cone spanned by its Cayley polytope. The **dual Cayley cone**
-    $C^\vee \subset \overline{M}_\RR$ is the usual dual cone of $C$. It turns
-    out, that $C^\vee$ is spanned by $P^*$.
+    `C^\vee \subset \overline{M}_\RR` is the usual dual cone of `C`. It turns
+    out, that `C^\vee` is spanned by `P^*`.
 
     It is also possible to go back from the Cayley cone to the Cayley polytope,
-    since $C$ is a reflexive Gorenstein cone supported by $P$: primitive
-    integral ray generators of $C$ are contained in an affine hyperplane and
-    coincide with vertices of $P$.
+    since `C` is a reflexive Gorenstein cone supported by `P`: primitive
+    integral ray generators of `C` are contained in an affine hyperplane and
+    coincide with vertices of `P`.
 
     See Section 4.3.1 in [CK1999]_ and references therein for further details, or
     [BN2008]_ for a purely combinatorial approach.
@@ -4550,11 +4557,11 @@ class NefPartition(SageObject, Hashable):
 
     def Delta(self, i=None):
         r"""
-        Return the polytope $\Delta$ or $\Delta_i$ corresponding to ``self``.
+        Return the polytope `\Delta` or `\Delta_i` corresponding to ``self``.
 
         INPUT:
 
-        - ``i`` -- an integer. If not given, $\Delta$ will be returned.
+        - ``i`` -- an integer. If not given, `\Delta` will be returned.
 
         OUTPUT:
 
@@ -4594,7 +4601,7 @@ class NefPartition(SageObject, Hashable):
 
     def Delta_polar(self):
         r"""
-        Return the polytope $\Delta^\circ$ corresponding to ``self``.
+        Return the polytope `\Delta^\circ` corresponding to ``self``.
 
         OUTPUT:
 
@@ -4615,7 +4622,7 @@ class NefPartition(SageObject, Hashable):
 
     def Deltas(self):
         r"""
-        Return the polytopes $\Delta_i$ corresponding to ``self``.
+        Return the polytopes `\Delta_i` corresponding to ``self``.
 
         OUTPUT:
 
@@ -4749,11 +4756,11 @@ class NefPartition(SageObject, Hashable):
 
     def nabla(self, i=None):
         r"""
-        Return the polytope $\nabla$ or $\nabla_i$ corresponding to ``self``.
+        Return the polytope `\nabla` or `\nabla_i` corresponding to ``self``.
 
         INPUT:
 
-        - ``i`` -- an integer. If not given, $\nabla$ will be returned.
+        - ``i`` -- an integer. If not given, `\nabla` will be returned.
 
         OUTPUT:
 
@@ -4798,7 +4805,7 @@ class NefPartition(SageObject, Hashable):
 
     def nabla_polar(self):
         r"""
-        Return the polytope $\nabla^\circ$ corresponding to ``self``.
+        Return the polytope `\nabla^\circ` corresponding to ``self``.
 
         OUTPUT:
 
@@ -4829,7 +4836,7 @@ class NefPartition(SageObject, Hashable):
 
     def nablas(self):
         r"""
-        Return the polytopes $\nabla_i$ corresponding to ``self``.
+        Return the polytopes `\nabla_i` corresponding to ``self``.
 
         OUTPUT:
 
@@ -4904,7 +4911,7 @@ class NefPartition(SageObject, Hashable):
         OUTPUT:
 
         - a tuple of integers, indices of vertices (or all lattice points) of
-          $\Delta^\circ$ belonging to $V_i$.
+          `\Delta^\circ` belonging to `V_i`.
 
         See :class:`nef-partition <NefPartition>` class documentation for
         definitions and notation.
@@ -4937,8 +4944,8 @@ class NefPartition(SageObject, Hashable):
 
         OUTPUT:
 
-        - a tuple of tuples of integers. The $i$-th tuple contains indices of
-          vertices (or all lattice points) of $\Delta^\circ$ belonging to $V_i$
+        - a tuple of tuples of integers. The `i`-th tuple contains indices of
+          vertices (or all lattice points) of `\Delta^\circ` belonging to `V_i`
 
         See :class:`nef-partition <NefPartition>` class documentation for
         definitions and notation.
@@ -4977,8 +4984,8 @@ class NefPartition(SageObject, Hashable):
 
         OUTPUT:
 
-        - an integer $j$ such that the ``i``-th vertex of $\Delta^\circ$
-          belongs to $V_j$.
+        - an integer `j` such that the ``i``-th vertex of `\Delta^\circ`
+          belongs to `V_j`.
 
         See :class:`nef-partition <NefPartition>` class documentation for
         definitions and notation.
@@ -5318,7 +5325,6 @@ def _read_poly_x_incidences(data, dim):
 
     INPUT:
 
-
     -  ``data`` - an opened file with incidence
        information. The first line will be skipped, each consecutive line
        contains incidence information for all faces of one dimension, the
@@ -5326,8 +5332,9 @@ def _read_poly_x_incidences(data, dim):
 
     -  ``dim`` - dimension of the polytope.
 
+    OUTPUT:
 
-    OUTPUT: a sequence F, such that F[d][i] is a sequence of vertices
+    a sequence F, such that F[d][i] is a sequence of vertices
     or facets corresponding to the i-th d-dimensional face.
 
     TESTS::
@@ -5545,12 +5552,12 @@ def convex_hull(points):
 
     INPUT:
 
-
     -  ``points`` - a list that can be converted into
        vectors of the same dimension over ZZ.
 
+    OUTPUT:
 
-    OUTPUT: list of vertices of the convex hull of the given points (as
+    list of vertices of the convex hull of the given points (as
     vectors).
 
     EXAMPLES: Let's compute the convex hull of several points on a line
@@ -5624,11 +5631,9 @@ def minkowski_sum(points1, points2):
 
     INPUT:
 
-
     -  ``points1, points2`` - lists of objects that can be
        converted into vectors of the same dimension, treated as vertices
        of two polytopes.
-
 
     OUTPUT: list of vertices of the Minkowski sum, given as vectors.
 
@@ -5655,7 +5660,9 @@ def positive_integer_relations(points):
     - ``points`` - lattice points given as columns of a
       matrix
 
-    OUTPUT: matrix of relations between given points with non-negative
+    OUTPUT:
+
+    matrix of relations between given points with non-negative
     integer coefficients
 
     EXAMPLES: This is a 3-dimensional reflexive polytope::

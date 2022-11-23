@@ -1,4 +1,6 @@
-"Plotting utilities"
+"""
+Plotting utilities
+"""
 
 # ****************************************************************************
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -177,7 +179,7 @@ def setup_for_eval_on_grid(funcs,
             return FastCallablePlotWrapper(ff, imag_tol=imaginary_tolerance)
         elif isinstance(f, Wrapper_cdf):
             # Already a fast-callable, just wrap it. This can happen
-            # if, for example, a symolic expression is passed to a
+            # if, for example, a symbolic expression is passed to a
             # higher-level plot() function that converts it to a
             # fast-callable with expr._plot_fast_callable() before
             # we ever see it.

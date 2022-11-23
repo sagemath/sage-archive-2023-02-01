@@ -117,7 +117,7 @@ from sage.matrix.all import MatrixSpace, matrix
 from sage.modular.modsym.p1list import P1List
 
 
-##################################################################################
+###############################################################################
 #
 # The exported functions, which are in most cases enough to get the
 # user going working with Heegner points:
@@ -125,7 +125,7 @@ from sage.modular.modsym.p1list import P1List
 #    heegner_points -- all of them with given level, discriminant, conductor
 #    heegner_point -- a specific one
 #
-##################################################################################
+###############################################################################
 
 def heegner_points(N, D=None, c=None):
     """
@@ -135,11 +135,11 @@ def heegner_points(N, D=None, c=None):
 
     INPUT:
 
-        - `N` -- level (positive integer)
+    - `N` -- level (positive integer)
 
-        - `D` -- discriminant (negative integer)
+    - `D` -- discriminant (negative integer)
 
-        - `c` -- conductor (positive integer)
+    - `c` -- conductor (positive integer)
 
     EXAMPLES::
 
@@ -155,8 +155,9 @@ def heegner_points(N, D=None, c=None):
     if D is not None and c is None:
         return HeegnerPoints_level_disc(N, D)
     if D is not None and c is not None:
-        return HeegnerPoints_level_disc_cond(N,D,c)
+        return HeegnerPoints_level_disc_cond(N, D, c)
     raise TypeError
+
 
 def heegner_point(N, D=None, c=1):
     """
@@ -167,11 +168,11 @@ def heegner_point(N, D=None, c=1):
 
     INPUT:
 
-        - `N` -- level (positive integer)
+    - `N` -- level (positive integer)
 
-        - `D` -- discriminant (optional: default first valid `D`)
+    - `D` -- discriminant (optional: default first valid `D`)
 
-        - `c` -- conductor (positive integer, optional, default: 1)
+    - `c` -- conductor (positive integer, optional, default: 1)
 
     EXAMPLES::
 
@@ -185,20 +186,20 @@ def heegner_point(N, D=None, c=1):
         Heegner point 1/778*sqrt(-20) - 165/389 of discriminant -20 on X_0(389)
     """
     if D is not None:
-        return heegner_points(N,D,c)[0]
+        return heegner_points(N, D, c)[0]
     H = heegner_points(N)
     D = H.discriminants(1)[0]
-    return heegner_points(N,D,c)[0]
+    return heegner_points(N, D, c)[0]
 
 
-##################################################################################
+###############################################################################
 #
 # Ring class fields, represented as abstract objects.  These do not
 # derive from number fields, since we do not need to work with their
 # elements, and explicitly representing them as number fields would be
 # far too difficult.
 #
-##################################################################################
+###############################################################################
 
 class RingClassField(SageObject):
     """
@@ -352,9 +353,8 @@ class RingClassField(SageObject):
         """
         c = self.__c
         if c == 1:
-            return "Hilbert class field of QQ[sqrt(%s)]"%self.__D
-        else:
-            return "Ring class field extension of QQ[sqrt(%s)] of conductor %s"%(self.__D, self.__c)
+            return "Hilbert class field of QQ[sqrt(%s)]" % self.__D
+        return "Ring class field extension of QQ[sqrt(%s)] of conductor %s" % (self.__D, self.__c)
 
     @cached_method
     def degree_over_K(self):
@@ -3353,46 +3353,41 @@ class HeegnerPointOnEllipticCurve(HeegnerPoint):
             Traceback (most recent call last):
             ...
             ValueError: insufficient precision to determine Heegner point (fails discriminant test)
-            sage: P.x_poly_exact(75)
+            sage: P.x_poly_exact(120)
             x^6 + 10/7*x^5 - 867/49*x^4 - 76/245*x^3 + 3148/35*x^2 - 25944/245*x + 48771/1225
-            sage: E.heegner_point(-7,11).x_poly_exact(300)
+            sage: E.heegner_point(-7,11).x_poly_exact(500)
             x^10 + 282527/52441*x^9 + 27049007420/2750058481*x^8 - 22058564794/2750058481*x^7 - 140054237301/2750058481*x^6 + 696429998952/30250643291*x^5 + 2791387923058/30250643291*x^4 - 3148473886134/30250643291*x^3 + 1359454055022/30250643291*x^2 - 250620385365/30250643291*x + 181599685425/332757076201
 
         Here we compute a Heegner point of conductor 5 on a rank 3 curve::
 
             sage: E = EllipticCurve('5077a'); P = E.heegner_point(-7,5); P
             Heegner point of discriminant -7 and conductor 5 on elliptic curve of conductor 5077
-            sage: P.x_poly_exact(300)
+            sage: P.x_poly_exact(500)
             x^6 + 1108754853727159228/72351048803252547*x^5 + 88875505551184048168/1953478317687818769*x^4 - 2216200271166098662132/3255797196146364615*x^3 + 14941627504168839449851/9767391588439093845*x^2 - 3456417460183342963918/3255797196146364615*x + 1306572835857500500459/5426328660243941025
+
+        See :trac:`34121`::
+
+            sage: E = EllipticCurve('11a1')
+            sage: P = E.heegner_point(-7)
+            sage: PE = P.point_exact()
+            sage: PE
+            (a : -4*a + 3 : 1)
+            sage: all(c.parent().disc() == -7 for c in PE)
+            True
+
         """
-        n = self.ring_class_field().degree_over_K()
+        L = self.ring_class_field()
+        n = L.absolute_degree()
 
         if algorithm == 'lll':
             P = self.numerical_approx(prec)
-            g = None
-            for e in [1,2]:   # is there a condition under which we should not bother trying e=1?
-                f = P[0].algdep(e*n)
-
-                # If f is correct, then disc(f) = m^2 * (a product of primes dividing D*c).
-                # To check this, we divide out the primes dividing D*c, then
-                # check that the resulting cofactor is a perfect square.
-                F = f.factor()
-                if len(F) == 1:
-                    f = F[0][0]
-                    if self._check_poly_discriminant(f):
-                        g = f
-                        break
-
-            if g is None:
+            f = P[0].algdep(n)
+            if f.is_irreducible() and self._check_poly_discriminant(f):
+                return f.monic()
+            else:
                 raise ValueError("insufficient precision to determine Heegner point (fails discriminant test)")
-            f = g
-            f = f/f.leading_coefficient()
-
-        elif algorithm == 'conjugates':
-
-            raise NotImplementedError
-
-        return f
+        else:
+            raise NotImplementedError("'lll' is the only algorithm implemented for Heegner points")
 
     def _check_poly_discriminant(self, f):
         """
@@ -3457,7 +3452,7 @@ class HeegnerPointOnEllipticCurve(HeegnerPoint):
 
             - ``var`` -- string (default: 'a')
 
-            - ``optimize`` -- book (default; False) if ``True``, try to
+            - ``optimize`` -- bool (default; False) if ``True``, try to
               optimize defining polynomial for the number field that
               the point is defined over.  Off by default, since this
               can be very expensive.
@@ -3466,7 +3461,7 @@ class HeegnerPointOnEllipticCurve(HeegnerPoint):
 
             sage: E = EllipticCurve('389a'); P = E.heegner_point(-7, 5); P
             Heegner point of discriminant -7 and conductor 5 on elliptic curve of conductor 389
-            sage: z = P.point_exact(100, optimize=True)
+            sage: z = P.point_exact(200, optimize=True)
             sage: z[1].charpoly()
             x^12 + 6*x^11 + 90089/1715*x^10 + 71224/343*x^9 + 52563964/588245*x^8 - 483814934/588245*x^7 - 156744579/16807*x^6 - 2041518032/84035*x^5 + 1259355443184/14706125*x^4 + 3094420220918/14706125*x^3 + 123060442043827/367653125*x^2 + 82963044474852/367653125*x + 211679465261391/1838265625
             sage: f = P.numerical_approx(500)[1].algdep(12); f / f.leading_coefficient()
@@ -3525,13 +3520,13 @@ class HeegnerPointOnEllipticCurve(HeegnerPoint):
             M = K.extension(gg, names='b')
             y = M.gen()/dd
             x = M(x)
-            L = M.absolute_field(names = var)
+            L = M.absolute_field(names=var)
             phi = L.structure()[1]
             x = phi(x)
             y = phi(y)
 
         EL = E.change_ring(L)
-        P = EL.point((x,y,1), check=False)
+        P = EL.point((x,y,L(1)), check=False)
         return P
 
     @cached_method
@@ -4369,13 +4364,9 @@ class KolyvaginPoint(HeegnerPoint):
 
         # do actual calculation
         if self.conductor() == 1:
-
-            P = self._trace_exact_conductor_1(prec = prec)
+            P = self._trace_exact_conductor_1(prec=prec)
             return E.change_ring(GF(p))(P)
-
-        else:
-
-            raise NotImplementedError
+        raise NotImplementedError
 
 ##     def congruent_rational_point(self, n, prec=53):
 ##         r"""
@@ -5054,11 +5045,12 @@ class HeegnerQuatAlg(SageObject):
             [10  5]
         """
         I, J = self.modp_splitting_data(p)
-        K = I*J
+        K = I * J
         F = I.base_ring()
+
         def phi(q):
             v = [F(a) for a in q.coefficient_tuple()]
-            return v[0] + I*v[1] + J*v[2] + K*v[3]
+            return v[0] + I * v[1] + J * v[2] + K * v[3]
         return phi
 
     def cyclic_subideal_p1(self, I, c):
@@ -5739,12 +5731,13 @@ def kolyvagin_reduction_data(E, q, first_only=True):
         raise ValueError("if first_only is not True, then the curve E must have rank 1 or 2")
 
     P, Q = E.gens()
+
     def kernel_of_reduction(ell):
         # return list of reps for the kernel as a subgroup of the map
         # E(Q) / q E(Q)  ---->  E(F_ell) / q E(F_ell)
         m = ZZ(E.Np(ell) / q)
-        A = [a*P + b*Q for a in range(q) for b in range(q)]
-        return [z for z in A if red(z,ell) * m == 0]
+        A = (a * P + b * Q for a in range(q) for b in range(q))
+        return [z for z in A if red(z, ell) * m == 0]
 
     # compute first good odd prime
     ell_1 = ZZ(3)
@@ -6540,7 +6533,8 @@ def heegner_point_height(self, D, prec=2, check_rank=True):
         return IR(alpha-MIN_ERR,alpha+MIN_ERR) * IR(LE1-err_E,LE1+err_E) * IR(LF1-err_F,LF1+err_F)
 
 
-def heegner_index(self, D,  min_p=2, prec=5, descent_second_limit=12, verbose_mwrank=False, check_rank=True):
+def heegner_index(self, D, min_p=2, prec=5, descent_second_limit=12,
+                  verbose_mwrank=False, check_rank=True):
     r"""
     Return an interval that contains the index of the Heegner
     point `y_K` in the group of `K`-rational points modulo torsion
@@ -6752,7 +6746,7 @@ def _adjust_heegner_index(self, a):
     return a.sqrt()
 
 
-def heegner_index_bound(self, D=0,  prec=5, max_height=None):
+def heegner_index_bound(self, D=0, prec=5, max_height=None):
     r"""
     Assume ``self`` has rank 0.
 

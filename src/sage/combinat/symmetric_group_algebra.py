@@ -215,7 +215,7 @@ def SymmetricGroupAlgebra(R, W, category=None):
         sage: SGg.group().conjugacy_classes_representatives()
         [(), (1,2), (1,2,3)]
     """
-    from sage.rings.semirings.all import NN
+    from sage.rings.semirings.non_negative_integer_semiring import NN
     if W in NN:
         W = Permutations(W)
     if category is None:
@@ -368,7 +368,7 @@ class SymmetricGroupAlgebra_n(GroupAlgebra_class):
                 phi = S.to_symmetric_group_algebra
                 return phi.codomain().canonical_embedding(self) * phi
 
-        return super(SymmetricGroupAlgebra_n, self)._coerce_map_from_(S)
+        return super()._coerce_map_from_(S)
 
     def _element_constructor_(self, x):
         """
@@ -392,7 +392,7 @@ class SymmetricGroupAlgebra_n(GroupAlgebra_class):
             return self.monomial_from_smaller_permutation(
                 from_permutation_group_element(x))
 
-        return super(SymmetricGroupAlgebra_n, self)._element_constructor_(x)
+        return super()._element_constructor_(x)
 
     def _sibling(self, n):
         r"""
@@ -757,7 +757,7 @@ class SymmetricGroupAlgebra_n(GroupAlgebra_class):
         """
         la = _Partitions(la)
         kwds['bracket'] = kwds.get('bracket', False)
-        return super(SymmetricGroupAlgebra_n, self).cell_module(la, **kwds)
+        return super().cell_module(la, **kwds)
 
     def retract_plain(self, f, m):
         r"""

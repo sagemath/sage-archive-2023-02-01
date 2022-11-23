@@ -337,7 +337,7 @@ class SimplicialSets(Category_singleton):
                 if not skel.is_connected():
                     graph = graph.subgraph(skel.base_point())
 
-                edges = [e[2] for e in graph.edges()]
+                edges = [e[2] for e in graph.edges(sort=True)]
                 spanning_tree = [e[2] for e in graph.min_spanning_tree()]
                 gens = [e for e in edges if e not in spanning_tree]
 
@@ -509,13 +509,13 @@ class SimplicialSets(Category_singleton):
 
                 def fat_wedge(self, n):
                     """
-                    Return the $n$-th fat wedge of this pointed simplicial set.
+                    Return the `n`-th fat wedge of this pointed simplicial set.
 
-                    This is the subcomplex of the $n$-fold product `X^n`
+                    This is the subcomplex of the `n`-fold product `X^n`
                     consisting of those points in which at least one
-                    factor is the base point. Thus when $n=2$, this is the
-                    wedge of the simplicial set with itself, but when $n$
-                    is larger, the fat wedge is larger than the $n$-fold
+                    factor is the base point. Thus when `n=2`, this is the
+                    wedge of the simplicial set with itself, but when `n`
+                    is larger, the fat wedge is larger than the `n`-fold
                     wedge.
 
                     EXAMPLES::

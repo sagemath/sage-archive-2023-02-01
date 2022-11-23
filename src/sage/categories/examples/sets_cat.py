@@ -91,7 +91,7 @@ class PrimeNumbers(UniqueRepresentation, Parent):
             sage: P is Sets().example()
             True
         """
-        Parent.__init__(self, facade = IntegerRing(), category = Sets())
+        Parent.__init__(self, facade=IntegerRing(), category=Sets())
 
     def _repr_(self):
         """
@@ -172,7 +172,7 @@ class PrimeNumbers_Abstract(UniqueRepresentation, Parent):
 
             sage: P = Sets().example("inherits")
         """
-        Parent.__init__(self, category = Sets())
+        Parent.__init__(self, category=Sets())
 
     def _repr_(self):
         """
@@ -390,7 +390,7 @@ class PrimeNumbers_Inherits(PrimeNumbers_Abstract):
             sage: type(P(2)+P(3))
             <class 'sage.rings.integer.Integer'>
         """
-        super(PrimeNumbers_Inherits, self).__init__()
+        super().__init__()
         self._populate_coercion_lists_(embedding=IntegerRing())
 
     def __contains__(self, p):
@@ -496,7 +496,7 @@ class PrimeNumbers_Wrapper(PrimeNumbers_Abstract):
             sage: P(13) + 1 == 14
             True
         """
-        Parent.__init__(self, category = Sets())
+        Parent.__init__(self, category=Sets())
         from sage.rings.integer_ring import IntegerRing
         from sage.categories.homset import Hom
         self.mor = Hom(self, IntegerRing())(lambda z: z.value)
@@ -665,7 +665,7 @@ class PrimeNumbers_Facade(PrimeNumbers_Abstract):
 
             sage: P = Sets().example("inherits")
         """
-        Parent.__init__(self, facade = IntegerRing(), category = Sets())
+        Parent.__init__(self, facade=IntegerRing(), category=Sets())
 
     def _repr_(self):
         """

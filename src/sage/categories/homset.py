@@ -47,8 +47,10 @@ AUTHORS:
 
 - Simon King (2013-02): added examples
 """
+
 # ****************************************************************************
-#  Copyright (C) 2005 David Kohel <kohel@maths.usyd.edu>, William Stein <wstein@gmail.com>
+#  Copyright (C) 2005 David Kohel <kohel@maths.usyd.edu>,
+#                     William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -61,7 +63,6 @@ AUTHORS:
 #
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-
 
 from sage.categories.category import Category, JoinCategory
 from . import morphism
@@ -85,7 +86,6 @@ def Hom(X, Y, category=None, check=True):
     Create the space of homomorphisms from X to Y in the category ``category``.
 
     INPUT:
-
 
     - ``X`` -- an object of a category
 
@@ -580,7 +580,7 @@ class Homset(Set_generic):
         sage: loads(dumps(H)) == H
         True
     """
-    def __init__(self, X, Y, category=None, base = None, check=True):
+    def __init__(self, X, Y, category=None, base=None, check=True):
         r"""
         TESTS::
 
@@ -649,8 +649,8 @@ class Homset(Set_generic):
             # See also #15801.
             base = X.base_ring()
 
-        Parent.__init__(self, base = base,
-                        category = category.Endsets() if X is Y else category.Homsets())
+        Parent.__init__(self, base=base,
+                        category=category.Endsets() if X is Y else category.Homsets())
 
     def __reduce__(self):
         """
@@ -734,7 +734,7 @@ class Homset(Set_generic):
         """
         return hash((self._domain, self._codomain, self.base()))
 
-    def __bool__(self):
+    def __bool__(self) -> bool:
         """
         TESTS::
 
@@ -742,8 +742,6 @@ class Homset(Set_generic):
             True
         """
         return True
-
-    
 
     def homset_category(self):
         """
@@ -828,7 +826,7 @@ class Homset(Set_generic):
             sage: H = Hom(Set([1,2,3]), Set([1,2,3]))
             sage: f = H( lambda x: 4-x )
             sage: f.parent()
-            Set of Morphisms from {1, 2, 3} to {1, 2, 3} in Category of finite sets
+            Set of Morphisms from {1, 2, 3} to {1, 2, 3} in Category of finite enumerated sets
             sage: f(1), f(2), f(3) # todo: not implemented
 
             sage: H = Hom(ZZ, QQ, Sets())
@@ -1083,7 +1081,7 @@ class Homset(Set_generic):
             True
         """
         return not (self == other)
-    
+
     def __contains__(self, x):
         """
         Test whether the parent of the argument is ``self``.
@@ -1224,7 +1222,8 @@ class Homset(Set_generic):
             sage: type(H.reversed())
             <class 'sage.modules.free_module_homspace.FreeModuleHomspace_with_category'>
         """
-        return Hom(self.codomain(), self.domain(), category = self.homset_category())
+        return Hom(self.codomain(), self.domain(),
+                   category=self.homset_category())
 
 
 # Really needed???
@@ -1249,7 +1248,8 @@ class HomsetWithBase(Homset):
         """
         if base is None:
             base = X.base_ring()
-        Homset.__init__(self, X, Y, check=check, category=category, base = base)
+        Homset.__init__(self, X, Y, check=check, category=category, base=base)
+
 
 def is_Homset(x):
     """

@@ -402,13 +402,13 @@ corresponding value representing the coefficient of that term::
     (1, (2, 1))
     sage: c.monomial_coefficients() == {(2, 1): 1, (5,): 1}
     True
-    sage: sorted(c.monomials(), key=lambda x: x.support())
+    sage: sorted(c.monomials(), key=lambda x: tuple(x.support()))
     [Sq(2,1), Sq(5)]
     sage: sorted(c.support())
     [(2, 1), (5,)]
     sage: Adem = SteenrodAlgebra(basis='adem')
     sage: elt = Adem.Sq(10) + Adem.Sq(9) * Adem.Sq(1)
-    sage: sorted(elt.monomials(), key=lambda x: x.support())
+    sage: sorted(elt.monomials(), key=lambda x: tuple(x.support()))
     [Sq^9 Sq^1, Sq^10]
 
     sage: A7 = SteenrodAlgebra(p=7)
@@ -500,7 +500,7 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
         truncation_type = kwds.get('truncation_type', 'auto')
         generic = kwds.get('generic', 'auto')
         if generic == 'auto':
-            std_generic = False if p == 2 else True
+            std_generic = p != 2
         else:
             std_generic = generic
         if p != 2:
@@ -509,9 +509,10 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
             raise ValueError("option 'generic' is not a boolean")
 
         std_basis = get_basis_name(basis, p, generic=std_generic)
-        std_profile, std_type = normalize_profile(profile, precision=precision, truncation_type=truncation_type, p=p, generic=std_generic)
-        return super(SteenrodAlgebra_generic, self).__classcall__(self, p=p, basis=std_basis, profile=std_profile,
-                                                                  truncation_type=std_type, generic=std_generic)
+        std_profile, std_type = normalize_profile(profile, precision=precision,
+                                                  truncation_type=truncation_type, p=p, generic=std_generic)
+        return super().__classcall__(self, p=p, basis=std_basis, profile=std_profile,
+                                     truncation_type=std_type, generic=std_generic)
 
     def __init__(self, p=2, basis='milnor', **kwds):
         r"""
@@ -524,7 +525,9 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
         - ``precision`` - (optional, default ``None``)
         - ``generic`` - (optional, default 'auto')
 
-        OUTPUT: mod `p` Steenrod algebra with basis, or a sub-Hopf
+        OUTPUT:
+
+        mod `p` Steenrod algebra with basis, or a sub-Hopf
         algebra of the mod `p` Steenrod algebra defined by the given
         profile function.
 
@@ -1035,8 +1038,9 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
 
         - `n` - integer
 
-        OUTPUT: a vector space spanned by the basis for this algebra
-        in dimension `n`
+        OUTPUT:
+
+        a vector space spanned by the basis for this algebra in dimension `n`
 
         EXAMPLES::
 
@@ -1127,7 +1131,9 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
 
         - ``t1``, ``t2`` -- tuples, the indices of two basis elements of self
 
-        OUTPUT: the product of the two corresponding basis elements,
+        OUTPUT:
+
+        the product of the two corresponding basis elements,
         as an element of self
 
         ALGORITHM: If the two elements are represented in the Milnor
@@ -1250,7 +1256,9 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
         Which of these methods is used is controlled by whether
         ``algorithm`` is 'milnor' or 'serre-cartan'.
 
-        OUTPUT: the coproduct of the corresponding basis element,
+        OUTPUT:
+
+        the coproduct of the corresponding basis element,
         as an element of ``self`` tensor ``self``.
 
         EXAMPLES::
@@ -1432,7 +1440,9 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
 
         - ``t`` -- tuple, the index of a basis element of self
 
-        OUTPUT: the antipode of the corresponding basis element,
+        OUTPUT:
+
+        the antipode of the corresponding basis element,
         as an element of self.
 
         ALGORITHM: according to a result of Milnor's, the antipode of
@@ -2183,7 +2193,9 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
 
         - `d` -- integer or ``None``, optional (default ``None``)
 
-        OUTPUT: If `d` is ``None``, then return a basis of the algebra.
+        OUTPUT:
+
+        If `d` is ``None``, then return a basis of the algebra.
         Otherwise, return the basis in degree `d`.
 
         EXAMPLES::
@@ -2300,7 +2312,9 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
 
         -  ``a, b, c, ...`` - non-negative integers
 
-        OUTPUT: element of the Steenrod algebra given by the Milnor
+        OUTPUT:
+
+        element of the Steenrod algebra given by the Milnor
         single basis element `P(a, b, c, ...)`
 
         Note that at the prime 2, this is the same element as
@@ -3099,7 +3113,7 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
             (1, (2, 1))
             sage: c.monomial_coefficients() == {(2, 1): 1, (5,): 1}
             True
-            sage: sorted(c.monomials(), key=lambda x: x.support())
+            sage: sorted(c.monomials(), key=lambda x: tuple(x.support()))
             [Sq(2,1), Sq(5)]
             sage: sorted(c.support())
             [(2, 1), (5,)]
@@ -3457,7 +3471,7 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
                 sage: (Sq(0,0,1) + Sq(4,1) + Sq(7)).excess()
                 1
                 sage: elt = Sq(0,0,1) + Sq(4,1) + Sq(7)
-                sage: M = sorted(elt.monomials(), key=lambda x: x.support())
+                sage: M = sorted(elt.monomials(), key=lambda x: tuple(x.support()))
                 sage: [m.excess() for m in M]
                 [1, 5, 7]
                 sage: [m for m in M]
@@ -3793,7 +3807,9 @@ def SteenrodAlgebra(p=2, basis='milnor', generic='auto', **kwds):
     - ``precision`` - integer or ``None`` (optional, default ``None``)
     - ``generic`` - (optional, default 'auto')
 
-    OUTPUT: mod `p` Steenrod algebra or one of its sub-Hopf algebras,
+    OUTPUT:
+
+    mod `p` Steenrod algebra or one of its sub-Hopf algebras,
     elements of which are printed using ``basis``
 
     See below for information about ``basis``, ``profile``, etc.
@@ -4149,7 +4165,7 @@ def SteenrodAlgebra(p=2, basis='milnor', generic='auto', **kwds):
         True
     """
     if generic == 'auto':
-        generic = False if p == 2 else True
+        generic = p != 2
     if not generic:
         return SteenrodAlgebra_mod_two(p=2, basis=basis, **kwds)
     else:
@@ -4165,7 +4181,9 @@ def AA(n=None, p=2):
     - `n` - non-negative integer, optional (default ``None``)
     - `p` - prime number, optional (default 2)
 
-    OUTPUT: If `n` is ``None``, then return the full Steenrod algebra.
+    OUTPUT:
+
+    If `n` is ``None``, then return the full Steenrod algebra.
     Otherwise, return `A(n)`.
 
     When `p=2`, `A(n)` is the sub-Hopf algebra generated by the

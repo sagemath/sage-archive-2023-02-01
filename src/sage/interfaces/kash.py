@@ -38,14 +38,13 @@ The KASH interface offers three pieces of functionality:
 Issues
 ------
 
-For some reason hitting Control-C to interrupt a calculation
-doesn't work correctly. (TODO)
+For some reason hitting :kbd:`Control` + :kbd:`C` to interrupt a calculation
+does not work correctly. (TODO)
 
 Tutorial
 --------
 
-The examples in this tutorial require that kash
-be installed.
+The examples in this tutorial require that kash be installed.
 
 Basics
 ~~~~~~
@@ -426,7 +425,7 @@ unlike for the other interfaces.
 # ****************************************************************************
 
 from .expect import Expect, ExpectElement
-from sage.docs.instancedoc import instancedoc
+from sage.misc.instancedoc import instancedoc
 import os
 
 from sage.misc.sage_eval import sage_eval
@@ -557,24 +556,6 @@ class Kash(Expect):
             return s
         else:
             return s.replace("\\\n", "")
-
-#     def help(self, name=None):
-#         """
-#         Return help on KASH commands.
-
-#         EXAMPLES::
-
-#             sage: X = kash.help('IntegerRing')   # optional - kash
-
-#         """
-#         if name is None:
-#           print '\nTo use KASH help enter kash.help(s). '
-#           print 'The syntax of the string s is given below.\n'
-#           print self.eval('?')
-#         elif name[0] == '?':
-#           print self.eval(name)
-#         else:
-#           print self.eval('?%s'%name)
 
     def help(self, name=None):
         """

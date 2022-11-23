@@ -7,7 +7,7 @@ SAGE_SPKG_CONFIGURE([singular], [
       dnl Use pkg-config to ensure that Singular is new enough.
       PKG_CHECK_MODULES([SINGULAR], [Singular >= 4.2.1], [
        AC_MSG_CHECKING([that Singular's help is working])
-       AS_IF([test x`printf "system(\"--browser\", \"builtin\"); \n help;" | Singular 2>&1 | grep "error\ occurred"` = x], [
+       AS_IF([test x`printf "system(\"--browser\", \"builtin\"); \n help;" | Singular 2>&1 | grep "error occurred"` = x], [
         AC_MSG_RESULT(yes)
         dnl We have Singular. Now determine the shared library path on
         dnl platforms on which sage.libs.singular needs to reload the library with RTLD_GLOBAL.
@@ -48,8 +48,8 @@ SAGE_SPKG_CONFIGURE([singular], [
                            ], [
                             AC_MSG_RESULT(no)
                             sage_spkg_install_singular=yes
-                          ])
-                        ])
+                          ], [AC_MSG_RESULT(yes)])
+                        ], [AC_MSG_RESULT(yes)])
 
                       AC_LANG_POP()
                       LIBS="${ORIG_LIBS}"

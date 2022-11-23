@@ -1668,8 +1668,10 @@ class MPowerSeries(PowerSeries):
         """
         Formal integral for multivariate power series.
 
-        INPUT: ``xx`` - a generator of the power series ring (the
-        one with respect to which to integrate)
+        INPUT:
+
+        - ``xx`` -- a generator of the power series ring (the
+          one with respect to which to integrate)
 
         EXAMPLES::
 
@@ -2080,7 +2082,7 @@ class MPowerSeries(PowerSeries):
         raise NotImplementedError("laurent_series not defined for multivariate power series.")
 
 
-class MO(object):
+class MO():
     """
     Object representing a zero element with given precision.
 

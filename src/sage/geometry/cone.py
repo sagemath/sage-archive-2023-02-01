@@ -1505,7 +1505,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container, ConvexSet_c
             True
             sage: TestSuite(sc).run()
         """
-        superinit = super(ConvexRationalPolyhedralCone, self).__init__
+        superinit = super().__init__
         if ambient is None:
             superinit(rays, lattice)
             self._ambient = self
@@ -1893,8 +1893,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container, ConvexSet_c
             in 2-d lattice N+N
         """
         assert is_Cone(other)
-        rc = super(ConvexRationalPolyhedralCone, self).cartesian_product(
-                                                                other, lattice)
+        rc = super().cartesian_product(other, lattice)
         return ConvexRationalPolyhedralCone(rc.rays(), rc.lattice())
 
     def __neg__(self):
@@ -1918,7 +1917,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container, ConvexSet_c
             N( 0, -1)
             in 2-d lattice N
         """
-        rc = super(ConvexRationalPolyhedralCone, self).__neg__()
+        rc = super().__neg__()
         return ConvexRationalPolyhedralCone(rc.rays(), rc.lattice())
 
     def __richcmp__(self, right, op):
@@ -2603,7 +2602,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container, ConvexSet_c
 
                 self._face_lattice = lattice_from_incidences(
                                     atom_to_facets, facet_to_atoms, ConeFace,
-                                    key = id(self))
+                                    key=id(self))
             else:
                 # Get face lattice as a sublattice of the ambient one
                 allowed_indices = frozenset(self._ambient_ray_indices)
@@ -2643,7 +2642,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container, ConvexSet_c
                         L.add_edge(face_to_index[face], next_index)
                 D = {i:f for i,f in enumerate(faces)}
                 L.relabel(D)
-                self._face_lattice = FinitePoset(L, faces, key = id(self))
+                self._face_lattice = FinitePoset(L, faces, key=id(self))
         return self._face_lattice
 
     # Internally we use this name for a uniform behaviour of cones and fans.
@@ -3018,6 +3017,13 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container, ConvexSet_c
             N( 2, 5)
             in 2-d lattice N
 
+        The intersection can also be expressed using the operator ``&``::
+
+            sage: (cone1 & cone2).rays()
+            N(-1, 3),
+            N( 2, 5)
+            in 2-d lattice N
+
         It is OK to intersect cones living in sublattices of the same ambient
         lattice::
 
@@ -3043,7 +3049,18 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container, ConvexSet_c
             N(3, 1),
             N(0, 1)
             in 2-d lattice N
+
+        An intersection with a polyhedron returns a polyhedron::
+
+            sage: cone = Cone([(1,0), (-1,0), (0,1)])
+            sage: p = polytopes.hypercube(2)
+            sage: cone & p
+            A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 4 vertices
+            sage: sorted(_.vertices_list())
+            [[-1, 0], [-1, 1], [1, 0], [1, 1]]
         """
+        if not isinstance(other, ConvexRationalPolyhedralCone):
+            return self.polyhedron().intersection(other)
         if self._ambient is other._ambient:
             # Cones of the same ambient cone or fan intersect nicely/quickly.
             # Can we maybe even return an element of the cone lattice?..
@@ -3058,6 +3075,8 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container, ConvexSet_c
         p = C_Polyhedron(self._PPL_cone())
         p.add_constraints(other._PPL_cone().constraints())
         return _Cone_from_PPL(p, self.lattice().intersection(other.lattice()))
+
+    __and__ = intersection
 
     def is_equivalent(self, other):
         r"""
@@ -3496,7 +3515,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container, ConvexSet_c
         result += tp.plot_walls(walls)
         return result
 
-    def polyhedron(self):
+    def polyhedron(self, **kwds):
         r"""
         Return the polyhedron associated to ``self``.
 
@@ -3524,7 +3543,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container, ConvexSet_c
             A 0-dimensional polyhedron in ZZ^2 defined as the convex hull
             of 1 vertex
         """
-        return Polyhedron(rays=self.rays(), vertices=[self.lattice()(0)])
+        return Polyhedron(rays=self.rays(), vertices=[self.lattice()(0)], **kwds)
 
     def an_affine_basis(self):
         r"""
@@ -3534,21 +3553,15 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container, ConvexSet_c
 
             sage: quadrant = Cone([(1,0), (0,1)])
             sage: quadrant.an_affine_basis()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: this function is not implemented for unbounded polyhedra
+            [(0, 0), (1, 0), (0, 1)]
             sage: ray = Cone([(1, 1)])
             sage: ray.an_affine_basis()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: this function is not implemented for unbounded polyhedra
+            [(0, 0), (1, 1)]
             sage: line = Cone([(1,0), (-1,0)])
             sage: line.an_affine_basis()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: this function is not implemented for unbounded polyhedra
+            [(1, 0), (0, 0)]
         """
-        return self.polyhedron().an_affine_basis()
+        return [vector(v) for v in self.polyhedron().an_affine_basis()]
 
     @cached_method
     def strict_quotient(self):

@@ -92,7 +92,7 @@ The generators are themselves elements of the module::
 
 One can produce an element from a given set of algebra coefficients::
 
-    sage: coeffs=[Sq(15), Sq(10)*Sq(1,1), Sq(8)]
+    sage: coeffs = [Sq(15), Sq(10)*Sq(1,1), Sq(8)]
     sage: x = M(coeffs); x
     Sq(15)*g[0] + (Sq(4,1,1)+Sq(7,0,1)+Sq(11,1))*g[1] + Sq(8)*g[7]
 
@@ -721,7 +721,7 @@ There is an exact sequence
 
 which means that the indeterminacy of choosing a lift for
 `f \in \operatorname{Hom}_A(L, Hko)` is represented by an element in
-`\operatorname{Hom}_A(L,\ker(f))`.  Therefore, we can proceed to count the
+`\operatorname{Hom}_A(L,\ker(q))`.  Therefore, we can proceed to count the
 number of lifts by computing this vector space of homomorphisms::
 
     sage: iK = q.kernel_inclusion()
@@ -772,4 +772,3 @@ re-ordering of list elements), so the following comparison is reassuring::
     True
     sage: flift[3] == lifts[1]
     True
-

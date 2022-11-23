@@ -100,7 +100,7 @@ class SageDisplayFormatter(DisplayFormatter):
             ...
             RuntimeError: check failed: current backend is invalid
         """
-        super(SageDisplayFormatter, self).__init__(*args, **kwds)
+        super().__init__(*args, **kwds)
         from sage.repl.rich_output.display_manager import get_display_manager
         self.dm = get_display_manager()
         from sage.repl.rich_output.backend_ipython import BackendIPython
@@ -169,15 +169,14 @@ class SageDisplayFormatter(DisplayFormatter):
             sage: shell.run_cell('import ipywidgets')
             sage: shell.run_cell('slider = ipywidgets.IntSlider()')
             sage: shell.run_cell('get_ipython().display_formatter.format(slider)')
-            IntSlider(value=0)
-            ({}, {})
+            ...IntSlider(value=0)..., {})
 
             sage: shell.run_cell('%display default')
             sage: shell.quit()
 
         Test that ``__repr__`` is only called once when generating text output::
 
-            sage: class Repper(object):
+            sage: class Repper():
             ....:    def __repr__(self):
             ....:        print('__repr__ called')
             ....:        return 'I am repper'
@@ -277,7 +276,7 @@ class SagePlainTextFormatter(PlainTextFormatter):
             <IPython.core.formatters.PlainTextFormatter object at 0x...>
             sage: shell.quit()
         """
-        super(SagePlainTextFormatter, self).__init__(*args, **kwds)
+        super().__init__(*args, **kwds)
 
     def __call__(self, obj):
         r"""

@@ -18,30 +18,18 @@ classifiers =
     Operating System :: POSIX
     Operating System :: MacOS :: MacOS X
     Programming Language :: Python :: 3 :: Only
-    Programming Language :: Python :: 3.7
     Programming Language :: Python :: 3.8
     Programming Language :: Python :: 3.9
+    Programming Language :: Python :: 3.10
     Programming Language :: Python :: Implementation :: CPython
     Topic :: Scientific/Engineering :: Mathematics
 
 [options]
-python_requires = >=3.7, <3.10
+python_requires = >=3.8, <3.11
 install_requires =
     esyscmd(`sage-get-system-packages install-requires \
-        cython         \
-        pkgconfig      \
-        gmpy2          \
-        cysignals      \
+        sagemath_objects \
         | sed "2,\$s/^/    /;"')dnl
 
-scripts =
-    bin/sage
-    bin/sage-env
-    bin/sage-eval
-    bin/sage-fixdoctests
-    bin/sage-ipython
-    bin/sage-python
-    bin/sage-run
-    bin/sage-runtests
-    bin/sage-venv-config
-    bin/sage-version.sh
+[options.extras_require]
+test = sagemath-repl

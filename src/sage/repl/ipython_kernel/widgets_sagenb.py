@@ -264,6 +264,7 @@ def slider(vmin, vmax=None, step_size=None, default=None, label=None, display_va
             raise NotImplementedError("range_slider does not support a list of values")
         options = list(vmin)
         # Find default in options
+
         def err(v):
             if v is default:
                 return (-1, 0)
@@ -468,15 +469,6 @@ def selector(values, label=None, default=None, nrows=None, ncols=None, width=Non
         Dropdown(options=(('one', 1), ('two', 2), ('three', 3)), value=1)
         sage: selector([(1,"one"), (2,"two"), (3,"three")], buttons=True)
         ToggleButtons(options=(('one', 1), ('two', 2), ('three', 3)), value=1)
-
-    A dict of ``label:value`` pairs is also allowed. Since a ``dict``
-    is not ordered, it is better to use an :class:`OrderedDict`::
-
-        sage: from collections import OrderedDict
-        sage: selector(OrderedDict(one=1, two=2, three=3))
-        Dropdown(options=OrderedDict([('one', 1), ('two', 2), ('three', 3)]), value=1)
-        sage: selector(OrderedDict(one=1, two=2, three=3), buttons=True)
-        ToggleButtons(options=OrderedDict([('one', 1), ('two', 2), ('three', 3)]), value=1)
 
     The values can be any kind of object:
 

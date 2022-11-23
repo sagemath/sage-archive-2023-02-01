@@ -8,12 +8,12 @@ This is a construction of the Henriques-Kamnitzer construction of
 the action of the cactus group on tensor powers of a crystal. This is
 also a generalisation of the Fomin growth rules, which are a version of
 the operations on standard tableaux which were previously constructed
-using jeu-de-taquin.
+using jeu de taquin.
 
 The basic operations are rectification, evacuation and promotion.
 Rectification of standard skew tableaux agrees with the rectification
-by jeu-de-taquin as does evacuation. Promotion agrees with promotion
-by jeu-de-taquin on rectangular tableaux but in general they are different.
+by jeu de taquin as does evacuation. Promotion agrees with promotion
+by jeu de taquin on rectangular tableaux but in general they are different.
 
 REFERENCES:
 
@@ -362,10 +362,10 @@ class PathTableau(ClonableArray, metaclass=InheritComparisonClasscallMetaclass):
              [0, 1, 2, 1, 2, 1, 0],
              [0, 1, 2, 3, 2, 1, 0]}
         """
-        orb = set([])
+        orb = set()
         rec = set([self])
         while rec:
-            new = set([])
+            new = set()
             for a in rec:
                 for i in range(2, self.size()):
                     b = a.cactus(1, i)
@@ -405,7 +405,7 @@ class PathTableau(ClonableArray, metaclass=InheritComparisonClasscallMetaclass):
             [0 1 0 1 1 1 0 1 1 1 1 1 0 1]
             [0 0 0 0 1 0 1 0 0 1 1 1 1 0]
             sage: s = path_tableaux.DyckPath([0,1,2,3,2,1,0])
-            sage: sorted(s.dual_equivalence_graph().edges())
+            sage: s.dual_equivalence_graph().edges(sort=True)
             [([0, 1, 0, 1, 0, 1, 0], [0, 1, 0, 1, 2, 1, 0], '4,7'),
              ([0, 1, 0, 1, 0, 1, 0], [0, 1, 2, 1, 0, 1, 0], '2,5'),
              ([0, 1, 0, 1, 0, 1, 0], [0, 1, 2, 1, 2, 1, 0], '2,7'),
@@ -722,4 +722,3 @@ class CylindricalDiagram(SageObject):
         max_width = max(max(len(x) for x in row) for row in data if row)
         print('\n'.join(' '.join(' '*(max_width-len(x)) + x for x in row)
                         for row in data))
-

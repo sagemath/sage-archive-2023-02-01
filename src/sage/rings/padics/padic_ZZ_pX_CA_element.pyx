@@ -4,7 +4,7 @@
 # distutils: library_dirs = NTL_LIBDIR
 # distutils: extra_link_args = NTL_LIBEXTRA
 # distutils: language = c++
-"""
+r"""
 `p`-adic ``ZZ_pX`` CA Element
 
 This file implements elements of Eisenstein and unramified extensions
@@ -180,7 +180,7 @@ from sage.rings.padics.padic_generic_element cimport pAdicGenericElement
 from sage.libs.pari.all import pari_gen
 from sage.interfaces.gp import GpElement
 from sage.rings.finite_rings.integer_mod import is_IntegerMod
-from sage.rings.all import IntegerModRing
+from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
 from sage.rings.padics.padic_ext_element cimport pAdicExtElement
 from sage.rings.padics.precision_error import PrecisionError
 
@@ -1546,7 +1546,7 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
         return self.to_fraction_field() * (~right)
 
     def _integer_(self, Z=None):
-        """
+        r"""
         Returns an integer congruent to this element modulo
         `\pi`^``self.absolute_precision()``, if possible.
 
@@ -1951,8 +1951,8 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
         return [zero] * ordp + ulist
 
     def matrix_mod_pn(self):
-        """
-        Returns the matrix of right multiplication by the element on
+        r"""
+        Return the matrix of right multiplication by the element on
         the power basis `1, x, x^2, \ldots, x^{d-1}` for this
         extension field.  Thus the *rows* of this matrix give the
         images of each of the `x^i`.  The entries of the matrices are

@@ -190,7 +190,7 @@ class ProjectiveConic_rational_field(ProjectiveConic_number_field):
             read_cache=read_cache)
         if point or obstruction:
             from sage.categories.map import Map
-            from sage.categories.all import Rings
+            from sage.categories.rings import Rings
             if isinstance(ret[1], Map) and ret[1].category_for().is_subcategory(Rings()):
                 # ret[1] is a morphism of Rings
                 ret[1] = -1
@@ -222,7 +222,7 @@ class ProjectiveConic_rational_field(ProjectiveConic_number_field):
             True
         """
         from sage.categories.map import Map
-        from sage.categories.all import Rings
+        from sage.categories.rings import Rings
 
         D, T = self.diagonal_matrix()
         abc = [D[j, j] for j in range(3)]
@@ -230,7 +230,7 @@ class ProjectiveConic_rational_field(ProjectiveConic_number_field):
             return True
         a = -abc[0] / abc[2]
         b = -abc[1] / abc[2]
-        if isinstance(p, sage.rings.abc.RealField) or isinstance(p, InfinityElement):
+        if isinstance(p, (sage.rings.abc.RealField, InfinityElement)):
             p = -1
         elif isinstance(p, Map) and p.category_for().is_subcategory(Rings()):
             # p is a morphism of Rings

@@ -36,7 +36,7 @@ class CoxeterGroups(Category_singleton):
 
     `I` is the *index set* of `W` and `|I|` is the *rank* of `W`.
 
-    See :Wikipedia:`Coxeter_group` for details.
+    See :wikipedia:`Coxeter_group` for details.
 
     EXAMPLES::
 
@@ -171,7 +171,7 @@ class CoxeterGroups(Category_singleton):
                 sage: W = CoxeterGroup(['H',3], implementation="reflection")
                 sage: G = W.coxeter_diagram(); G
                 Graph on 3 vertices
-                sage: G.edges()
+                sage: G.edges(sort=True)
                 [(1, 2, 3), (2, 3, 5)]
                 sage: CoxeterGroup(G) is W
                 True
@@ -263,8 +263,10 @@ class CoxeterGroups(Category_singleton):
             - ``word``: a list (or iterable) of indices in
               ``self.index_set()``
 
-            OUTPUT: a list of all lists that can be obtained from
-                    ``word`` by replacements of braid relations
+            OUTPUT:
+
+            a list of all lists that can be obtained from
+            ``word`` by replacements of braid relations
 
             See :meth:`braid_relations` for the definition of braid
             relations.
@@ -668,7 +670,7 @@ class CoxeterGroups(Category_singleton):
 
         def simple_projection(self, i, side='right', length_increasing=True):
             r"""
-            Return the simple projection `\pi_i` (or `\overline\pi_i` if `length_increasing` is ``False``).
+            Return the simple projection `\pi_i` (or `\overline\pi_i` if ``length_increasing`` is ``False``).
 
             INPUT:
 
@@ -1079,7 +1081,7 @@ class CoxeterGroups(Category_singleton):
             Check that the graph has the correct number of edges
             (see :trac:`17744`)::
 
-                sage: len(G.edges())
+                sage: len(G.edges(sort=False))
                 16
             """
             if x is None or x == 1:
@@ -1682,9 +1684,9 @@ class CoxeterGroups(Category_singleton):
                 16
                 sage: G.num_edges()
                 18
-                sage: len([e for e in G.edges() if e[2] == 2])
+                sage: len([e for e in G.edges(sort=False) if e[2] == 2])
                 10
-                sage: len([e for e in G.edges() if e[2] == 3])
+                sage: len([e for e in G.edges(sort=False) if e[2] == 3])
                 8
 
             TESTS::
@@ -1924,8 +1926,8 @@ class CoxeterGroups(Category_singleton):
         def coset_representative(self, index_set, side='right'):
             r"""
             Return the unique shortest element of the Coxeter group
-            $W$ which is in the same left (resp. right) coset as
-            ``self``, with respect to the parabolic subgroup $W_I$.
+            `W` which is in the same left (resp. right) coset as
+            ``self``, with respect to the parabolic subgroup `W_I`.
 
             INPUT:
 
@@ -2176,12 +2178,25 @@ class CoxeterGroups(Category_singleton):
                 sage: w.bruhat_lower_covers_reflections()
                 [(s1*s2*s1, s1*s2*s3*s2*s1), (s3*s2*s1, s2), (s3*s1*s2, s1)]
 
+            TESTS:
+
+            Check bug discovered in :trac:`32669` is fixed::
+
+                sage: W = CoxeterGroup(['A',3], implementation='permutation')
+                sage: W.w0.bruhat_lower_covers_reflections()
+                [((1,3,7,9)(2,11,6,10)(4,8,5,12), (2,5)(3,9)(4,6)(8,11)(10,12)),
+                 ((1,11)(3,10)(4,9)(5,7)(6,12), (1,4)(2,8)(3,5)(7,10)(9,11)),
+                 ((1,9,7,3)(2,10,6,11)(4,12,5,8), (1,7)(2,4)(5,6)(8,10)(11,12))]
             """
-            i = self.first_descent()
+            i = self.first_descent(side='right')
             if i is None:
                 return []
-            wi = self.apply_simple_reflection(i)
-            return [(u.apply_simple_reflection(i), r.apply_conjugation_by_simple_reflection(i)) for u, r in wi.bruhat_lower_covers_reflections() if not u.has_descent(i)] + [(wi, self.parent().simple_reflection(i))]
+            wi = self.apply_simple_reflection(i, side='right')
+            return [(u.apply_simple_reflection(i, side='right'),
+                     r.apply_conjugation_by_simple_reflection(i))
+                    for u,r in wi.bruhat_lower_covers_reflections()
+                    if not u.has_descent(i, side='right')] + [
+                (wi, self.parent().simple_reflection(i))]
 
         def lower_cover_reflections(self, side='right'):
             r"""
@@ -2605,7 +2620,7 @@ class CoxeterGroups(Category_singleton):
 
         def min_demazure_product_greater(self, element):
             r"""
-            Find the unique Bruhat-minimum element ``u`` such that ``v`` $\le$ ``w`` * ``u`` where ``v`` is ``self``, ``w`` is ``element`` and ``*`` is the Demazure product.
+            Find the unique Bruhat-minimum element ``u`` such that ``v`` `\le` ``w`` * ``u`` where ``v`` is ``self``, ``w`` is ``element`` and ``*`` is the Demazure product.
 
             INPUT:
 
@@ -2651,13 +2666,13 @@ class CoxeterGroups(Category_singleton):
             - ``index_set`` is a subset of Dynkin nodes defining a parabolic subgroup ``W'`` of ``W``
 
             It is assumed that ``v = self`` and ``w`` are minimum length coset representatives
-            for ``W/W'`` such that ``v`` $\le$ ``w`` in Bruhat order.
+            for ``W/W'`` such that ``v`` `\le` ``w`` in Bruhat order.
 
             OUTPUT:
 
             Deodhar's element ``f(v,w)`` is the unique element of ``W'`` such that,
-            for all ``v'`` and ``w'`` in ``W'``, ``vv'`` $\le$ ``ww'`` in ``W`` if and only if
-            ``v'`` $\le$ ``f(v,w) * w'`` in ``W'`` where ``*`` is the Demazure product.
+            for all ``v'`` and ``w'`` in ``W'``, ``vv'`` `\le` ``ww'`` in ``W`` if and only if
+            ``v'`` `\le` ``f(v,w) * w'`` in ``W'`` where ``*`` is the Demazure product.
 
             EXAMPLES::
 
@@ -2698,9 +2713,9 @@ class CoxeterGroups(Category_singleton):
 
         def deodhar_lift_up(self, w, index_set):
             r"""
-            Letting ``v = self``, given a Bruhat relation ``v W'`` $\le$ ``w W'`` among cosets
+            Letting ``v = self``, given a Bruhat relation ``v W'`` `\le` ``w W'`` among cosets
             with respect to the subgroup ``W'`` given by the Dynkin node subset ``index_set``,
-            returns the Bruhat-minimum lift ``x`` of ``wW'`` such that ``v`` $\le$ ``x``.
+            returns the Bruhat-minimum lift ``x`` of ``wW'`` such that ``v`` `\le` ``x``.
 
             INPUT:
 
@@ -2710,7 +2725,7 @@ class CoxeterGroups(Category_singleton):
             OUTPUT:
 
             The unique Bruhat-minimum element ``x`` in ``W`` such that ``x W' = w W'``
-            and ``v`` $\le$ ``x``.
+            and ``v`` `\le` ``x``.
 
             .. SEEALSO:: :meth:`sage.categories.coxeter_groups.CoxeterGroups.ElementMethods.deodhar_lift_down`
 
@@ -2732,9 +2747,9 @@ class CoxeterGroups(Category_singleton):
 
         def deodhar_lift_down(self, w, index_set):
             r"""
-            Letting ``v = self``, given a Bruhat relation ``v W'`` $\ge$ ``w W'`` among cosets
+            Letting ``v = self``, given a Bruhat relation ``v W'`` `\ge` ``w W'`` among cosets
             with respect to the subgroup ``W'`` given by the Dynkin node subset ``index_set``,
-            returns the Bruhat-maximum lift ``x`` of ``wW'`` such that ``v`` $\ge$ ``x``.
+            returns the Bruhat-maximum lift ``x`` of ``wW'`` such that ``v`` `\ge` ``x``.
 
             INPUT:
 
@@ -2744,7 +2759,7 @@ class CoxeterGroups(Category_singleton):
             OUTPUT:
 
             The unique Bruhat-maximum element ``x`` in ``W`` such that ``x W' = w W'``
-            and ``v $\ge$ ``x``.
+            and ``v`` `\ge` ``x``.
 
             .. SEEALSO:: :meth:`sage.categories.coxeter_groups.CoxeterGroups.ElementMethods.deodhar_lift_up`
 

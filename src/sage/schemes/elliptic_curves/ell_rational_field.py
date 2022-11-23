@@ -1095,7 +1095,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             raise ValueError("Implementation should be one of 'sage', 'num' or 'eclib'")
         return (sign, normalize, implementation, nap)
 
-    @cached_method(key = _modular_symbol_normalize)
+    @cached_method(key=_modular_symbol_normalize)
     def modular_symbol(self, sign=+1, normalize=None, implementation='eclib', nap=0):
         r"""
         Return the modular symbol map associated to this elliptic curve
@@ -1349,10 +1349,10 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         """
         from sage.schemes.elliptic_curves.mod_sym_num import ModularSymbolNumerical
         M = ModularSymbolNumerical(self, sign=sign)
+
         def f(r):
             return M.approximative_value(r, prec=prec)
         return f
-
 
     def pollack_stevens_modular_symbol(self, sign=0, implementation='eclib'):
         """
@@ -1964,7 +1964,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         """
         from sage.interfaces.magma import magma
         E = magma(self)
-        return Integer(E.ThreeSelmerGroup(MethodForFinalStep = magma('"%s"'%algorithm)).Ngens())
+        return Integer(E.ThreeSelmerGroup(MethodForFinalStep=magma('"%s"' % algorithm)).Ngens())
 
     def rank(self, use_database=True, verbose=False,
              only_use_mwrank=True,
@@ -2301,8 +2301,8 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         if not only_use_mwrank:
             try:
                 verbose_verbose("Trying to compute rank.")
-                r = self.rank(only_use_mwrank = False)
-                verbose_verbose("Got r = %s."%r)
+                r = self.rank(only_use_mwrank=False)
+                verbose_verbose("Got r = %s." % r)
                 if r == 0:
                     verbose_verbose("Rank = 0, so done.")
                     return [], True
@@ -2438,7 +2438,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             Generator 1 is [29604565304828237474403861024284371796799791624792913256602210:-256256267988926809388776834045513089648669153204356603464786949:490078023219787588959802933995928925096061616470779979261000]; height 95.98037...
             Regulator = 95.980...
         """
-        return len(self.gens(proof = proof))
+        return len(self.gens(proof=proof))
 
     def regulator(self, proof=None, precision=53, **kwds):
         r"""
@@ -2607,6 +2607,14 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: S = E([-113288,-9969344])
             sage: E.saturation([P,Q,R,S])
             ([(-19992 : 16313472 : 1), (-24108 : -17791704 : 1), (-97104 : -20391840 : 1), (-113288 : -9969344 : 1)], 1, 172.792031341679)
+
+        See :trac:`34029`.  With eclib versions prior to 20220621 this failed to saturate::
+
+            sage: E = EllipticCurve([0, 0, 0, -17607, -889490])
+            sage: Q = E([-82,54])
+            sage: E.saturation([2*Q], max_prime=10)
+            ([(-82 : 54 : 1)], 2, 2.36570863272098)
+
         """
         if not isinstance(points, list):
             raise TypeError("points (=%s) must be a list." % points)
@@ -2638,7 +2646,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         from sage.libs.eclib.all import mwrank_MordellWeil
         mw = mwrank_MordellWeil(c, verbose)
         mw.process(v) # by default, this does no saturation yet
-        ok, index, unsat = mw.saturate(max_prime=max_prime, min_prime = min_prime)
+        ok, index, unsat = mw.saturate(max_prime=max_prime, min_prime=min_prime)
         if not ok:
             print("Failed to saturate failed at the primes {}".format(unsat))
         sat = [Emin(P) for P in mw.points()]
@@ -2743,10 +2751,12 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             b2      = self.b2()
             twostar = 2 if b2 else 1
             from math import log
+
             def h(x):
                 return log(max(abs(x.numerator()), abs(x.denominator())))
+
             def h_oo(x):
-                return log(max(abs(x),1))
+                return log(max(abs(x), 1))
             mu    = h(Delta)/12 + h_oo(j)/12 + h_oo(b2/12)/2 + log(twostar)/2
             lower = 2*(-h(j)/24 - mu - 0.961)
             upper = 2*(mu + 1.07)
@@ -3557,7 +3567,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         - ``M`` -- non-negative integer; this function is only ever called on
           `M > 1`, although the algorithm works fine for the case `M = 1`
 
-        - ``invariant`` -- string (default: "both"``); options are:
+        - ``invariant`` -- string (default: ``"both"``); options are:
 
           - "both" -- both modular degree and congruence number at level `MN` are computed
 
@@ -5122,7 +5132,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         # Take logs here since shortest path minimizes the *sum* of the weights -- not the product.
         M = M.parent()([a.log() if a else 0 for a in M.list()])
         G = Graph(M, format='weighted_adjacency_matrix')
-        G.set_vertices(dict([(v,isocls[v]) for v in G.vertices()]))
+        G.set_vertices(dict([(v,isocls[v]) for v in G.vertices(sort=False)]))
         v = G.shortest_path_lengths(0, by_weight=True)
         # Now exponentiate and round to get degrees of isogenies
         v = dict([(i, j.exp().round() if j else 0) for i,j in v.items()])
@@ -5662,7 +5672,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             False
 
         If the model is changed, the Faltings height changes but the
-        stable height does not.  It is reduced by $\log(u)$ where $u$
+        stable height does not.  It is reduced by `\log(u)` where `u`
         is the scale factor::
 
             sage: E1 = E.change_weierstrass_model([10,0,0,0])
@@ -6407,10 +6417,12 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             Return the set of S-integers x which are x-coordinates of
             points on the curve which are linear combinations of the
             generators (basis and torsion points) with coefficients
-            bounded by `H_q`.  The bound `H_q` will be computed at
-            runtime.
+            bounded by `H_q`.
+
+            The bound `H_q` will be computed at runtime.
+
             (Modified version of integral_points_with_bounded_mw_coeffs() in
-             integral_points() )
+            integral_points())
 
             .. TODO::
 
@@ -6618,7 +6630,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         M = U.transpose()*M*U
 
         # NB "lambda" is a reserved word in Python!
-        lamda = min(M.charpoly(algorithm="hessenberg").roots(multiplicities = False))
+        lamda = min(M.charpoly(algorithm="hessenberg").roots(multiplicities=False))
         max_S = max(S)
         len_S += 1 #Counting infinity (always "included" in S)
         if verbose:

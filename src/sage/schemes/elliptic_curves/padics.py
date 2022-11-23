@@ -98,8 +98,10 @@ def _normalize_padic_lseries(self, p, normalize, implementation, precision):
         raise ValueError("Implementation should be one of  'sage', 'eclib', 'num' or 'pollackstevens'")
     return (p, normalize, implementation, precision)
 
+
 @cached_method(key=_normalize_padic_lseries)
-def padic_lseries(self, p, normalize = None, implementation = 'eclib', precision = None):
+def padic_lseries(self, p, normalize=None, implementation='eclib',
+                  precision=None):
     r"""
     Return the `p`-adic `L`-series of self at
     `p`, which is an object whose approx method computes
@@ -176,10 +178,10 @@ def padic_lseries(self, p, normalize = None, implementation = 'eclib', precision
         sage: L = e.padic_lseries(3, implementation = 'sage')
         sage: L.series(5,prec=10)
         2 + 3 + 3^2 + 2*3^3 + 2*3^5 + 3^6 + O(3^7) + (1 + 3 + 2*3^2 + 3^3 + O(3^4))*T + (1 + 2*3 + O(3^4))*T^2 + (3 + 2*3^2 + O(3^3))*T^3 + (2*3 + 3^2 + O(3^3))*T^4 + (2 + 2*3 + 2*3^2 + O(3^3))*T^5 + (1 + 3^2 + O(3^3))*T^6 + (2 + 3^2 + O(3^3))*T^7 + (2 + 2*3 + 2*3^2 + O(3^3))*T^8 + (2 + O(3^2))*T^9 + O(T^10)
-        
+
     Also the numerical modular symbols can be used.
-    This may allow for much larger conductor in some instances::   
-    
+    This may allow for much larger conductor in some instances::
+
         sage: E = EllipticCurve([101,103])
         sage: L = E.padic_lseries(5, implementation="num")
         sage: L.series(2)
@@ -209,16 +211,16 @@ def padic_lseries(self, p, normalize = None, implementation = 'eclib', precision
     if implementation in ['sage', 'eclib', 'num']:
         if self.ap(p) % p != 0:
             Lp = plseries.pAdicLseriesOrdinary(self, p,
-                                  normalize = normalize, implementation = implementation)
+                                  normalize=normalize, implementation=implementation)
         else:
             Lp = plseries.pAdicLseriesSupersingular(self, p,
-                                  normalize = normalize, implementation = implementation)
+                                  normalize=normalize, implementation=implementation)
     else:
         phi = self.pollack_stevens_modular_symbol(sign=0)
         if phi.parent().level() % p == 0:
-            Phi = phi.lift(p, precision, eigensymbol = True)
+            Phi = phi.lift(p, precision, eigensymbol=True)
         else:
-            Phi = phi.p_stabilize_and_lift(p, precision, eigensymbol = True)
+            Phi = phi.p_stabilize_and_lift(p, precision, eigensymbol=True)
         Lp = Phi.padic_lseries()  #mm TODO should this pass precision on too ?
         Lp._cinf = self.real_components()
     return Lp
@@ -1646,24 +1648,22 @@ def matrix_of_frobenius(self, p, prec=20, check=False, check_hypotheses=True, al
 
     return frob_p.change_ring(Zp(p, prec))
 
+
 def _brent(F, p, N):
     r"""
     This is an internal function; it is used by padic_sigma().
 
-    `F` is a assumed to be a power series over
-    `R = \ZZ/p^{N-1}\ZZ`.
+    `F` is a assumed to be a power series over `R = \ZZ/p^{N-1}\ZZ`.
 
     It solves the differential equation `G'(t)/G(t) = F(t)`
     using Brent's algorithm, with initial condition `G(0) = 1`.
-    It is assumed that the solution `G` has
-    `p`-integral coefficients.
+    It is assumed that the solution `G` has `p`-integral coefficients.
 
     More precisely, suppose that `f(t)` is a power series with
     genuine `p`-adic coefficients, and suppose that
     `g(t)` is an exact solution to `g'(t)/g(t) = f(t)`.
     Let `I` be the ideal
-    `(p^N, p^{N-1} t, \ldots,
-        p t^{N-1}, t^N)`. The input
+    `(p^N, p^{N-1} t, \ldots, p t^{N-1}, t^N)`. The input
     `F(t)` should be a finite-precision approximation to
     `f(t)`, in the sense that `\int (F - f) dt` should
     lie in `I`. Then the function returns a series
@@ -1673,8 +1673,7 @@ def _brent(F, p, N):
     some log-log factors.
 
     For more information, and a proof of the precision guarantees, see
-    Lemma 4 in "Efficient Computation of p-adic Heights" (David
-    Harvey).
+    Lemma 4 in "Efficient Computation of p-adic Heights" (David Harvey).
 
     AUTHORS:
 

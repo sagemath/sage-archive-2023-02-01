@@ -883,7 +883,6 @@ class assuming:
         [x == -2, x == 2]
         sage: with assuming(x > 0):
         ....:     solve(x^2 == 4,x)
-        ....:     
         [x == 2]
         sage: assumptions()
         []
@@ -939,12 +938,11 @@ class assuming:
         EXAMPLES::
 
             sage: forget()
-            sage: foo=assuming(x>0)
+            sage: foo = assuming(x>0)
             sage: foo.Ass
             (x > 0,)
             sage: bool(x>-1)
             False
-
         """
         self.replace=kwds.pop("replace",False)
         self.Ass=args
@@ -954,7 +952,7 @@ class assuming:
         EXAMPLES::
 
             sage: forget()
-            sage: foo=assuming(x>0)
+            sage: foo = assuming(x>0)
             sage: bool(x>-1)
             False
             sage: foo.__enter__()
@@ -963,7 +961,6 @@ class assuming:
             sage: foo.__exit__()
             sage: bool(x>-1)
             False
-
         """
         if self.replace:
             self.OldAss=assumptions()
@@ -975,7 +972,7 @@ class assuming:
         EXAMPLES::
 
             sage: forget()
-            sage: foo=assuming(x>0)
+            sage: foo = assuming(x>0)
             sage: bool(x>-1)
             False
             sage: foo.__enter__()
@@ -985,7 +982,6 @@ class assuming:
             sage: bool(x>-1)
             False
             sage: forget()
-
         """
         if self.replace:
             forget(assumptions())

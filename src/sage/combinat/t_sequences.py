@@ -12,10 +12,11 @@ of length `4l-1` and `2l-1`.
 
 Turyn sequences are sets of four (-1, +1) sequences `X, U, Y, V` of length
 `l`, `l`, `l-1`, `l-1` with nonperiodic autocorrelation equal to zero and 
-the additional contstraints that:
-- the first element of `X` is 1
-- the last element of `X` is -1
-- the last element of `U` is 1
+the additional constraints that:
+
+* the first element of `X` is 1
+* the last element of `X` is -1
+* the last element of `U` is 1
 
 The nonperiodic autocorrelation of a familiy of sequences `X=\{A_1, A_2, ..., A_n\}` is defined as
 (see Definition 7.2 of [Seb2017]_):
@@ -55,10 +56,10 @@ def  _nonperiodic_autocorrelation(sequences, j):
 
     INPUT:
     
-    - ``sequences`` - either a single Sequence or a list of sequences for which we want
-      to compute the nonperiodic autocorrelation
+    - ``sequences`` -- either a single sequence or a list of sequences for which we want
+      to compute the nonperiodic autocorrelation.
     
-    - ``j`` - integer, the parameter j used when calculating the nonperiodic autocorrelation
+    - ``j`` -- integer, the parameter `j` used when calculating the nonperiodic autocorrelation.
     """
     if not isinstance(sequences[0], list):
         sequences = [sequences]
@@ -74,12 +75,12 @@ def is_skew(seq, verbose=False):
     r"""
     Check if the given sequence is skew.
 
-    A sequence `X=\{x_1, x_2, ...,x_n\} is defined skew (according to Definition 
+    A sequence `X=\{x_1, x_2, ...,x_n\}` is defined skew (according to Definition 
     7.4 of [Seb2017]_) if `n` is even and `x_i = -x_{n-i+1}`.
 
     INPUT:
 
-    - ``seq`` -- the sequence that should be checked
+    - ``seq`` -- the sequence that should be checked.
 
     - ``verbose`` -- a boolean (default false). If true the function will be verbose
       when the sequences do not satisfy the contraints.
@@ -120,12 +121,12 @@ def is_symmetric(seq, verbose=False):
     r"""
     Check if the given sequence is symmetric.
 
-    A sequence `X=\{x_1, x_2, ...,x_n\} is defined symmetric (according to Definition 
+    A sequence `X=\{x_1, x_2, ...,x_n\}` is defined symmetric (according to Definition 
     7.4 of [Seb2017]_) if `n` is odd and `x_i = x_{n-i+1}`.
 
     INPUT:
     
-    - ``seq`` -- the sequence that should be checked
+    - ``seq`` -- the sequence that should be checked.
 
     - ``verbose`` -- a boolean (default false). If true the function will be verbose
       when the sequences do not satisfy the contraints.
@@ -169,15 +170,16 @@ def is_T_sequences_set(sequences, verbose=False):
 
     Given 4 (-1, 0, +1) sequences, they will be T-sequences if
     (Definition 7.4 of [Seb2017]_): 
-    - they have all the same length `t`
-    - for each index `i`, exactly one sequence is nonzero at `i`
-    - the nonperiodic autocorrelation is equal to `0`
+
+    * they have all the same length `t`
+    * for each index `i`, exactly one sequence is nonzero at `i`
+    * the nonperiodic autocorrelation is equal to `0`
 
     INPUT:
     
     - ``sequences`` -- a list of four sequences.
 
-    - ``verbose`` -- a boolean( (default false). If true the function will be verbose
+    - ``verbose`` -- a boolean (default false). If true the function will be verbose
       when the sequences do not satisfy the contraints.
 
     EXAMPLES::
@@ -246,7 +248,7 @@ def turyn_sequences_smallcases(l, existence=False):
 
     INPUT:
 
-    - ``l`` -- integer, the length of the Turyn sequences
+    - ``l`` -- integer, the length of the Turyn sequences.
 
     - ``existence`` -- boolean (default False). If true, only return whether the 
       Turyn sequences are available for the given length.
@@ -297,26 +299,25 @@ def turyn_sequences_smallcases(l, existence=False):
 
 def T_sequences_construction_I(turyn_sequences, check=True):
     r"""
-    Construct T-sequences of length `2l-1` from turyn sequences of length `l`.
+    Construct T-sequences of length `2l-1` from Turyn sequences of length `l`.
 
     Given Turyn sequences `X, U, Y, V`, the T-sequences are constructed as described in
     theorem 7.7 of [Seb2017]_:
 
     .. MATH::
 
-        T_1 = \frac{1}{2}(X+U); 0_{l-1}
-
-        T_2 = \frac{1}{2}(X-U); 0_{l-1}
-
-        T_3 = 0_{l} + \frac{1}{2}(Y+V)
-
-        T_4 = 0_{l} + \frac{1}{2}(Y-V)
+        \begin{aligned}
+        T_1 &= \frac{1}{2}(X+U); 0_{l-1} \\
+        T_2 &= \frac{1}{2}(X-U); 0_{l-1} \\
+        T_3 &= 0_{l} + \frac{1}{2}(Y+V) \\
+        T_4 &= 0_{l} + \frac{1}{2}(Y-V)
+        \end{aligned}
 
     INPUT:
 
-    - ``turyn_sequences`` -- the turyn sequences that should be used to construct the T-sequences
+    - ``turyn_sequences`` -- the Turyn sequences that should be used to construct the T-sequences.
 
-    - ``check`` -- boolean, if true (deafult) checks that the sequences created are T-sequences before returning them
+    - ``check`` -- boolean, if true (default) checks that the sequences created are T-sequences before returning them.
 
     EXAMPLES::
 
@@ -366,26 +367,25 @@ def T_sequences_construction_I(turyn_sequences, check=True):
 
 def T_sequences_construction_II(turyn_sequences, check=True):
     r"""
-    Construct T-sequences of length `4l-1` from turyn sequences of length `l`.
+    Construct T-sequences of length `4l-1` from Turyn sequences of length `l`.
 
     Given Turyn sequences `X, U, Y, V`, the T-sequences are constructed as described in
     theorem 7.7 of [Seb2017]_:
 
     .. MATH::
 
-        T_1 = 1; 0_{4l-2}
-
-        T_2 = 0; X/Y; 0_{2l-1}
-
-        T_3 = 0_{2l}; U/0_{l-2}
-
-        T_4 = 0_{2l} + 0_{l}/V
+        \begin{aligned}
+        T_1 &= 1; 0_{4l-2} \\
+        T_2 &= 0; X/Y; 0_{2l-1} \\
+        T_3 &= 0_{2l}; U/0_{l-2} \\
+        T_4 &= 0_{2l} + 0_{l}/V
+        \end{aligned}
 
     INPUT:
 
-    - ``turyn_sequences`` -- the turyn sequences that should be used to construct the T-sequences
+    - ``turyn_sequences`` -- the Turyn sequences that should be used to construct the T-sequences .
 
-    - ``check`` -- boolean, if true (deafult) checks that the sequences created are T-sequences before returning them
+    - ``check`` -- boolean, if true (default) checks that the sequences created are T-sequences before returning them.
 
     EXAMPLES::
 
@@ -449,7 +449,7 @@ def T_sequences_smallcases(t, existence=False, check=True):
 
     INPUT:
 
-    - ``t`` -- integer, the length of the T-sequences to construct
+    - ``t`` -- integer, the length of the T-sequences to construct.
 
     - ``existence`` -- boolean (default false). If true, thsi method only returns whether a T-sequences of 
       the given size can be constructed.
@@ -467,7 +467,7 @@ def T_sequences_smallcases(t, existence=False, check=True):
         [0, 0, 0, 0, 0, 1, 0, 0, -1],
         [0, 0, 0, 0, 0, 0, 1, -1, 0]]
 
-    If the existence flag is passed, the method retunrs a boolean :: 
+    If the existence flag is passed, the method returns a boolean :: 
 
         sage: T_sequences_smallcases(9, existence=True)
         True

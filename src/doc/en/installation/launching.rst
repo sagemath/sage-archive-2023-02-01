@@ -29,6 +29,36 @@ To start a Jupyter Notebook instead of a Sage console, run the command
 instead of just ``sage``. To quit the Jupyter Notebook press ``<Ctrl> + <c>``
 twice in the console where you launched the command.
 
+Environment variables
+---------------------
+
+Sage uses the following environment variables when it runs:
+
+- :envvar:`DOT_SAGE` - this is the directory, to which the user has read and
+  write access, where Sage stores a number of files.
+  The default location is :file:`$HOME/.sage/`.
+
+- :envvar:`SAGE_STARTUP_FILE` - a file including commands to be executed every
+  time Sage starts.
+  The default value is :file:`$DOT_SAGE/init.sage`.
+
+- :envvar:`BROWSER` - on most platforms, Sage will detect the command to
+  run a web browser, but if this doesn't seem to work on your machine, set this
+  variable to the appropriate command.
+
+- :envvar:`TMPDIR` - this variable is used by Python, and hence by
+  Sage; it gives the directory in which temporary files should be
+  stored. This includes files used by the notebook. Some browsers have
+  security settings which restrict the locations of files that they
+  will access, and users may need to set this variable to handle this
+  situation.
+
+- See
+  https://docs.python.org/3/using/cmdline.html#environment-variables
+  for more variables used by Python (not an exhaustive list). With
+  Python 3.11 or later, a brief summary can also be obtained by
+  running `python3 --help-env`.
+
 Using a Jupyter Notebook remotely
 ---------------------------------
 

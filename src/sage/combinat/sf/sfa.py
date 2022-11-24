@@ -228,7 +228,7 @@ from sage.categories.tensor import tensor
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.matrix.constructor import matrix
 from sage.structure.factorization import Factorization
-from sage.structure.element import parent
+from sage.structure.element import parent, coerce_binop
 from sage.misc.misc_c import prod
 from sage.data_structures.blas_dict import convert_remove_zeroes, linear_combination
 from copy import copy
@@ -3029,7 +3029,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
         m[1, 1, 1] + m[2, 1] + m[3]
         sage: m.set_print_style('lex')
     """
-    def factor(self, proof=None):
+    def factor(self):
         """
         Return the factorization of this symmetric function.
 
@@ -3064,6 +3064,15 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             sage: f.factor()
             (1/(t^2 + 4*t + 4)) * ((-t-2)*JackP[1, 1, 1] + (-t^2-2*t)*JackP[2, 1])^2
 
+        Some corner cases::
+
+            sage: s = SymmetricFunctions(ZZ).s()
+            sage: factor(s(6))
+            2 * 3
+
+            sage: factor(6*s[1])
+            2*s[] * 3*s[] * s[1]
+
         """
         from sage.combinat.sf.multiplicative import SymmetricFunctionAlgebra_multiplicative
         L = self.parent()
@@ -3073,15 +3082,12 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             M = L.realization_of().h()
             self = M(self)
 
-        n = max((part[0] for part in self.support() if part), default=0)
-        R = PolynomialRing(self.base_ring(),
-                           ["v%s" % a for a in range(1, n + 1)])
-        poly = R({tuple(part.to_exp(n)): c for part, c in self})
-        factors = poly.factor(proof=proof)
+        poly = _to_polynomials([self], self.base_ring())[0]
+        factors = poly.factor()
         unit = factors.unit()
-        factors = [(M.element_class(M, {_Partitions.from_exp(e): c
-                                        for e, c in factor.iterator_exp_coeff(False)}),
-                    exponent)
+        if factors.universe() == self.base_ring():
+            return Factorization(factors, unit=unit)
+        factors = [(_from_polynomial(factor, M), exponent)
                    for factor, exponent in factors]
 
         if not isinstance(L, SymmetricFunctionAlgebra_multiplicative):
@@ -3100,41 +3106,35 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
         EXAMPLES::
 
             sage: e = SymmetricFunctions(ZZ).e()
-            sage: e[3,2,1] // e[2]
-            e[3, 1]
+            sage: h = SymmetricFunctions(ZZ).h()
+            sage: e[3,2,1] // h[2]
+            -e[3, 1]
+
+        TESTS::
+
+            sage: s = SymmetricFunctions(ZZ).s()
+            sage: s(0) // s[1]
+            0
+
+            sage: s(6) // s(2)
+            3*s[]
 
         """
         from sage.combinat.sf.multiplicative import SymmetricFunctionAlgebra_multiplicative
-        from sage.structure.element import get_coercion_model
-        cm = get_coercion_model()
-        L = cm.common_parent(self.parent(), parent(other))
+        # we can assume that the parents of self and other are the same
+        L = self.parent()
         if isinstance(L, SymmetricFunctionAlgebra_multiplicative):
             M = L
         else:
             M = L.realization_of().h()
-        self = M(self)
-        other = M(other)
+            self = M(self)
+            other = M(other)
 
-        n1 = max((part[0] for part in self.support() if part), default=0)
-        n2 = max((part[0] for part in other.support() if part), default=0)
-        n = max(n1, n2, 1)
-        R = PolynomialRing(M.base_ring(),
-                           ["v%s" % a for a in range(1, n + 1)])
-        if n == 1:
-            p1 = R({part.to_exp(n)[0]: c for part, c in self})
-            p2 = R({part.to_exp(n)[0]: c for part, c in other})
-        else:
-            p1 = R({tuple(part.to_exp(n)): c for part, c in self})
-            p2 = R({tuple(part.to_exp(n)): c for part, c in other})
+        p1, p2 = _to_polynomials([self, other], self.base_ring())
         g = p1 // p2
-        if n == 1:
-            g = {_Partitions.from_exp([e]): c
-                 for e, c in g.dict().items()}
-        else:
-            g = {_Partitions.from_exp(e): c
-                 for e, c in g.iterator_exp_coeff(False)}
-        return L(M.element_class(M, g))
+        return L(_from_polynomial(g, M))
 
+    @coerce_binop
     def gcd(self, other):
         """
         Return the greatest common divisor with ``other``.
@@ -3172,35 +3172,17 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
 
         """
         from sage.combinat.sf.multiplicative import SymmetricFunctionAlgebra_multiplicative
-        from sage.structure.element import get_coercion_model
-        cm = get_coercion_model()
-        L = cm.common_parent(self.parent(), parent(other))
+        L = self.parent()
         if isinstance(L, SymmetricFunctionAlgebra_multiplicative):
             M = L
         else:
             M = L.realization_of().h()
-        self = M(self)
-        other = M(other)
+            self = M(self)
+            other = M(other)
 
-        n1 = max((part[0] for part in self.support() if part), default=0)
-        n2 = max((part[0] for part in other.support() if part), default=0)
-        n = max(n1, n2, 1)
-        R = PolynomialRing(M.base_ring(),
-                           ["v%s" % a for a in range(1, n + 1)])
-        if n == 1:
-            p1 = R({part.to_exp(n)[0]: c for part, c in self})
-            p2 = R({part.to_exp(n)[0]: c for part, c in other})
-        else:
-            p1 = R({tuple(part.to_exp(n)): c for part, c in self})
-            p2 = R({tuple(part.to_exp(n)): c for part, c in other})
+        p1, p2 = _to_polynomials([self, other], self.base_ring())
         g = p1.gcd(p2)
-        if n == 1:
-            g = {_Partitions.from_exp([e]): c
-                 for e, c in g.dict().items()}
-        else:
-            g = {_Partitions.from_exp(e): c
-                 for e, c in g.iterator_exp_coeff(False)}
-        return L(M.element_class(M, g))
+        return L(_from_polynomial(g, M))
 
     def plethysm(self, x, include=None, exclude=None):
         r"""
@@ -6471,3 +6453,74 @@ def _raise_variables(c, n, variables):
 
     """
     return c.subs(**{str(g): g ** n for g in variables})
+
+
+def _to_polynomials(lf, R):
+    """
+    Return the symmetric functions as polynomials, where each
+    part of a partition corresponds to a variable.
+
+    The result makes sense only if the symmetric functions are all
+    given in the same basis, which is multiplicative, but we do not
+    check this.
+
+    INPUT:
+
+    - ``lf`` -- a list of symmetric functions
+    - ``R`` -- the base ring
+
+    .. SEEALSO::
+
+        :func:`_from_polynomials`
+
+    EXAMPLES::
+
+        sage: from sage.combinat.sf.sfa import _to_polynomials
+        sage: e = SymmetricFunctions(QQ).e()
+        sage: _to_polynomials([5*e[3] + e[2,1] + e[1]], QQ)
+        [v1*v2 + v1 + 5*v3]
+    """
+    n = max(max((part[0] for part in f.support() if part), default=0)
+            for f in lf)
+    # the polynomial ring with no variables is not well supported,
+    # eg., gcd does not work
+    n = max(n, 1)
+    P = PolynomialRing(R, ["v%s" % a for a in range(1, n + 1)])
+    if n == 1:
+        return [P({part.to_exp(n)[0]: c for part, c in f})
+                for f in lf]
+    return [P({tuple(part.to_exp(n)): c for part, c in f})
+            for f in lf]
+
+def _from_polynomial(p, f):
+    """
+    Return the polynomial as a symmetric function in the given
+    basis , where the `n`th variable corresponds to the symmetric
+    function`f[n]`.
+
+    INPUT:
+
+    - ``p`` -- a polynomial
+    - ``f`` -- a basis of the ring of symmetric functions
+
+    .. SEEALSO::
+
+        :func:`_to_polynomials`
+
+    EXAMPLES::
+
+        sage: from sage.combinat.sf.sfa import _to_polynomials, _from_polynomial
+        sage: e = SymmetricFunctions(QQ).e()
+        sage: p = _to_polynomials([5*e[3] + e[2,1] + e[1]], ZZ)[0]; p
+        v1*v2 + v1 + 5*v3
+        sage: _from_polynomial(p, e)
+        e[1] + e[2, 1] + 5*e[3]
+    """
+    n = p.parent().ngens()
+    if n == 1:
+        d = {_Partitions.from_exp([e]): c
+             for e, c in p.dict().items()}
+    else:
+        d = {_Partitions.from_exp(e): c
+             for e, c in p.iterator_exp_coeff(False)}
+    return f.element_class(f, d)

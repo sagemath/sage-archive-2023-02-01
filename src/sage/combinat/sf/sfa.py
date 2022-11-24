@@ -375,15 +375,12 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
         #   KeyError when doing the C3 algorithm!!!
         R = self.base().base_ring()
         cat = HopfAlgebras(R)
+        categories = [self.base().Realizations(),
+                      cat.Commutative().WithBasis(),
+                      cat.Graded().Realizations()]
         if R in PrincipalIdealDomains:
-            return [self.base().Realizations(),
-                    cat.Commutative().WithBasis(),
-                    cat.Graded().Realizations(),
-                    UniqueFactorizationDomains()]
-
-        return [self.base().Realizations(),
-                cat.Commutative().WithBasis(),
-                cat.Graded().Realizations()]
+            categories.append(UniqueFactorizationDomains())
+        return categories
 
 
     class ParentMethods:

@@ -174,15 +174,15 @@ class LCAStructureCoefficientsElement(LCAWithGeneratorsElement):
         if p._names:
             terms = [("T^({0}){1}".format(k[1],
                         p._names[p._index_to_pos[k[0]]]),v) if k[1] > 1 \
-                    else("T{}".format(p._names[p._index_to_pos[k[0]]]),v) \
+                    else ("T{}".format(p._names[p._index_to_pos[k[0]]]),v) \
                     if k[1] == 1 \
                     else ("{}".format(p._names[p._index_to_pos[k[0]]]),v)\
                         for k,v in self.monomial_coefficients().items()]
         else:
             terms = [("T^({0}){1}".format(k[1], p._repr_generator(k[0])),v)\
-                      if k[1] > 1 else("T{}".format(p._repr_generator(k[0])),v)\
-                      if k[1] == 1 else ("{}".format(p._repr_generator(k[0])),
-                      v) for k,v in self.monomial_coefficients().items()]
+                     if k[1] > 1 else ("T{}".format(p._repr_generator(k[0])),v)\
+                     if k[1] == 1 else ("{}".format(p._repr_generator(k[0])),v)
+                     for k, v in self.monomial_coefficients().items()]
 
         return repr_lincomb(terms, strip_one=True)
 
@@ -224,13 +224,13 @@ class LCAStructureCoefficientsElement(LCAWithGeneratorsElement):
         if names:
             terms = [("T^{{({0})}}{1}".format(k[1],
                         names[p._index_to_pos[k[0]]]),v) if k[1] > 1 \
-                else("T{}".format(names[p._index_to_pos[k[0]]]),v)\
+                else ("T{}".format(names[p._index_to_pos[k[0]]]),v)\
                 if k[1] == 1\
                 else ("{}".format(names[p._index_to_pos[k[0]]]),v)\
                         for k, v in self.monomial_coefficients().items()]
         else:
             terms = [("T^{{({0})}}{1}".format(k[1], latex(k[0])),v) if k[1] > 1 \
-                      else("T{}".format(latex(k[0])),v) if k[1] == 1 \
+                      else ("T{}".format(latex(k[0])),v) if k[1] == 1 \
                         else ("{}".format(latex(k[0])),v)\
                         for k, v in self.monomial_coefficients().items()]
 

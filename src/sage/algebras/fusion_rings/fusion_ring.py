@@ -1572,4 +1572,3 @@ class FusionRing(WeylCharacterRing):
             if (not base_coercion) or (self.parent()._basecoer is None):
                 return ret
             return self.parent()._basecoer(ret)
-

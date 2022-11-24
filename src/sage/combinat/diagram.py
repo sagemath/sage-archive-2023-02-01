@@ -1465,7 +1465,6 @@ def RotheDiagram(w):
     winv = w.inverse()
     from sage.misc.mrange import cartesian_product_iterator
     cells = [c for c in cartesian_product_iterator((range(N), range(N)))
-             if c[0]+1 < winv(c[1]+1) and c[1]+1 < w(c[0]+1)]
+             if c[0] + 1 < winv(c[1] + 1) and c[1] + 1 < w(c[0] + 1)]
 
     return NorthwestDiagram(cells, n_rows=N, n_cols=N, check=False)
-

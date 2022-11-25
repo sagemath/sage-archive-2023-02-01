@@ -6369,6 +6369,23 @@ class ProductTree:
         """
         return len(self.layers[0])
 
+    def __iter__(self):
+        r"""
+        Return an iterator over the leaves of this product tree.
+
+        EXAMPLES::
+
+            sage: from sage.arith.misc import ProductTree
+            sage: R.<x> = GF(101)[]
+            sage: vs = [x - i for i in range(1,10)]
+            sage: tree = ProductTree(vs)
+            sage: next(iter(tree)) == vs[0]
+            True
+            sage: list(tree) == vs
+            True
+        """
+        return iter(self.layers[0])
+
     def root(self):
         r"""
         Return the value at the root of this product tree (i.e., the product of all leaves).
@@ -6386,6 +6403,23 @@ class ProductTree:
         """
         assert len(self.layers[-1]) == 1
         return self.layers[-1][0]
+
+    def leaves(self):
+        r"""
+        Return a tuple containing the leaves of this product tree.
+
+        EXAMPLES::
+
+            sage: from sage.arith.misc import ProductTree
+            sage: R.<x> = GF(101)[]
+            sage: vs = [x - i for i in range(1,10)]
+            sage: tree = ProductTree(vs)
+            sage: tree.leaves()
+            (x + 100, x + 99, x + 98, ..., x + 93, x + 92)
+            sage: tree.leaves() == tuple(vs)
+            True
+        """
+        return self.layers[0]
 
     def remainders(self, x):
         r"""

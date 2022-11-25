@@ -215,7 +215,7 @@ cdef class FinitePolyExtElement(FiniteRingElement):
 
     def __getitem__(self, n):
         r"""
-        Return the `n`\th coefficient of this finite-field element when
+        Return the `n`\th coefficient of this finite field element when
         written as a polynomial in the generator.
 
         EXAMPLES::
@@ -252,7 +252,7 @@ cdef class FinitePolyExtElement(FiniteRingElement):
     def list(self):
         r"""
         Return the list of coefficients (in little-endian) of this
-        finite-field element when written as a polynomial in the
+        finite field element when written as a polynomial in the
         generator.
 
         Equivalent to calling ``list()`` on this element.
@@ -268,7 +268,7 @@ cdef class FinitePolyExtElement(FiniteRingElement):
             True
 
         The coefficients returned are those of a fully reduced
-        representative of the finite-field element::
+        representative of the finite field element::
 
             sage: b = u^777
             sage: b.list()
@@ -290,7 +290,7 @@ cdef class FinitePolyExtElement(FiniteRingElement):
 
     def __iter__(self):
         r"""
-        Return an iterator over the coefficients of this finite-field
+        Return an iterator over the coefficients of this finite field
         element, in the same order as :meth:`list`.
 
         EXAMPLES::
@@ -985,7 +985,7 @@ cdef class FinitePolyExtElement(FiniteRingElement):
 
     def to_integer(self, reverse=False):
         r"""
-        Return an integer representation of this finite-field element
+        Return an integer representation of this finite field element
         obtained by lifting its representative polynomial to `\ZZ` and
         evaluating it at the characteristic `p`.
 

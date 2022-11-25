@@ -408,7 +408,7 @@ cdef class FiniteField(Field):
 
     def from_integer(self, n, reverse=False):
         r"""
-        Return the finite-field element obtained by reinterpreting the base-`p`
+        Return the finite field element obtained by reinterpreting the base-`p`
         expansion of `n` as a polynomial and evaluating it at the generator of
         this finite field.
 

@@ -1260,7 +1260,7 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
 
         INPUT:
 
-        - ``base`` -- finite-field element.
+        - ``base`` -- finite field element.
 
         OUTPUT:
 

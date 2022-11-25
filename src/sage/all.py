@@ -120,6 +120,11 @@ warnings.filterwarnings('ignore', category=DeprecationWarning,
                         message=r'(path|read_binary) is deprecated\. Use files\(\) instead\.',
                         module='sage.repl.rich_output.output_(graphics|graphics3d|video)')
 
+# triggered by sphinx
+warnings.filterwarnings('ignore', category=DeprecationWarning,
+                        message="'imghdr' is deprecated and slated for removal in Python 3.13",
+                        module='sphinx.util.images')
+
 ################ end setup warnings ###############################
 
 

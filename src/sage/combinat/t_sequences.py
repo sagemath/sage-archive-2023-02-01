@@ -31,7 +31,7 @@ AUTHORS:
 
 """
 
-# ****************************************************************************
+# ***************************************************************************
 #       Copyright (C) 2022 Matteo Cati matteo.cati@keble.ox.ac.uk
 #
 # This program is free software: you can redistribute it and/or modify
@@ -337,6 +337,13 @@ def T_sequences_construction_I(turyn_sequences, check=True):
         Traceback (most recent call last):
         ...
         AssertionError
+
+    .. NOTE::
+    
+        The construction detailed in [Seb2017]_ contains a typo. The first two sequences are 
+        defined as `T_1 = \frac{1}{2}(X+Y); 0_{l-1}` and `T_2 = \frac{1}{2}(X-Y); 0_{l-1}`,
+        but the correct formulas are `T_1 = \frac{1}{2}(X+U); 0_{l-1}` and 
+        `T_2 = \frac{1}{2}(X-U); 0_{l-1}`.
     """
 
     assert len(turyn_sequences) == 4

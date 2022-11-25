@@ -467,7 +467,7 @@ cdef class FiniteField(Field):
         ``self.0`` to the unique element of ``im_gens`` is a valid field
         homomorphism. Otherwise, return ``False``.
 
-        EXAMPLES::
+        EXAMPLES:
 
         Between prime fields::
 

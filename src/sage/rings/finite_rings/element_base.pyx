@@ -21,6 +21,7 @@ from sage.structure.element cimport Element
 from sage.structure.parent cimport Parent
 from sage.rings.integer_ring import ZZ
 from sage.rings.integer import Integer
+from sage.misc.superseded import deprecated_function_alias
 
 def is_FiniteFieldElement(x):
     """
@@ -993,11 +994,6 @@ cdef class FinitePolyExtElement(FiniteRingElement):
 
         Inverse of :meth:`sage.rings.finite_rings.finite_field_base.FiniteField.from_integer`.
 
-        .. SEEALSO::
-
-            - :meth:`sage.rings.finite_rings.element_givaro.FiniteField_givaroElement.integer_representation`
-            - :meth:`sage.rings.finite_rings.element_ntl_gf2e.FiniteField_ntl_gf2eElement.integer_representation`
-
         EXAMPLES::
 
             sage: F.<t> = GF(7^5)
@@ -1038,7 +1034,7 @@ cdef class FinitePolyExtElement(FiniteRingElement):
         """
         if not reverse:
             try:
-                return self.integer_representation()
+                return self._integer_representation()
             except AttributeError:
                 pass
         p = self.parent().characteristic()
@@ -1046,6 +1042,8 @@ cdef class FinitePolyExtElement(FiniteRingElement):
         if reverse:
             f = f.reverse(self.parent().degree()-1)
         return f(p)
+
+    integer_representation = deprecated_function_alias(33941, to_integer)
 
 cdef class Cache_base(SageObject):
     cpdef FinitePolyExtElement fetch_int(self, number):

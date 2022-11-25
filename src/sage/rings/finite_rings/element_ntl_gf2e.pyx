@@ -872,8 +872,8 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
             rx = GF2X_deg(GF2E_rep((<FiniteField_ntl_gf2eElement>right).x))
             if lx != rx:
                 return richcmp_not_equal(lx, rx, op)
-            li = left.integer_representation()
-            ri = right.integer_representation()
+            li = left._integer_representation()
+            ri = right._integer_representation()
             return richcmp(li, ri, op)
 
     def _integer_(FiniteField_ntl_gf2eElement self, Integer):
@@ -930,7 +930,7 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
         else:
             raise TypeError("Cannot coerce element to an integer.")
 
-    def integer_representation(FiniteField_ntl_gf2eElement self):
+    def _integer_representation(FiniteField_ntl_gf2eElement self):
         r"""
         Return the int representation of ``self``.  When ``self`` is in the
         prime subfield, the integer returned is equal to ``self`` and not
@@ -947,12 +947,12 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
         EXAMPLES::
 
             sage: k.<a> = GF(2^20)
-            sage: a.integer_representation()
+            sage: a._integer_representation()
             2
-            sage: (a^2 + 1).integer_representation()
+            sage: (a^2 + 1)._integer_representation()
             5
             sage: k.<a> = GF(2^70)
-            sage: (a^65 + a^64 + 1).integer_representation()
+            sage: (a^65 + a^64 + 1)._integer_representation()
             55340232221128654849
         """
         cdef unsigned int i = 0
@@ -1203,7 +1203,7 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
             sage: {a:1,a:0} # indirect doctest
             {a: 0}
         """
-        return hash(self.integer_representation()) # todo, come up with a faster version
+        return hash(self._integer_representation()) # todo, come up with a faster version
 
     def _vector_(FiniteField_ntl_gf2eElement self, reverse=False):
         r"""

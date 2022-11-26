@@ -892,18 +892,36 @@ class BipartiteGraph(Graph):
                 raise RuntimeError("vertex (%s) not found in partitions" % vertex)
 
     def _flip_vertices(self, vertices):
-        for vertex in vertices:
-            self._flip_vertex(vertex)
+        r"""
+        Helper method to flip the sides of a list of vertices.
 
-    def _flip_vertex(self, vertex):
-        if vertex in self.left:
-            self.left.remove(vertex)
-            self.right.add(vertex)
-        elif vertex in self.right:
-            self.right.remove(vertex)
-            self.left.add(vertex)
-        else:
-            raise RuntimeError("Attempting to flip vertex in neither left nor right!")
+        INPUT:
+
+        - ``vertices`` -- an iterable container of vertices
+
+        TESTS::
+
+            sage: G = BipartiteGraph()
+            sage: G.add_vertices([0, 1, 2], left=[True, False, True])
+            sage: G.bipartition()
+            ({0, 2}, {1})
+            sage: G._flip_vertices([0, 1])
+            sage: G.bipartition()
+            ({1, 2}, {0})
+            sage: G._flip_vertices([7])
+            Traceback (most recent call last):
+            ...
+            RuntimeError: vertex (7) is neither in left nor in right
+        """
+        for vertex in vertices:
+            if vertex in self.left:
+                self.left.remove(vertex)
+                self.right.add(vertex)
+            elif vertex in self.right:
+                self.right.remove(vertex)
+                self.left.add(vertex)
+            else:
+                raise RuntimeError("vertex ({0}) is neither in left nor in right".format(vertex))
 
     def add_edge(self, u, v=None, label=None):
         r"""
@@ -985,8 +1003,7 @@ class BipartiteGraph(Graph):
 
             # if not, we can "flip" the connected component
             # swapping which partition the vertices are in
-            else:
-                self._flip_vertices(v_connected_component)
+            self._flip_vertices(v_connected_component)
 
         # automatically decide partitions for the newly created vertices
         if u not in self:
@@ -1029,9 +1046,9 @@ class BipartiteGraph(Graph):
             sage: bg.add_edges([[0, 2]])            
             Traceback (most recent call last):
             ...
-            RuntimeError: The specified set of edges cannot be added while still preserving the bipartition property.
+            ValueError: the specified set of edges cannot be added while still preserving the bipartition property
             sage: G = BipartiteGraph()
-            sage: G.add_edges([(0, 1), (3, 2), (1,2)])
+            sage: G.add_edges([(0, 1), (3, 2), (1, 2)])
             sage: G.bipartition()
             ({0, 2}, {1, 3})
 
@@ -1041,23 +1058,25 @@ class BipartiteGraph(Graph):
             sage: bg.add_edges([[0, 3], [3, 3]])            
             Traceback (most recent call last):
             ...
-            RuntimeError: The specified set of edges cannot be added while still preserving the bipartition property.
+            ValueError: the specified set of edges cannot be added while still preserving the bipartition property
 
-        Adding edges is fine as long as there exists a valid bipartition::
+        Adding edges is fine as long as there exists a valid bipartition.
+        Otherwise an error is raised without modifyiong the graph::
 
             sage: G = BipartiteGraph()
-            sage: G.add_edges([(0,1), (2,3)])
+            sage: G.add_edges([(0, 1), (2, 3)])
             sage: G.bipartition()
             ({0, 2}, {1, 3})
-            sage: G.add_edges([(0,2), (0,3)]) # first edge is valid if we change the bipartition, but the call should still fail and change nothing
+            sage: G.add_edges([(0,2), (0,3)])
             Traceback (most recent call last):
             ...
-            RuntimeError: The specified set of edges cannot be added while still preserving the bipartition property.
-            sage: G.bipartition() # should be unchanged from first call; adding the first edge would have changed it
+            ValueError: the specified set of edges cannot be added while still preserving the bipartition property
+            sage: G.bipartition()
             ({0, 2}, {1, 3})
-
+            sage: G.edges(labels=False, sort=True)
+            [(0, 1), (2, 3)]
         """
-        us, vs, labels = [], [], []
+        edges_to_add = []
         for edge in edges:
             try:
                 if len(edge) == 3:
@@ -1065,28 +1084,31 @@ class BipartiteGraph(Graph):
                 else:
                     u, v = edge
                     label = None
-                us.append(u)
-                vs.append(v)
-                labels.append(label)
+                edges_to_add.append((u, v, label))
             except Exception:
                 raise TypeError("cannot interpret {!r} as graph edge".format(edge))
 
-        # determine if there's a bipartition supporting all the edges being added
-        b = self._batch_test_edges(us, vs)
+        # Check whether there exists a bipartition supporting the addition of
+        # input edges to the current graph before adding any edge to the
+        # graph. This way, if an error is raised, self is not modified
+        vertex_in_left = self._check_bipartition_for_add_edges(edges_to_add)
 
-        # if not, then raise an error
-        if b is False:
-            raise RuntimeError("The specified set of edges cannot be added while still preserving the bipartition property.")
+        if vertex_in_left is False:
+            raise ValueError("the specified set of edges cannot be added while "
+                             "still preserving the bipartition property")
 
-        # if there is, then update current bipartition to the newly determined one
-        # and keep track of the vertex_in_left dict containing info about which
-        # partition newly added vertices should be added to
-        else:
-            self.left, self.right, vertex_in_left = b
+        # If we get here, then we've found a valid bipartition.
+        # We update the bipartition
+        self.left.clear()
+        self.right.clear()
+        for v in vertex_in_left:
+            if vertex_in_left[v]:
+                self.left.add(v)
+            else:
+                self.right.add(v)
 
-        # each edge now has one endpoint in left and one in right
-        for u, v, label in zip(us, vs, labels):
-            # decide partitions for the newly created vertices using result from _batch_test_edges call
+        # Each edge now has one endpoint in left and the other in right
+        for u, v, label in edges_to_add:
             if u not in self:
                 self.add_vertex(u, left=vertex_in_left[u], right=not vertex_in_left[u])
             if v not in self:
@@ -1094,72 +1116,81 @@ class BipartiteGraph(Graph):
 
             self._backend.add_edge(u, v, label, self._directed)
 
-    # given a set of edges, determine whether there exists a bipartition
-    # supporting the addition of said edges to the current graph
-    # and return the bipartition if so, otherwise return False
-    def _batch_test_edges(self, us, vs):
+    def _check_bipartition_for_add_edges(self, edges):
+        r"""
+        Helper method for ``add_edges``.
 
-        # storing in a dict for faster access
-        # dict mapping vertex -> boolean
-        vertex_in_left = {}
-        for v in self.left:
-            vertex_in_left[v] = True
+        This method checks whether the input list of edges can be added to the
+        graph. More precisely, it checks whether there exists a bipartition of
+        the vertices supporting the addition of input edges. If so it returns it
+        as a mapping associating to each vertex a side of the bipartition.
+        Otherwise, it returns ``False``.
+
+        INPUT:
+
+        - ``edges`` -- an iterable of edges, given either as ``(u, v)``
+          or ``(u, v, label)``.
+
+        TESTS::
+
+            sage: bg = BipartiteGraph()
+            sage: bg.add_vertices([0, 1, 2, 3], left=[True, False, True, False])
+            sage: b = bg._check_bipartition_for_add_edges([(0, 1), (3, 2), (1, 2)])
+            sage: sorted(b.items())
+            [(0, True), (1, False), (2, True), (3, False)]
+            sage: b = bg._check_bipartition_for_add_edges([(0, 2)])
+            sage: sorted(b.items())
+            [(0, True), (1, False), (2, False), (3, False)]
+            sage: bg.add_edges([(0, 1), (3, 2), (1, 2)])
+            sage: bg._check_bipartition_for_add_edges([[0, 2]])
+            False
+        """
+        # Map each vertex of the graph to a side
+        vertex_in_left = {v: True for v in self.left}
         for v in self.right:
             vertex_in_left[v] = False
 
-        # storing in a dict for faster access
-        # dict mapping vertex -> list containing that vertex's component
-        vertex_to_component = {}
-        for component in self.connected_components():
-            for v in component:
-                vertex_to_component[v] = component
+        # Map each vertex to the connected component it belongs to
+        vertex_to_component = {v: comp for comp in self.connected_components()
+                                   for v in comp}
 
-        # for each edge we want to add
-        for u, v in zip(us, vs):
+        for e in edges:
+            u, v = e[:2]
+            # if we haven't encountered either/both vertices, we choose a side
+            # and extend components
+            if u not in vertex_in_left:
+                if v in vertex_in_left:
+                    vertex_in_left[u] = not vertex_in_left[v]
+                else:
+                    vertex_in_left[u] = True
+                    vertex_in_left[v] = False
+                    vertex_to_component[v] = [v]
+                vertex_to_component[v].append(u)
+                vertex_to_component[u] = vertex_to_component[v]
 
-            # if we haven't encountered either/both vertices
-            for w in (u, v):
-                if w not in vertex_in_left:
+            elif v not in vertex_in_left:
+                vertex_in_left[v] = not vertex_in_left[u]
+                vertex_to_component[u].append(v)
+                vertex_to_component[v] = vertex_to_component[u]
 
-                    # populate the dicts with placeholder values
-                    vertex_in_left[w] = True
-                    vertex_to_component[w] = [w]
-
-            # if the ends are in the same partition
-            if vertex_in_left[u] == vertex_in_left[v]:
-
-                # and the same component
+            elif vertex_in_left[u] == vertex_in_left[v]:
                 if vertex_to_component[u] is vertex_to_component[v]:
-
-                    # then we can't add it
+                    # Same side and same component. We can't add that edge
                     return False
 
-                # if they're in different components
-                else:
+                # Otherwise, we flip the bipartition in v's component
+                for w in vertex_to_component[v]:
+                    vertex_in_left[w] = not vertex_in_left[w]
 
-                    # for each vertex in v's component
-                    for w in vertex_to_component[v]:
+                # and merge the components
+                comp_u = vertex_to_component[u]
+                comp_u.extend(vertex_to_component[v])
+                for w in vertex_to_component[v]:
+                    vertex_to_component[w] = comp_u
 
-                        # flip the bipartition
-                        vertex_in_left[w] = not vertex_in_left[w]
+        # Return the bipartition
+        return vertex_in_left
 
-                    # merge the components
-                    new_component = vertex_to_component[u]+vertex_to_component[v]
-                    for w in new_component:
-                        vertex_to_component[w] = new_component
-
-        # if we get here, then we've found a valid bipartition
-
-        # reconstruct left, right
-        left, right = [], []
-        for v in vertex_in_left:
-            if vertex_in_left[v]:
-                left.append(v)
-            else:
-                right.append(v)
-
-        return set(left), set(right), vertex_in_left
-    
     def allow_loops(self, new, check=True):
         """
         Change whether loops are permitted in the (di)graph

@@ -1301,9 +1301,9 @@ class SR_generic(MPolynomialSystemGenerator):
         F = self.base_ring()
 
         if isinstance(P, str):
-            P = self.state_array([F.from_integer(ZZ(P[i:i+2], 16)) for i in range(0, len(P), 2)])
+            P = self.state_array([F.from_integer(ZZ(P[i: i + 2], 16)) for i in range(0, len(P), 2)])
         if isinstance(K, str):
-            K = self.state_array([F.from_integer(ZZ(K[i:i+2], 16)) for i in range(0, len(K), 2)])
+            K = self.state_array([F.from_integer(ZZ(K[i: i + 2], 16)) for i in range(0, len(K), 2)])
 
         if self.is_state_array(P) and self.is_state_array(K):
             _type = self.state_array

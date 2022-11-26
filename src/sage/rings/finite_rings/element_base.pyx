@@ -1040,7 +1040,7 @@ cdef class FinitePolyExtElement(FiniteRingElement):
         p = self.parent().characteristic()
         f = self.polynomial().change_ring(ZZ)
         if reverse:
-            f = f.reverse(self.parent().degree()-1)
+            f = f.reverse(self.parent().degree() - 1)
         return f(p)
 
     integer_representation = deprecated_function_alias(33941, to_integer)

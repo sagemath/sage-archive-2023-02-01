@@ -1203,7 +1203,7 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
             sage: {a:1,a:0} # indirect doctest
             {a: 0}
         """
-        return hash(self._integer_representation()) # todo, come up with a faster version
+        return hash(self._integer_representation())  # todo, come up with a faster version
 
     def _vector_(FiniteField_ntl_gf2eElement self, reverse=False):
         r"""
@@ -1260,7 +1260,7 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
 
         INPUT:
 
-        - ``base`` -- finite field element.
+        - ``base`` -- finite field element
 
         OUTPUT:
 

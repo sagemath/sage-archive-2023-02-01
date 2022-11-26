@@ -597,9 +597,9 @@ class AmbientHeckeModule(module.HeckeModule_free_module):
             raise ArithmeticError("intersection only defined for subspaces of a common ambient Hecke module")
         return other  # since self is ambient, so the intersection must equal other.
 
-    def is_ambient(self):
+    def is_ambient(self) -> bool:
         r"""
-        Return True if and only if self is an ambient Hecke module.
+        Return ``True`` if and only if ``self`` is an ambient Hecke module.
 
         .. warning::
 
@@ -626,11 +626,11 @@ class AmbientHeckeModule(module.HeckeModule_free_module):
         """
         return True
 
-    def is_full_hecke_module(self, compute=True):
+    def is_full_hecke_module(self, compute=True) -> bool:
         """
-        Return True if this space is invariant under the action of
+        Return ``True`` if this space is invariant under the action of
         all Hecke operators, even those that divide the level. This is
-        always true for ambient Hecke modules, so return True.
+        always true for ambient Hecke modules, so return ``True``.
 
         EXAMPLES::
 
@@ -639,9 +639,9 @@ class AmbientHeckeModule(module.HeckeModule_free_module):
         """
         return True
 
-    def is_new(self, p=None):
+    def is_new(self, p=None) -> bool:
         r"""
-        Return True if this module is entirely new.
+        Return ``True`` if this module is entirely new.
 
         EXAMPLES::
 
@@ -679,8 +679,10 @@ class AmbientHeckeModule(module.HeckeModule_free_module):
 
     def is_submodule(self, V):
         """
-        Return True if and only if self is a submodule of V. Since this is an
-        ambient space, this returns True if and only if V is equal to self.
+        Return ``True`` if and only if ``self`` is a submodule of ``V``.
+
+        Since this is an ambient space, this returns ``True`` if and
+        only if ``V`` is equal to ``self``.
 
         EXAMPLES::
 

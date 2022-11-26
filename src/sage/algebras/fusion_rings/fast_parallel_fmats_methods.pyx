@@ -178,15 +178,15 @@ cdef _fmat(fvars, _Nk_ij, id_anyon, a, b, c, d, x, y):
         return 0
     # Some known F-symbols
     if a == id_anyon:
-        return 1 if x == b and y == d else 0
+        return int(x == b and y == d)
     if b == id_anyon:
-        return 1 if x == a and y == c else 0
+        return int(x == a and y == c)
     if c == id_anyon:
-        return 1 if x == d and y == b else 0
+        return int(x == d and y == b)
     return fvars[a, b, c, d, x, y]
 
 ######################################
-### Fast fusion coefficients cache ###
+#   Fast fusion coefficients cache   #
 ######################################
 
 # from sage.misc.cachefunc import cached_function

@@ -1549,7 +1549,7 @@ cdef class FreeModuleElement(Vector):   # abstract base class
             return self
         M = self._parent.change_ring(R)
         if M.is_sparse():
-            return M(self.dict(), sparse=True, coerce=True)
+            return M(self.dict(), coerce=True)
         return M(self.list(), coerce=True)
 
     def coordinate_ring(self):

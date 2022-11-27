@@ -1,5 +1,5 @@
-scipoptsuite: Mixed integer programming solver
-==============================================
+scip: Mixed integer programming solver
+======================================
 
 Description
 -----------
@@ -25,5 +25,5 @@ https://scipopt.org/#scipoptsuite
 Dependencies
 ------------
 
-scipoptsuite brings its own patched version of the bliss library.
+scip brings its own patched version of the bliss library.
 This will conflict with the optional package bliss.

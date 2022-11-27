@@ -117,7 +117,7 @@ cdef class SCIPBackend(GenericBackend):
             sage: p.add_variable(name='x', obj=1.0)
             3
             sage: p.col_name(3)
-            u'x'
+            'x'
             sage: p.objective_coefficient(3)
             1.0
         """
@@ -256,7 +256,7 @@ cdef class SCIPBackend(GenericBackend):
             sage: p = get_solver(solver = "SCIP")
             sage: p.problem_name("Nomen est omen")
             sage: p.problem_name()
-            u'Nomen est omen'
+            'Nomen est omen'
         """
         if name is None:
             return self.model.getProbName()
@@ -381,7 +381,7 @@ cdef class SCIPBackend(GenericBackend):
             (2.0, 2.0)
             sage: p.add_linear_constraint( zip(range(5), range(5)), 1.0, 1.0, name='foo')
             sage: p.row_name(1)
-            u'foo'
+            'foo'
         """
         if self.model.getStatus() != 'unknown':
             self.model.freeTransform()
@@ -813,7 +813,7 @@ cdef class SCIPBackend(GenericBackend):
             sage: p.add_variable(name='I am a variable')
             0
             sage: p.col_name(0)
-            u'I am a variable'
+            'I am a variable'
         """
         return self.model.getVars()[index].name
 
@@ -831,7 +831,7 @@ cdef class SCIPBackend(GenericBackend):
             sage: p = get_solver(solver = "SCIP")
             sage: p.add_linear_constraints(1, 2, None, names=['Empty constraint 1'])
             sage: p.row_name(0)
-            u'Empty constraint 1'
+            'Empty constraint 1'
         """
         return self.model.getConss()[index].name
 

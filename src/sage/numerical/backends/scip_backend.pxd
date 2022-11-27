@@ -8,7 +8,7 @@
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from generic_backend cimport GenericBackend
+from .generic_backend cimport GenericBackend
 
 cdef class SCIPBackend(GenericBackend):
 
@@ -17,4 +17,3 @@ cdef class SCIPBackend(GenericBackend):
     cpdef _get_model(self)
     cpdef get_row_prim(self, int i)
     cpdef write_cip(self, char * filename)
-

@@ -10,7 +10,9 @@ AUTHORS:
 """
 
 #*****************************************************************************
-#       Copyright (C) 2010 Nathann Cohen <nathann.cohen@gmail.com>
+#       Copyright (C) 2010      Nathann Cohen <nathann.cohen@gmail.com>
+#                     2017-2022 Matthias Koeppe
+#                     2018      Moritz Firsching
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -239,14 +241,14 @@ cdef class SCIPBackend(GenericBackend):
             linfun = sum([e*c for e,c in objexpr.terms.iteritems() if e!=var]) + var*coeff
             self.model.setObjective(linfun, sense = self.model.getObjectiveSense())
 
-    cpdef problem_name(self, char * name = NULL):
+    cpdef problem_name(self, name=None):
         """
         Return or define the problem's name
 
         INPUT:
 
-        - ``name`` (``char *``) -- the problem's name. When set to
-          ``NULL`` (default), the method returns the problem's name.
+        - ``name`` (``str``) -- the problem's name. When set to
+          ``None`` (default), the method returns the problem's name.
 
         EXAMPLE::
 
@@ -256,7 +258,7 @@ cdef class SCIPBackend(GenericBackend):
             sage: p.problem_name()
             u'Nomen est omen'
         """
-        if name is NULL:
+        if name is None:
             return self.model.getProbName()
         else:
             self.model.setProbName(name)
@@ -502,7 +504,7 @@ cdef class SCIPBackend(GenericBackend):
         return (lb, ub)
 
 
-    cpdef add_col(self, list indices, list coeffs):
+    cpdef add_col(self, indices, coeffs):
         """
         Add a column.
 
@@ -1066,7 +1068,7 @@ cdef class SCIPBackend(GenericBackend):
         """
         self.model.writeProblem(filename)
 
-    cpdef write_lp(self, char * filename):
+    cpdef write_lp(self, filename):
         """
         Write the problem to a .lp file
 
@@ -1094,7 +1096,7 @@ cdef class SCIPBackend(GenericBackend):
         self.model.writeProblem(filenamestr)
 
 
-    cpdef write_mps(self, char * filename, int modern):
+    cpdef write_mps(self, filename, int modern):
         """
         Write the problem to a .mps file
 

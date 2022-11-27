@@ -1148,7 +1148,7 @@ class TateAlgebra_generic(CommutativeAlgebra):
         """
         Return the precision cap of this Tate algebra.
 
-        NOTE::
+        .. NOTE::
 
             The precision cap is the truncation precision
             used for arithmetic operations computed by

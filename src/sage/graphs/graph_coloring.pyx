@@ -1474,6 +1474,134 @@ def edge_coloring(g, value_only=False, vizing=False, hex_colors=False, solver=No
     else:
         return classes
 
+def vizing_edge_coloring(g, hex_colors=False):
+    r"""
+    Compute an edge coloring with at most `\Delta + 1` colors.
+
+    INPUT:
+
+    - ``g`` -- a graph.
+
+    - ``hex_colors`` -- boolean (default: ``False``); when set to ``True``, the
+      partition returned is a dictionary whose keys are colors and whose values
+      are the color classes (ideal for plotting)
+
+    OUTPUT:
+
+    - Returns a partition of the edge set into at most `\Delta + 1` matchings.
+
+    .. SEEALSO::
+
+        - :wikipedia:`Edge_coloring` for further details on edge coloring
+        - :wikipedia:`Vizing's_theorem` for further details on Vizing's theorem
+
+    ALGORITHM:
+
+    This function's implementation is based on the algorithm described at [MG1992]_
+    
+    EXAMPLES:
+
+    Coloring the edges of the Petersen Graph::
+
+       sage: from sage.graphs.graph_coloring import vizing_edge_coloring
+       sage: g = graphs.PetersenGraph()
+       sage: vizing_edge_coloring(g)
+       [[(0, 1), (2, 7), (3, 4), (6, 9)],
+         [(0, 4), (2, 3), (5, 7), (6, 8)],
+         [(0, 5), (1, 6), (3, 8), (7, 9)],
+         [(1, 2), (4, 9), (5, 8)]]
+       sage: vizing_edge_coloring(g, hex_colors=True)
+        {'#00ffff': [(0, 5), (1, 6), (3, 8), (7, 9)],
+        '#7f00ff': [(1, 2), (4, 9), (5, 8)],
+        '#7fff00': [(0, 4), (2, 3), (5, 7), (6, 8)],
+        '#ff0000': [(0, 1), (2, 7), (3, 4), (6, 9)]}
+
+    TESTS:
+
+    Graph without edge::
+
+       sage: g = Graph(2)
+       sage: vizing_edge_coloring(g)
+       []
+       sage: vizing_edge_coloring(g, hex_colors=True)
+       {}
+    """
+    # finds every color adjacent to vertex v
+    def colors_of(v):
+        return [x[2] for x in g.edges_incident(v) if x[2] is not None]
+
+    # constructs a maximal fan <f..l> of X where X is edge[0] and f is edge[1]
+    def maximal_fan(edge):
+        fan_center, rear = edge
+        rear_colors = colors_of(rear)
+        cdef list neighbors = [n for n in g.neighbors(fan_center) if g.edge_label(fan_center, n) is not None]
+        cdef list fan = [rear]
+        can_extend_fan = True
+        while can_extend_fan:
+            can_extend_fan = False
+            for n in neighbors:
+                if g.edge_label(fan_center, n) not in rear_colors:
+                    fan.append(n)
+                    rear = n
+                    rear_colors = colors_of(rear)
+                    can_extend_fan = True
+                    neighbors.remove(n)
+        return fan
+
+    # gives each edge Xu in the fan <f..w> the color of Xu+ and uncolors Xw
+    def rotate_fan(fan_center, fan):
+        for i in range(1, len(fan)):
+            g.set_edge_label(fan_center, fan[i - 1], g.edge_label(fan_center, fan[i]))
+        g.set_edge_label(fan_center, fan[-1], None)
+
+    # computes the maximal ab-path starting at v
+    def find_path(v, a, b, path=[]):
+        path_edge = [x for x in g.edges_incident(v) if x[2] == a]
+        if path_edge and path_edge[0] not in path:
+            path.append(path_edge[0][0] if path_edge[0][1] == v else path_edge[0][1])
+            find_path(path[-1], b, a, path)
+        return path
+
+    # exchanges the color of every edge on the ab-path starting at v
+    def invert_path(v, a, b):
+        path = [v] + find_path(v, a, b, [])
+        for i in range(1, len(path)):
+            g.set_edge_label(path[i-1], path[i], a if g.edge_label(path[i-1], path[i]) == b else b)
+
+    # returns the ´smallest´ color free at v
+    def find_free_color(v):
+        colors = [x[2] for x in g.edges_incident(v) if x[2] is not None]
+        for c in range(g.degree(v) + 1):
+            if c not in colors:
+                return c
+
+    g._scream_if_not_simple()
+    # as to not overwrite the original graph's labels
+    g = copy(g)
+    for e in g.edge_iterator(labels=False):
+        fan = maximal_fan(e)
+        fan_center = e[0]
+        rear = fan[-1]
+        c = find_free_color(fan_center)
+        d = find_free_color(rear)
+        invert_path(fan_center, d, c)
+        for i in range(len(fan)):
+            if d not in colors_of(fan[i]):
+                fan = fan[:i + 1]
+                break
+        rotate_fan(fan_center, fan)
+        g.set_edge_label(fan_center, fan[-1], d)
+
+    matchings = dict()
+    for e in g.edge_iterator():
+        matchings[e[2]] = matchings.get(e[2], []) + [(e[0], e[1])]
+    classes = list(matchings.values())
+
+    if hex_colors:
+        from sage.plot.colors import rainbow
+        return dict(zip(rainbow(len(classes)), classes))
+    else:
+        return classes
 
 def round_robin(n):
     r"""

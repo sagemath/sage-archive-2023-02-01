@@ -1238,6 +1238,9 @@ class CoxeterGroups(Category_singleton):
 
                 sage: W = Permutations(4)
                 sage: W._test_has_descent()
+                sage: sage.combinat.permutation.Permutations.options.mult = "r2l"
+                sage: W._test_has_descent()
+                sage: sage.combinat.permutation.Permutations.options._reset()
 
                 sage: W = SignedPermutations(3)
                 sage: W._test_has_descent()
@@ -1306,6 +1309,9 @@ class CoxeterGroups(Category_singleton):
 
                 sage: W = Permutations(4)
                 sage: W._test_coxeter_relations()
+                sage: sage.combinat.permutation.Permutations.options.mult = "r2l"
+                sage: W._test_coxeter_relations()
+                sage: sage.combinat.permutation.Permutations.options._reset()
 
                 sage: W = SignedPermutations(3)
                 sage: W._test_coxeter_relations()
@@ -1892,6 +1898,11 @@ class CoxeterGroups(Category_singleton):
                 sage: d2 = set((w1, w2) for w1 in W2 for w2 in W2 if w1.absolute_le(w2))
                 sage: d1 == d2
                 True
+                sage: sage.combinat.permutation.Permutations.options.mult = "r2l"
+                sage: d3 = set((w1, w2) for w1 in W2 for w2 in W2 if w1.absolute_le(w2))
+                sage: d1 == d3
+                True
+                sage: sage.combinat.permutation.Permutations.options._reset()
 
                 sage: W1 = WeylGroup(['B',2])
                 sage: W2 = SignedPermutations(2)
@@ -2097,6 +2108,11 @@ class CoxeterGroups(Category_singleton):
                 sage: d2 = {pi: set(pi.binary_factorizations()) for pi in W2}
                 sage: d1 == d2
                 True
+                sage: sage.combinat.permutation.Permutations.options.mult = "r2l"
+                sage: d3 = {pi: set(pi.binary_factorizations()) for pi in W2}
+                sage: d1 == d3
+                True
+                sage: sage.combinat.permutation.Permutations.options._reset()
             """
             from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet_forest
             W = self.parent()

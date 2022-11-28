@@ -281,7 +281,7 @@ cdef class SCIPBackend(GenericBackend):
             sage: p.add_variables(5)
             4
             sage: p.set_objective([1, 1, 2, 1, 3])
-            sage: map(lambda x :p.objective_coefficient(x), range(5))
+            sage: [p.objective_coefficient(x) for x in range(5)]
             [1.0, 1.0, 2.0, 1.0, 3.0]
         """
         if self.model.getStatus() != 'unknown':
@@ -429,11 +429,14 @@ cdef class SCIPBackend(GenericBackend):
             sage: p.row_bounds(0)
             (2.0, 2.0)
         """
-        namedvars = [_.name for _ in self.model.getVars()]
+        namedvars = [var.name for var in self.model.getVars()]
         valslinear = self.model.getValsLinear(self.model.getConss()[index])
-        pair = zip(*[[namedvars.index(_),v]
-                            for _,v in  valslinear.iteritems()])
-        return (list(pair[0]), list(pair[1])) if pair !=[] else ([], [])
+        cdef list indices = []
+        cdef list values = []
+        for var, coeff in valslinear.iteritems():
+            indices.append(namedvars.index(var))
+            values.append(coeff)
+        return (indices, values)
 
     cpdef row_bounds(self, int index):
         """
@@ -974,7 +977,7 @@ cdef class SCIPBackend(GenericBackend):
             sage: p.variable_upper_bound(0, 'hey!')
             Traceback (most recent call last):
             ...
-            TypeError: a float is required
+            TypeError: must be real number, not str
         """
         if index < 0 or index >= self.ncols():
             raise ValueError("The variable's id must satisfy 0 <= id < number_of_variables")
@@ -1037,7 +1040,7 @@ cdef class SCIPBackend(GenericBackend):
             sage: p.variable_lower_bound(0, 'hey!')
             Traceback (most recent call last):
             ...
-            TypeError: a float is required
+            TypeError: must be real number, not str
         """
         if index < 0 or index >= self.ncols():
             raise ValueError("The variable's id must satisfy 0 <= id < number_of_variables")
@@ -1047,7 +1050,7 @@ cdef class SCIPBackend(GenericBackend):
         else:
             self.model.chgVarLb(var = var, lb = value)
 
-    cpdef write_cip(self, char * filename):
+    cpdef write_cip(self, filename):
         """
         Write the problem to a .cip file
 
@@ -1063,8 +1066,10 @@ cdef class SCIPBackend(GenericBackend):
             1
             sage: p.add_linear_constraint([[0, 1], [1, 2]], None, 3)
             sage: p.set_objective([2, 5])
-            sage: p.write_cip(os.path.join(SAGE_TMP, "lp_problem.cip"))
-            wrote original problem to file ...
+            sage: import tempfile
+            sage: with tempfile.NamedTemporaryFile(suffix=".cip") as f:
+            ....:     p.write_cip(f.name)
+            wrote problem to file ...
         """
         self.model.writeProblem(filename)
 
@@ -1084,8 +1089,10 @@ cdef class SCIPBackend(GenericBackend):
             1
             sage: p.add_linear_constraint([[0, 1], [1, 2]], None, 3)
             sage: p.set_objective([2, 5])
-            sage: p.write_lp(os.path.join(SAGE_TMP, "lp_problem.lp"))
-            wrote original problem to file ...
+            sage: import tempfile
+            sage: with tempfile.NamedTemporaryFile(suffix=".lp") as f:
+            ....:     p.write_lp(f.name)
+            wrote problem to file ...
         """
         filenamestr = filename
         fname, fext = splitext(filenamestr)
@@ -1112,8 +1119,10 @@ cdef class SCIPBackend(GenericBackend):
             1
             sage: p.add_linear_constraint([[0, 1], [1, 2]], None, 3)
             sage: p.set_objective([2, 5])
-            sage: p.write_mps(os.path.join(SAGE_TMP, "lp_problem.mps"), 2)
-            wrote original problem to file ...
+            sage: import tempfile
+            sage: with tempfile.NamedTemporaryFile(suffix=".mps") as f:
+            ....:     p.write_mps(f.name, 2)
+            wrote problem to file ...
         """
         filenamestr = filename
         fname, fext = splitext(filenamestr)

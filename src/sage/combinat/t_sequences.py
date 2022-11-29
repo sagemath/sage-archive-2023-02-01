@@ -302,7 +302,7 @@ def T_sequences_construction_I(turyn_sequences, check=True):
     Construct T-sequences of length `2l-1` from Turyn sequences of length `l`.
 
     Given Turyn sequences `X, U, Y, V`, the T-sequences are constructed as described in
-    theorem 7.7 of [Seb2017]_:
+    Theorem 7.7 of [Seb2017]_:
 
     .. MATH::
 
@@ -330,6 +330,7 @@ def T_sequences_construction_I(turyn_sequences, check=True):
         [0, 0, 0, 0, 0, 1, 0]]
 
     TESTS::
+
         sage: seqs = turyn_sequences_smallcases(4)
         sage: is_T_sequences_set(T_sequences_construction_I(seqs))
         True
@@ -339,11 +340,12 @@ def T_sequences_construction_I(turyn_sequences, check=True):
         AssertionError
 
     .. NOTE::
-    
-        The construction detailed in [Seb2017]_ contains a typo. The first two sequences are 
+
+        The construction detailed in [Seb2017]_ contains a typo. The first two sequences are
         defined as `T_1 = \frac{1}{2}(X+Y); 0_{l-1}` and `T_2 = \frac{1}{2}(X-Y); 0_{l-1}`,
-        but the correct formulas are `T_1 = \frac{1}{2}(X+U); 0_{l-1}` and 
-        `T_2 = \frac{1}{2}(X-U); 0_{l-1}`.
+        but the correct formulas are `T_1 = \frac{1}{2}(X+U); 0_{l-1}` and
+        `T_2 = \frac{1}{2}(X-U); 0_{l-1}`. A very similar typo can be seen in the proof of
+        Theorem 9 in [CRSKKY1989]_ as well.
     """
 
     assert len(turyn_sequences) == 4

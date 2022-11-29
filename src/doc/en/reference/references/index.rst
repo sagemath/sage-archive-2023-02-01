@@ -1771,8 +1771,8 @@ REFERENCES:
 
 .. [CRSKKY1989] \G. Cohen, D. Rubie, J. Seberry, C. Koukouvinos, S. Kounias, M. Yamada,
                 *A survey of base sequences, disjoint complementary sequences and OD(4t;t,t,t,t)*.
-                JCMCC. The Journal of Combinatorial Mathematics and Combinatorial Computing, 
-                vol 5, 1989.
+                JCMCC. The Journal of Combinatorial Mathematics and Combinatorial Computing,
+                **5** (1989), 69-104.
 
 .. [CRST2006] \M. Chudnovsky, N. Robertson, P. Seymour, R. Thomas.
               *The strong perfect graph theorem*.
@@ -1842,7 +1842,7 @@ REFERENCES:
              *Signature-based algorithms for Gröbner bases over Tate algebras*,
              :arxiv:`2002.04491` (2020)
 
-.. [CW1972] \J. Cooper and J. Wallis. 
+.. [CW1972] \J. Cooper and J. Wallis.
             *A construction for Hadamard arrays*,
             Bulletin of the Australian Mathematical Society 7(2) (1972): 269-277.
             :doi:`10.1017/S0004972700045019`
@@ -5276,9 +5276,9 @@ REFERENCES:
              *Wide-open encryption design offers flexible implementations*; in
              Cryptologia, (1985), pp. 75-91.
 
-.. [Seb2017] \J. Seberry, 
+.. [Seb2017] \J. Seberry,
              *Orthogonal designs: Hadamard matrices, quadratic forms and algebras*.
-             (2017). :doi:`10.1007/978-3-319-59032-5``
+             Springer 2017. :doi:`10.1007/978-3-319-59032-5`
 
 .. [SE1962] \N. E. Steenrod and D. B. A. Epstein, Cohomology
             operations, Ann. of Math. Stud. 50 (Princeton University
@@ -5850,8 +5850,8 @@ REFERENCES:
 .. [TTWL2009] Trebst, Troyer, Wang and Ludwig, A short introduction to
               Fibonacci anyon models, :arxiv:`0902.3275`.
 
-.. [Tur1974] \R. J. Turyn *Hadamard matrices, Baumert-Hall units, 
-             four-symbol sequences, pulse compression, and surface wave encodings*. 
+.. [Tur1974] \R. J. Turyn *Hadamard matrices, Baumert-Hall units,
+             four-symbol sequences, pulse compression, and surface wave encodings*.
              Journal of Combinatorial Theory, Series A 16.3 (1974), pp 313–333.
              :doi:`10.1016/0097-3165(74)90056-9`
 

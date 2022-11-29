@@ -1793,11 +1793,11 @@ REFERENCES:
             and groups*, 3rd. ed., Grundlehren der Mathematischen
             Wissenschaften, vol. 290, Springer-Verlag, New York, 1999.
 
-.. [CS1988] Conway, J. H., and N. J. A. Sloane. “Low-Dimensional Lattices. IV.
-            The Mass Formula.” Proceedings of the Royal Society of London.
+.. [CS1988] Conway, J. H., and N. J. A. Sloane. *Low-Dimensional Lattices. IV.
+            The Mass Formula*, Proceedings of the Royal Society of London.
             Series A, Mathematical and Physical Sciences, vol. 419, no. 1857, 1988, pp. 259-286.
 
-.. [CS2003] \John E. Cremona and Michael Stoll. On The Reduction Theory of Binary Forms.
+.. [CS2003] \John E. Cremona and Michael Stoll. *On The Reduction Theory of Binary Forms*.
             Journal für die reine und angewandte Mathematik, 565 (2003), 79-99.
 
 .. [CS2006] \J. E. Cremona, and S. Siksek, Computing a Lower Bound for the
@@ -2793,6 +2793,10 @@ REFERENCES:
             Can. J. Math. 22 (1970) 597-614.
             :doi:`10.4153/CJM-1970-067-9`
 
+.. [GS70s] \J.M. Goethals and J. J. Seidel,
+           *A skew Hadamard matrix of order 36*,
+           J. Aust. Math. Soc. 11(1970), 343-344
+
 .. [GS1975] \J.M. Goethals, and J. J. Seidel,
             *The regular two-graph on 276 vertices*,
             Discrete Mathematics 12, no. 2 (1975): 143-158.
@@ -2849,7 +2853,12 @@ REFERENCES:
 .. [Ha2005] Gerhard Haring. [Online] Available:
             http://osdir.com/ml/python.db.pysqlite.user/2005-11/msg00047.html
 
+.. [Ha83]    \M. Hall, *Combinatorial Theory*,
+             2nd edition, Wiley, 1983
+
 .. [Hac2016] \M. Hachimori. http://infoshako.sk.tsukuba.ac.jp/~hachi/math/library/dunce_hat_eng.html
+
+.. [HadaWiki] Hadamard matrices on Wikipedia, :wikipedia:`Hadamard_matrix`
 
 .. [Haf2004] Paul R. Hafner. *On the Graphs of Hoffman-Singleton and Higman-Sims*.
              The Electronic Journal of Combinatorics 11 (2004), #R77.
@@ -3038,6 +3047,9 @@ REFERENCES:
 .. [HNT2005] Florent Hivert, Jean-Christophe Novelli, and Jean-Yves Thibon.
              *The algebra of binary search trees*,
              :arxiv:`math/0401089v2`.
+
+.. [Hora]    \K. J. Horadam, *Hadamard Matrices and Their Applications*,
+             Princeton University Press, 2006.
 
 .. [HP2003] \W. C. Huffman, V. Pless, Fundamentals of Error-Correcting
             Codes, Cambridge Univ. Press, 2003.
@@ -3657,6 +3669,9 @@ REFERENCES:
 .. [Kos1985] \J.-L. Koszul, *Crochet de Schouten-Nijenhuis et
              cohomologie*, in *Élie Cartan et les mathématiques
              d'aujourd'hui*, Astérisque hors série (1985), p. 257
+
+.. [KoSt08] \C. Koukouvinos, S. Stylianou, *On skew-Hadamard matrices*,
+            Discrete Math. **308** (2008) 2723-2731
 
 .. [KP2002] Volker Kaibel and Marc E. Pfetsch, "Computing the Face
             Lattice of a Polytope from its Vertex-Facet Incidences",
@@ -5380,6 +5395,8 @@ REFERENCES:
              systems: Algorithmic, game-theoretic, and logical
              foundations.* Cambridge University Press, 2008.
 
+.. [SloaHada] \N.J.A. Sloane's Library of Hadamard Matrices, at https://neilsloane.com/hadamard/
+
 .. [SMMK2013] \T. Suzaki, K. Minematsu, S. Morioka, and E. Kobayashi,
               *TWINE: A lightweight block cipher for multiple platforms*; in
               SAC, (2012), pp. 338-354.
@@ -6105,9 +6122,12 @@ REFERENCES:
             *Numerical modular symbols for elliptic curves*.
             Math. Comp. 87 (2018), no. 313, 2393–2423.
 
+.. [Wall71] \J. Wallis, *A skew-Hadamard matrix of order 92*,
+            Bull. Aust. Math. Soc. **5** (1971), 203-204
+
 .. [WW1972] \J. Wallis and A.L. Whiteman,
             Some classes of Hadamard matrices with constant diagonal,
-            Bull. Austral. Math. Soc. 7(1972), 233-249
+            Bull. Austral. Math. Soc. **7** (1972), 233-249
 
 .. [WW1991] Michelle Wachs and Dennis White, *p, q-Stirling numbers
             and set partition statistics*, Journal of Combinatorial

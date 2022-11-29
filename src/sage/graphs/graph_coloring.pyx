@@ -1270,13 +1270,15 @@ def edge_coloring(g, value_only=False, vizing=False, hex_colors=False, solver=No
 
     - ``vizing`` -- boolean (default: ``False``):
 
-      - When set to ``True``, tries to find a `\Delta + 1`-edge-coloring, where
-        `\Delta` is equal to the maximum degree in the graph
+      - When set to ``True``, finds an edge coloring using the algorithm described
+        at [MG1992]_. This may result in either a `\Delta`-edge-coloring or a
+        `Delta + 1`-edge-coloring, where `\Delta` is equal to the maximum degree in
+        the graph.
 
-      - When set to ``False``, tries to find a `\Delta`-edge-coloring, where
-        `\Delta` is equal to the maximum degree in the graph. If impossible,
-        tries to find and returns a `\Delta + 1`-edge-coloring. This implies
-        that ``value_only=False``
+      - When set to ``False``, tries to find a `\Delta`-edge-coloring using Mixed 
+        Integer Linear Programming (MILP). If impossible, returns a `\Delta + 1`-edge-coloring.
+        Please note that determinating if the chromatic index of a graph equals `\Delta` 
+        is computationally difficult, and could take a long time.
 
     - ``hex_colors`` -- boolean (default: ``False``); when set to ``True``, the
       partition returned is a dictionary whose keys are colors and whose values
@@ -1303,7 +1305,7 @@ def edge_coloring(g, value_only=False, vizing=False, hex_colors=False, solver=No
     ``g``.
 
     - If ``vizing=True`` and ``value_only=False``, return a partition of the
-      edge set into `\Delta + 1` matchings.
+      edge set into either `\Delta` or `\Delta + 1` matchings.
 
     - If ``vizing=False`` and ``value_only=True``, return the chromatic index.
 
@@ -1340,15 +1342,15 @@ def edge_coloring(g, value_only=False, vizing=False, hex_colors=False, solver=No
        sage: edge_coloring(g, value_only=True, solver='GLPK')
        4
        sage: edge_coloring(g, value_only=False, solver='GLPK')
-       [[(0, 1), (2, 3), (4, 9), (5, 7), (6, 8)],
-        [(0, 4), (1, 2), (3, 8), (6, 9)],
-        [(0, 5), (2, 7)],
-        [(1, 6), (3, 4), (5, 8), (7, 9)]]
+       [[(0, 1), (2, 7), (3, 4), (6, 9)],
+         [(0, 4), (2, 3), (5, 7), (6, 8)],
+         [(0, 5), (1, 6), (3, 8), (7, 9)],
+         [(1, 2), (4, 9), (5, 8)]]
        sage: edge_coloring(g, value_only=False, hex_colors=True, solver='GLPK')
-       {'#00ffff': [(0, 5), (2, 7)],
-        '#7f00ff': [(1, 6), (3, 4), (5, 8), (7, 9)],
-        '#7fff00': [(0, 4), (1, 2), (3, 8), (6, 9)],
-        '#ff0000': [(0, 1), (2, 3), (4, 9), (5, 7), (6, 8)]}
+        {'#00ffff': [(0, 5), (1, 6), (3, 8), (7, 9)],
+        '#7f00ff': [(1, 2), (4, 9), (5, 8)],
+        '#7fff00': [(0, 4), (2, 3), (5, 7), (6, 8)],
+        '#ff0000': [(0, 1), (2, 7), (3, 4), (6, 9)]}
 
     Complete graphs are colored using the linear-time round-robin coloring::
 
@@ -1384,7 +1386,7 @@ def edge_coloring(g, value_only=False, vizing=False, hex_colors=False, solver=No
         return dict() if hex_colors else list()
 
     if vizing:
-        value_only = False
+        return _vizing_edge_coloring(g, hex_colors)
 
     # The chromatic index of g is the maximum value over its connected
     # components, and the edge coloring is the union of the edge
@@ -1423,45 +1425,38 @@ def edge_coloring(g, value_only=False, vizing=False, hex_colors=False, solver=No
                 classes[c].append((u, v))
             continue
 
-        # Vizing's coloring uses Delta + 1 colors. Otherwise, we try both.
-        values = [Delta + 1] if vizing else [Delta, Delta + 1]
-
-        for k in values:
-            p = MixedIntegerLinearProgram(maximization=True, solver=solver)
-            color = p.new_variable(binary=True)
-            # A vertex cannot have two incident edges with the same color.
-            for v in h:
-                for i in range(k):
-                    p.add_constraint(p.sum(color[frozenset((u, v)), i] for u in h.neighbor_iterator(v)) <= 1)
-            # An edge must have a color
-            for u, v in h.edge_iterator(labels=False):
-                p.add_constraint(p.sum(color[frozenset((u, v)), i] for i in range(k)) == 1)
-            # We color the edges of the vertex of maximum degree
-            for i, v in enumerate(h.neighbor_iterator(X)):
-                p.add_constraint(color[frozenset((v, X)), i] == 1)
-            try:
-                p.solve(objective_only=value_only, log=verbose)
-                break
-            except MIPSolverException:
-                if k == Delta + 1:
-                    raise RuntimeError("Something is wrong! Certainly a problem in the"
-                                       " algorithm... please contact sage-devel@googlegroups.com")
-                # The coloring fails with Delta colors
-                if value_only:
-                    k = k + 1
-                    break
+        p = MixedIntegerLinearProgram(maximization=True, solver=solver)
+        color = p.new_variable(binary=True)
+        # A vertex cannot have two incident edges with the same color.
+        for v in h:
+            for i in range(Delta):
+                p.add_constraint(p.sum(color[frozenset((u, v)), i] for u in h.neighbor_iterator(v)) <= 1)
+        # An edge must have a color
+        for u, v in h.edge_iterator(labels=False):
+            p.add_constraint(p.sum(color[frozenset((u, v)), i] for i in range(Delta)) == 1)
+        # We color the edges of the vertex of maximum degree
+        for i, v in enumerate(h.neighbor_iterator(X)):
+            p.add_constraint(color[frozenset((v, X)), i] == 1)
+        try:
+            p.solve(objective_only=value_only, log=verbose)
+        except MIPSolverException:
+            # The coloring fails with Delta colors
+            if value_only:
+                chi = max(chi, Delta + 1)
+            else:
+                return _vizing_edge_coloring(g, hex_colors)
 
         if value_only:
-            chi = max(chi, k)
+            chi = max(chi, Delta)
         else:
             # create missing color classes, if any
-            for i in range(len(classes), k):
+            for i in range(len(classes), Delta):
                 classes.append([])
             # add edges to color classes
             color = p.get_values(color, convert=bool, tolerance=integrality_tolerance)
             for e in h.edge_iterator(labels=False):
                 fe = frozenset(e)
-                for i in range(k):
+                for i in range(Delta):
                     if color[fe, i]:
                         classes[i].append(e)
                         break
@@ -1474,7 +1469,7 @@ def edge_coloring(g, value_only=False, vizing=False, hex_colors=False, solver=No
     else:
         return classes
 
-def vizing_edge_coloring(g, hex_colors=False):
+def _vizing_edge_coloring(g, hex_colors=False):
     r"""
     Compute an edge coloring with at most `\Delta + 1` colors.
 
@@ -1503,14 +1498,14 @@ def vizing_edge_coloring(g, hex_colors=False):
 
     Coloring the edges of the Petersen Graph::
 
-       sage: from sage.graphs.graph_coloring import vizing_edge_coloring
+       sage: from sage.graphs.graph_coloring import _vizing_edge_coloring
        sage: g = graphs.PetersenGraph()
-       sage: vizing_edge_coloring(g)
+       sage: _vizing_edge_coloring(g)
        [[(0, 1), (2, 7), (3, 4), (6, 9)],
          [(0, 4), (2, 3), (5, 7), (6, 8)],
          [(0, 5), (1, 6), (3, 8), (7, 9)],
          [(1, 2), (4, 9), (5, 8)]]
-       sage: vizing_edge_coloring(g, hex_colors=True)
+       sage: _vizing_edge_coloring(g, hex_colors=True)
         {'#00ffff': [(0, 5), (1, 6), (3, 8), (7, 9)],
         '#7f00ff': [(1, 2), (4, 9), (5, 8)],
         '#7fff00': [(0, 4), (2, 3), (5, 7), (6, 8)],
@@ -1521,9 +1516,9 @@ def vizing_edge_coloring(g, hex_colors=False):
     Graph without edge::
 
        sage: g = Graph(2)
-       sage: vizing_edge_coloring(g)
+       sage: _vizing_edge_coloring(g)
        []
-       sage: vizing_edge_coloring(g, hex_colors=True)
+       sage: _vizing_edge_coloring(g, hex_colors=True)
        {}
     """
     # finds every color adjacent to vertex v
@@ -1575,7 +1570,6 @@ def vizing_edge_coloring(g, hex_colors=False):
             if c not in colors:
                 return c
 
-    g._scream_if_not_simple()
     # as to not overwrite the original graph's labels
     g = copy(g)
     for e in g.edge_iterator(labels=False):

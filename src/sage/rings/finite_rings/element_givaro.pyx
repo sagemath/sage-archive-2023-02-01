@@ -72,7 +72,11 @@ from cypari2.stack cimport clear_stack
 
 from sage.structure.parent cimport Parent
 
-from sage.interfaces.gap import is_GapElement
+
+try:
+    from sage.interfaces.gap import GapElement
+except ImportError:
+    GapElement = ()
 
 cdef object is_IntegerMod
 cdef object Integer
@@ -435,7 +439,7 @@ cdef class Cache_givaro(Cache_base):
         elif isinstance(e, sage.libs.gap.element.GapElement_FiniteField):
             return e.sage(ring=self.parent)
 
-        elif is_GapElement(e):
+        elif isinstance(e, GapElement):
             from sage.libs.gap.libgap import libgap
             return libgap(e).sage(ring=self.parent)
 

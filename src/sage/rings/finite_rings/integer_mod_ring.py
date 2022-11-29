@@ -77,7 +77,10 @@ from sage.misc.cachefunc import cached_method
 from sage.structure.factory import UniqueFactory
 from sage.structure.richcmp import richcmp, richcmp_method
 
-from sage.interfaces.gap import is_GapElement
+try:
+    from sage.interfaces.gap import GapElement
+except ImportError:
+    GapElement = ()
 
 class IntegerModFactory(UniqueFactory):
     r"""
@@ -1180,13 +1183,19 @@ In the latter case, please inform the developers.""".format(self.order()))
             4
             sage: libgap(a.sage()) == a
             True
+
+        better syntax for libgap interface::
+
+            sage: a = libgap.Z(13)^2
+            sage: libgap(a.sage()) == a
+            True
         """
         try:
             return integer_mod.IntegerMod(self, x)
         except (NotImplementedError, PariError):
             raise TypeError("error coercing to finite field")
         except TypeError:
-            if is_GapElement(x):
+            if isinstance(x, GapElement):
                 from sage.libs.gap.libgap import libgap
                 return libgap(x).sage()
             raise  # Continue up with the original TypeError

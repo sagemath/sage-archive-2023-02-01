@@ -52,11 +52,15 @@ from sage.arith.long cimport pyobject_to_long
 from .element_pari_ffelt import FiniteFieldElement_pari_ffelt
 from .finite_field_ntl_gf2e import FiniteField_ntl_gf2e
 
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+
 from sage.libs.gap.element import GapElement_FiniteField
 
-from sage.interfaces.gap import is_GapElement
+try:
+    from sage.interfaces.gap import GapElement
+except ImportError:
+    GapElement = ()
 
-from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
 cdef object is_IntegerMod
 cdef object IntegerModRing_generic
@@ -369,7 +373,7 @@ cdef class Cache_ntl_gf2e(Cache_base):
         elif isinstance(e, GapElement_FiniteField):
             return e.sage(ring=self._parent)
 
-        elif is_GapElement(e):
+        elif isinstance(e, GapElement):
             from sage.libs.gap.libgap import libgap
             return libgap(e).sage(ring=self._parent)
 

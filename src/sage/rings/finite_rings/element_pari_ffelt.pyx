@@ -29,7 +29,6 @@ from .element_base cimport FinitePolyExtElement
 from .integer_mod import IntegerMod_abstract
 
 import sage.rings.integer
-from sage.interfaces.gap import is_GapElement
 from sage.modules.free_module_element import FreeModuleElement
 from sage.rings.integer cimport Integer
 from sage.rings.polynomial.polynomial_element import Polynomial
@@ -38,6 +37,11 @@ from sage.rings.rational import Rational
 from sage.structure.element cimport Element, ModuleElement, RingElement
 from sage.structure.richcmp cimport rich_to_bool
 
+
+try:
+    from sage.interfaces.gap import GapElement
+except ImportError:
+    GapElement = ()
 
 cdef GEN _INT_to_FFELT(GEN g, GEN x) except NULL:
     """
@@ -504,7 +508,7 @@ cdef class FiniteFieldElement_pari_ffelt(FinitePolyExtElement):
         elif isinstance(x, str):
             self.construct_from(self._parent.polynomial_ring()(x))
 
-        elif is_GapElement(x):
+        elif isinstance(x, GapElement):
             try:
                 from sage.libs.gap.libgap import libgap
                 self.construct_from(libgap(x).sage(ring=self._parent))

@@ -1,7 +1,7 @@
 r"""
 T-sequences
 
-T-sequences are sets of four (-1, 0, 1) sequences of length `t` where 
+T-sequences are tuples of four (-1, 0, 1) sequences of length `t` where 
 for every `i` exactly one sequence has a nonzero entry at index `i` 
 and for which the nonperiodic autocorrelation function is equal to zero 
 (i.e. they are complementary). See Definition 7.5 of [Seb2017]_.
@@ -10,7 +10,7 @@ These can be constructed from Turyn sequences. In particular,
 if Turyn sequences of length `l` exists, there will be T-sequences
 of length `4l-1` and `2l-1`.
 
-Turyn sequences are sets of four (-1, +1) sequences `X, U, Y, V` of length
+Turyn sequences are tuples of four (-1, +1) sequences `X, U, Y, V` of length
 `l`, `l`, `l-1`, `l-1` with nonperiodic autocorrelation equal to zero and 
 the additional constraints that:
 

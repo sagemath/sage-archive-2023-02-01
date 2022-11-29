@@ -1649,10 +1649,9 @@ def default_mip_solver(solver=None):
     elif solver == "Interactivelp":
         default_solver = solver
 
-    elif solver == "SCIP" or solver == "Scip":
+    elif solver == "Scip":
         try:
-            from sage.libs.scip.scip import SCIP
-            from pyscipopt import Model
+            from sage.numerical.backends.scip_backend import SCIPBackend
             default_solver = solver
         except ImportError:
             raise ValueError("SCIP is not available. Please refer to the documentation to install it.")

@@ -73,10 +73,7 @@ from cypari2.stack cimport clear_stack
 from sage.structure.parent cimport Parent
 
 
-try:
-    from sage.interfaces.gap import GapElement
-except ImportError:
-    GapElement = ()
+from sage.interfaces.abc import GapElement
 
 cdef object is_IntegerMod
 cdef object Integer

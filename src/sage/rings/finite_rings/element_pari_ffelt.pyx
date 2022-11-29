@@ -38,10 +38,7 @@ from sage.structure.element cimport Element, ModuleElement, RingElement
 from sage.structure.richcmp cimport rich_to_bool
 
 
-try:
-    from sage.interfaces.gap import GapElement
-except ImportError:
-    GapElement = ()
+from sage.interfaces.abc import GapElement
 
 cdef GEN _INT_to_FFELT(GEN g, GEN x) except NULL:
     """

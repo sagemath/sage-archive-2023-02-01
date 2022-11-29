@@ -202,6 +202,8 @@ from sage.misc.instancedoc import instancedoc
 from sage.interfaces.tab_completion import ExtraTabCompletion
 from sage.structure.element import ModuleElement
 
+import sage.interfaces.abc
+
 import re
 import os
 import io
@@ -1524,7 +1526,7 @@ def gap_reset_workspace(max_workspace_size=None, verbose=False):
 
 
 @instancedoc
-class GapElement(GapElement_generic):
+class GapElement(GapElement_generic, sage.interfaces.abc.GapElement):
     def __getitem__(self, n):
         """
         EXAMPLES::

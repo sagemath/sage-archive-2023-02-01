@@ -56,10 +56,7 @@ from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
 from sage.libs.gap.element import GapElement_FiniteField
 
-try:
-    from sage.interfaces.gap import GapElement
-except ImportError:
-    GapElement = ()
+from sage.interfaces.abc import GapElement
 
 
 cdef object is_IntegerMod

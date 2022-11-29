@@ -77,10 +77,7 @@ from sage.misc.cachefunc import cached_method
 from sage.structure.factory import UniqueFactory
 from sage.structure.richcmp import richcmp, richcmp_method
 
-try:
-    from sage.interfaces.gap import GapElement
-except ImportError:
-    GapElement = ()
+from sage.interfaces.abc import GapElement
 
 class IntegerModFactory(UniqueFactory):
     r"""

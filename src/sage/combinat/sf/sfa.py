@@ -6471,7 +6471,7 @@ def _to_polynomials(lf, R):
 
     .. SEEALSO::
 
-        :func:`_from_polynomials`
+        :func:`_from_polynomial`
 
     EXAMPLES::
 

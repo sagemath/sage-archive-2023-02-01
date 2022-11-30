@@ -224,6 +224,8 @@ class EllipticCurveHom_frobenius(EllipticCurveHom):
 
         self._poly_ring = PolynomialRing(E.base_ring(), ['x'], sparse=True)
         self._mpoly_ring = PolynomialRing(E.base_ring(), ['x','y'], sparse=True)
+        self._xfield = self._poly_ring.fraction_field()
+        self._xyfield = self._mpoly_ring.fraction_field()
 
     def _call_(self, P):
         """
@@ -310,7 +312,7 @@ class EllipticCurveHom_frobenius(EllipticCurveHom):
     def rational_maps(self):
         """
         Return the explicit rational maps defining this Frobenius
-        isogeny as (sparse) bivariate polynomials in `x` and `y`.
+        isogeny as (sparse) bivariate rational maps in `x` and `y`.
 
         EXAMPLES::
 
@@ -319,14 +321,23 @@ class EllipticCurveHom_frobenius(EllipticCurveHom):
             sage: pi = EllipticCurveHom_frobenius(E, 4)
             sage: pi.rational_maps()
             (x^14641, y^14641)
+
+        TESTS:
+
+        See :trac:`34811`::
+
+            sage: pi.rational_maps()[0].parent()
+            Fraction Field of Multivariate Polynomial Ring in x, y over Finite Field of size 11
+            sage: pi.rational_maps()[1].parent()
+            Fraction Field of Multivariate Polynomial Ring in x, y over Finite Field of size 11
         """
-        x,y = self._mpoly_ring.gens()
+        x,y = self._xyfield.gens()
         return (x**self._degree, y**self._degree)
 
     def x_rational_map(self):
         """
         Return the `x`-coordinate rational map of this Frobenius
-        isogeny as a (sparse) univariate polynomial in `x`.
+        isogeny as a (sparse) univariate rational map in `x`.
 
         EXAMPLES::
 
@@ -335,8 +346,15 @@ class EllipticCurveHom_frobenius(EllipticCurveHom):
             sage: pi = EllipticCurveHom_frobenius(E, 4)
             sage: pi.x_rational_map()
             x^14641
+
+        TESTS:
+
+        See :trac:`34811`::
+
+            sage: pi.x_rational_map().parent()
+            Fraction Field of Sparse Univariate Polynomial Ring in x over Finite Field of size 11
         """
-        x, = self._poly_ring.gens()
+        x, = self._xfield.gens()
         return x**self._degree
 
     def scaling_factor(self):

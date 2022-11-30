@@ -2419,7 +2419,11 @@ class Graphics(WithEqualityById, SageObject):
                     LogFormatterMathtext(base=base[0])(n, pos).replace(
                         "\\mathdefault", ""))
             else:
-                x_formatter = FuncFormatter(lambda n, pos: '$%s$' % latex(n))
+                # circumvent the problem of symbolic tick values (trac #34693)
+                if isinstance(x_locator, FixedLocator):
+                    x_formatter = FixedFormatter(['$%s$' % latex(n) for n in x_locator.locs])
+                else:
+                    x_formatter = FuncFormatter(lambda n, pos: '$%s$' % latex(n))
         elif isinstance(x_formatter, (list, tuple)):
             if (not isinstance(ticks[0], (list, tuple)) or
                     len(ticks[0]) != len(x_formatter)):

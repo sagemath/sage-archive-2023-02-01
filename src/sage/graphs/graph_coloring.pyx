@@ -1523,19 +1523,19 @@ def _vizing_edge_coloring(g, hex_colors=False):
     """
     # finds every color adjacent to vertex v
     def colors_of(v):
-        return [x[2] for x in g.edges_incident(v) if x[2] is not None]
+        return [c for edge, c in e_colors.items() if v in edge and c != None]
 
     # constructs a maximal fan <f..l> of X where X is edge[0] and f is edge[1]
     def maximal_fan(edge):
         fan_center, rear = edge
         rear_colors = colors_of(rear)
-        cdef list neighbors = [n for n in g.neighbors(fan_center) if g.edge_label(fan_center, n) is not None]
+        cdef list neighbors = [e[0] if e[1] == fan_center else e[1] for e, c in e_colors.items() if fan_center in e and c != None]
         cdef list fan = [rear]
         can_extend_fan = True
         while can_extend_fan:
             can_extend_fan = False
             for n in neighbors:
-                if g.edge_label(fan_center, n) not in rear_colors:
+                if e_colors[tuple(sorted((fan_center, n)))] not in rear_colors:
                     fan.append(n)
                     rear = n
                     rear_colors = colors_of(rear)
@@ -1546,13 +1546,13 @@ def _vizing_edge_coloring(g, hex_colors=False):
     # gives each edge Xu in the fan <f..w> the color of Xu+ and uncolors Xw
     def rotate_fan(fan_center, fan):
         for i in range(1, len(fan)):
-            g.set_edge_label(fan_center, fan[i - 1], g.edge_label(fan_center, fan[i]))
-        g.set_edge_label(fan_center, fan[-1], None)
+            e_colors[tuple(sorted((fan_center, fan[i-1])))] = e_colors[tuple(sorted((fan_center, fan[i])))] 
+        e_colors[tuple(sorted((fan_center, fan[-1])))]
 
     # computes the maximal ab-path starting at v
     def find_path(v, a, b, path=[]):
-        path_edge = [x for x in g.edges_incident(v) if x[2] == a]
-        if path_edge and path_edge[0] not in path:
+        path_edge = [e for e, c in e_colors.items() if c == a and v in e]
+        if path_edge and (path_edge[0][0] not in path or path_edge[0][1] not in path):
             path.append(path_edge[0][0] if path_edge[0][1] == v else path_edge[0][1])
             find_path(path[-1], b, a, path)
         return path
@@ -1561,18 +1561,20 @@ def _vizing_edge_coloring(g, hex_colors=False):
     def invert_path(v, a, b):
         path = [v] + find_path(v, a, b, [])
         for i in range(1, len(path)):
-            g.set_edge_label(path[i-1], path[i], a if g.edge_label(path[i-1], path[i]) == b else b)
+            e_colors[tuple(sorted((path[i-1], path[i])))] = a if e_colors[tuple(sorted((path[i-1], path[i])))] == b else b
 
     # returns the ´smallest´ color free at v
     def find_free_color(v):
-        colors = [x[2] for x in g.edges_incident(v) if x[2] is not None]
-        for c in range(g.degree(v) + 1):
+        colors = [c for edge, c in e_colors.items() if c != None and v in edge]
+        for c in range(g.degree(v)+1):
             if c not in colors:
                 return c
 
-    # as to not overwrite the original graph's labels
-    g = copy(g)
-    for e in g.edge_iterator(labels=False):
+    # dict where keys are edges of g and values are colors
+    # sorted to not raise KeyError if vertex order is swapped
+    e_colors = dict.fromkeys([tuple(sorted(e)) for e in g.edges(labels=False, sort=False)])
+
+    for e in e_colors.keys(): 
         fan = maximal_fan(e)
         fan_center = e[0]
         rear = fan[-1]
@@ -1581,14 +1583,14 @@ def _vizing_edge_coloring(g, hex_colors=False):
         invert_path(fan_center, d, c)
         for i in range(len(fan)):
             if d not in colors_of(fan[i]):
-                fan = fan[:i + 1]
+                fan = fan[:i+1]
                 break
         rotate_fan(fan_center, fan)
-        g.set_edge_label(fan_center, fan[-1], d)
+        e_colors[tuple(sorted((fan_center, fan[-1])))] = d
 
     matchings = dict()
-    for e in g.edge_iterator():
-        matchings[e[2]] = matchings.get(e[2], []) + [(e[0], e[1])]
+    for edge, c in e_colors.items(): 
+        matchings[c] = matchings.get(c, []) + [edge]
     classes = list(matchings.values())
 
     if hex_colors:

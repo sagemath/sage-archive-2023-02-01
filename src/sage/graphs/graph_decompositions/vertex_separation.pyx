@@ -474,7 +474,7 @@ def linear_ordering_to_path_decomposition(G, L):
 ##################################################################
 
 def pathwidth(self, k=None, certificate=False, algorithm="BAB", verbose=False,
-              max_prefix_length=20, max_prefix_number=10**6):
+              max_prefix_length=20, max_prefix_number=10**6, *, solver=None):
     r"""
     Compute the pathwidth of ``self`` (and provides a decomposition)
 
@@ -512,6 +512,14 @@ def pathwidth(self, k=None, certificate=False, algorithm="BAB", verbose=False,
     - ``max_prefix_number`` -- integer (default: 10**6); upper bound on the
       number of stored prefixes used to prevent using too much memory. This
       parameter is used only when ``algorithm=="BAB"``.
+
+    - ``solver`` -- string (default: ``None``); specify a Mixed Integer Linear
+      Programming (MILP) solver to be used. If set to ``None``, the default one
+      is used. For more information on MILP solvers and which default solver is
+      used, see the method :meth:`solve
+      <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the class
+      :class:`MixedIntegerLinearProgram
+      <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
     OUTPUT:
 
@@ -566,6 +574,12 @@ def pathwidth(self, k=None, certificate=False, algorithm="BAB", verbose=False,
         Traceback (most recent call last):
         ...
         ValueError: algorithm "SuperFast" has not been implemented yet, please contribute
+
+    Using a specific solver::
+
+        sage: g = graphs.PetersenGraph()
+        sage: g.pathwidth(solver='SCIP')  # optional - pyscipopt
+        5
     """
     from sage.graphs.graph import Graph
     if not isinstance(self, Graph):
@@ -574,7 +588,8 @@ def pathwidth(self, k=None, certificate=False, algorithm="BAB", verbose=False,
     pw, L = vertex_separation(self, algorithm=algorithm, verbose=verbose,
                               cut_off=k, upper_bound=None if k is None else (k+1),
                               max_prefix_length=max_prefix_length,
-                              max_prefix_number=max_prefix_number)
+                              max_prefix_number=max_prefix_number,
+                              solver=solver)
 
     if k is None:
         return (pw, linear_ordering_to_path_decomposition(self, L)) if certificate else pw

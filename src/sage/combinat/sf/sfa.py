@@ -228,7 +228,7 @@ from sage.categories.tensor import tensor
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.matrix.constructor import matrix
 from sage.structure.factorization import Factorization
-from sage.structure.element import parent, coerce_binop
+from sage.structure.element import coerce_binop
 from sage.misc.misc_c import prod
 from sage.data_structures.blas_dict import convert_remove_zeroes, linear_combination
 from copy import copy

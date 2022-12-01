@@ -9,7 +9,7 @@ AUTHORS:
 - Moritz Firsching (2018-04): rest
 """
 
-#*****************************************************************************
+# *****************************************************************************
 #       Copyright (C) 2010      Nathann Cohen <nathann.cohen@gmail.com>
 #                     2017-2022 Matthias Koeppe
 #                     2018      Moritz Firsching
@@ -19,8 +19,7 @@ AUTHORS:
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#*****************************************************************************
-from __future__ import print_function
+# *****************************************************************************
 
 from os import sys
 from os.path import splitext
@@ -29,6 +28,7 @@ from sage.numerical.mip import MIPSolverException
 from libc.float cimport DBL_MAX
 from libc.limits cimport INT_MAX
 from pyscipopt import Model
+
 
 cdef class SCIPBackend(GenericBackend):
 
@@ -43,11 +43,11 @@ cdef class SCIPBackend(GenericBackend):
         sage: TestSuite(p.get_backend()).run(skip="_test_pickling")
     """
 
-    def __cinit__(self, maximization = True):
+    def __cinit__(self, maximization=True):
         """
         Constructor
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = MixedIntegerLinearProgram(solver="SCIP")
         """
@@ -62,7 +62,7 @@ cdef class SCIPBackend(GenericBackend):
         """
         Get the model as a pyscipopt Model.
 
-        EXAMPLE::
+        EXAMPLES::
         sage: from sage.numerical.backends.generic_backend import get_solver
         sage: p = get_solver(solver = "SCIP")
         sage: p._get_model()
@@ -70,7 +70,9 @@ cdef class SCIPBackend(GenericBackend):
         """
         return self.model
 
-    cpdef int add_variable(self, lower_bound=0.0, upper_bound=None, binary=False, continuous=False, integer=False, obj=0.0, name=None) except -1:
+    cpdef int add_variable(self, lower_bound=0.0, upper_bound=None,
+                           binary=False, continuous=False, integer=False,
+                           obj=0.0, name=None) except -1:
         """
         Add a variable.
 
@@ -96,7 +98,7 @@ cdef class SCIPBackend(GenericBackend):
 
         OUTPUT: The index of the newly created variable
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "SCIP")
@@ -124,16 +126,16 @@ cdef class SCIPBackend(GenericBackend):
         if self.model.getStatus() != 'unknown':
             self.model.freeTransform()
         cdef int vtype = int(bool(binary)) + int(bool(continuous)) + int(bool(integer))
-        if  vtype == 0:
+        if vtype == 0:
             continuous = True
         elif vtype != 1:
             raise ValueError("Exactly one parameter of 'binary', 'integer' and 'continuous' must be 'True'.")
 
-        if name==None:
-            vname=''
+        if name is None:
+            vname = ''
         else:
-            assert(type(name) in [str, unicode])
-            vname=name
+            assert type(name) in [str, unicode]
+            vname = name
 
         if continuous:
             vtypestr = 'C'
@@ -142,10 +144,8 @@ cdef class SCIPBackend(GenericBackend):
         if integer:
             vtypestr = 'I'
 
-
-        self.model.addVar(name=vname, vtype=vtypestr, ub=upper_bound, lb=lower_bound, obj=obj, pricedVar = False)
+        self.model.addVar(name=vname, vtype=vtypestr, ub=upper_bound, lb=lower_bound, obj=obj, pricedVar=False)
         return self.ncols() - 1
-
 
     cpdef set_variable_type(self, int variable, int vtype):
         """
@@ -161,7 +161,7 @@ cdef class SCIPBackend(GenericBackend):
             *  0  Binary
             * -1  Real
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "SCIP")
@@ -175,8 +175,8 @@ cdef class SCIPBackend(GenericBackend):
         """
         if self.model.getStatus() != 'unknown':
             self.model.freeTransform()
-        vtypenames = {1:'I', 0:'B', -1:'C'}
-        self.model.chgVarType(var = self.model.getVars()[variable], vtype = vtypenames[vtype])
+        vtypenames = {1: 'I', 0: 'B', -1: 'C'}
+        self.model.chgVarType(var=self.model.getVars()[variable], vtype=vtypenames[vtype])
 
     cpdef set_sense(self, int sense):
         """
@@ -189,7 +189,7 @@ cdef class SCIPBackend(GenericBackend):
             * +1 => Maximization
             * -1 => Minimization
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "SCIP")
@@ -219,7 +219,7 @@ cdef class SCIPBackend(GenericBackend):
         - ``coeff`` (double) -- its coefficient or ``None`` for
           reading (default: ``None``)
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "SCIP")
@@ -233,13 +233,13 @@ cdef class SCIPBackend(GenericBackend):
         """
         if self.model.getStatus() != 'unknown':
             self.model.freeTransform()
-        if coeff==None:
+        if coeff is None:
             return self.model.getVars()[variable].getObj()
         else:
             objexpr = self.model.getObjective()
             var = self.model.getVars()[variable]
-            linfun = sum([e*c for e,c in objexpr.terms.iteritems() if e!=var]) + var*coeff
-            self.model.setObjective(linfun, sense = self.model.getObjectiveSense())
+            linfun = sum([e * c for e, c in objexpr.terms.iteritems() if e != var]) + var * coeff
+            self.model.setObjective(linfun, sense=self.model.getObjectiveSense())
 
     cpdef problem_name(self, name=None):
         """
@@ -250,7 +250,7 @@ cdef class SCIPBackend(GenericBackend):
         - ``name`` (``str``) -- the problem's name. When set to
           ``None`` (default), the method returns the problem's name.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "SCIP")
@@ -263,7 +263,7 @@ cdef class SCIPBackend(GenericBackend):
         else:
             self.model.setProbName(name)
 
-    cpdef set_objective(self, list coeff, d = 0.0):
+    cpdef set_objective(self, list coeff, d=0.0):
         """
         Set the objective function.
 
@@ -274,7 +274,7 @@ cdef class SCIPBackend(GenericBackend):
 
         - ``d`` (double) -- the constant term in the linear function (set to `0` by default)
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "SCIP")
@@ -286,8 +286,8 @@ cdef class SCIPBackend(GenericBackend):
         """
         if self.model.getStatus() != 'unknown':
             self.model.freeTransform()
-        linfun = sum([c*x for c,x in zip(coeff, self.model.getVars())]) + d
-        self.model.setObjective(linfun, sense = self.model.getObjectiveSense())
+        linfun = sum([c * x for c, x in zip(coeff, self.model.getVars())]) + d
+        self.model.setObjective(linfun, sense=self.model.getObjectiveSense())
 
     cpdef set_verbosity(self, int level):
         """
@@ -297,7 +297,7 @@ cdef class SCIPBackend(GenericBackend):
 
         - ``level`` (integer) -- From 0 (no verbosity) to 1.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "SCIP")
@@ -317,7 +317,6 @@ cdef class SCIPBackend(GenericBackend):
         else:
             raise AssertionError('level must be "0" or "1"')
 
-
     cpdef remove_constraint(self, int i):
         r"""
         Remove a constraint from self.
@@ -326,7 +325,7 @@ cdef class SCIPBackend(GenericBackend):
 
         - ``i`` -- index of the constraint to remove
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = MixedIntegerLinearProgram(solver='SCIP')
             sage: x, y = p['x'], p['y']
@@ -343,7 +342,7 @@ cdef class SCIPBackend(GenericBackend):
 
         Removing fancy constraints does not make Sage crash::
 
-            sage: MixedIntegerLinearProgram(solver = "SCIP").remove_constraint(-2)
+            sage: MixedIntegerLinearProgram(solver="SCIP").remove_constraint(-2)
             Traceback (most recent call last):
             ...
             ValueError: The constraint's index i must satisfy 0 <= i < number_of_constraints
@@ -360,7 +359,7 @@ cdef class SCIPBackend(GenericBackend):
 
         INPUT:
 
-        - ``coefficients`` an iterable with ``(c,v)`` pairs where ``c``
+        - ``coefficients`` an iterable with ``(c, v)`` pairs where ``c``
           is a variable index (integer) and ``v`` is a value (real
           value).
 
@@ -387,11 +386,11 @@ cdef class SCIPBackend(GenericBackend):
             self.model.freeTransform()
         mvars = self.model.getVars()
         from pyscipopt.scip import quicksum
-        linfun = quicksum([v*mvars[c] for c,v in coefficients])
-        #we introduced patch 0001 for pyscipopt, in order to handle the case
-        #when linfun is an empty expression.
-        if name==None:
-            name=''
+        linfun = quicksum([v * mvars[c] for c, v in coefficients])
+        # we introduced patch 0001 for pyscipopt, in order to handle the case
+        # when linfun is an empty expression.
+        if name is None:
+            name = ''
 
         if lower_bound is None:
             lower_bound = -self.model.infinity()
@@ -416,7 +415,7 @@ cdef class SCIPBackend(GenericBackend):
         associates their coefficient on the model of the
         ``add_linear_constraint`` method.
 
-        EXAMPLE::
+        EXAMPLES::
 
 
             sage: from sage.numerical.backends.generic_backend import get_solver
@@ -452,7 +451,7 @@ cdef class SCIPBackend(GenericBackend):
         to ``None`` if the constraint is not bounded in the
         corresponding direction, and is a real value otherwise.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "SCIP")
@@ -485,7 +484,7 @@ cdef class SCIPBackend(GenericBackend):
         to ``None`` if the variable is not bounded in the
         corresponding direction, and is a real value otherwise.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "SCIP")
@@ -505,7 +504,6 @@ cdef class SCIPBackend(GenericBackend):
         if ub == self.model.infinity():
             ub = None
         return (lb, ub)
-
 
     cpdef add_col(self, indices, coeffs):
         """
@@ -528,7 +526,7 @@ cdef class SCIPBackend(GenericBackend):
             ``indices`` and ``coeffs`` are expected to be of the same
             length.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "SCIP")
@@ -542,11 +540,11 @@ cdef class SCIPBackend(GenericBackend):
             5
         """
         mcons = self.model.getConss()
-        #after update of
+        # after update of
         index = self.add_variable(lower_bound=-self.model.infinity())
         var = self.model.getVars()[index]
 
-        for i,coeff in zip(indices, coeffs):
+        for i, coeff in zip(indices, coeffs):
             self.model.addConsCoeff(var=var, cons=mcons[i], coeff=coeff)
 
     cpdef int solve(self) except -1:
@@ -558,7 +556,7 @@ cdef class SCIPBackend(GenericBackend):
         (If all variables are continuous, the algorithm reduces to solving the
         linear program by the simplex method.)
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: lp = MixedIntegerLinearProgram(solver = 'SCIP', maximization = False)
             sage: x, y = lp[0], lp[1]
@@ -579,7 +577,7 @@ cdef class SCIPBackend(GenericBackend):
             the solution can not be computed for any reason (none
             exists, or the LP solver was not able to find it, etc...)
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "SCIP")
@@ -592,7 +590,6 @@ cdef class SCIPBackend(GenericBackend):
             Traceback (most recent call last):
             ...
             MIPSolverException: ...
-
 
             sage: lp = MixedIntegerLinearProgram(solver = "SCIP")
             sage: v = lp.new_variable(nonnegative=True)
@@ -612,26 +609,25 @@ cdef class SCIPBackend(GenericBackend):
             sage: b = p.new_variable(binary=True)
             sage: p.set_objective(p.sum(b[v] for v in g))
             sage: for v in g:
-            ....:     p.add_constraint(b[v]+p.sum(b[u] for u in g.neighbors(v)) <= 1)
+            ....:     p.add_constraint(b[v] + p.sum(b[u] for u in g.neighbors(v)) <= 1)
             sage: p.add_constraint(b[v] == 1) # Force an easy non-0 solution
             sage: p.solver_parameter("limits/absgap", 100)
             sage: p.solve() # rel tol 100
             1
-
         """
-        if (self.model.getStatus() != 'unknown') or (self.model.getStage()>1):
-            #This should actually be self.model.freeReoptSolve, but it seems to fail.
+        if self.model.getStatus() != 'unknown' or self.model.getStage() > 1:
+            # This should actually be self.model.freeReoptSolve, but it seems to fail.
             self.model.freeTransform()
         self.model.optimize()
 
         status = self.model.getStatus()
 
-        if status=='unbounded':
-            raise MIPSolverException("SCIP : Solution is unbounded")
-        elif status=='infeasible':
-            raise MIPSolverException("SCIP : There is no feasible solution")
-        #elif status=='timelimit':
-        #    raise MIPSolverException("SCIP : Time limit reached")
+        if status == 'unbounded':
+            raise MIPSolverException("SCIP: Solution is unbounded")
+        elif status == 'infeasible':
+            raise MIPSolverException("SCIP: There is no feasible solution")
+        # elif status == 'timelimit':
+        #     raise MIPSolverException("SCIP: Time limit reached")
         return 0
 
     cpdef get_objective_value(self):
@@ -642,7 +638,7 @@ cdef class SCIPBackend(GenericBackend):
 
            Behaviour is undefined unless ``solve`` has been called before.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "SCIP")
@@ -676,7 +672,7 @@ cdef class SCIPBackend(GenericBackend):
 
            Has no meaning unless ``solve`` has been called before.
 
-        EXAMPLE::
+        EXAMPLES::
 
         """
         return self.model.getPrimalbound()
@@ -697,7 +693,7 @@ cdef class SCIPBackend(GenericBackend):
 
            Has no meaning unless ``solve`` has been called before.
 
-        EXAMPLE::
+        EXAMPLES::
 
 
         TESTS:
@@ -716,7 +712,7 @@ cdef class SCIPBackend(GenericBackend):
 
            Behaviour is undefined unless ``solve`` has been called before.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "SCIP")
@@ -743,7 +739,7 @@ cdef class SCIPBackend(GenericBackend):
 
            Behaviour is undefined unless ``solve`` has been called before.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: lp = get_solver(solver = "SCIP")
@@ -767,12 +763,11 @@ cdef class SCIPBackend(GenericBackend):
         """
         return self.model.getActivity(self.model.getConss()[i])
 
-
     cpdef int ncols(self):
         """
         Return the number of columns/variables.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "SCIP")
@@ -789,7 +784,7 @@ cdef class SCIPBackend(GenericBackend):
         """
         Return the number of rows/constraints.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "SCIP")
@@ -809,7 +804,7 @@ cdef class SCIPBackend(GenericBackend):
 
         - ``index`` (integer) -- the col's id
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "SCIP")
@@ -828,7 +823,7 @@ cdef class SCIPBackend(GenericBackend):
 
         - ``index`` (integer) -- the row's id
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "SCIP")
@@ -846,7 +841,7 @@ cdef class SCIPBackend(GenericBackend):
 
         - ``index`` (integer) -- the variable's id
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "SCIP")
@@ -869,7 +864,7 @@ cdef class SCIPBackend(GenericBackend):
 
         - ``index`` (integer) -- the variable's id
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "SCIP")
@@ -883,7 +878,6 @@ cdef class SCIPBackend(GenericBackend):
         """
         return self.model.getVars()[index].vtype() == 'INTEGER'
 
-
     cpdef bint is_variable_continuous(self, int index):
         """
         Test whether the given variable is of continuous/real type.
@@ -892,7 +886,7 @@ cdef class SCIPBackend(GenericBackend):
 
         - ``index`` (integer) -- the variable's id
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "SCIP")
@@ -905,16 +899,14 @@ cdef class SCIPBackend(GenericBackend):
             sage: p.set_variable_type(0,1)
             sage: p.is_variable_continuous(0)
             False
-
         """
         return self.model.getVars()[index].vtype() == 'CONTINUOUS'
-
 
     cpdef bint is_maximization(self):
         """
         Test whether the problem is a maximization
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "SCIP")
@@ -926,7 +918,7 @@ cdef class SCIPBackend(GenericBackend):
         """
         return self.model.getObjectiveSense() != 'minimize'
 
-    cpdef variable_upper_bound(self, int index, value = False):
+    cpdef variable_upper_bound(self, int index, value=False):
         """
         Return or define the upper bound on a variable
 
@@ -938,7 +930,7 @@ cdef class SCIPBackend(GenericBackend):
           variable has not upper bound. When set to ``False``
           (default), the method returns the current value.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "SCIP")
@@ -985,10 +977,9 @@ cdef class SCIPBackend(GenericBackend):
         if value is False:
             return var.getUbOriginal()
         else:
-            self.model.chgVarUb(var = var, ub = value)
+            self.model.chgVarUb(var=var, ub=value)
 
-
-    cpdef variable_lower_bound(self, int index, value = False):
+    cpdef variable_lower_bound(self, int index, value=False):
         """
         Return or define the lower bound on a variable
 
@@ -1000,7 +991,7 @@ cdef class SCIPBackend(GenericBackend):
           variable has not lower bound. When set to ``False``
           (default), the method returns the current value.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "SCIP")
@@ -1048,7 +1039,7 @@ cdef class SCIPBackend(GenericBackend):
         if value is False:
             return var.getLbOriginal()
         else:
-            self.model.chgVarLb(var = var, lb = value)
+            self.model.chgVarLb(var=var, lb=value)
 
     cpdef write_cip(self, filename):
         """
@@ -1058,7 +1049,7 @@ cdef class SCIPBackend(GenericBackend):
 
         - ``filename`` (string)
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "SCIP")
@@ -1081,7 +1072,7 @@ cdef class SCIPBackend(GenericBackend):
 
         - ``filename`` (string)
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "SCIP")
@@ -1102,7 +1093,6 @@ cdef class SCIPBackend(GenericBackend):
 
         self.model.writeProblem(filenamestr)
 
-
     cpdef write_mps(self, filename, int modern):
         """
         Write the problem to a .mps file
@@ -1111,7 +1101,7 @@ cdef class SCIPBackend(GenericBackend):
 
         - ``filename`` (string)
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = get_solver(solver = "SCIP")
@@ -1132,12 +1122,11 @@ cdef class SCIPBackend(GenericBackend):
 
         self.model.writeProblem(filenamestr)
 
-
     cpdef __copy__(self):
         """
         Returns a copy of self.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.numerical.backends.generic_backend import get_solver
             sage: p = MixedIntegerLinearProgram(solver = "SCIP")
@@ -1147,29 +1136,28 @@ cdef class SCIPBackend(GenericBackend):
             sage: copy(p).solve()
             6.0
         """
-        cdef SCIPBackend cp = type(self)(maximization = self.is_maximization())
+        cdef SCIPBackend cp = type(self)(maximization=self.is_maximization())
         cp.problem_name(self.problem_name())
-        for i,v in enumerate(self.model.getVars()):
+        for i, v in enumerate(self.model.getVars()):
             vtype = v.vtype
             cp.add_variable(self.variable_lower_bound(i),
                             self.variable_upper_bound(i),
-                            binary = vtype == 'BINARY',
-                            continuous = vtype == 'CONTINUOUS',
-                            integer = vtype == 'INTEGER',
-                            obj = self.objective_coefficient(i),
-                            name = self.col_name(i))
-        assert(self.ncols() == cp.ncols())
+                            binary=vtype == 'BINARY',
+                            continuous=vtype == 'CONTINUOUS',
+                            integer=vtype == 'INTEGER',
+                            obj=self.objective_coefficient(i),
+                            name=self.col_name(i))
+        assert self.ncols() == cp.ncols()
 
         for i in range(self.nrows()):
             cp.add_linear_constraint(zip(*self.row(i)),
                                      self.row_bounds(i)[0],
                                      self.row_bounds(i)[1],
-                                     name = self.row_name(i))
-        assert(self.nrows() == cp.nrows())
+                                     name=self.row_name(i))
+        assert self.nrows() == cp.nrows()
         return cp
 
-
-    cpdef solver_parameter(self, name, value = None):
+    cpdef solver_parameter(self, name, value=None):
         """
         Return or define a solver parameter
 
@@ -1188,6 +1176,3 @@ cdef class SCIPBackend(GenericBackend):
                 self.model.setParam(name, value)
         else:
             return self.model.getParam(name)
-
-
-

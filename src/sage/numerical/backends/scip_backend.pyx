@@ -56,6 +56,7 @@ cdef class SCIPBackend(GenericBackend):
             self.set_sense(1)
         else:
             self.set_sense(-1)
+        self.obj_constant_term = 0.0
         self.model.hideOutput()
 
     cpdef _get_model(self):

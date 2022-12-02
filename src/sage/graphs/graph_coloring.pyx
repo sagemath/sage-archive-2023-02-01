@@ -1341,16 +1341,18 @@ def edge_coloring(g, value_only=False, vizing=False, hex_colors=False, solver=No
        sage: g = graphs.PetersenGraph()
        sage: edge_coloring(g, value_only=True, solver='GLPK')
        4
-       sage: edge_coloring(g, value_only=False, solver='GLPK')
-       [[(0, 1), (2, 7), (3, 4), (6, 9)],
-         [(0, 4), (2, 3), (5, 7), (6, 8)],
-         [(0, 5), (1, 6), (3, 8), (7, 9)],
-         [(1, 2), (4, 9), (5, 8)]]
-       sage: edge_coloring(g, value_only=False, hex_colors=True, solver='GLPK')
-        {'#00ffff': [(0, 5), (1, 6), (3, 8), (7, 9)],
-        '#7f00ff': [(1, 2), (4, 9), (5, 8)],
-        '#7fff00': [(0, 4), (2, 3), (5, 7), (6, 8)],
-        '#ff0000': [(0, 1), (2, 7), (3, 4), (6, 9)]}
+       sage: color_classes = edge_coloring(g, value_only=False, solver='GLPK')
+       sage: len(color_classes)
+       4
+       sage: len(set(frozenset(e) for C in color_classes for e in C)) == g.size()
+       True
+       sage: all(g.has_edge(e) for C in color_classes for e in C)
+       True
+       sage: all(len(Graph(C).matching()) == len(C) for C in color_classes)
+       True
+       sage: color_classes = edge_coloring(g, value_only=False, hex_colors=True, solver='GLPK')
+       sage: sorted(color_classes.keys())
+       ['#00ffff', '#7f00ff', '#7fff00', '#ff0000']
 
     Complete graphs are colored using the linear-time round-robin coloring::
 
@@ -1469,6 +1471,7 @@ def edge_coloring(g, value_only=False, vizing=False, hex_colors=False, solver=No
     else:
         return classes
 
+
 def _vizing_edge_coloring(g, hex_colors=False):
     r"""
     Compute an edge coloring with at most `\Delta + 1` colors.
@@ -1500,16 +1503,22 @@ def _vizing_edge_coloring(g, hex_colors=False):
 
        sage: from sage.graphs.graph_coloring import _vizing_edge_coloring
        sage: g = graphs.PetersenGraph()
-       sage: _vizing_edge_coloring(g)
-       [[(0, 1), (2, 7), (3, 4), (6, 9)],
-         [(0, 4), (2, 3), (5, 7), (6, 8)],
-         [(0, 5), (1, 6), (3, 8), (7, 9)],
-         [(1, 2), (4, 9), (5, 8)]]
-       sage: _vizing_edge_coloring(g, hex_colors=True)
-        {'#00ffff': [(0, 5), (1, 6), (3, 8), (7, 9)],
-        '#7f00ff': [(1, 2), (4, 9), (5, 8)],
-        '#7fff00': [(0, 4), (2, 3), (5, 7), (6, 8)],
-        '#ff0000': [(0, 1), (2, 7), (3, 4), (6, 9)]}
+       sage: color_classes = _vizing_edge_coloring(g)
+       sage: len(color_classes) == max(g.degree()) + 1
+       True
+       sage: len(set(frozenset(e) for C in color_classes for e in C)) == g.size()
+       True
+       sage: all(g.has_edge(e) for C in color_classes for e in C)
+       True
+       sage: all(len(Graph(C).matching()) == len(C) for C in color_classes)
+       True
+
+    Coloring the edges of the Star Graph::
+
+       sage: from sage.graphs.graph_coloring import _vizing_edge_coloring
+       sage: g = graphs.StarGraph(5)
+       sage: len(_vizing_edge_coloring(g))
+       5
 
     TESTS:
 
@@ -1521,76 +1530,90 @@ def _vizing_edge_coloring(g, hex_colors=False):
        sage: _vizing_edge_coloring(g, hex_colors=True)
        {}
     """
+    # dictionary mapping edges to colors
+    e_colors = {frozenset(e): None for e in g.edge_iterator(labels=False, sort_vertices=False)}
+
     # finds every color adjacent to vertex v
     def colors_of(v):
-        return [c for edge, c in e_colors.items() if v in edge and c != None]
+        colors = {e_colors[frozenset((u, v))] for u in g.neighbor_iterator(v)}
+        colors.discard(None)
+        return colors
 
     # constructs a maximal fan <f..l> of X where X is edge[0] and f is edge[1]
     def maximal_fan(edge):
         fan_center, rear = edge
-        rear_colors = colors_of(rear)
-        cdef list neighbors = [e[0] if e[1] == fan_center else e[1] for e, c in e_colors.items() if fan_center in e and c != None]
+        cdef set rear_colors = colors_of(rear)
+        cdef list neighbors = [n for n in g.neighbor_iterator(fan_center)
+                                   if e_colors[frozenset((n, fan_center))] is not None]
         cdef list fan = [rear]
-        can_extend_fan = True
+        cdef bint can_extend_fan = True
         while can_extend_fan:
             can_extend_fan = False
+            new_neighbors = []
             for n in neighbors:
-                if e_colors[tuple(sorted((fan_center, n)))] not in rear_colors:
+                if e_colors[frozenset((fan_center, n))] not in rear_colors:
                     fan.append(n)
                     rear = n
                     rear_colors = colors_of(rear)
                     can_extend_fan = True
-                    neighbors.remove(n)
+                else:
+                    new_neighbors.append(n)
+            neighbors = new_neighbors
         return fan
 
     # gives each edge Xu in the fan <f..w> the color of Xu+ and uncolors Xw
     def rotate_fan(fan_center, fan):
         for i in range(1, len(fan)):
-            e_colors[tuple(sorted((fan_center, fan[i-1])))] = e_colors[tuple(sorted((fan_center, fan[i])))] 
-        e_colors[tuple(sorted((fan_center, fan[-1])))]
+            e_colors[frozenset((fan_center, fan[i - 1]))] = e_colors[frozenset((fan_center, fan[i]))]
+        e_colors[frozenset((fan_center, fan[-1]))] = None
 
     # computes the maximal ab-path starting at v
-    def find_path(v, a, b, path=[]):
-        path_edge = [e for e, c in e_colors.items() if c == a and v in e]
-        if path_edge and (path_edge[0][0] not in path or path_edge[0][1] not in path):
-            path.append(path_edge[0][0] if path_edge[0][1] == v else path_edge[0][1])
-            find_path(path[-1], b, a, path)
+    def find_path(v, a, b):
+        cdef list path = [v]
+        cdef bint stop = False
+        while not stop:
+            stop = True
+            for u in g.neighbor_iterator(v):
+                if e_colors[frozenset((u, v))] == a:
+                    path.append(u)
+                    # exchange the role of colors a and b and go to next vertex
+                    a, b = b, a
+                    v = u
+                    stop = False
+                    break
         return path
 
     # exchanges the color of every edge on the ab-path starting at v
     def invert_path(v, a, b):
-        path = [v] + find_path(v, a, b, [])
-        for i in range(1, len(path)):
-            e_colors[tuple(sorted((path[i-1], path[i])))] = a if e_colors[tuple(sorted((path[i-1], path[i])))] == b else b
+        cdef list path = find_path(v, a, b)
+        for e in zip(path[:-1], path[1:]):
+            f = frozenset(e)
+            e_colors[f] = a if e_colors[f] == b else b
 
     # returns the ´smallest´ color free at v
     def find_free_color(v):
-        colors = [c for edge, c in e_colors.items() if c != None and v in edge]
-        for c in range(g.degree(v)+1):
+        colors = colors_of(v)
+        for c in range(g.degree(v) + 1):
             if c not in colors:
                 return c
 
-    # dict where keys are edges of g and values are colors
-    # sorted to not raise KeyError if vertex order is swapped
-    e_colors = dict.fromkeys([tuple(sorted(e)) for e in g.edges(labels=False, sort=False)])
-
-    for e in e_colors.keys(): 
+    for e in g.edge_iterator(labels=False, sort_vertices=False):
         fan = maximal_fan(e)
         fan_center = e[0]
         rear = fan[-1]
         c = find_free_color(fan_center)
         d = find_free_color(rear)
         invert_path(fan_center, d, c)
-        for i in range(len(fan)):
-            if d not in colors_of(fan[i]):
-                fan = fan[:i+1]
+        for i, v in enumerate(fan):
+            if d not in colors_of(v):
+                fan = fan[:i + 1]
                 break
         rotate_fan(fan_center, fan)
-        e_colors[tuple(sorted((fan_center, fan[-1])))] = d
+        e_colors[frozenset((fan_center, fan[-1]))] = d
 
     matchings = dict()
     for edge, c in e_colors.items(): 
-        matchings[c] = matchings.get(c, []) + [edge]
+        matchings[c] = matchings.get(c, []) + [tuple(edge)]
     classes = list(matchings.values())
 
     if hex_colors:
@@ -1598,6 +1621,7 @@ def _vizing_edge_coloring(g, hex_colors=False):
         return dict(zip(rainbow(len(classes)), classes))
     else:
         return classes
+
 
 def round_robin(n):
     r"""

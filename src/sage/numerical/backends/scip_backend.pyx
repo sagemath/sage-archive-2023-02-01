@@ -57,6 +57,7 @@ cdef class SCIPBackend(GenericBackend):
         else:
             self.set_sense(-1)
         self.obj_constant_term = 0.0
+        self.variables = []
         self.model.hideOutput()
 
     cpdef _get_model(self):
@@ -145,8 +146,12 @@ cdef class SCIPBackend(GenericBackend):
         if integer:
             vtypestr = 'I'
 
-        self.model.addVar(name=vname, vtype=vtypestr, ub=upper_bound, lb=lower_bound, obj=obj, pricedVar=False)
-        return self.ncols() - 1
+        v = self.model.addVar(name=vname, vtype=vtypestr, ub=upper_bound, lb=lower_bound, obj=obj, pricedVar=False)
+        index = v.getIndex()
+        assert index == self.ncols()
+        self.variables.append(v)
+
+        return index
 
     cpdef set_variable_type(self, int variable, int vtype):
         """
@@ -177,7 +182,7 @@ cdef class SCIPBackend(GenericBackend):
         if self.model.getStatus() != 'unknown':
             self.model.freeTransform()
         vtypenames = {1: 'I', 0: 'B', -1: 'C'}
-        self.model.chgVarType(var=self.model.getVars()[variable], vtype=vtypenames[vtype])
+        self.model.chgVarType(var=self.variables[variable], vtype=vtypenames[vtype])
 
     cpdef set_sense(self, int sense):
         """
@@ -235,10 +240,10 @@ cdef class SCIPBackend(GenericBackend):
         if self.model.getStatus() != 'unknown':
             self.model.freeTransform()
         if coeff is None:
-            return self.model.getVars()[variable].getObj()
+            return self.variables[variable].getObj()
         else:
             objexpr = self.model.getObjective()
-            var = self.model.getVars()[variable]
+            var = self.variables[variable]
             linfun = sum([e * c for e, c in objexpr.terms.iteritems() if e != var]) + var * coeff
             self.model.setObjective(linfun, sense=self.model.getObjectiveSense())
 
@@ -287,7 +292,7 @@ cdef class SCIPBackend(GenericBackend):
         """
         if self.model.getStatus() != 'unknown':
             self.model.freeTransform()
-        linfun = sum([c * x for c, x in zip(coeff, self.model.getVars())]) + d
+        linfun = sum([c * x for c, x in zip(coeff, self.variables)]) + d
         self.model.setObjective(linfun, sense=self.model.getObjectiveSense())
 
     cpdef set_verbosity(self, int level):
@@ -385,7 +390,7 @@ cdef class SCIPBackend(GenericBackend):
         """
         if self.model.getStatus() != 'unknown':
             self.model.freeTransform()
-        mvars = self.model.getVars()
+        mvars = self.variables
         from pyscipopt.scip import quicksum
         linfun = quicksum([v * mvars[c] for c, v in coefficients])
         # we introduced patch 0001 for pyscipopt, in order to handle the case
@@ -429,7 +434,7 @@ cdef class SCIPBackend(GenericBackend):
             sage: p.row_bounds(0)
             (2.0, 2.0)
         """
-        namedvars = [var.name for var in self.model.getVars()]
+        namedvars = [var.name for var in self.variables]
         valslinear = self.model.getValsLinear(self.model.getConss()[index])
         cdef list indices = []
         cdef list values = []
@@ -497,7 +502,7 @@ cdef class SCIPBackend(GenericBackend):
             sage: p.col_bounds(0)
             (0.0, 5.0)
         """
-        var = self.model.getVars()[index]
+        var = self.variables[index]
         lb = var.getLbOriginal()
         if lb == -self.model.infinity():
             lb = None
@@ -543,7 +548,7 @@ cdef class SCIPBackend(GenericBackend):
         mcons = self.model.getConss()
         # after update of
         index = self.add_variable(lower_bound=-self.model.infinity())
-        var = self.model.getVars()[index]
+        var = self.variables[index]
 
         for i, coeff in zip(indices, coeffs):
             self.model.addConsCoeff(var=var, cons=mcons[i], coeff=coeff)
@@ -730,7 +735,7 @@ cdef class SCIPBackend(GenericBackend):
             sage: p.get_variable_value(1)
             1.5
         """
-        return self.model.getVal(self.model.getVars()[variable])
+        return self.model.getVal(self.variables[variable])
 
     cpdef get_row_prim(self, int i):
         r"""
@@ -779,7 +784,7 @@ cdef class SCIPBackend(GenericBackend):
             sage: p.ncols()
             2
         """
-        return len(self.model.getVars())
+        return len(self.variables)
 
     cpdef int nrows(self):
         """
@@ -814,7 +819,7 @@ cdef class SCIPBackend(GenericBackend):
             sage: p.col_name(0)
             'I am a variable'
         """
-        return self.model.getVars()[index].name
+        return self.variables[index].name
 
     cpdef row_name(self, int index):
         """
@@ -855,7 +860,7 @@ cdef class SCIPBackend(GenericBackend):
             True
 
         """
-        return self.model.getVars()[index].vtype() == 'BINARY'
+        return self.variables[index].vtype() == 'BINARY'
 
     cpdef bint is_variable_integer(self, int index):
         """
@@ -877,7 +882,7 @@ cdef class SCIPBackend(GenericBackend):
             sage: p.is_variable_integer(0)
             True
         """
-        return self.model.getVars()[index].vtype() == 'INTEGER'
+        return self.variables[index].vtype() == 'INTEGER'
 
     cpdef bint is_variable_continuous(self, int index):
         """
@@ -901,7 +906,7 @@ cdef class SCIPBackend(GenericBackend):
             sage: p.is_variable_continuous(0)
             False
         """
-        return self.model.getVars()[index].vtype() == 'CONTINUOUS'
+        return self.variables[index].vtype() == 'CONTINUOUS'
 
     cpdef bint is_maximization(self):
         """
@@ -974,7 +979,7 @@ cdef class SCIPBackend(GenericBackend):
         """
         if index < 0 or index >= self.ncols():
             raise ValueError("The variable's id must satisfy 0 <= id < number_of_variables")
-        var = self.model.getVars()[index]
+        var = self.variables[index]
         if value is False:
             return var.getUbOriginal()
         else:
@@ -1036,7 +1041,7 @@ cdef class SCIPBackend(GenericBackend):
         """
         if index < 0 or index >= self.ncols():
             raise ValueError("The variable's id must satisfy 0 <= id < number_of_variables")
-        var = self.model.getVars()[index]
+        var = self.variables[index]
         if value is False:
             return var.getLbOriginal()
         else:
@@ -1139,7 +1144,7 @@ cdef class SCIPBackend(GenericBackend):
         """
         cdef SCIPBackend cp = type(self)(maximization=self.is_maximization())
         cp.problem_name(self.problem_name())
-        for i, v in enumerate(self.model.getVars()):
+        for i, v in enumerate(self.variables):
             vtype = v.vtype
             cp.add_variable(self.variable_lower_bound(i),
                             self.variable_upper_bound(i),

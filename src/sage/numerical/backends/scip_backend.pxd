@@ -13,6 +13,7 @@ from .generic_backend cimport GenericBackend
 cdef class SCIPBackend(GenericBackend):
 
     cdef model
+    cdef object variables
 
     cpdef _get_model(self)
     cpdef get_row_prim(self, int i)

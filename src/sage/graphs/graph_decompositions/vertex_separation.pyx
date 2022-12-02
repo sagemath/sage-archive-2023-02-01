@@ -801,6 +801,13 @@ def vertex_separation(G, algorithm="BAB", cut_off=None, upper_bound=None, verbos
         sage: print(vertex_separation(D))
         (3, [10, 11, 8, 9, 4, 5, 6, 7, 0, 1, 2, 3])
 
+    Using a specific MILP solver::
+
+        sage: from sage.graphs.graph_decompositions.vertex_separation import vertex_separation
+        sage: G = graphs.PetersenGraph()
+        sage: vs, L = vertex_separation(G, algorithm="MILP", solver="SCIP"); vs  # optional - pyscipopt
+        5
+
     TESTS:
 
     Given a wrong algorithm::

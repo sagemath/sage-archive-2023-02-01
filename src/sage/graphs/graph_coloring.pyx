@@ -1530,6 +1530,20 @@ def _vizing_edge_coloring(g, hex_colors=False):
        []
        sage: _vizing_edge_coloring(g, hex_colors=True)
        {}
+
+    Random graphs::
+
+       sage: from sage.graphs.generators.random import RandomGNP
+       sage: l = [RandomGNP(randint(1,20), random()) for i in range(1000)]
+       sage: colors = [_vizing_edge_coloring(g) for g in l]
+       sage: all(len(colors[i]) in [max(l[i].degree()), max(l[i].degree())+1] for i in range(1000))
+       True
+       sage: all(len(set(frozenset(e) for C in colors[i] for e in C)) == l[i].size() for i in range(1000))
+       True
+       sage: all(all(l[i].has_edge(e) for C in colors[i] for e in C) for i in range(1000))
+       True
+       sage: all(len(Graph(C).matching()) == len(C) for i in range(1000) for C in colors[i])
+       True
     """
     # dictionary mapping edges to colors
     e_colors = {frozenset(e): None for e in g.edge_iterator(labels=False, sort_vertices=False)}

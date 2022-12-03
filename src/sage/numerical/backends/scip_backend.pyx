@@ -1,4 +1,5 @@
 # distutils: language = c++
+# sage.doctest: optional - pyscipopt
 """
 SCIP Backend
 

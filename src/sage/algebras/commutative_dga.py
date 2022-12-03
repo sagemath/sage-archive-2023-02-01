@@ -173,9 +173,27 @@ class Differential(UniqueRepresentation, Morphism,
             sage: d2 = A.cdg_algebra({x: x*y, z: t, y: -x*y, t: 0}).differential()
             sage: d1 is d2
             True
+
+        Check that #34818 is solved::
+
+            sage: A.<a,b,x,u> = GradedCommutativeAlgebra(QQ,degrees=(2,2,3,3))
+            sage: A = A.quotient(A.ideal([a*u,b*u,x*u]))
+            sage: A.cdg_algebra({x:a*b,a:u})
+            Commutative Differential Graded Algebra with generators ('a', 'b', 'x', 'u') in degrees (2, 2, 3, 3) with relations [a*u, b*u, x*u] over Rational Field with differential:
+               a --> u
+               b --> 0
+               x --> a*b
+               u --> 0
+            sage: A.cdg_algebra({x:a*b,a:u,u:a^2})
+            Traceback (most recent call last):
+            ...
+            ValueError: The differential does not preserve the ideal
+
         """
         if isinstance(im_gens, (list, tuple)):
             im_gens = {A.gen(i): x for i, x in enumerate(im_gens)}
+
+        im_gens = {A(a): A(im_gens[a]) for a in im_gens}
 
         R = A.cover_ring()
         I = A.defining_ideal()
@@ -185,22 +203,30 @@ class Differential(UniqueRepresentation, Morphism,
         else:
             squares = R.ideal(0, side='twosided')
 
-        if I != squares:
-            A_free = GCAlgebra(A.base(), names=A._names, degrees=A._degrees)
-            free_diff = {A_free(a): A_free(im_gens[a]) for a in im_gens}
-            B = A_free.cdg_algebra(free_diff)
-            IB = B.ideal([B(g) for g in I.gens()])
-            BQ = GCAlgebra.quotient(B, IB)
-            # We check that the differential respects the
-            # relations in the quotient method, but we also have
-            # to check this here, in case a GCAlgebra with
-            # relations is defined first, and then a differential
-            # imposed on it.
-            for g in IB.gens():
-                if not BQ(g.differential()).is_zero():
-                    raise ValueError("The differential does not preserve the ideal")
+        def image_monomial(exponent):
+            i = 0
+            cexp = list(exponent)
+            while i < len(cexp):
+                if cexp[i] == 0:
+                    i +=1
+                    continue
+                a = A.gen(i)
+                try:
+                    da = im_gens[a]
+                except KeyError:
+                    da = A.zero()
+                cexp[i] -= 1
+                b = prod([A.gen(j)**cexp[j] for j in range(len(cexp))])
+                db = image_monomial(cexp)
+                im =  da * b + (-1)**A._degrees[i]*a*db
+                return(A(im))
+            return A.zero()
 
-        im_gens = {A(a): A(im_gens[a]) for a in im_gens}
+        for g in I.gens():
+            d = g.dict()
+            res = A(sum([d[ex]*image_monomial(ex) for ex in d]))
+            if not res.is_zero():
+                raise ValueError("The differential does not preserve the ideal")
 
         for i in im_gens:
             x = im_gens[i]

@@ -54,8 +54,6 @@ from .finite_field_ntl_gf2e import FiniteField_ntl_gf2e
 
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
-from sage.libs.gap.element import GapElement_FiniteField
-
 from sage.interfaces.abc import GapElement
 
 
@@ -308,6 +306,7 @@ cdef class Cache_ntl_gf2e(Cache_base):
         cdef FiniteField_ntl_gf2eElement x
         cdef FiniteField_ntl_gf2eElement g
         cdef Py_ssize_t i
+        from sage.libs.gap.element import GapElement_FiniteField
 
         if is_IntegerMod(e):
             e = e.lift()

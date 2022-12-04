@@ -4116,12 +4116,9 @@ cdef class BinaryCodeClassifier:
                         else:
                             aut_B_aug = libgap(PermutationGroup([PermutationGroupElement([a+1 for a in g]) for g in aug_aut_gp_gens]))
                         H = libgap(aut_m).Intersection2(aut_B_aug)
-                        rt_transversal = aut_B_aug.RightTransversal(H).List().sage()
-                        rt_transversal = [PermutationGroupElement(g) for g in rt_transversal if str(g) != '()']
-                        rt_transversal = [[a-1 for a in g.domain()] for g in rt_transversal]
-                        rt_transversal = [g + list(xrange(len(g), n))
-                                          for g in rt_transversal]
+                        rt_transversal = [[int(a) - 1 for a in g.ListPerm(n)] for g in aut_B_aug.RightTransversal(H) if not g.IsOne()]
                         rt_transversal.append(list(xrange(n)))
+
                         bingo2 = 0
                         for coset_rep in rt_transversal:
                             hwp = create_word_perm(coset_rep)

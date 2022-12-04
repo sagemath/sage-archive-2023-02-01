@@ -122,7 +122,7 @@ from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
 import sage.structure.coerce as coerce
 from sage.structure.richcmp cimport richcmp_not_equal, rich_to_bool
 from sage.structure.coerce cimport coercion_model
-from sage.interfaces.gp import GpElement
+from sage.interfaces.abc import GpElement
 
 import sage.interfaces.abc
 

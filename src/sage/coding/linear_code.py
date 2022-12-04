@@ -1847,7 +1847,7 @@ class AbstractLinearCode(AbstractLinearCodeNoMetric):
                 raise NotImplementedError("The algorithm 'leon' is only implemented for q = 2,3,5,7.")
             # The GAP command DirectoriesPackageLibrary tells the location of the latest
             # version of the Guava libraries, so gives us the location of the Guava binaries too.
-            guava_bin_dir = libgap.DirectoriesPackagePrograms("guava")[0].Filename("")
+            guava_bin_dir = libgap.DirectoriesPackagePrograms("guava")[0].Filename("").sage()
             input = _dump_code_in_leon_format(self) + "::code"
             lines = subprocess.check_output([os.path.join(guava_bin_dir, 'wtdist'), input])
             # to use the already present output parser

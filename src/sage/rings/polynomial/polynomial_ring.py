@@ -177,7 +177,7 @@ _CommutativeRings = categories.commutative_rings.CommutativeRings()
 
 from . import cyclotomic
 
-from sage.interfaces.singular import SingularElement
+import sage.interfaces.abc
 
 
 def is_PolynomialRing(x):
@@ -435,13 +435,13 @@ class PolynomialRing_general(ring.Algebra):
             elif P == self.base_ring():
                 return C(self, [x], check=True, is_gen=False,
                          construct=construct)
-        if isinstance(x, SingularElement) and self._has_singular:
+        if isinstance(x, sage.interfaces.abc.SingularElement) and self._has_singular:
             self._singular_().set_ring()
             try:
                 return x.sage_poly(self)
             except Exception:
                 raise TypeError("Unable to coerce singular object")
-        elif isinstance(x , str):
+        elif isinstance(x, str):
             try:
                 from sage.misc.parser import Parser, LookupNameMaker
                 R = self.base_ring()

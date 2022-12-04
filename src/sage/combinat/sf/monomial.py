@@ -22,7 +22,7 @@ from . import classical
 import sage.libs.symmetrica.all as symmetrica
 from sage.rings.integer import Integer
 from sage.rings.infinity import infinity
-from sage.combinat.partition import Partition, _Partitions
+from sage.combinat.partition import _Partitions
 from sage.arith.misc import multinomial, factorial, binomial
 
 

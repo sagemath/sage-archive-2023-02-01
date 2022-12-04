@@ -1637,22 +1637,22 @@ def is_GapElement(x):
     """
     Deprecated function
 
-    Use isinstance(x,GapElement)
+    Use :func:`isinstance` (of :class:`sage.interfaces.abc.GapElement`) instead.
 
-    Returns True if x is a GapElement.
+    Returns True if ``x`` is :class:`GapElement`
 
     EXAMPLES::
 
         sage: from sage.interfaces.gap import is_GapElement
         sage: is_GapElement(gap(2))
-        doctest:...: DeprecationWarning: The function is_GapElement is deprecated. Use isinstance(x, GapElement) instead
+        doctest:...: DeprecationWarning: The function is_GapElement is deprecated. Use isinstance(x, sage.interfaces.abc.GapElement) instead
         See https://trac.sagemath.org/34823 for details.
         True
         sage: is_GapElement(2)
         False
     """
     from sage.misc.superseded import deprecation
-    deprecation(34823, "The function is_GapElement is deprecated. Use isinstance(x, GapElement) instead")
+    deprecation(34823, "The function is_GapElement is deprecated. Use isinstance(x, sage.interfaces.abc.GapElement) instead")
     return isinstance(x, GapElement)
 
 def gfq_gap_to_sage(x, F):

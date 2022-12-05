@@ -1399,6 +1399,14 @@ def edge_coloring(g, value_only=False, vizing=False, hex_colors=False, solver=No
     if vizing:
         classes = _vizing_edge_coloring(g)
     else:
+        def extend_color_classes(classes, coloring):
+            # create missing color classes, if any
+            for _ in range(len(classes), len(coloring)):
+                classes.append([])
+            # add edges to classes
+            for i, edges in enumerate(coloring):
+                classes[i].extend(edges)
+
         for h in L:
 
             if not h.size():
@@ -1409,12 +1417,7 @@ def edge_coloring(g, value_only=False, vizing=False, hex_colors=False, solver=No
 
             if Delta + 1 <= chi:
                 c = _vizing_edge_coloring(h)
-                # create missing color classes, if any
-                for i in range(len(classes), len(c)):
-                    classes.append([])
-                # add edges to classes
-                for i in range(len(c)):
-                    classes[i].extend(c[i])
+                extend_color_classes(classes, c)
                 continue
 
             if value_only:
@@ -1455,21 +1458,14 @@ def edge_coloring(g, value_only=False, vizing=False, hex_colors=False, solver=No
                 p.solve(objective_only=value_only, log=verbose)
             except MIPSolverException:
                 # The coloring fails with Delta colors
-                if value_only:
-                    chi = max(chi, Delta + 1)
-                else:
+                chi = max(chi, Delta + 1)
+                if not value_only:
                     c = _vizing_edge_coloring(h)
-                    # create missing color classes, if any
-                    for i in range(len(classes), len(c)):
-                        classes.append([])
-                    # add edges to classes
-                    for i in range(len(c)):
-                        classes[i].extend(c[i])
+                    extend_color_classes(classes, c)
                 continue
 
-            if value_only:
-                chi = max(chi, Delta)
-            else:
+            chi = max(chi, Delta)
+            if not value_only:
                 # create missing color classes, if any
                 for i in range(len(classes), Delta):
                     classes.append([])

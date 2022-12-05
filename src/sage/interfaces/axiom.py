@@ -944,17 +944,23 @@ AxiomExpectFunction = PanAxiomExpectFunction
 
 def is_AxiomElement(x):
     """
-    Returns True of x is of type AxiomElement.
+    Returns True if ``x`` is of type :class:`AxiomElement`.
 
     EXAMPLES::
 
         sage: from sage.interfaces.axiom import is_AxiomElement
-        sage: is_AxiomElement(axiom(2)) #optional - axiom
-        True
         sage: is_AxiomElement(2)
+        doctest:...: DeprecationWarning: the function is_AxiomElement is deprecated; use isinstance(x, sage.interfaces.abc.AxiomElement) instead
+        See https://trac.sagemath.org/34804 for details.
         False
+        sage: is_AxiomElement(axiom(2))  # optional - axiom
+        True
     """
+    from sage.misc.superseded import deprecation
+    deprecation(34804, "the function is_AxiomElement is deprecated; use isinstance(x, sage.interfaces.abc.AxiomElement) instead")
+
     return isinstance(x, AxiomElement)
+
 
 #Instances
 axiom = Axiom(name='axiom')

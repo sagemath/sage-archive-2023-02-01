@@ -2,6 +2,22 @@ r"""
 Abstract base classes for interface elements
 """
 
+class ExpectElement:
+    r"""
+    Abstract base class for :class:`~sage.interfaces.expect.ExpectElement`.
+
+    This class is defined for the purpose of ``isinstance`` tests.  It should not be
+    instantiated.
+
+    EXAMPLES:
+
+    By design, there is a unique direct subclass::
+
+        sage: len(sage.interfaces.abc.ExpectElement.__subclasses__()) <= 1
+        True
+    """
+    pass
+
 
 class GapElement:
     r"""

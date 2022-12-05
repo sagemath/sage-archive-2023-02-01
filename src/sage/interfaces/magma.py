@@ -225,6 +225,7 @@ SAGE_REF_RE = re.compile(r'%s\d+' % SAGE_REF)
 from sage.env import SAGE_EXTCODE, DOT_SAGE
 import sage.misc.misc
 import sage.misc.sage_eval
+import sage.interfaces.abc
 from sage.interfaces.tab_completion import ExtraTabCompletion
 from sage.misc.instancedoc import instancedoc
 
@@ -1837,7 +1838,7 @@ def is_MagmaElement(x):
 
 
 @instancedoc
-class MagmaElement(ExtraTabCompletion, ExpectElement):
+class MagmaElement(ExtraTabCompletion, ExpectElement, sage.interfaces.abc.MagmaElement):
     def _ref(self):
         """
         Return a variable name that is a new reference to this particular

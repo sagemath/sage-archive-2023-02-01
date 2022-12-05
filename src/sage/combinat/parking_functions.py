@@ -243,7 +243,7 @@ class ParkingFunction(ClonableArray, metaclass=InheritComparisonClasscallMetacla
         if not check_NDPF(sorted(self), len(self)):
             raise ValueError(f'{list(self)} is not a parking function')
 
-    def __hash__(self):
+    def _hash_(self):
         """
         Return the hash of ``self``.
 

@@ -179,6 +179,8 @@ Python floats.
 import os
 import re
 
+import sage.interfaces.abc
+
 from .expect import Expect, ExpectElement, FunctionElement, ExpectFunction
 from sage.env import DOT_SAGE
 from pexpect import EOF
@@ -555,7 +557,7 @@ class Axiom(PanAxiom):
 
 
 @instancedoc
-class PanAxiomElement(ExpectElement):
+class PanAxiomElement(ExpectElement, sage.interfaces.abc.AxiomElement):
     def __call__(self, x):
         """
         EXAMPLES::

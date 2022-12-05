@@ -946,7 +946,7 @@ AxiomExpectFunction = PanAxiomExpectFunction
 
 def is_AxiomElement(x):
     """
-    Returns True if ``x`` is of type :class:`AxiomElement`.
+    Return True if ``x`` is of type :class:`AxiomElement`.
 
     EXAMPLES::
 

@@ -70,6 +70,23 @@ class Macaulay2Element:
     pass
 
 
+class MagmaElement:
+    r"""
+    Abstract base class for :class:`~sage.interfaces.magma.MagmaElement`.
+
+    This class is defined for the purpose of ``isinstance`` tests.  It should not be
+    instantiated.
+
+    EXAMPLES:
+
+    By design, there is a unique direct subclass::
+
+        sage: len(sage.interfaces.abc.MagmaElement.__subclasses__()) <= 1
+        True
+    """
+    pass
+
+
 class SingularElement:
     r"""
     Abstract base class for :class:`~sage.interfaces.singular.SingularElement`.

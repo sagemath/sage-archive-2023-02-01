@@ -1812,13 +1812,11 @@ class MagmaFunction(ExpectFunction):
 
 def is_MagmaElement(x):
     """
-    Return True if x is of type MagmaElement, and False otherwise.
+    Return True if ``x`` is of type :class:`MagmaElement`, and False otherwise.
 
     INPUT:
 
-
     -  ``x`` - any object
-
 
     OUTPUT: bool
 
@@ -1826,10 +1824,15 @@ def is_MagmaElement(x):
 
         sage: from sage.interfaces.magma import is_MagmaElement
         sage: is_MagmaElement(2)
+        doctest:...: DeprecationWarning: the function is_MagmaElement is deprecated; use isinstance(x, sage.interfaces.abc.MagmaElement) instead
+        See https://trac.sagemath.org/34804 for details.
         False
         sage: is_MagmaElement(magma(2))                    # optional - magma
         True
     """
+    from sage.misc.superseded import deprecation
+    deprecation(34804, "the function is_MagmaElement is deprecated; use isinstance(x, sage.interfaces.abc.MagmaElement) instead")
+
     return isinstance(x, MagmaElement)
 
 

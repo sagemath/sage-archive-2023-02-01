@@ -48,6 +48,7 @@ Functions
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
+from sage.arith.misc import is_prime, is_prime_power
 from sage.misc.cachefunc import cached_function
 
 from sage.categories.sets_cat import EmptySetError
@@ -55,6 +56,7 @@ import sage.arith.all as arith
 from sage.misc.unknown import Unknown
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
 
 def group_law(G):
@@ -1262,6 +1264,105 @@ def turyn_1965_3x3xK(k=4):
 
     return G, [[G(v + k) for l, k in zip(L, K) for v in l]]
 
+
+def _is_periodic_sequence(seq, period):
+    """Check if the sequence is periodic with correct period.
+    
+    The sequence should have length at least twice the period, so that 
+    periodicity can be checked.
+
+    INPUT:
+
+    - ``seq`` -- the sequence to be tested (must have length at least twice the period).
+
+    - ``period`` -- integer, the period that the sequence should have.
+
+    EXAMPLES:
+
+        sage: from sage.combinat.designs.difference_family import _is_periodic_sequence 
+        sage: _is_periodic_sequence([0, 1, 2, 3, 0, 1, 2, 3], 4)
+        True
+        sage: _is_periodic_sequence([0, 1, 0, 1, 0, 1, 0, 1], 4)
+        False
+        sage: _is_periodic_sequence([0, 1, 1, 1, 0, 1, 2, 1], 4)
+        False
+    """
+    assert len(seq) >= 2*period
+
+    for per in range(1, period):
+        first = seq[:per]
+        periodic = True
+        for j in range(1, len(seq)//per):
+            if seq[j*per:(j+1)*per] != first:
+                periodic = False
+                break
+        if periodic:
+            return False
+    if seq[:period] != seq[period:2*period]:
+        return False
+    return True
+
+def _create_m_sequence(q, n, check=True):
+    """Create an m-sequence over GF(q) with period `q^n-1`. 
+    
+    Given a prime power `q`, the m-sequence is created as described by [Zie1959]_
+    from a primitive function over the finite field `GF(q)`.
+
+    Given a primitive function `f=c_0+c_1x+...+c_nx^n` over `K=GF(q)` of degree `n`, 
+    the recurrence is given by: `a_i = -c_0^{-1}(c_1a_{i-1}+...+c_na{i-n}).
+    The first n elements will be `0,0,...,0,1` and these will give a maximal length recurrence sequence
+    as shown in [Mit2008]_.
+
+    INPUT:
+    
+    - ``q`` -- a prime power.
+
+    - ``n`` -- a nonnegative number.
+
+    - ``check`` -- boolean (dafault True): if true, check that the result is a seqauence with correct period.
+      Setting it to false may speed up considerably the computation.
+
+    EXAMPLES:
+        sage: from sage.combinat.designs.difference_family import _create_m_sequence
+        sage: _create_m_sequence(3, 2) #random
+        [1, 0, 1, 2, 2, 0, 2, 1]
+        sage: _create_m_sequence(4, 2, check=False) #random
+        [1, 0, a, a + 1, a, a, 0, a + 1, 1, a + 1, a + 1, 0, 1, a, 1]
+        sage: _create_m_sequence(6, 2)
+        Traceback (most recent call last):
+        ...
+        ValueError: q must be a prime power
+
+    """
+    from sage.rings.finite_rings.finite_field_constructor import GF
+
+    if not is_prime_power(q):
+        raise ValueError('q must be a prime power')
+    if n < 0:
+        raise ValueError('n cannot be negative')
+
+    K = GF(q, 'a')
+    
+    T = PolynomialRing(K, 'x')
+    primitive = T.irreducible_element(n, algorithm='random')
+    while not primitive.is_primitive():
+        primitive = T.irreducible_element(n, algorithm='random')
+    coeffs = primitive.coefficients()
+    exps = primitive.exponents()
+    
+    period = q**n - 1
+    seq_len = period*2 if check else period
+    seq = [1]+[0]*(n-1)
+    
+    while len(seq) < seq_len:
+        nxt = 0
+        for i, coeff in zip(exps[1:], coeffs[1:]):
+            nxt += coeff*seq[-i]
+        seq.append(-coeffs[0].inverse()*nxt)
+
+    if check:
+        assert _is_periodic_sequence(seq, period)
+    return seq[:period]
 
 def difference_family(v, k, l=1, existence=False, explain_construction=False, check=True):
     r"""

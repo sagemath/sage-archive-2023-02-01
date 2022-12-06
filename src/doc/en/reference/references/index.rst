@@ -4418,6 +4418,9 @@ REFERENCES:
 .. [MirMor2009] \R. Miranda, D.R. Morrison, "Embeddings of Integral Quadratic Forms"
                 http://www.math.ucsb.edu/~drm/manuscripts/eiqf.pdf .
 
+.. [Mit2008] \A. Mitra. *On the construction of M-sequences via primitive polynomials with a fast identification method*,
+             International Journal of Electronics and Communication Engineering 2(9) (2008): 1991-1996.
+
 .. [MKO1998] Hans Munthe--Kaas and Brynjulf Owren.
              *Computations in a free Lie algebra*. (1998).
              `Downloadable from Munthe-Kaas's website
@@ -6232,6 +6235,10 @@ REFERENCES:
 .. [ZF2012] Jin-Xin Zhou and Yan-Quan Feng. *Cubic Vertex-Transitive
             Non-Cayley Graphs of Order 8p*. The Electronic Journal of
             Combinatorics, 19(1), P53, 2012. :doi:`10.37236/2087`
+
+.. [Zie1959] \N. Zierler. *Linear Recurring Sequences*.
+             Journal of the Society for Industrial and Applied Mathematics 7(1) 
+             (1959): 31-48. :doi:`10.1137/0107003`
 
 .. [Zie1998] \G. M. Ziegler. *Shelling polyhedral 3-balls and
              4-polytopes*. Discrete Comput. Geom. 19 (1998), 159-174.

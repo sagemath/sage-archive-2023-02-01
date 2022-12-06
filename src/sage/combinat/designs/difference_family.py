@@ -1453,6 +1453,73 @@ def relative_difference_set_from_m_sequence(q, N, check=True):
         assert is_relative_difference_set(set1, G, H, (period//(q-1), q-1, q**(N-1), q**(N-2)))
     return set1
 
+def relative_difference_set_from_homomorphism(q, N, d, check=True):
+    r"""Construct `R((q^N-1)/(q-1), n, q^{N-1}, q^{N-2}*d)` where `nd = q-1`.
+
+    Given a prime power `q`, a number `N \ge 2` and integers `d` such that `d | q-1` we create the
+    relative difference set using the construction from Corollary 5.1.1 of [EB1966]_.
+
+    INPUT:
+
+    - ``q`` -- a prime power.
+
+    - ``N`` -- an integer greater than 1.
+
+    - ``d`` -- an integer which divides `q-1`.
+
+    - ``check`` -- boolean (default True). If true, check that the result is a relative difference
+      set before returning it.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.difference_family import relative_difference_set_from_homomorphism
+        sage: relative_difference_set_from_homomorphism(7, 2, 3) #random
+        [(0), (3), (4), (2), (13), (7), (14)]
+        sage: relative_difference_set_from_homomorphism(9, 2, 4, check=False) #random
+        [(0), (4), (6), (13), (7), (12), (15), (8), (9)]
+        sage: relative_difference_set_from_homomorphism(9, 2, 5)
+        Traceback (most recent call last):
+        ...
+        ValueError: q-1 must be a multiple of d
+
+    TESTS::
+
+        sage: from sage.combinat.designs.difference_family import is_relative_difference_set, _get_submodule_of_order
+        sage: q, N, d = 11, 2, 5
+        sage: G = AdditiveAbelianGroup([(q^N-1)//d])
+        sage: H = _get_submodule_of_order(G, (q-1)//d)
+        sage: is_relative_difference_set(relative_difference_set_from_homomorphism(q, N, d), G, H, ((q**N-1)//(q-1), (q-1)//d, q**(N-1), q**(N-2)*d))
+        True
+        sage: q, N, d = 9, 2, 4
+        sage: G = AdditiveAbelianGroup([(q^N-1)//d])
+        sage: H = _get_submodule_of_order(G, (q-1)//d)
+        sage: is_relative_difference_set(relative_difference_set_from_homomorphism(q, N, d), G, H, ((q**N-1)//(q-1), (q-1)//d, q**(N-1), q**(N-2)*d))
+        True
+    """
+    from sage.groups.additive_abelian.additive_abelian_group import AdditiveAbelianGroup
+
+    if not is_prime_power(q):
+        raise ValueError('q must be a prime power')
+    if N < 2:
+        raise ValueError('N must be at least 2')
+    if (q-1)%d != 0:
+        raise ValueError('q-1 must be a multiple of d')
+
+    G = AdditiveAbelianGroup([q**N-1])
+    K = _get_submodule_of_order(G, d)
+    assert K is not None, 'Could not find kernel'
+
+    G2 = G/K
+
+    theta = G.hom([G2.gen(0)], G2)
+    diff_set = relative_difference_set_from_m_sequence(q, N, check=False)
+    second_diff_set = [theta(x) for x in diff_set]
+
+    if check:
+        H = _get_submodule_of_order(G2, (q-1)//d)
+        assert is_relative_difference_set(second_diff_set, G2, H, ((q**N-1)//(q-1), (q-1)//d, q**(N-1), q**(N-2)*d))
+    return second_diff_set
+
 def is_relative_difference_set(R, G, H, params, verbose =False):
     r"""Check if `R` is a difference set of `G` relative to `H`, with the given parameters.
 

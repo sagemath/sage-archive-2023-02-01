@@ -48,7 +48,7 @@ Functions
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-from sage.arith.misc import is_prime, is_prime_power
+from sage.arith.misc import is_prime_power
 from sage.misc.cachefunc import cached_function
 
 from sage.categories.sets_cat import EmptySetError
@@ -1266,7 +1266,7 @@ def turyn_1965_3x3xK(k=4):
 
 
 def _is_periodic_sequence(seq, period):
-    """Check if the sequence is periodic with correct period.
+    r"""Check if the sequence is periodic with correct period.
     
     The sequence should have length at least twice the period, so that 
     periodicity can be checked.
@@ -1277,7 +1277,7 @@ def _is_periodic_sequence(seq, period):
 
     - ``period`` -- integer, the period that the sequence should have.
 
-    EXAMPLES:
+    EXAMPLES::
 
         sage: from sage.combinat.designs.difference_family import _is_periodic_sequence 
         sage: _is_periodic_sequence([0, 1, 2, 3, 0, 1, 2, 3], 4)
@@ -1303,7 +1303,7 @@ def _is_periodic_sequence(seq, period):
     return True
 
 def _create_m_sequence(q, n, check=True):
-    """Create an m-sequence over GF(q) with period `q^n-1`. 
+    r"""Create an m-sequence over GF(q) with period `q^n-1`. 
     
     Given a prime power `q`, the m-sequence is created as described by [Zie1959]_
     from a primitive function over the finite field `GF(q)`.
@@ -1322,7 +1322,8 @@ def _create_m_sequence(q, n, check=True):
     - ``check`` -- boolean (dafault True): if true, check that the result is a seqauence with correct period.
       Setting it to false may speed up considerably the computation.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.combinat.designs.difference_family import _create_m_sequence
         sage: _create_m_sequence(3, 2) #random
         [1, 0, 1, 2, 2, 0, 2, 1]
@@ -1363,6 +1364,174 @@ def _create_m_sequence(q, n, check=True):
     if check:
         assert _is_periodic_sequence(seq, period)
     return seq[:period]
+
+def _get_submodule_of_order(G, order):
+    r"""Construct a submodule of the given order from group `G`.
+    
+    This method tries to construct submodules from various elements of `G` until
+    a submodule of the correct order is found. 
+    
+    INPUT:
+    
+    - ``G`` --an additive abelian group.
+    
+    - ``order`` -- integer, the order of the desired syubmodule.
+
+    TESTS:
+
+        sage: from sage.combinat.designs.difference_family import _get_submodule_of_order
+        sage: G = AdditiveAbelianGroup([48])
+        sage: _get_submodule_of_order(G, 6).order()
+        6
+        sage: G = AdditiveAbelianGroup([13^2-1])
+        sage: _get_submodule_of_order(G, 12).order()
+        12
+    """
+    for el in G:
+        H = G.submodule([el])
+        if H.order() == order:
+            return H
+    return None
+
+def relative_difference_set_from_m_sequence(q, N, check=True):
+    r"""Construct `R((q^N-1)/(q-1), q-1, q^{N-1}, q^{N-2})` where q is a prime power and `N\ge 2`.
+    
+    The relative difference set is constructed over the set of additive integers modulo `q^N-1`,
+    as described in Theorem 5.1 of [EB1966]_. Given an m-sequence `(a_i)` of period `q^N-1`, the 
+    set is: `R=\{i | 0 \le i \le q^{N-1}, a_i=1\}`.
+
+    INPUT:
+
+    - ``q`` -- a prime power.
+
+    - ``N`` -- a nonegative number.
+
+    - ``check`` -- boolean (default True). If true, check that the result is a relative difference
+      set before returning it.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.difference_family import relative_difference_set_from_m_sequence 
+        sage: relative_difference_set_from_m_sequence(2, 4) #random
+        [(0), (4), (5), (6), (7), (9), (11), (12)]
+        sage: relative_difference_set_from_m_sequence(8, 2, check=False) #random
+        [(0), (6), (30), (40), (41), (44), (56), (61)]
+        sage: relative_difference_set_from_m_sequence(6, 2)
+        Traceback (most recent call last):
+        ...
+        ValueError: q must be a prime power
+
+    TESTS::
+
+        sage: from sage.combinat.designs.difference_family import is_relative_difference_set, _get_submodule_of_order
+        sage: q, N = 5, 3
+        sage: G = AdditiveAbelianGroup([q^N-1])
+        sage: H = _get_submodule_of_order(G, q-1)
+        sage: is_relative_difference_set(relative_difference_set_from_m_sequence(q, N), G, H, ((q^N-1)//(q-1), q-1, q^(N-1), q^(N-2)))
+        True
+        sage: q, N = 13, 2
+        sage: G = AdditiveAbelianGroup([q^N-1])
+        sage: H = _get_submodule_of_order(G, q-1)
+        sage: is_relative_difference_set(relative_difference_set_from_m_sequence(q, N), G, H, ((q^N-1)//(q-1), q-1, q^(N-1), q^(N-2)))
+        True
+    """
+    from sage.groups.additive_abelian.additive_abelian_group import AdditiveAbelianGroup
+
+    if not is_prime_power(q):
+        raise ValueError('q must be a prime power')
+    if N < 2:
+        raise ValueError('N must be at least 2')
+
+    m_seq = _create_m_sequence(q, N, check=False)
+    period = q**N-1
+    G = AdditiveAbelianGroup([period])
+    
+    set1 = [i for i in G if m_seq[i[0]] == 1]
+
+    if check:
+        H = _get_submodule_of_order(G, q-1)
+        assert is_relative_difference_set(set1, G, H, (period//(q-1), q-1, q**(N-1), q**(N-2)))
+    return set1
+
+def is_relative_difference_set(R, G, H, params, verbose =False):
+    r"""Check if `R` is a difference set of `G` relative to `H`, with the given parameters.
+
+    This function checks that `G`, `H` and `R` have the orders specified in the parameters, and 
+    that R satisfies the definition of relative difference set (from [EB1966]_): the collection of
+    differences `r-s`, `r,s \in R`, `r \neq s` contains only elements of `G` which are not in `H`, and contains 
+    every such element exactly `d` times.
+
+    INPUT:
+
+    - ``R`` -- list, the relative diffeence set of length `k`.
+
+    - ``G`` -- an additive abelian group of order `mn`.
+
+    - ``H`` -- a submodule of ``G`` of order `n`.
+
+    - ``params`` -- a tuple in the form `(m, n, k, d)`.
+
+    - ``verbose`` -- boolean (default False). If true the function will be verbose
+      when the sequences do not satisfy the contraints.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.difference_family import _get_submodule_of_order, relative_difference_set_from_m_sequence, is_relative_difference_set
+        sage: q, N = 5, 2
+        sage: G = AdditiveAbelianGroup([q^N-1])
+        sage: H = _get_submodule_of_order(G, q-1)
+        sage: params = ((q^N-1)//(q-1), q-1, q^(N-1), q^(N-2))
+        sage: R = relative_difference_set_from_m_sequence(q, N)
+        sage: is_relative_difference_set(R, G, H, params)
+        True
+
+    If we pass the ``verbose`` argument, the function will explain why it failed::
+
+        sage: R2 = [G[1], G[2], G[3], G[5], G[6]]
+        sage: is_relative_difference_set(R2, G, H, params, verbose=True)
+        There is a value in the difference set which is not repeated d times
+        False
+    """
+    m, n, k, d = params
+    if G.order() != m*n:
+        if verbose: 
+            print('Incorrect order of G:', G.order())
+        return False
+
+    if H.order() != n:
+        if verbose: 
+            print('Incorect order of H:', H.order())
+
+    if len(R) != k:
+        if verbose: 
+            print('Length of R not correct:', len(R))
+        return False
+    
+    diff_set = {}
+    for el1 in R:
+        for el2 in R:
+            if el1 != el2:
+                idx = el1-el2
+                if idx not in diff_set: 
+                    diff_set[idx] = 0
+                diff_set[idx] += 1
+    values = [diff_set[x] for x in diff_set]
+    if max(values) != d or min(values) != d:
+        if verbose: 
+            print('There is a value in the difference set which is not repeated d times')
+        return False
+    
+    for el in G:
+        if el in H and el in diff_set:
+            if verbose:
+                print('An element of G is present in both the difference set and in H')
+            return False
+        if el not in H and el not in diff_set:
+            if verbose:
+                print('An element of G is not present in either one of H or the difference set')
+            return False
+
+    return True
 
 def difference_family(v, k, l=1, existence=False, explain_construction=False, check=True):
     r"""

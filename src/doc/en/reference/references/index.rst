@@ -2182,6 +2182,11 @@ REFERENCES:
 .. [Early2017] Nick Early. *Canonical bases for permutohedral plates*.
                Preprint (2017). :arxiv:`1712.08520v3`.
 
+.. [EB1966] \J. Elliot and A. Butson.
+            *Relative difference sets*,
+            Illinois Journal of Mathematics 10(3) (1966): 517-531.
+            :doi:`10.1215/ijm/1256055004`
+
 .. [Eb1989] \W. Eberly, "Computations for algebras and group
             representations". Ph.D. Thesis, University of
             Toronto, 1989. http://www.cpsc.ucalgary.ca/~eberly/Research/Papers/phdthesis.pdf

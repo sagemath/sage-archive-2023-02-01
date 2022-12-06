@@ -1398,6 +1398,10 @@ def edge_coloring(g, value_only=False, vizing=False, hex_colors=False, solver=No
 
     if vizing:
         classes = _vizing_edge_coloring(g)
+        if len(classes) == max(g.degree()):
+            # guaranteeing that vizing=True always returns Delta+1 colors
+            # for backward compatibility
+            classes.append([])
     else:
         def extend_color_classes(classes, coloring):
             # create missing color classes, if any

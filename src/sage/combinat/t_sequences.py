@@ -537,3 +537,148 @@ def T_sequences_smallcases(t, existence=False, check=True):
     if existence:
         return False
     raise ValueError(f'T Sequences of length {t} not yet implemented.')
+
+
+def base_sequences_construction(turyn_type_seqs, check=True):
+    r"""Construct base sequences of length `2n-1, 2n-1, n, n` from Turyn type sequences of length `n,n,n,n-1`.
+    
+    Given Turyn type sequences `X, Y, Z, W` of length `n,n,n,n-1`, Theorem 1 of [KTR2004]_  shows that the 
+    following are base sequences of length `2n-1, 2n-1, n, n`:
+
+    .. MATH::
+
+        \begin{aligned}
+        A &= Z;W \\
+        B &= Z; -W \\
+        C &= X \\
+        D &= Y
+        \end{aligned}    
+
+    INPUT:
+
+    - ``turyn_type_seqs`` -- The list of 4 Turyn type sequences that should be used to construct the base sequences.
+
+    - ``check`` -- boolean, if True (default) check that the resulting sequences are base sequences 
+      before returning them.
+
+    OUTPUT: A list containing the four base sequences.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.t_sequences import base_sequences_construction
+        sage: X = [1,1,-1,1,-1,1,-1,1]
+        sage: Y = [1,-1,-1,-1,-1,-1,-1,1]
+        sage: Z = [1,-1,-1,1,1,1,1,-1]
+        sage: W = [1,1,1,-1,1,1,-1]
+        sage: base_sequences_construction([X, Y, Z, W])
+        [[1, -1, -1, 1, 1, 1, 1, -1, 1, 1, 1, -1, 1, 1, -1],
+        [1, -1, -1, 1, 1, 1, 1, -1, -1, -1, -1, 1, -1, -1, 1],
+        [1, 1, -1, 1, -1, 1, -1, 1],
+        [1, -1, -1, -1, -1, -1, -1, 1]]
+
+    TESTS::
+
+        sage: base_sequences_construction([[1, -1], [1], [1], [-1]])
+        Traceback (most recent call last):
+        ...
+        AssertionError
+
+    .. SEALSO::
+
+        :func:`is_base_sequences_tuple`
+    """
+    assert len(turyn_type_seqs) == 4
+    X, Y, Z, W = turyn_type_seqs
+
+    assert len(X) == len(Y) == len(Z) == len(W)+1
+
+    A = Sequence(Z + W)
+    B = Sequence(Z + [-el for el in W])
+    C = X
+    D = Y
+
+    if check:
+        assert is_base_sequences_tuple([A, B, C, D])
+    return [A, B, C, D] 
+
+
+def is_base_sequences_tuple(base_sequences, verbose=False):
+    r"""Check if the given sequences are base sequences.
+
+    Four (-1, +1) sequences `A, B, C, D` of length `n+p, n+p, n, n` are called base sequences if
+    for all `j \ge 1`:
+
+    .. MATH::
+
+        N_A(j)+N_B(j)+N_C(j)+N_D(j) \eq 0 
+
+    where `N_X(j)` is the nonperiodic autocorrelation (See definition in [KTR2004]_).
+
+    INPUT:
+
+    - ``base_sequences`` -- The list of 4 sequences that should be checked.
+
+    - ``verbose`` -- a boolean (default false). If true the function will be verbose
+      when the sequences do not satisfy the contraints.
+
+    EXAMPLES::
+        
+        sage: from sage.combinat.t_sequences import is_base_sequences_tuple
+        sage: seqs = [[1, -1, -1, 1, 1, 1, 1, -1, 1, 1, 1, -1, 1, 1, -1],[1, -1, -1, 1, 1, 1, 1, -1, -1, -1, -1, 1, -1, -1, 1],[1, 1, -1, 1, -1, 1, -1, 1],[1, -1, -1, -1, -1, -1, -1, 1]]
+        sage: is_base_sequences_tuple(seqs)
+        True
+
+    If verbose is true, the function will be verbose ::
+
+        sage: seqs = [[1, -1], [1, 1], [-1], [2]]
+        sage: is_base_sequences_tuple(seqs, verbose=True)
+        Base sequences should only contiain -1, +1, found 2
+        False
+
+    TESTS:
+        
+        sage: seqs = [[1, -1], [1], [-1]]
+        sage: is_base_sequences_tuple(seqs)
+        False
+        sage: seqs = [[1, -1], [1, -1], [-1], [1]]
+        sage: is_base_sequences_tuple(seqs)
+        False
+        sage: seqs = [[1, -1], [1, 1], [-1], [2]]
+        sage: is_base_sequences_tuple(seqs)
+        False
+        sage: seqs = [[1, -1], [1], [-1], [1]]
+        sage: is_base_sequences_tuple(seqs)
+        False
+
+    .. SEALSO::
+
+        :func:`base_sequences_construction` 
+    """
+    if len(base_sequences) != 4:
+        if verbose:
+            print(f'Base sequences should be 4, found {len(base_sequences)}')
+        return False
+    A, B, C, D = base_sequences
+    n = len(C)
+    p = len(A) - len(C)
+    if not (len(A) == len(B) == len(C)+p == len(D)+p):
+        if verbose:
+            print(f'Base sequences should have length n+p, n+p, n, n, found {len(A)}, {len(B)}, {len(C)}, {len(D)}')
+        return False
+    
+    for seq in base_sequences:
+        for el in seq:
+            if abs(el) != 1:
+                if verbose:
+                    print(f'Base sequences should only contiain -1, +1, found {el}')
+                return False
+                
+
+    for j in range(1, n+p):
+        autocorr = _nonperiodic_autocorrelation(A, j) + _nonperiodic_autocorrelation(B, j) + _nonperiodic_autocorrelation(C, j) + _nonperiodic_autocorrelation(D, j) 
+        if autocorr != 0:
+            if verbose: 
+                print(f"Nonperiodic autocorrelation should always be zero, found {autocorr} for parameter {j}")
+            return False
+
+    return True

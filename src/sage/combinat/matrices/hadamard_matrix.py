@@ -1284,8 +1284,7 @@ from sage.matrix.constructor import matrix_method
 @matrix_method
 def hadamard_matrix(n,existence=False, check=True):
     r"""
-    Tries to construct a Hadamard matrix using a combination of Paley
-    and Sylvester constructions.
+    Tries to construct a Hadamard matrix using the available methods.
 
     INPUT:
 
@@ -1417,6 +1416,10 @@ def hadamard_matrix(n,existence=False, check=True):
         if existence:
             return True
         M = turyn_type_hadamard_matrix_smallcases(n, check=False)
+    elif hadamard_matrix_spence_construction(n ,existence=True):
+        if existence:
+            return True
+        M = hadamard_matrix_spence_construction(n, check=False)
     elif skew_hadamard_matrix(n, existence=True) is True:
         if existence:
             return True

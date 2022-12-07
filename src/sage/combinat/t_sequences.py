@@ -683,3 +683,94 @@ def is_base_sequences_tuple(base_sequences, verbose=False):
             return False
 
     return True
+
+def turyn_type_sequences_smallcases(n, existence=False):
+    r"""
+    Construction of Turyn type sequences for small values of `n`.
+
+    The data is taken from [KTR2005]_ for `n\eq 36`, and from [BDKR2013]_ for `n\le 32`.
+
+    INPUT:
+
+    - ``n`` -- integer, the length of the Turyn type sequences.
+
+    - ``existence`` -- boolean (default False). If true, only return whether the 
+      Turyn type sequences are available for the given length.
+
+    EXAMPLES:
+
+    By default, this method returns the four Turyn type sequences ::
+
+        sage: from sage.combinat.t_sequences import turyn_type_sequences_smallcases
+        sage: turyn_type_sequences_smallcases(4)
+        [[1, 1, 1, 1], [1, 1, -1, 1], [1, 1, -1, -1], [1, -1, 1]]
+
+    If we pass the ``existence`` flag, the method will return a boolean ::
+
+        sage: turyn_type_sequences_smallcases(4, existence=True)
+        True
+
+    TESTS::
+
+        sage: turyn_type_sequences_smallcases(17)
+        Traceback (most recent call last):
+        ...
+        ValueError: Turyn type sequences of length 17 are not implemented yet.
+        sage: turyn_type_sequences_smallcases(17, existence=True)
+        False
+
+    ALGORITHM:
+
+    The Turyn type sequences are stored in hexadecimal format.
+    Given `n` hexadecimal digits `h_1, h_2,...,h_n`, it is possible to get the Turyn type sequences
+    by converting each `h_i` (`1 \le i \le n-1`) into a four digits binary number. Then, the j-th binary digit is 
+    `0` if the i-th number in the j-th sequence is `1`, and it is `1` if the number in the sequence is -1.
+
+    For the n-th digit, it should be converted to a 3 digits binary number, and then the same mapping 
+    as before can be used (see also [BDKR2013]_).
+    """
+    def convertLists(hexstring):
+        seqs = [Sequence([]), Sequence([]), Sequence([]), Sequence([])]
+        for c in hexstring[:-1]:
+            binary = bin(int(c, 16))[2:].zfill(4)
+            for i in range(4):
+                if binary[i] == '0':
+                    seqs[i].append(1)
+                else:
+                    seqs[i].append(-1)
+        last = bin(int(hexstring[-1], 16))[2:].zfill(3)
+        for i in range(3):
+                if last[i] == '0':
+                    seqs[i].append(1)
+                else:
+                    seqs[i].append(-1)
+        return seqs
+    
+    db = {
+        2: '01',
+        4: '0161',
+        6: '006d61',
+        8: '06e5c4d1',
+        10: '0001f4a961',
+        12: '0004f90bc961',
+        14: '00036ac71c7651',
+        16: '0000778e52de5561',
+        18: '00006758b30d1e9a51',
+        20: '000038e2739c7a0b6951',
+        22: '00000f702c71a9ad565961',
+        24: '00000b7c2cb2bc4b6cd9a961',
+        26: '000000ff0f846f1ca5a5aa9551',
+        28: '0000067cde3e50639ab46135aa51',
+        30: '000000f70b106f9d427a25e9a96951',
+        32: '00000138f64f1c1e77844f26d95a5961',
+        36: '060989975b685d8fc80750b21c0212eceb26',
+    }
+
+    if existence:
+        return n in db
+
+    if n not in db:
+        raise ValueError(f"Turyn type sequences of length {n} are not implemented yet.")
+    
+    return convertLists(db[n])
+        

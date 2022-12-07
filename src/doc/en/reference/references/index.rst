@@ -620,6 +620,11 @@ REFERENCES:
                and variants*.
                :arxiv:`1810.00789`
 
+.. [BDKR2013] \D. Best, D.Z. Dokovic, H. Kharaghani and H. Ramp.
+              *Turyn-Type Sequences: Classification, Enumeration, and Construction*,
+              Journal of Combinatorial Designs 21(1) (2013): 24-35.
+              :doi:`10.1002/jcd.21318`
+
 .. [BDLV2006] \S. Brlek, S. Dulucq, A. Ladouceur, L. Vuillon, *Combinatorial
               properties of smooth infinite words*, Theoret. Comput. Sci. 352
               (2006) 306--317.

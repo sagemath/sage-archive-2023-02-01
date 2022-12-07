@@ -452,10 +452,12 @@ def T_sequences_smallcases(t, existence=False, check=True):
     Construct T-sequences for some small values of `t`.
 
     This method will try to use the constructions defined in 
-    :func:`sage.combinat.t_sequences.T_sequences_construction_from_base_sequences` and 
-    :func:`sage.combinat.t_sequences.T_sequences_construction_from_turyn_sequences` 
-    together with the Turyn sequences stored in :func:`sage.combinat.t_sequences.turyn_sequences_smallcases`, 
-    or some T-sequences taken directly from [CRSKKY1989]_.
+    :func:`T_sequences_construction_from_base_sequences` and 
+    :func:`T_sequences_construction_from_turyn_sequences` 
+    together with the Turyn sequences stored in :func:`turyn_sequences_smallcases`, 
+    or base sequences created by :func:`base_sequences_smallcases`.
+    
+    This function contains also some T-sequences taken directly from [CRSKKY1989]_.
 
     INPUT:
 
@@ -534,7 +536,15 @@ def T_sequences_smallcases(t, existence=False, check=True):
             return True
         turyn_seqs = turyn_sequences_smallcases((t+1)//4)
         return T_sequences_construction_from_turyn_sequences(turyn_seqs, check=check)
-    
+
+    for p in range(1, t):
+        n = (t-p)//2
+        if (t-p)%2 == 0 and base_sequences_smallcases(n, p, existence=True):
+            if existence:
+                return True
+            base_seqs = base_sequences_smallcases(n, p, check=False)
+            return T_sequences_construction_from_base_sequences(base_seqs, check=check)
+
     if existence:
         return False
     raise ValueError(f'T Sequences of length {t} not yet implemented.')
@@ -830,8 +840,14 @@ def base_sequences_smallcases(n, p, existence=False, check=True):
     if existence:
         return p == n-1 and turyn_type_sequences_smallcases(n, existence=True)
     
-    if p != n-1:
-        raise ValueError('Data is only present for base sequences of the form 2n-1, 2n-1, n, n')
-    
-    turyn_type_seqs = turyn_type_sequences_smallcases(n)
-    return base_sequences_construction(turyn_type_seqs, check=check)
+    if p == n-1 and turyn_type_sequences_smallcases(n, existence=True):
+        if existence: 
+            return True
+        turyn_type_seqs = turyn_type_sequences_smallcases(n)
+        return base_sequences_construction(turyn_type_seqs, check=check)
+    if p == 1 and turyn_sequences_smallcases(n+p, existence=True):
+        if existence:
+            return True
+        return turyn_sequences_smallcases(n+p)
+        
+    raise ValueError(f'Base sequences of order {n+p}, {n+p}, {n}, {n} not yet implemented.')

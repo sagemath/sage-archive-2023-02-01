@@ -3789,6 +3789,11 @@ REFERENCES:
 .. [KT2013] \K. Tsukazaki, Explicit Isogenies of Elliptic Curves,
             PhD thesis, University of Warwick, 2013.
 
+.. [KTR2005] \H. Kharaghani and B. Tayfeh-Rezaie.
+            *A Hadamard matrix of order 428*,
+            Journal of Combinatorial Designs 13(6) (2005): 435-440.
+            :doi:`10.1002/jcd.20043`
+
 .. [KTT2006] \A. Kuniba, T. Takagi, and A. Takenouchi,
              *Bethe ansatz and inverse scattering transform in a periodic
              box-ball system*, Nuclear Phys. B **747**, no. 3 (2006), 354--397.

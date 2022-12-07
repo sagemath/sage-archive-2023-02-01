@@ -297,33 +297,33 @@ def turyn_sequences_smallcases(l, existence=False):
 
     return list(map(Sequence, db[l]))
 
-def T_sequences_construction_I(turyn_sequences, check=True):
+def T_sequences_construction_from_base_sequences(base_sequences, check=True):
     r"""
-    Construct T-sequences of length `2l-1` from Turyn sequences of length `l`.
+    Construct T-sequences of length `2n-p` from base sequences of length `n+p, n+p, n, n`.
 
-    Given Turyn sequences `X, U, Y, V`, the T-sequences are constructed as described in
-    Theorem 7.7 of [Seb2017]_:
+    Given base sequences `A, B, C, D`, the T-sequences are constructed as described in
+    [KTR2005]_:
 
     .. MATH::
 
         \begin{aligned}
-        T_1 &= \frac{1}{2}(X+U); 0_{l-1} \\
-        T_2 &= \frac{1}{2}(X-U); 0_{l-1} \\
-        T_3 &= 0_{l} + \frac{1}{2}(Y+V) \\
-        T_4 &= 0_{l} + \frac{1}{2}(Y-V)
+        T_1 &= \frac{1}{2}(A+B); 0_{n} \\
+        T_2 &= \frac{1}{2}(A-B); 0_{n} \\
+        T_3 &= 0_{n+p} + \frac{1}{2}(C+D) \\
+        T_4 &= 0_{n+p} + \frac{1}{2}(C-D)
         \end{aligned}
 
     INPUT:
 
-    - ``turyn_sequences`` -- the Turyn sequences that should be used to construct the T-sequences.
+    - ``base_sequences`` -- the base sequences that should be used to construct the T-sequences.
 
     - ``check`` -- boolean, if true (default) checks that the sequences created are T-sequences before returning them.
 
     EXAMPLES::
 
-        sage: from sage.combinat.t_sequences import turyn_sequences_smallcases, T_sequences_construction_I, is_T_sequences_set
+        sage: from sage.combinat.t_sequences import turyn_sequences_smallcases, T_sequences_construction_from_base_sequences
         sage: seqs = turyn_sequences_smallcases(4)
-        sage: T_sequences_construction_I(seqs)
+        sage: T_sequences_construction_from_base_sequences(seqs)
         [[1, 1, -1, 0, 0, 0, 0],
         [0, 0, 0, -1, 0, 0, 0],
         [0, 0, 0, 0, 1, 0, 1],
@@ -331,29 +331,30 @@ def T_sequences_construction_I(turyn_sequences, check=True):
 
     TESTS::
 
+        sage: from sage.combinat.t_sequences import base_sequences_construction, is_T_sequences_set
         sage: seqs = turyn_sequences_smallcases(4)
-        sage: is_T_sequences_set(T_sequences_construction_I(seqs))
+        sage: is_T_sequences_set(T_sequences_construction_from_base_sequences(seqs))
         True
-        sage: T_sequences_construction_I([[1, -1], [-1, 1], [1]])
+        sage: T_sequences_construction_from_base_sequences([[1, -1], [-1, 1], [1]])
         Traceback (most recent call last):
         ...
         AssertionError
-
-    .. NOTE::
-
-        The construction detailed in [Seb2017]_ contains a typo. The first two sequences are
-        defined as `T_1 = \frac{1}{2}(X+Y); 0_{l-1}` and `T_2 = \frac{1}{2}(X-Y); 0_{l-1}`,
-        but the correct formulas are `T_1 = \frac{1}{2}(X+U); 0_{l-1}` and
-        `T_2 = \frac{1}{2}(X-U); 0_{l-1}`. A very similar typo can be seen in the proof of
-        Theorem 9 in [CRSKKY1989]_ as well.
+        sage: X = [1,1,-1,1,-1,1,-1,1]
+        sage: Y = [1,-1,-1,-1,-1,-1,-1,1]
+        sage: Z = [1,-1,-1,1,1,1,1,-1]
+        sage: W = [1,1,1,-1,1,1,-1]
+        sage: base_seqs = base_sequences_construction([X, Y, Z, W])
+        sage: is_T_sequences_set(T_sequences_construction_from_base_sequences(base_seqs))
+        True
     """
 
-    assert len(turyn_sequences) == 4
+    assert len(base_sequences) == 4
 
-    X, U, Y, V = turyn_sequences
-    l = len(X)
+    A, B, C, D = base_sequences
+    n = len(C)
+    p = len(A)-n
 
-    assert len(X) == len(U) == len(Y)+1 == len(V)+1
+    assert len(A) == len(B) == len(C)+p == len(D)+p
 
     def seq_sum(seq1, seq2):
         return [(a+b)//2 for (a, b) in zip(seq1, seq2)]
@@ -364,17 +365,17 @@ def T_sequences_construction_I(turyn_sequences, check=True):
     def zero_seq(n):
         return [0 for _ in range(n)]
     
-    X1 = Sequence(seq_sum(X, U) + zero_seq(l-1))
-    X2 =  Sequence(seq_subtract(X, U) + zero_seq(l-1))
-    X3 =  Sequence(zero_seq(l) + seq_sum(Y, V))
-    X4 =  Sequence(zero_seq(l) + seq_subtract(Y, V))
+    X1 = Sequence(seq_sum(A, B) + zero_seq(n))
+    X2 = Sequence(seq_subtract(A, B) + zero_seq(n))
+    X3 = Sequence(zero_seq(n+p) + seq_sum(C, D))
+    X4 = Sequence(zero_seq(n+p) + seq_subtract(C, D))
 
     res = [X1, X2, X3, X4]
     if check:
         assert is_T_sequences_set(res)
     return res
 
-def T_sequences_construction_II(turyn_sequences, check=True):
+def T_sequences_construction_from_turyn_sequences(turyn_sequences, check=True):
     r"""
     Construct T-sequences of length `4l-1` from Turyn sequences of length `l`.
 
@@ -398,23 +399,23 @@ def T_sequences_construction_II(turyn_sequences, check=True):
 
     EXAMPLES::
 
-        sage: from sage.combinat.t_sequences import turyn_sequences_smallcases, T_sequences_construction_II, is_T_sequences_set
+        sage: from sage.combinat.t_sequences import turyn_sequences_smallcases, T_sequences_construction_from_turyn_sequences, is_T_sequences_set
         sage: seqs = turyn_sequences_smallcases(4)
-        sage: T_sequences_construction_II(seqs)
+        sage: T_sequences_construction_from_turyn_sequences(seqs)
         [[1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
         [0, 1, 1, 1, 1, -1, 1, -1, 0, 0, 0, 0, 0, 0, 0],
         [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, -1, 0, 1],
         [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, -1, 0, 1, 0]]
 
     TESTS::
+
         sage: seqs = turyn_sequences_smallcases(4)
-        sage: is_T_sequences_set(T_sequences_construction_II(seqs))
+        sage: is_T_sequences_set(T_sequences_construction_from_turyn_sequences(seqs))
         True
-        sage: T_sequences_construction_II([[1, -1], [-1, 1], [1]])
+        sage: T_sequences_construction_from_turyn_sequences([[1, -1], [-1, 1], [1]])
         Traceback (most recent call last):
         ...
         AssertionError
-
     """
 
     assert len(turyn_sequences) == 4
@@ -451,8 +452,8 @@ def T_sequences_smallcases(t, existence=False, check=True):
     Construct T-sequences for some small values of `t`.
 
     This method will try to use the constructions defined in 
-    :func:`sage.combinat.t_sequences.T_sequences_construction_I` and 
-    :func:`sage.combinat.t_sequences.T_sequences_construction_II` 
+    :func:`sage.combinat.t_sequences.T_sequences_construction_from_base_sequences` and 
+    :func:`sage.combinat.t_sequences.T_sequences_construction_from_turyn_sequences` 
     together with the Turyn sequences stored in :func:`sage.combinat.t_sequences.turyn_sequences_smallcases`, 
     or some T-sequences taken directly from [CRSKKY1989]_.
 
@@ -526,13 +527,13 @@ def T_sequences_smallcases(t, existence=False, check=True):
         if existence:
             return True
         turyn_seqs = turyn_sequences_smallcases((t+1)//2)
-        return T_sequences_construction_I(turyn_seqs, check=check)
+        return T_sequences_construction_from_base_sequences(turyn_seqs, check=check)
     
     if (t+1)%4 == 0 and turyn_sequences_smallcases((t+1)//4, existence=True):
         if existence:
             return True
         turyn_seqs = turyn_sequences_smallcases((t+1)//4)
-        return T_sequences_construction_II(turyn_seqs, check=check)
+        return T_sequences_construction_from_turyn_sequences(turyn_seqs, check=check)
     
     if existence:
         return False
@@ -542,7 +543,7 @@ def T_sequences_smallcases(t, existence=False, check=True):
 def base_sequences_construction(turyn_type_seqs, check=True):
     r"""Construct base sequences of length `2n-1, 2n-1, n, n` from Turyn type sequences of length `n,n,n,n-1`.
     
-    Given Turyn type sequences `X, Y, Z, W` of length `n,n,n,n-1`, Theorem 1 of [KTR2004]_  shows that the 
+    Given Turyn type sequences `X, Y, Z, W` of length `n,n,n,n-1`, Theorem 1 of [KTR2005]_  shows that the 
     following are base sequences of length `2n-1, 2n-1, n, n`:
 
     .. MATH::
@@ -612,7 +613,7 @@ def is_base_sequences_tuple(base_sequences, verbose=False):
 
         N_A(j)+N_B(j)+N_C(j)+N_D(j) \eq 0 
 
-    where `N_X(j)` is the nonperiodic autocorrelation (See definition in [KTR2004]_).
+    where `N_X(j)` is the nonperiodic autocorrelation (See definition in [KTR2005]_).
 
     INPUT:
 

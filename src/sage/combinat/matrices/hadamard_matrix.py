@@ -337,6 +337,10 @@ def williamson_type_quadruples_smallcases(n, existence=False):
             [1, -1, 1, -1, -1, 1, -1],
             [1, 1, -1, -1, -1, -1, 1],
             [1, -1, -1, -1, -1, -1, -1]),
+        9: ([1, -1, -1, -1, 1, 1, -1, -1, -1],
+            [1, -1, -1, 1, -1, -1, 1, -1, -1],
+            [1, -1, 1, -1, -1, -1, -1, 1, -1],
+            [1, 1, -1, -1, -1, -1, -1, -1, 1]),
         29: ([1, 1, 1,-1,-1,-1, 1, 1,-1,-1, 1,-1, 1,-1,-1,-1,-1, 1,-1, 1,-1,-1, 1, 1,-1,-1,-1, 1, 1],
             [1,-1, 1,-1,-1,-1, 1, 1,-1,-1, 1,-1, 1, 1, 1, 1, 1, 1,-1, 1,-1,-1, 1, 1,-1,-1,-1, 1,-1],
             [1, 1, 1, 1,-1, 1, 1,-1, 1,-1,-1,-1, 1, 1, 1, 1, 1, 1,-1,-1,-1, 1,-1, 1, 1,-1, 1, 1, 1],
@@ -1361,7 +1365,7 @@ def hadamard_matrix(n,existence=False, check=True):
         False
         sage: matrix.hadamard(12,existence=True)
         True
-        sage: matrix.hadamard(476,existence=True)
+        sage: matrix.hadamard(668,existence=True)
         Unknown
         sage: matrix.hadamard(10)
         Traceback (most recent call last):

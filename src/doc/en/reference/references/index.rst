@@ -5581,6 +5581,11 @@ REFERENCES:
              matrices, and characteristic polynomials without division*
              :doi:`10.1023/A:1021878507303`
 
+.. [Spe1975] \E. Spence.
+            *Hadamard matrices from relative difference sets*,
+            Journal of Combinatorial Theory, Series A 19(3) (1975): 287-300.
+            :doi:`10.1016/0097-3165(75)90054-0`
+
 .. [ST1981] \J. J. Seidel and D. E. Taylor,
             *Two-graphs, a second survey*.
             Algebraic methods in graph theory, Vol. I, II (Szeged, 1978),

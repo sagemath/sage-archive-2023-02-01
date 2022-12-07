@@ -299,7 +299,7 @@ def turyn_sequences_smallcases(l, existence=False):
 
 def T_sequences_construction_from_base_sequences(base_sequences, check=True):
     r"""
-    Construct T-sequences of length `2n-p` from base sequences of length `n+p, n+p, n, n`.
+    Construct T-sequences of length `2n+p` from base sequences of length `n+p, n+p, n, n`.
 
     Given base sequences `A, B, C, D`, the T-sequences are constructed as described in
     [KTR2005]_:
@@ -773,4 +773,65 @@ def turyn_type_sequences_smallcases(n, existence=False):
         raise ValueError(f"Turyn type sequences of length {n} are not implemented yet.")
     
     return convertLists(db[n])
-        
+
+def base_sequences_smallcases(n, p, existence=False, check=True):
+    r"""Construct base sequences of length `n+p, n+p, n, n` from available data.
+
+    The function uses the function :func:`base_sequences_construction`, together with
+    base sequences from :func:`turyn_type_sequences_smallcases` to construct base sequences with `p \eq n-1`.
+
+    INPUT:
+
+    - ``n`` -- integer, the length of the last two base sequences.
+
+    - ``p`` -- integer, `n+p` will be the length of the first two base sequences.
+
+    - ``existence`` -- boolean (default False). If True, the function will only check whether the base
+      sequences can be constructed.
+
+    - ``check`` -- boolean, if True (default) check that the resulting sequences are base sequences 
+      before returning them.
+
+    OUTPUT: 
+    
+    If ``existence`` is ``False``, the function returns a list containing the four base sequences, or raises
+    an error if the base sequences cannot be constructed. If ``existence`` is ``True``, the function returns a 
+    boolean, which is ``True`` if the base sequences can be constructed and ``False`` otherwise.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.t_sequences import base_sequences_smallcases
+        sage: base_sequences_smallcases(8, 7)
+        [[1, -1, -1, 1, 1, 1, 1, -1, 1, 1, 1, -1, 1, 1, -1],
+        [1, -1, -1, 1, 1, 1, 1, -1, -1, -1, -1, 1, -1, -1, 1],
+        [1, 1, -1, 1, -1, 1, -1, 1],
+        [1, -1, -1, -1, -1, -1, -1, 1]]
+
+    If ``existence`` is ``True``, the function returns a boolean ::
+
+        sage: base_sequences_smallcases(8, 7, existence=True)
+        True
+        sage: base_sequences_smallcases(7, 5, existence=True)
+        False
+
+    TESTS::
+
+        sage: base_sequences_smallcases(7, 5)
+        Traceback (most recent call last):
+        ...
+        ValueError: Data is only present for base sequences of the form 2n-1, 2n-1, n, n
+        sage: seqs = base_sequences_smallcases(16, 15)
+        sage: len(seqs[0]) == len(seqs[1]) == 16+15
+        True
+        sage: len(seqs[2]) == len(seqs[3]) == 16
+        True
+    """
+
+    if existence:
+        return p == n-1 and turyn_type_sequences_smallcases(n, existence=True)
+    
+    if p != n-1:
+        raise ValueError('Data is only present for base sequences of the form 2n-1, 2n-1, n, n')
+    
+    turyn_type_seqs = turyn_type_sequences_smallcases(n)
+    return base_sequences_construction(turyn_type_seqs, check=check)

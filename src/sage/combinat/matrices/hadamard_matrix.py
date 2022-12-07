@@ -1088,6 +1088,94 @@ def turyn_type_hadamard_matrix_smallcases(n, existence=False, check=True):
         return False
     raise ValueError("The Turyn type construction for Hadamard matrices of order %s is not yet implemented." % n)
 
+def hadamard_matrix_spence_construction(n, existence=False, check=True):
+    r"""Create an Hadamard matrix of order `n` using Spence construction.
+
+    This construction (detailed in [Spe1975]_), uses supplementary difference sets implemented in 
+    :func:`sage.combinat.designs.difference_family.supplementary_difference_set` to create the 
+    desired matrix.
+
+    INPUT:
+
+    - ``n`` -- integer, the order of the matrix to be constructed.
+
+    - ``existence`` -- boolean (default False): if True, only check if matrix exists.
+
+    - ``check`` -- bolean: if True (default), check the the matrix is an Hadamard matrix before returning.
+
+    OUTPUT:
+
+    If ``existence`` is true, returns a boolean representing whether the Hadamard matrix can
+    be constructed. Otherwise, returns the Hadamard matrix, or raises an error if it cannot be constructed.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.matrices.hadamard_matrix import hadamard_matrix_spence_construction
+        sage: hadamard_matrix_spence_construction(36)
+        36 x 36 dense matrix over Integer Ring...
+
+    If ``existence`` is ``True``, the function returns a boolean ::
+
+        sage: hadamard_matrix_spence_construction(52, existence=True)
+        True
+
+    TESTS::
+
+        sage: from sage.combinat.matrices.hadamard_matrix import is_hadamard_matrix
+        sage: is_hadamard_matrix(hadamard_matrix_spence_construction(100))
+        True
+        sage: hadamard_matrix_spence_construction(48, existence=True)
+        False
+        sage: hadamard_matrix_spence_construction(48)
+        Traceback (most recent call last):
+        ...
+        ValueError: The order 48 is not covered by Spence construction.
+        sage: hadamard_matrix_spence_construction(5)
+        Traceback (most recent call last):
+        ...
+        AssertionError
+        sage: hadamard_matrix_spence_construction(0)
+        Traceback (most recent call last):
+        ...
+        AssertionError
+    """
+    from sage.combinat.designs.difference_family import supplementary_difference_set
+
+    assert n%4 == 0 and n > 0
+
+    q = n//4
+    
+    if existence: 
+        return supplementary_difference_set(q, existence=True)
+    
+    if not supplementary_difference_set(q, existence=True):
+        raise ValueError(f'The order {n} is not covered by Spence construction.')
+
+    S1, S2, S3, S4 = supplementary_difference_set(q, check=False)
+
+    A1 = matrix.circulant([1 if j in S1 else -1 for j in range(q-1)])
+    A2 = matrix.circulant([1 if j in S4 else -1 for j in range(q-1)])
+    A3 = matrix.circulant([1 if j in S3 else -1 for j in range(q-1)])
+    A4 = matrix.circulant([1 if j in S2 else -1 for j in range(q-1)])
+    
+    P = matrix(ZZ, [[1 if (i + j)%(q-1) == 0 else 0 for i in range(1, q)] for j in range(1, q)])
+
+    e = matrix([1]*(q-1))
+    m1 = matrix([-1])
+    p1 = matrix([1])
+    H = block_matrix([[  p1,   m1,   p1,   p1,     e,       e,       e,       e],
+                      [  p1,   p1,   m1,   p1,    -e,       e,      -e,       e],
+                      [  m1,   p1,   p1,   p1,    -e,       e,       e,      -e],
+                      [  m1,   m1,   m1,   p1,    -e,      -e,       e,       e],
+                      [-e.T,  e.T,  e.T, -e.T,    A1,    A2*P,    A3*P,    A4*P],
+                      [-e.T, -e.T,  e.T,  e.T, -A2*P,      A1, -A4.T*P,  A3.T*P],
+                      [-e.T, -e.T, -e.T, -e.T, -A3*P,  A4.T*P,      A1, -A2.T*P],
+                      [ e.T, -e.T,  e.T, -e.T, -A4*P, -A3.T*P,  A2.T*P,      A1]])
+    if check:
+        assert is_hadamard_matrix(H, verbose=True)
+
+    return H
+
 def is_hadamard_matrix(M, normalized=False, skew=False, verbose=False):
     r"""
     Test if `M` is a Hadamard matrix.

@@ -55,6 +55,7 @@ REFERENCES:
 #*****************************************************************************
 
 from urllib.request import urlopen
+from sage.combinat.designs.difference_family import skew_supplementary_difference_set
 
 from sage.rings.integer_ring import ZZ
 from sage.matrix.constructor import matrix, block_matrix, block_diagonal_matrix, diagonal_matrix
@@ -1927,6 +1928,10 @@ def GS_skew_hadamard_smallcases(n, existence=False, check=True):
     :func:`sage.combinat.matrices.hadamard_matrix.williamson_goethals_seidel_skew_hadamard_matrix`
     Matrices for `n=36` and `52` are given in [GS70s]_. Matrices for `n=92` are given
     in [Wall71]_.
+    
+    Additional data is obtained from skew supplementary difference sets contained in 
+    :func:`sage.combinat.designs.difference_family.skew_supplementary_difference_set`, using the 
+    construction described in [Djo1992]_.
 
     INPUT:
 
@@ -1953,7 +1958,7 @@ def GS_skew_hadamard_smallcases(n, existence=False, check=True):
         return [1 if x == '+' else -1 for x in s]
 
     if existence:
-        return n in [36, 52, 92]
+        return n in [36, 52, 92] or skew_supplementary_difference_set(n//4, existence=True)
 
     if n == 36:
         a = [ 1,  1, 1, -1,  1, -1,  1, -1, -1]
@@ -1974,6 +1979,16 @@ def GS_skew_hadamard_smallcases(n, existence=False, check=True):
         c = [1, 1,-1,-1,-1, 1,-1, 1,-1, 1,-1, 1, 1,-1, 1,-1, 1,-1, 1,-1,-1,-1, 1]
         d = [1,-1,-1,-1,-1, 1,-1,-1, 1,-1,-1, 1, 1,-1,-1, 1,-1,-1, 1,-1,-1,-1,-1]
         return WGS(a, b, c, d, check=check)
+    
+    if skew_supplementary_difference_set(n//4, existence=True):
+        t = n//4
+        S1, S2, S3, S4 = skew_supplementary_difference_set(t, check=False)
+        a = [-1 if i in S1 else 1 for i in range(t)]
+        b = [-1 if i in S2 else 1 for i in range(t)]
+        c = [-1 if i in S3 else 1 for i in range(t)]
+        d = [-1 if i in S4 else 1 for i in range(t)]
+        return WGS(a, b, c, d, check=check)
+        
     return None
 
 _skew_had_cache={}

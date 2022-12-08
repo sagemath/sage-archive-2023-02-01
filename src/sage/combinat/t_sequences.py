@@ -594,7 +594,7 @@ def base_sequences_construction(turyn_type_seqs, check=True):
         ...
         AssertionError
 
-    .. SEALSO::
+    .. SEEALSO::
 
         :func:`is_base_sequences_tuple`
     """
@@ -661,7 +661,7 @@ def is_base_sequences_tuple(base_sequences, verbose=False):
         sage: is_base_sequences_tuple(seqs)
         False
 
-    .. SEALSO::
+    .. SEEALSO::
 
         :func:`base_sequences_construction` 
     """

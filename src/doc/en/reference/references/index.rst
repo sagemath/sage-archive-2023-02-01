@@ -2032,6 +2032,15 @@ REFERENCES:
              and some constructions of de Luca and Rauzy*,
              Theoret. Comput. Sci.  255 (2001) 539--553.
 
+.. [Djo1992] \D. Đoković.
+             *Construction of some new Hadamard matrices*,
+             Bulletin of the Australian Mathematical Society 45(2) (1992): 327-332.
+             :doi:`10.1017/S0004972700030185`
+
+.. [Djo1994] \D. Đoković.
+             *Five New Orders for Hadamard Matrices of Skew Type*,
+             Australasian Journal of Combinatorics  10 (1994): 259-264.
+
 .. [DK2013] John R. Doyle and David Krumm, *Computing algebraic
             numbers of bounded height*, :arxiv:`1111.4963v4` (2013).
 

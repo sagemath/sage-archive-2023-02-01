@@ -54,6 +54,7 @@ from sage.misc.cachefunc import cached_function
 from sage.categories.sets_cat import EmptySetError
 import sage.arith.all as arith
 from sage.misc.unknown import Unknown
+from sage.rings.finite_rings.integer_mod_ring import Zmod
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
@@ -1928,6 +1929,204 @@ def _is_fixed_relative_difference_set(R, q):
             return False
     return True 
 
+
+def skew_supplementary_difference_set(n, existence=False, check=True):
+    r"""Construct `4-\{n; n_1, n_2, n_3, n_4; \lambda\}` supplementary difference sets where `S_1` is skew and `n_1+n_2+n_3+n_4\eq n+\lambda`.
+
+    These sets are constructed from available data, as described in [Djo1994]_. The set `S_1 \subset G` is 
+    always skew, i.e. `S_1 \cap (-S_1) \eq \emptyset` and `S_1 \cup (-S_1) \eq G\\\{0\}`.
+
+    The data for `n\eq 103, 151` is taken from [Djo1994]_ and the data for `n\eq 67, 113, 127, 157, 163, 181, 241`
+    is taken from [Djo1992]_.
+    
+    INPUT:
+
+    - ``n`` -- integer, the parameter of the supplementary difference set.
+
+    - ``existence`` -- boolean (dafault False). If true, only check whether the supplementary difference sets
+      can be constructed.
+
+    - ``check`` -- boolean (default True). If true, check that the sets are supplementary difference sets with
+       `S_1` skew before returning them. Setting this parameter to False may speed up the computation considerably.
+
+    
+    OUTPUT:
+
+    If ``existence`` is false, the function returns the 4 sets (containing integers modulo `n`), or raises an 
+    error if data for the given ``n`` is not available.
+    If ``existence`` is true, the function returns a boolean representing whether supplementary difference 
+    sets can be constructed.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.difference_family import skew_supplementary_difference_set
+        sage: S1, S2, S3, S4 = skew_supplementary_difference_set(103)
+
+    If existence is ``True``, the function returns a boolean ::
+        
+        sage: skew_supplementary_difference_set(103, existence=True)
+        True
+        sage: skew_supplementary_difference_set(17, existence=True)
+        False
+
+    TESTS::
+
+        sage: from sage.combinat.designs.difference_family import is_supplementary_difference_set, _is_skew_set
+        sage: S1, S2, S3, S4 = skew_supplementary_difference_set(113, check=False)
+        sage: is_supplementary_difference_set([S1, S2, S3, S4], 113, len(S1)+len(S2)+len(S3)+len(S4)-113)
+        True
+        sage: _is_skew_set(S1, 113)
+        True
+        sage: S1, S2, S3, S4 = skew_supplementary_difference_set(67, check=False)
+        sage: is_supplementary_difference_set([S1, S2, S3, S4], 67, len(S1)+len(S2)+len(S3)+len(S4)-67)
+        True
+        sage: _is_skew_set(S1, 67)
+        True
+        sage: skew_supplementary_difference_set(7)
+        Traceback (most recent call last):
+        ...
+        ValueError: Skew SDS of order 7 not yet implemented.
+        sage: skew_supplementary_difference_set(7, existence=True)
+        False
+        sage: skew_supplementary_difference_set(127, existence=True)
+        True
+    """
+
+    
+    indices = {
+        67:  [[0,3,5,6,9,10,13,14,17,18,20],
+              [0,2,4,9,11,12,13,16,19,21],
+              [1,3,6,10,11,13,14,16,20,21],
+              [2,4,6,8,9,11,14,17,19]],
+        103: [[1,3,4,6,8,11,12,14,17,18,20,22,25,27,28,30,32], 
+              [2,9,10,12,13,14,15,16,20,21,22,23,24,26,28,29,30], 
+              [0,1,2,3,4,11,12,13,16,17,19,20,21,24,25,26,28,30,31],
+              [0,1,2,3,4,5,6,13,15,18,19,20,23,24,25,26,27,28,29,31]],
+        113: [[0,3,4,6,8,10,13,14],
+              [1,3,8,9,10,11,12,13],
+              [0,2,3,5,6,7,12],
+              [1,2,3,5,8,9,15]],
+        127: [[0,3,5,7,8,10,12,14,16],
+              [0,1,3,6,7,9,10,12,14,15],
+              [0,1,3,4,5,7,8,9,15,16],
+              [1,4,5,6,9,10,13,14,15,16]],
+        151: [[0,3,5,6,8,11,13,14,16,19,21,23,25,27,28],
+              [2,3,6,13,16,17,20,23,25,26,27,28,29],
+              [0,1,2,3,4,6,7,8,9,10,11,12,23,24,27,28],
+              [1,4,5,10,11,12,13,14,16,18,19,22,25,26,27,28]],
+        157:[[0,2,5,7,8,11],
+             [0,4,5,6,9,11],
+             [6,7,8,9,10,11],
+             [0,5,6,7,8,10,11]],
+        163: [[0,2,5,6,9,10,13,14,17],
+              [0,1,7,10,12,15,16,17],
+              [0,1,3,5,8,13,15,16,17],
+              [3,6,7,8,11,12,13,14,16,17]],
+        181: [[0,3,5,6,8,10,13,15,16,19],
+              [4,5,7,8,11,14,15,16,18,19],
+              [0,4,10,11,13,15,16,18,19],
+              [2,4,5,7,11,13,15,17,19]],
+        241: [[0,2,4,6,8,11,12,14],
+              [1,3,4,6,7,13,14,15],
+              [6,8,9,10,12,13,14,15],
+              [3,4,5,9,10,13,14]],
+    }
+
+    cosets_gens = {
+        67: [1,2,3,4,5,6,8,10,12,15,17],
+        103: [1, 2, 3, 4, 5, 6, 7, 8, 10, 12, 14, 15, 17, 19, 21, 23, 30],
+        113: [1, 2, 3, 5, 6, 9, 10, 13],
+        127: [1, 3, 5, 7, 9, 11, 13, 19, 21],
+        151: [1, 2, 3 ,4, 5, 6, 9, 10, 11, 12, 15, 22, 27, 29, 30],
+        157: [1, 2, 3, 5, 9, 15],
+        163: [1, 2, 3, 5, 6, 9, 10, 15, 18],
+        181: [1, 2, 3, 4, 6, 7, 8, 12, 13, 24],
+        241: [1, 2, 4, 5, 7, 13, 19, 35],
+    }
+
+    H_db = {
+        67: [1, 29, 37],
+        103: [1, 46, 56],
+        113: [1,16,28,30,49,106,109],
+        127: [1,2,4,8,16,32,64],
+        151: [1, 8,19,59, 64],
+        157: [1,14,16,39,46,67,75,93,99,101,108,130,153],
+        163: [1,38,40,53,58,85,104,133,140],
+        181: [1,39,43,48,62,65,73,80,132],
+        241: [1,15,24,54,87,91,94,98,100,119,160,183,205,225,231],
+    }
+
+    def generate_set(index_set, cosets):
+        S = []
+        for idx in index_set:
+            S += cosets[idx]
+        return S
+
+
+    if existence:
+        return n in indices
+    
+    if n not in indices:
+        raise ValueError(f'Skew SDS of order {n} not yet implemented.')
+    
+    Z = Zmod(n)
+    H = list(map(Z, H_db[n]))
+    
+    cosets = []
+    for el in cosets_gens[n]:
+        even_coset = []
+        odd_coset = []
+        for x in H:
+            even_coset.append(x*el)
+            odd_coset.append(-x*el)
+        cosets.append(even_coset)
+        cosets.append(odd_coset)
+    
+    S1 = generate_set(indices[n][0], cosets)
+    S2 = generate_set(indices[n][1], cosets)
+    S3 = generate_set(indices[n][2], cosets)
+    S4 = generate_set(indices[n][3], cosets)
+
+    if check:
+        lmbda = len(S1)+len(S2)+len(S3)+len(S4) - n
+        assert is_supplementary_difference_set([S1, S2, S3, S4], n, lmbda)
+        assert _is_skew_set(S1, n)
+        
+    return S1, S2, S3, S4
+
+def _is_skew_set(S, n):
+    r"""Check if `S` is a skew set over the set of integers modulo `n`.
+
+    From [Djo1994]_, a set `S \subset G` (where `G` is a finite abelian group of order `n`) is of skew 
+    type if `S_1 \cap (-S_1) \eq \emptyset` and `S_1 \cup (-S_1) \eq G\\ \{0\}`.
+
+    INPUT: 
+
+    - ``S`` -- the set to be checked, containing integers modulo `n`.
+
+    - ``n`` -- the order of `G`.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.designs.difference_family import _is_skew_set
+        sage: Z5 = Zmod(5)
+        sage: _is_skew_set([Z5(1), Z5(2)], 5)
+        True
+        sage: _is_skew_set([Z5(1), Z5(2), Z5(3)], 5)
+        False
+        sage: _is_skew_set([Z5(1)], 5)
+        False
+    """
+    G = Zmod(n)
+    for el in S:
+        if -el in S:
+            return False
+    for el in G:
+        if el == 0:
+            continue
+        if el not in S and -el not in S:
+            return False
+    return True
 
 def difference_family(v, k, l=1, existence=False, explain_construction=False, check=True):
     r"""

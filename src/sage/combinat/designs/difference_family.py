@@ -1310,8 +1310,8 @@ def _create_m_sequence(q, n, check=True):
     from a primitive function over the finite field `GF(q)`.
 
     Given a primitive function `f=c_0+c_1x+...+c_nx^n` over `K=GF(q)` of degree `n`, 
-    the recurrence is given by: `a_i = -c_0^{-1}(c_1a_{i-1}+...+c_na{i-n}).
-    The first n elements will be `0,0,...,0,1` and these will give a maximal length recurrence sequence
+    the recurrence is given by: `a_i = -c_0^{-1}(c_1a_{i-1}+...+c_na{i-n})`.
+    The first `n` elements will be `0,0,...,0,1` and these will give a maximal length recurrence sequence
     as shown in [Mit2008]_.
 
     INPUT:
@@ -1374,7 +1374,7 @@ def _get_submodule_of_order(G, order):
     
     INPUT:
     
-    - ``G`` --an additive abelian group.
+    - ``G`` -- an additive abelian group.
     
     - ``order`` -- integer, the order of the desired syubmodule.
 
@@ -1602,11 +1602,11 @@ def is_relative_difference_set(R, G, H, params, verbose =False):
     return True
 
 def is_supplementary_difference_set(Ks, v, lmbda):
-    r"""Check that the sets in ``Ks`` are `n-\{v; k_1,...,k_n; \lambda \} supplementary difference sets.
+    r"""Check that the sets in ``Ks`` are `n-\{v; k_1,...,k_n; \lambda \}` supplementary difference sets.
     
     From the definition in [Spe1975]_: let  `S_1, S_2, ..., S_n` be n subsets of an additive abelian group `G` of order `v` 
     such that `|S_i|\eq k_i`. If, for each `g\in G`, `g \neq 0`, the total number of solutions of `a_i-a'_i \eq g`, with
-    `a_i,a'_i \in S_i` is `\lambda`, then `S_1, S_2, ..., S_n` are `n-\{v; k_1,...,k_n;\lambda\} supplementary difference sets.
+    `a_i,a'_i \in S_i` is `\lambda`, then `S_1, S_2, ..., S_n` are `n-\{v; k_1,...,k_n;\lambda\}` supplementary difference sets.
 
     INPUT:
 
@@ -1629,7 +1629,7 @@ def is_supplementary_difference_set(Ks, v, lmbda):
 
     .. SEEALSO::
 
-        :func: `supplementary_difference_set`
+        :func:`supplementary_difference_set`
     """
     from sage.groups.additive_abelian.additive_abelian_group import AdditiveAbelianGroup
 
@@ -1721,7 +1721,7 @@ def supplementary_difference_set(q, existence=False, check=True):
 
     .. SEEALSO::
 
-        :func: `is_supplementary_difference_set`
+        :func:`is_supplementary_difference_set`
 
     """
     s = 0

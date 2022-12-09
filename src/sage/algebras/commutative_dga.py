@@ -958,12 +958,10 @@ class GCAlgebra(UniqueRepresentation, QuotientRing_nc):
             # Deal with multigrading: convert lists and tuples to elements
             # of an additive abelian group.
             if degrees:
-                multigrade = False
                 try:
                     rank = len(list(degrees[0]))
                     G = AdditiveAbelianGroup([0] * rank)
                     degrees = [G(vector(d)) for d in degrees]
-                    multigrade = True
                 except TypeError:
                     # The entries of degrees are not iterables, so
                     # treat as singly-graded.

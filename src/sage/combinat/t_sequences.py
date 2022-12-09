@@ -829,7 +829,7 @@ def base_sequences_smallcases(n, p, existence=False, check=True):
         sage: base_sequences_smallcases(7, 5)
         Traceback (most recent call last):
         ...
-        ValueError: Data is only present for base sequences of the form 2n-1, 2n-1, n, n
+        ValueError: Base sequences of order 12, 12, 7, 7 not yet implemented.
         sage: seqs = base_sequences_smallcases(16, 15)
         sage: len(seqs[0]) == len(seqs[1]) == 16+15
         True

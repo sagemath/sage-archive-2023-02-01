@@ -196,11 +196,6 @@ class Differential(UniqueRepresentation, Morphism,
 
         R = A.cover_ring()
         I = A.defining_ideal()
-        if A.base_ring().characteristic() != 2:
-            squares = R.ideal([R.gen(i)**2 for i, d in enumerate(A._degrees)
-                               if is_odd(d)], side='twosided')
-        else:
-            squares = R.ideal(0, side='twosided')
 
         def image_monomial(exponent):
             i = 0

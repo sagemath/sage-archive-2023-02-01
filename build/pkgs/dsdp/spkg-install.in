@@ -1,6 +1,6 @@
 cd src
-# Adapted from https://github.com/cvxopt/cvxopt-wheels/blob/master/library_builders.sh
-if [ "$UNAME" = Darwin ]; then
-   options="IS_OSX=1"
-fi
-sdh_make_install PREFIX=${SAGE_LOCAL} DSDPROOT=`pwd` LAPACKBLAS="$(pkg-config --libs blas) $(pkg-config --libs lapack)" $options
+cp ../patches/CMakeLists.txt .
+sdh_cmake -DCMAKE_BUILD_TYPE=Release \
+          -DBUILD_SHARED_LIBS=ON
+sdh_make
+sdh_make_install

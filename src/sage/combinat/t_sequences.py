@@ -463,7 +463,7 @@ def T_sequences_smallcases(t, existence=False, check=True):
 
     - ``t`` -- integer, the length of the T-sequences to construct.
 
-    - ``existence`` -- boolean (default false). If true, thsi method only returns whether a T-sequences of 
+    - ``existence`` -- boolean (default false). If true, this method only returns whether a T-sequences of 
       the given size can be constructed.
 
     - ``check`` -- boolean, if true (default) check that the sequences are T-sequences before returning them.
@@ -621,7 +621,7 @@ def is_base_sequences_tuple(base_sequences, verbose=False):
 
     .. MATH::
 
-        N_A(j)+N_B(j)+N_C(j)+N_D(j) \eq 0 
+        N_A(j)+N_B(j)+N_C(j)+N_D(j) = 0 
 
     where `N_X(j)` is the nonperiodic autocorrelation (See definition in [KTR2005]_).
 
@@ -698,7 +698,7 @@ def turyn_type_sequences_smallcases(n, existence=False):
     r"""
     Construction of Turyn type sequences for small values of `n`.
 
-    The data is taken from [KTR2005]_ for `n\eq 36`, and from [BDKR2013]_ for `n\le 32`.
+    The data is taken from [KTR2005]_ for `n= 36`, and from [BDKR2013]_ for `n\le 32`.
 
     INPUT:
 
@@ -787,8 +787,12 @@ def turyn_type_sequences_smallcases(n, existence=False):
 def base_sequences_smallcases(n, p, existence=False, check=True):
     r"""Construct base sequences of length `n+p, n+p, n, n` from available data.
 
-    The function uses the function :func:`base_sequences_construction`, together with
-    base sequences from :func:`turyn_type_sequences_smallcases` to construct base sequences with `p \eq n-1`.
+    The function uses the construction :func:`base_sequences_construction`, together with
+    Turyn type sequences from :func:`turyn_type_sequences_smallcases` to construct base sequences 
+    with `p = n-1`.
+
+    Furthermore, this function uses also Turyn sequences (i.e. base sequences with `p=1`) from 
+    :func:`turyn_sequences_smallcases`.
 
     INPUT:
 

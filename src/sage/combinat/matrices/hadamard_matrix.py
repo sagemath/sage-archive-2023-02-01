@@ -804,7 +804,7 @@ def hadamard_matrix_cooper_wallis_smallcases(n, check=True, existence=False):
     This function calls the function :func:`hadamard_matrix_cooper_wallis_construction`
     with the appropriate arguments.
     It constructs the matrices `X_1`, `X_2`, `X_3`, `X_4` using either
-    T-matrices or the T-sequences from :func:`sage.combinat.t_sequences.t_sequences_smallcases`.
+    T-matrices or the T-sequences from :func:`sage.combinat.t_sequences.T_sequences_smallcases`.
     The matrices `A`, `B`, `C`, `D` are taken from :func:`williamson_type_quadruples_smallcases`.
 
     Data for T-matrices of order 67 is taken from [Saw1985]_.

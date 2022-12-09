@@ -1395,7 +1395,7 @@ def _get_submodule_of_order(G, order):
     return None
 
 def relative_difference_set_from_m_sequence(q, N, check=True):
-    r"""Construct `R((q^N-1)/(q-1), q-1, q^{N-1}, q^{N-2})` where q is a prime power and `N\ge 2`.
+    r"""Construct `R((q^N-1)/(q-1), q-1, q^{N-1}, q^{N-2})` where `q` is a prime power and `N\ge 2`.
     
     The relative difference set is constructed over the set of additive integers modulo `q^N-1`,
     as described in Theorem 5.1 of [EB1966]_. Given an m-sequence `(a_i)` of period `q^N-1`, the 
@@ -1405,7 +1405,7 @@ def relative_difference_set_from_m_sequence(q, N, check=True):
 
     - ``q`` -- a prime power.
 
-    - ``N`` -- a nonegative number.
+    - ``N`` -- a nonnegative number.
 
     - ``check`` -- boolean (default True). If true, check that the result is a relative difference
       set before returning it.
@@ -1455,7 +1455,7 @@ def relative_difference_set_from_m_sequence(q, N, check=True):
     return set1
 
 def relative_difference_set_from_homomorphism(q, N, d, check=True):
-    r"""Construct `R((q^N-1)/(q-1), n, q^{N-1}, q^{N-2}*d)` where `nd = q-1`.
+    r"""Construct `R((q^N-1)/(q-1), n, q^{N-1}, q^{N-2}d)` where `nd = q-1`.
 
     Given a prime power `q`, a number `N \ge 2` and integers `d` such that `d | q-1` we create the
     relative difference set using the construction from Corollary 5.1.1 of [EB1966]_.
@@ -1525,7 +1525,7 @@ def is_relative_difference_set(R, G, H, params, verbose =False):
     r"""Check if `R` is a difference set of `G` relative to `H`, with the given parameters.
 
     This function checks that `G`, `H` and `R` have the orders specified in the parameters, and 
-    that R satisfies the definition of relative difference set (from [EB1966]_): the collection of
+    that `R` satisfies the definition of relative difference set (from [EB1966]_): the collection of
     differences `r-s`, `r,s \in R`, `r \neq s` contains only elements of `G` which are not in `H`, and contains 
     every such element exactly `d` times.
 
@@ -1604,8 +1604,8 @@ def is_relative_difference_set(R, G, H, params, verbose =False):
 def is_supplementary_difference_set(Ks, v, lmbda):
     r"""Check that the sets in ``Ks`` are `n-\{v; k_1,...,k_n; \lambda \}` supplementary difference sets.
     
-    From the definition in [Spe1975]_: let  `S_1, S_2, ..., S_n` be n subsets of an additive abelian group `G` of order `v` 
-    such that `|S_i|\eq k_i`. If, for each `g\in G`, `g \neq 0`, the total number of solutions of `a_i-a'_i \eq g`, with
+    From the definition in [Spe1975]_: let  `S_1, S_2, ..., S_n` be `n` subsets of an additive abelian group `G` of order `v` 
+    such that `|S_i|= k_i`. If, for each `g\in G`, `g \neq 0`, the total number of solutions of `a_i-a'_i = g`, with
     `a_i,a'_i \in S_i` is `\lambda`, then `S_1, S_2, ..., S_n` are `n-\{v; k_1,...,k_n;\lambda\}` supplementary difference sets.
 
     INPUT:
@@ -1656,7 +1656,7 @@ def supplementary_difference_set(q, existence=False, check=True):
     r"""Construct `4-\{2v; v, v+1, v, v; 2v\}` supplementary difference sets where `q=2v+1`.
 
     The sets are created from relative difference sets as detailed in Theorem 3.3 of [Spe1975]_. this construction 
-    requires that q is an odd prime power and that there exists `s \ge 0` such that `(q-(2^{s+1}+1))/2^{s+1}` is
+    requires that `q` is an odd prime power and that there exists `s \ge 0` such that `(q-(2^{s+1}+1))/2^{s+1}` is
     an odd prime power.
 
     Note that the construction from [Spe1975]_ states that the resulting sets are `4-\{2v; v+1, v, v, v; 2v\}` 
@@ -1822,7 +1822,7 @@ def _get_fixed_relative_difference_set(rel_diff_set, as_elements=False):
 
     Given a relative difference set `R(q+1, q-1, q, 1)`, it is possible to find a translation
     of this set fixed by `q` (see Section 3 of [Spe1975]_). We say that a set is fixed by `t` if
-    `\{td | d\in R\}\eq R`.
+    `\{td | d\in R\}= R`.
 
     In addition, the set returned by this function will contain the element `0`. This is needed in the 
     construction of supplementary difference sets (see :func:`supplementary_difference_set`).
@@ -1895,7 +1895,7 @@ def _get_fixed_relative_difference_set(rel_diff_set, as_elements=False):
 def _is_fixed_relative_difference_set(R, q):
     r"""Check if the relative difference set `R` is fixed by `q`.
     
-    A relative difference set  `R` is fixed by `q` if  `\{qd | d\in R\}\eq R` (see Section 3 of [Spe1975]_).
+    A relative difference set  `R` is fixed by `q` if  `\{qd | d\in R\}= R` (see Section 3 of [Spe1975]_).
 
     INPUT:
 
@@ -1931,12 +1931,12 @@ def _is_fixed_relative_difference_set(R, q):
 
 
 def skew_supplementary_difference_set(n, existence=False, check=True):
-    r"""Construct `4-\{n; n_1, n_2, n_3, n_4; \lambda\}` supplementary difference sets where `S_1` is skew and `n_1+n_2+n_3+n_4\eq n+\lambda`.
+    r"""Construct `4-\{n; n_1, n_2, n_3, n_4; \lambda\}` supplementary difference sets where `S_1` is skew and `n_1+n_2+n_3+n_4= n+\lambda`.
 
     These sets are constructed from available data, as described in [Djo1994]_. The set `S_1 \subset G` is 
-    always skew, i.e. `S_1 \cap (-S_1) \eq \emptyset` and `S_1 \cup (-S_1) \eq G\\\{0\}`.
+    always skew, i.e. `S_1 \cap (-S_1) = \emptyset` and `S_1 \cup (-S_1) = G\setminus\{0\}`.
 
-    The data for `n\eq 103, 151` is taken from [Djo1994]_ and the data for `n\eq 67, 113, 127, 157, 163, 181, 241`
+    The data for `n = 103, 151` is taken from [Djo1994]_ and the data for `n = 67, 113, 127, 157, 163, 181, 241`
     is taken from [Djo1992]_.
     
     INPUT:
@@ -1946,15 +1946,14 @@ def skew_supplementary_difference_set(n, existence=False, check=True):
     - ``existence`` -- boolean (dafault False). If true, only check whether the supplementary difference sets
       can be constructed.
 
-    - ``check`` -- boolean (default True). If true, check that the sets are supplementary difference sets with
-       `S_1` skew before returning them. Setting this parameter to False may speed up the computation considerably.
-
+    - ``check`` -- boolean (default True). If true, check that the sets are supplementary difference sets 
+      with `S_1` skew before returning them. Setting this parameter to False may speed up the computation considerably.
     
     OUTPUT:
 
     If ``existence`` is false, the function returns the 4 sets (containing integers modulo `n`), or raises an 
     error if data for the given ``n`` is not available.
-    If ``existence`` is true, the function returns a boolean representing whether supplementary difference 
+    If ``existence`` is true, the function returns a boolean representing whether skew supplementary difference 
     sets can be constructed.
 
     EXAMPLES::
@@ -2098,7 +2097,7 @@ def _is_skew_set(S, n):
     r"""Check if `S` is a skew set over the set of integers modulo `n`.
 
     From [Djo1994]_, a set `S \subset G` (where `G` is a finite abelian group of order `n`) is of skew 
-    type if `S_1 \cap (-S_1) \eq \emptyset` and `S_1 \cup (-S_1) \eq G\\ \{0\}`.
+    type if `S_1 \cap (-S_1) = \emptyset` and `S_1 \cup (-S_1) = G\setminus \{0\}`.
 
     INPUT: 
 

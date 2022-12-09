@@ -546,6 +546,56 @@ class MPolynomialIdeal_singular_base_repr:
                 raise NameError("Algorithm '%s' unknown"%algorithm)
         return S
 
+    @libsingular_gb_standard_options
+    def _groebner_cover(self):
+        r"""
+        Compute the Gröbner cover of the ideal.
+
+        The Gröbner cover is a partition of the space of parmeters,
+        such that the Gröbner basis is constant for each of the parts.
+
+        OUTPUT:
+
+        A list of parts. Each element of this list contains:
+
+            - The leading monomials of the Gröbner basis in the part
+            - The Gröbner basis in the part
+            - A list of components of the part. Each component is
+            has two lists of equations. The parameters in the
+            part are those that satisfy the first list of
+            equations, but do not satisfy the second one.
+
+
+        EXAMPLES::
+
+            sage: from sage.libs.singular.function import singular_function, lib
+            sage: F = PolynomialRing(QQ,'a').fraction_field()
+            sage: F.inject_variables()
+            Defining a
+            sage: R.<x,y,z> = F[]
+            sage: I = R.ideal([-x+3*y+z-5,2*x+a*z+4,4*x-3*z-a-1])
+            sage: I._groebner_cover()
+            [[[z, y, x],
+            [(2*a + 3)*z + (a + 9), (12*a + 18)*y + (-a^2 - 23*a - 36), (4*a + 6)*x + (-a^2 - a + 12)],
+            [[[0], [[(2*a + 3)]]]]],
+            [[1], [1], [[[(2*a + 3)], [[1]]]]]]
+
+        """
+        from sage.rings.fraction_field import FractionField_generic
+        F = self.base_ring()
+        from sage.rings.polynomial.multi_polynomial_ring_base import is_MPolynomialRing
+        from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
+        if (not isinstance(F, FractionField_generic) or
+            (not is_MPolynomialRing(F.ring()) and not is_PolynomialRing (F.ring()))):
+            raise TypeError("The base ring must be a field with parameters")
+        from sage.libs.singular.function import singular_function, lib
+        from sage.arith.functions import lcm
+        lib("grobcov.lib")
+        grobcov = singular_function("grobcov")
+        polynomials = []
+        for f in self.gens():
+            polynomials.append(f * lcm([c.denominator() for c in f.coefficients()]))
+        return grobcov(self.ring().ideal(polynomials))
 
 class MPolynomialIdeal_singular_repr(
         MPolynomialIdeal_singular_base_repr):
@@ -4566,6 +4616,53 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
 
         gb = PolynomialSequence(self.ring(), gb, immutable=True)
         return gb
+
+    def groebner_cover(self):
+        r"""
+        Compute the Gröbner cover of the ideal, over a field with parameters.
+
+        The Groebner cover is a partition of the space of parameters, such that the
+        Groebner basis in each part is given by the same expression.
+
+        EXAMPLES::
+
+            sage: F = PolynomialRing(QQ,'a').fraction_field()
+            sage: F.inject_variables()
+            Defining a
+            sage: R.<x,y,z> = F[]
+            sage: I = R.ideal([-x+3*y+z-5,2*x+a*z+4,4*x-3*z-1/a])
+            sage: I.groebner_cover()
+            {Quasi-affine subscheme X - Y of Affine Space of dimension 1 over Rational Field, where X is defined by:
+               0
+             and Y is defined by:
+               2*a^2 + 3*a: [(2*a^2 + 3*a)*z + (8*a + 1), (12*a^2 + 18*a)*y + (-20*a^2 - 35*a - 2), (4*a + 6)*x + 11],
+             Quasi-affine subscheme X - Y of Affine Space of dimension 1 over Rational Field, where X is defined by:
+               a
+             and Y is defined by:
+               1: [1],
+             Quasi-affine subscheme X - Y of Affine Space of dimension 1 over Rational Field, where X is defined by:
+               2*a + 3
+             and Y is defined by:
+               1: [1]}
+
+
+        """
+        gc = self._groebner_cover()
+        from sage.schemes.affine import affine_subscheme
+        from sage.schemes.affine.affine_space import AffineSpace
+        F = self.base_ring()
+        A = AffineSpace(F.base_ring(), F.ngens(), list(F.gens_dict().keys()))
+        result = {}
+        ring = F.ring()
+        for segment in gc:
+            for piece in segment[2]:
+                X = A.subscheme([ring(c) for c in piece[0]])
+                Y = A.subscheme([ring(c) for c in piece[1][0]])
+                for pol in piece[1][1:]:
+                    Y = Y.union(A.subscheme([ring(c) for c in pol]))
+                result[Y.complement(X)] = segment[1]
+        return result
+
 
     def change_ring(self, P):
         r"""

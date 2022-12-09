@@ -9,6 +9,7 @@ sdh_cmake -DCMAKE_INSTALL_LIBDIR=lib \
          -DLAPACK_LIBRARIES="$(pkg-config --libs lapack)" \
          -DSCIP_DIR="${SAGE_LOCAL}" \
          -DSYM=bliss \
+         -DSDPS=dsdp \
          ..
 sdh_make
 sdh_make_install

@@ -2,8 +2,9 @@ cmake_minimum_required(VERSION 3.0)
 project (dsdp VERSION 5.8 LANGUAGES C)
 
 link_directories(${LIBRARY_PREFIX}/lib)
-find_library(BLAS_LIB blas)
-find_library(LAPACK_LIB lapack)
+
+find_package(LAPACK REQUIRED)
+
 include_directories(include src/vecmat src/solver src/sdp)
 FILE (GLOB_RECURSE   SRCS   src/*.c)
 if(WIN32)
@@ -12,7 +13,7 @@ endif()
 
 ## DSDP shared library
 add_library(dsdp ${SRCS})
-target_link_libraries(dsdp ${BLAS_LIB} ${LAPACK_LIB})
+target_link_libraries(dsdp ${LAPACK_LIBRARIES})
 target_include_directories(dsdp PUBLIC include src/vecmat src/solver src/sdp)
 target_compile_options(dsdp PUBLIC -O2)
 

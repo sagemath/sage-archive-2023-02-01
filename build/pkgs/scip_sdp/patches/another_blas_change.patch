@@ -1,0 +1,36 @@
+commit acb468a1805055e9f34dc1057eea186335bc2e13
+Author: Matthias Koeppe <mkoeppe@math.ucdavis.edu>
+Date:   Fri Dec 9 15:53:05 2022 -0800
+
+    cmake/Modules/Find{DSDP,MOSEK}.cmake: Do not hardcode blas/lapack lib names here
+
+diff --git a/cmake/Modules/FindDSDP.cmake b/cmake/Modules/FindDSDP.cmake
+index 8f43ae8..376fbdb 100644
+--- a/cmake/Modules/FindDSDP.cmake
++++ b/cmake/Modules/FindDSDP.cmake
+@@ -8,7 +8,7 @@ find_library(DSDP_LIBRARY
+     HINTS ${DSDP_DIR} $ENV{DSDP_DIR}
+     PATH_SUFFIXES lib)
+ 
+-set(DSDP_LIBRARIES ${DSDP_LIBRARY} -llapack -lblas)
++set(DSDP_LIBRARIES ${DSDP_LIBRARY})
+ 
+ include(FindPackageHandleStandardArgs)
+ find_package_handle_standard_args(DSDP DEFAULT_MSG DSDP_INCLUDE_DIRS DSDP_LIBRARIES)
+diff --git a/cmake/Modules/FindMOSEK.cmake b/cmake/Modules/FindMOSEK.cmake
+index a8ee1d6..e3b7ab7 100644
+--- a/cmake/Modules/FindMOSEK.cmake
++++ b/cmake/Modules/FindMOSEK.cmake
+@@ -15,10 +15,10 @@ find_library(IOMP5_LIBRARY
+     PATH_SUFFIXES bin)
+ 
+ if(IOMPS_LIBRARY)
+-  set(MOSEK_LIBRARIES ${MOSEK_LIBRARY} ${IOMP5_LIBRARY} -llapack -lblas -pthread)
++  set(MOSEK_LIBRARIES ${MOSEK_LIBRARY} ${IOMP5_LIBRARY} -pthread)
+ else()
+   # if libiomps is not available, we skip it
+-  set(MOSEK_LIBRARIES ${MOSEK_LIBRARY} -llapack -lblas -pthread)
++  set(MOSEK_LIBRARIES ${MOSEK_LIBRARY} -pthread)
+ endif()
+ 
+ include(FindPackageHandleStandardArgs)

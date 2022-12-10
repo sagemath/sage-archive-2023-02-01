@@ -1101,8 +1101,8 @@ class BipartiteGraph(Graph):
         # We update the bipartition
         self.left.clear()
         self.right.clear()
-        for v in vertex_in_left:
-            if vertex_in_left[v]:
+        for v, left in vertex_in_left.items():
+            if left:
                 self.left.add(v)
             else:
                 self.right.add(v)

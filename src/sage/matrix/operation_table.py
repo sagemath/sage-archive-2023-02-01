@@ -19,6 +19,7 @@ from matplotlib.cm import gist_rainbow, Greys
 from sage.plot.matrix_plot import matrix_plot
 from sage.matrix.constructor import Matrix
 from sage.plot.text import text
+from sage.all import copy
 
 
 class OperationTable(SageObject):
@@ -954,7 +955,14 @@ class OperationTable(SageObject):
                    for i in range(self._n) for j in range(self._n)]
         return MS(entries)
 
-    def color_table(self, element_names=True, cmap=gist_rainbow, **options):
+    gist_rainbow_copy=copy(gist_rainbow)
+    class ReprOverrideLinearSegmentedColormap(gist_rainbow_copy.__class__):
+        def __repr__(self):
+            return "Matplotlib gist_rainbow colormap"
+    gist_rainbow_copy.__class__=ReprOverrideLinearSegmentedColormap
+    
+
+    def color_table(self, element_names=True, cmap=gist_rainbow_copy, **options):
         r"""
         Returns a graphic image as a square grid where entries are color coded.
 

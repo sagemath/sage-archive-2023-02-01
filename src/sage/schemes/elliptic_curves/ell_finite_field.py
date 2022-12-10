@@ -973,7 +973,9 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             x = S.discrete_log(T)
             Q -= x * n1//nQ * P
 
-            Q.set_order(n2, check=False)        # verifies n2*Q == 0
+            assert not n2 * Q                   # by construction
+            Q.set_order(n2, check=False)
+
             gens = P, Q
 
         orders = [T.order() for T in gens]      # cached

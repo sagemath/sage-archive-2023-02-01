@@ -379,11 +379,6 @@ class OperationTable(SageObject):
         k| k i g f d e l b h a j c
         l| l c j i g a h e k b d f
 
-    .. TODO::
-
-        Provide color and grayscale graphical representations of tables.
-        See commented-out stubs in source code.
-
     AUTHORS:
 
     - Rob Beezer (2010-03-15)

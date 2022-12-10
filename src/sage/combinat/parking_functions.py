@@ -243,22 +243,6 @@ class ParkingFunction(ClonableArray, metaclass=InheritComparisonClasscallMetacla
         if not check_NDPF(sorted(self), len(self)):
             raise ValueError(f'{list(self)} is not a parking function')
 
-    def __hash__(self):
-        """
-        Return the hash of ``self``.
-
-        The parent is not included as part of the hash.
-
-        EXAMPLES::
-
-            sage: P = ParkingFunctions(4)
-            sage: A = ParkingFunction([1, 1, 2, 2])
-            sage: B = P([1, 1, 2, 2])
-            sage: hash(A) == hash(B)
-            True
-        """
-        return hash(tuple(self))
-
     def grade(self):
         """
         Return the length of the parking function.

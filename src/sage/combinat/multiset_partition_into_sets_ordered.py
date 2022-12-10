@@ -273,22 +273,6 @@ class OrderedMultisetPartitionIntoSets(ClonableArray,
         # eliminate spacing within blocks
         return repr.replace(", ", ",").replace("},{", "}, {")
 
-    def __hash__(self):
-        """
-        Return the hash of ``self``.
-
-        The parent is not included as part of the hash.
-
-        EXAMPLES::
-
-            sage: OMP = OrderedMultisetPartitionsIntoSets(4)
-            sage: A = OMP([[1], [1, 2]])
-            sage: B = OMP([{1}, {1, 2}])
-            sage: hash(A) == hash(B)
-            True
-        """
-        return sum(hash(x) for x in self)
-
     def __eq__(self, y):
         """
         Check equality of ``self`` and ``y``.

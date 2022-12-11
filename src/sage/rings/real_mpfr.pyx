@@ -5676,11 +5676,13 @@ cdef class RealLiteral(RealNumber):
             1.3000000000000000000000000000000000000000000000000000000000
             sage: 1.3 + 1.2
             2.50000000000000
+            sage: RR(1_0000.000000000000000000000000000000000000)
+            10000.0000000000
         """
         RealNumber.__init__(self, parent, x, base)
         if isinstance(x, str):
             self.base = base
-            self.literal = x
+            self.literal = x.replace('_', '')
 
     def __neg__(self):
         """

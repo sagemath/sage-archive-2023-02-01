@@ -1472,11 +1472,9 @@ cdef class RealNumber(sage.structure.element.RingElement):
         elif isinstance(x, Gen) and typ((<Gen>x).g) == t_REAL:
             _gen = x
             self._set_from_GEN_REAL(_gen.g)
-        elif isinstance(x, long):
+        elif isinstance(x, int):
             x = Integer(x)
             mpfr_set_z(self.value, (<Integer>x).value, parent.rnd)
-        elif isinstance(x, int):
-            mpfr_set_si(self.value, x, parent.rnd)
         elif isinstance(x, float):
             mpfr_set_d(self.value, x, parent.rnd)
         elif isinstance(x, complex) and x.imag == 0:

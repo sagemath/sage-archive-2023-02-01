@@ -173,12 +173,12 @@ class CoxeterType(SageObject, metaclass=ClasscallMetaclass):
              Coxeter type of ['F', 4, 1], Coxeter type of ['G', 2, 1],
              Coxeter type of ['A', 1, 1]]
         """
-        finite = [CoxeterType(t)   for t in [['A', 1], ['A', 5], ['B', 1], ['B', 5],
-                                            ['C', 1], ['C', 5], ['D', 4], ['D', 5],
-                                            ['E', 6], ['E', 7], ['E', 8], ['F', 4],
-                                            ['H', 3], ['H', 4], ['I', 10]]]
+        finite = [CoxeterType(t) for t in [['A', 1], ['A', 5], ['B', 1], ['B', 5],
+                                           ['C', 1], ['C', 5], ['D', 4], ['D', 5],
+                                           ['E', 6], ['E', 7], ['E', 8], ['F', 4],
+                                           ['H', 3], ['H', 4], ['I', 10]]]
 
-        affine = [CoxeterType(t)  for t in [['A', 2, 1], ['B', 5, 1],
+        affine = [CoxeterType(t) for t in [['A', 2, 1], ['B', 5, 1],
                                            ['C', 5, 1], ['D', 5, 1], ['E', 6, 1],
                                            ['E', 7, 1], ['E', 8, 1], ['F', 4, 1],
                                            ['G', 2, 1], ['A', 1, 1]]]

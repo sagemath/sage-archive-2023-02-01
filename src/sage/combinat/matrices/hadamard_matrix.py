@@ -51,7 +51,7 @@ REFERENCES:
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #*****************************************************************************
 
 from urllib.request import urlopen
@@ -61,7 +61,7 @@ from sage.matrix.constructor import matrix, block_matrix, block_diagonal_matrix,
 from sage.arith.all import is_square, is_prime_power, divisors
 from math import sqrt
 from sage.matrix.constructor import identity_matrix as I
-from sage.matrix.constructor import ones_matrix     as J
+from sage.matrix.constructor import ones_matrix as J
 from sage.matrix.constructor import zero_matrix
 from sage.misc.unknown import Unknown
 from sage.cpython.string import bytes_to_str
@@ -1526,21 +1526,21 @@ def regular_symmetric_hadamard_matrix_with_constant_diagonal(n,e,existence=False
         if existence:
             return true()
         M = RSHCD_324(e)
-    elif (  e  == 1                 and
-          n%16 == 0                 and
-          sqn is not None           and
-          is_prime_power(sqn-1) and
-          is_prime_power(sqn+1)):
+    elif (e == 1 and
+          n % 16 == 0 and
+          sqn is not None and
+          is_prime_power(sqn - 1) and
+          is_prime_power(sqn + 1)):
         if existence:
             return true()
         M = -rshcd_from_close_prime_powers(sqn)
 
-    elif (  e  == 1                 and
-          sqn is not None           and
-          sqn%4 == 2            and
+    elif (e == 1 and
+          sqn is not None and
+          sqn % 4 == 2 and
           strongly_regular_graph(sqn-1,(sqn-2)//2,(sqn-6)//4,
             existence=True) is True and
-          is_prime_power(ZZ(sqn+1))):
+          is_prime_power(ZZ(sqn + 1))):
         if existence:
             return true()
         M = rshcd_from_prime_power_and_conference_matrix(sqn+1)

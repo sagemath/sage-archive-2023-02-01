@@ -3560,7 +3560,7 @@ class EllipticCurvePoint_finite_field(EllipticCurvePoint_field):
         - Otherwise (if this test is inconclusive), check that the Weil
           pairing of `P` and `Q` is trivial.
 
-        For anomalous curves with `\#E = p`, the 
+        For anomalous curves with `\#E = p`, the
         :meth:`padic_elliptic_logarithm` function is called.
 
         INPUT:

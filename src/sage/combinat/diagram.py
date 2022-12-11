@@ -856,7 +856,7 @@ class NorthwestDiagram(Diagram, metaclass=InheritComparisonClasscallMetaclass):
 
         For a fixed northwest diagram `D`, we say that a Young tableau `T` is
         `D`-peelable if:
-        
+
         1. the row indices of the cells in the first column of `D` are
            the entries in an initial segment in the first column of `T` and
         2. the tableau `Q` obtained by removing those cells from `T` and playing

@@ -22,8 +22,7 @@ from .misc import (algdep, bernoulli, is_prime, is_prime_power,
     fundamental_discriminant, squarefree_divisors,
     radical, binomial_coefficients, jacobi_symbol,
     dedekind_sum,
-    prime_factors, prime_range, valuation,
-    ProductTree)
+    prime_factors, prime_range, valuation)
 
 lazy_import('sage.arith.misc', ('Sigma', 'Moebius', 'Euler_Phi'), deprecation=30322)
 

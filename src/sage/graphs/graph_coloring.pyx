@@ -1271,9 +1271,8 @@ def edge_coloring(g, value_only=False, vizing=False, hex_colors=False, solver=No
     - ``vizing`` -- boolean (default: ``False``):
 
       - When set to ``True``, finds an edge coloring using the algorithm
-        described at [MG1992]_. This may result in a coloring with either
-        `\Delta` or `\Delta + 1` colors, where `\Delta` is equal to the
-        maximum degree in the graph.
+        described at [MG1992]_. This results in a coloring with `\Delta + 1` colors,
+        where `\Delta` is equal to the maximum degree in the graph.
 
       - When set to ``False``, tries to find a `\Delta`-edge-coloring using
         Mixed Integer Linear Programming (MILP). If impossible, returns a
@@ -1306,7 +1305,7 @@ def edge_coloring(g, value_only=False, vizing=False, hex_colors=False, solver=No
     ``g``.
 
     - If ``vizing=True`` and ``value_only=False``, return a partition of the
-      edge set into either `\Delta` or `\Delta + 1` matchings.
+      edge set into `\Delta + 1` matchings.
 
     - If ``vizing=False`` and ``value_only=True``, return the chromatic index.
 

@@ -1799,7 +1799,7 @@ class FindStatFunction(SageObject):
         EXAMPLES::
 
             sage: q = findstat([(d, randint(1,1000)) for d in DyckWords(4)])              # optional -- internet
-            sage: q.set_sage_code("def statistic(x):\r\n    return randint(1,1000)")      # optional -- internet
+            sage: q.set_sage_code("def statistic(x):\n    return randint(1,1000)")        # optional -- internet
             sage: print(q.sage_code())                                                    # optional -- internet
             def statistic(x):
                 return randint(1,1000)
@@ -1918,8 +1918,8 @@ class FindStatCombinatorialStatistic(SageObject):
             sage: len(st.cache)                                                 # optional -- internet
             100
         """
-        return "\r\n".join(key + " => " + str(val)
-                           for key, val in self._first_terms_raw(max_values=max_values))
+        return "\n".join(key + " => " + str(val)
+                         for key, val in self._first_terms_raw(max_values=max_values))
 
     def _fetch_first_terms(self):
         r"""
@@ -2212,12 +2212,12 @@ class FindStatStatistic(Element,
                'Title': 'Moments des $q$-polynômes de Laguerre et la bijection de Foata-Zeilberger'},
               'MathSciNet:1418763': {'Author': 'Simion, R., Stanton, D.',
                'Title': 'Octabasic Laguerre polynomials and permutation statistics'}},
-             'Code': 'def statistic(x):\r\n    return len(x.nestings())',
-             'Description': 'The number of nestings of a perfect matching. \r\n\r\n\r\nThis is the number of pairs of edges $((a,b), (c,d))$ such that $a\\le c\\le d\\le b$. i.e., the edge $(c,d)$ is nested inside $(a,b)$.',
+             'Code': 'def statistic(x):\n    return len(x.nestings())',
+             'Description': 'The number of nestings of a perfect matching. \n\n\nThis is the number of pairs of edges $((a,b), (c,d))$ such that $a\\le c\\le d\\le b$. i.e., the edge $(c,d)$ is nested inside $(a,b)$.',
              'Domain': 'Cc0012',
              'Name': 'The number of nestings of a perfect matching.',
              'References': '[1]  [[MathSciNet:1288802]]\n[2]  [[MathSciNet:1418763]]',
-             'SageCode': 'def statistic(x):\r\n    return len(x.nestings())'}
+             'SageCode': 'def statistic(x):\n    return len(x.nestings())'}
         """
         fields = "Bibliography,Code,Description,Domain,Name,References,SageCode"
         fields_Bibliography = "Author,Title"
@@ -2337,7 +2337,7 @@ class FindStatStatistic(Element,
         EXAMPLES::
 
             sage: q = findstat([(d, randint(1,1000)) for d in DyckWords(4)])    # optional -- internet
-            sage: q.set_code("def statistic(x):\r\n    return randint(1,1000)") # optional -- internet
+            sage: q.set_code("def statistic(x):\n    return randint(1,1000)")   # optional -- internet
             sage: print(q.code())                                               # optional -- internet
             def statistic(x):
                 return randint(1,1000)
@@ -3149,12 +3149,12 @@ class FindStatMap(Element,
             sage: findmap(64)._data()                                           # optional -- internet, indirect doctest
             {'Bibliography': {},
              'Codomain': 'Cc0001',
-             'Description': 'Sends a permutation to its reverse.\r\n\r\nThe reverse of a permutation $\\sigma$ of length $n$ is given by $\\tau$ with $\\tau(i) = \\sigma(n+1-i)$.',
+             'Description': 'Sends a permutation to its reverse.\n\nThe reverse of a permutation $\\sigma$ of length $n$ is given by $\\tau$ with $\\tau(i) = \\sigma(n+1-i)$.',
              'Domain': 'Cc0001',
              'Name': 'reverse',
              'Properties': 'bijective, graded, involutive',
              'References': '',
-             'SageCode': 'def mapping(sigma):\r\n    return sigma.reverse()'}
+             'SageCode': 'def mapping(sigma):\n    return sigma.reverse()'}
         """
         fields = "Bibliography,Codomain,Description,Domain,Name,Properties,References,SageCode"
         fields_Bibliography = "Author,Title"

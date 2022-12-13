@@ -73,6 +73,22 @@ class AbstractSetPartition(ClonableArray,
         """
         return '{' + ', '.join(('{' + repr(sorted(x))[1:-1] + '}' for x in self)) + '}'
 
+    def __hash__(self):
+        """
+        Return the hash of ``self``.
+
+        The parent is not included as part of the hash.
+
+        EXAMPLES::
+
+            sage: P = SetPartitions(4)
+            sage: A = SetPartition([[1], [2,3], [4]])
+            sage: B = P([[1], [2,3], [4]])
+            sage: hash(A) == hash(B)
+            True
+        """
+        return sum(hash(x) for x in self)
+
     def __eq__(self, y):
         """
         Check equality of ``self`` and ``y``.

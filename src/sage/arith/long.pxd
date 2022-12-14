@@ -124,7 +124,7 @@ cdef inline bint integer_check_long(x, long* value, int* err) except -1:
         ....:         if err == 0:
         ....:             return value
         ....:         elif err == ERR_OVERFLOW:
-        ....:             raise OverflowError("integer_check_long: overflow")
+        ....:             raise OverflowError(f"integer_check_long: overflow ({x})")
         ....:     elif err == ERR_TYPE:
         ....:         raise TypeError("integer_check_long: wrong type")
         ....:     elif err == ERR_INDEX:
@@ -136,24 +136,23 @@ cdef inline bint integer_check_long(x, long* value, int* err) except -1:
         ....: def long_max():
         ....:     return smallInteger(LONG_MAX)
         ....: ''')
-        sage: types = (ZZ, QQ, int)
         sage: L = [1, 12345, 10^9, 2^30, long_max()//9, long_max()//3, long_max()]
         sage: L += [-x for x in L] + [0, long_min()]
         sage: for v in L:
-        ....:     for t in (Integer, int):
+        ....:     for t in (Integer, int, QQ):
         ....:         assert check_long(t(v)) == v
         sage: check_long(2^100)
         Traceback (most recent call last):
         ...
-        OverflowError: integer_check_long: overflow
+        OverflowError: integer_check_long: overflow (...)
         sage: check_long(long_max() + 1)
         Traceback (most recent call last):
         ...
-        OverflowError: integer_check_long: overflow
+        OverflowError: integer_check_long: overflow (...)
         sage: check_long(long_min() - 1)
         Traceback (most recent call last):
         ...
-        OverflowError: integer_check_long: overflow
+        OverflowError: integer_check_long: overflow (...)
         sage: check_long("hello")
         Traceback (most recent call last):
         ...
@@ -162,6 +161,36 @@ cdef inline bint integer_check_long(x, long* value, int* err) except -1:
         Traceback (most recent call last):
         ...
         TypeError: integer_check_long: bad __index__
+
+    Repeat the overflow tests with python integers:
+
+        sage: check_long(int(2^100))
+        Traceback (most recent call last):
+        ...
+        OverflowError: integer_check_long: overflow (...)
+        sage: check_long(int(long_max() + 1))
+        Traceback (most recent call last):
+        ...
+        OverflowError: integer_check_long: overflow (...)
+        sage: check_long(int(long_min() - 1))
+        Traceback (most recent call last):
+        ...
+        OverflowError: integer_check_long: overflow (...)
+
+    And again with rationals:
+
+        sage: check_long(QQ(2^100))
+        Traceback (most recent call last):
+        ...
+        OverflowError: integer_check_long: overflow (...)
+        sage: check_long(QQ(long_max() + 1))
+        Traceback (most recent call last):
+        ...
+        OverflowError: integer_check_long: overflow (...)
+        sage: check_long(QQ(long_min() - 1))
+        Traceback (most recent call last):
+        ...
+        OverflowError: integer_check_long: overflow (...)
     """
     cdef int c = integer_check_long_py(x, value, err)
     if c:
@@ -193,15 +222,72 @@ cdef inline long dig(const digit* D, int n):
 
 cdef inline bint integer_check_long_py(x, long* value, int* err):
     """
-    Part of ``integer_check_long`` in ``long.pxd``, checking only for
-    Python objects of type ``int``. See that function for
-    documentation and tests.
+    Return whether ``x`` is a python object of type ``int``.
+
+    If possible, compute the value of this integer as C long and store
+    it in ``*value``.
+
+    Errors are returned as an error indicator ``*err`` (without raising
+    any Python exception).
+
+    Possible errors when returning ``True``:
+
+    - ``0``: ``x`` was successfully converted to a C long and its value
+      is stored in ``*value``.
+
+    - ``ERR_OVERFLOW``: ``x`` is a python object of type ``int`` but
+      too large to store in a C long.
+
+    Possible errors when returning ``False``:
+
+    - ``ERR_TYPE``: ``x`` is not a python object of type ``int``.
+
+    EXAMPLES:
+
+    We create a pure Python wrapper of this function::
+
+        sage: cython('''  # optional - sage.misc.cython
+        ....: from sage.arith.long cimport *
+        ....: def check_long_py(x):
+        ....:     cdef long value
+        ....:     cdef int err
+        ....:     cdef bint c = integer_check_long_py(x, &value, &err)
+        ....:     if c:
+        ....:         if err == 0:
+        ....:             return value
+        ....:         elif err == ERR_OVERFLOW:
+        ....:             return f"Overflow ({x})"
+        ....:     elif err == ERR_TYPE:
+        ....:         return f"Bad type ({x})"
+        ....:     return f"This should never happen ({x})"
+        ....: from libc.limits cimport LONG_MIN, LONG_MAX
+        ....: def long_min():
+        ....:     return LONG_MIN
+        ....: def long_max():
+        ....:     return LONG_MAX
+        ....: ''')
+        sage: L = [1, 12345, 10^9, 2^30, long_max()//9, long_max()//3, long_max()]
+        sage: L += [-x for x in L] + [0, long_min()]
+        sage: for v in L:
+        ....:     assert check_long_py(int(v)) == v
+        sage: check_long_py(int(2^100))
+        'Overflow (...)'
+        sage: check_long_py(int(long_max() + 1))
+        'Overflow (...)'
+        sage: check_long_py(int(long_min() - 1))
+        'Overflow (...)'
+        sage: check_long_py(389)
+        'Bad type (...)'
+        sage: check_long_py("hello")
+        'Bad type (...)'
+        sage: check_long_py(2/3)
+        'Bad type (...)'
     """
     if not isinstance(x, int):
         err[0] = ERR_TYPE
         return 0
 
-    # x is a Python "long" (called "int" on Python 3)
+    # x is a Python "int" (aka PyLongObject or py_long in cython)
     cdef const digit* D = (<py_long>x).ob_digit
     cdef Py_ssize_t size = Py_SIZE(x)
 
@@ -214,7 +300,9 @@ cdef inline bint integer_check_long_py(x, long* value, int* err):
     # overflow check.
     cdef int BITS_IN_LONG = 8 * sizeof(long) - 1
     if not (2 * PyLong_SHIFT <= BITS_IN_LONG < 4 * PyLong_SHIFT):
-        raise AssertionError
+        raise AssertionError(
+                f"PyLong_SHIFT = {PyLong_SHIFT}, "
+                f"BITS_IN_LONG = {BITS_IN_LONG}")
 
     cdef long lead
     cdef long lead_3_overflow = (<long>1) << (BITS_IN_LONG - 2 * PyLong_SHIFT)

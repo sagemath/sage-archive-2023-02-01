@@ -291,20 +291,24 @@ cdef inline bint integer_check_long_py(x, long* value, int* err):
     cdef const digit* D = (<py_long>x).ob_digit
     cdef Py_ssize_t size = Py_SIZE(x)
 
-    # We assume that PyLong_SHIFT is 15 on a 32-bit system and 30 on a
-    # 64-bit system. This is not guaranteed by Python, but it is the
-    # default configuration.
+    # We assume PyLong_SHIFT <= BITS_IN_LONG <= 3 * PyLong_SHIFT.
+    # This is true in all the default configurations:
+    # - BITS_IN_LONG = 63, PyLong_SHIFT = 30
+    # - BITS_IN_LONG = 31, PyLong_SHIFT = 15 (python <= 3.10)
+    # - BITS_IN_LONG = 31, PyLong_SHIFT = 30 (new in python 3.11)
+    # cf. https://trac.sagemath.org/ticket/33842#comment:130
     #
-    # This way, we know that 1 and 2 digits certainly fit in a C long
-    # and 4 or more digits never fit. For 3 digits, we need an explicit
-    # overflow check.
+    # This way, we know that 1 digit certainly fits in a C long
+    # and 4 or more digits never fit.
+    # For 2 or 3 digits, we need an explicit overflow check.
     cdef int BITS_IN_LONG = 8 * sizeof(long) - 1
-    if not (2 * PyLong_SHIFT <= BITS_IN_LONG < 4 * PyLong_SHIFT):
+    if not (PyLong_SHIFT <= BITS_IN_LONG <= 3 * PyLong_SHIFT):
         raise AssertionError(
                 f"PyLong_SHIFT = {PyLong_SHIFT}, "
                 f"BITS_IN_LONG = {BITS_IN_LONG}")
 
     cdef long lead
+    cdef long lead_2_overflow = (<long>1) << (BITS_IN_LONG - PyLong_SHIFT)
     cdef long lead_3_overflow = (<long>1) << (BITS_IN_LONG - 2 * PyLong_SHIFT)
     if size == 0:
         value[0] = 0
@@ -316,9 +320,20 @@ cdef inline bint integer_check_long_py(x, long* value, int* err):
         value[0] = -dig(D, 0)
         err[0] = 0
     elif size == 2:
+        if BITS_IN_LONG < 2 * PyLong_SHIFT and D[1] >= lead_2_overflow:
+            err[0] = ERR_OVERFLOW
+            return 1
         value[0] = dig(D, 0) + dig(D, 1)
         err[0] = 0
     elif size == -2:
+        if BITS_IN_LONG < 2 * PyLong_SHIFT and D[1] >= lead_2_overflow:
+            if D[0] == 0 and D[1] == lead_2_overflow:
+                # Special case for LONG_MIN
+                value[0] = (<long>-1) << BITS_IN_LONG
+                err[0] = 0
+            else:
+                err[0] = ERR_OVERFLOW
+            return 1
         value[0] = -(dig(D, 0) + dig(D, 1))
         err[0] = 0
     elif size == 3:

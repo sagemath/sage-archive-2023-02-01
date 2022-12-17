@@ -132,7 +132,8 @@ cdef class SCIPBackend(GenericBackend):
         if vtype == 0:
             continuous = True
         elif vtype != 1:
-            raise ValueError("Exactly one parameter of 'binary', 'integer' and 'continuous' must be 'True'.")
+            raise ValueError("Exactly one parameter of 'binary', 'integer'"
+                             "and 'continuous' must be 'True'.")
 
         if name is None:
             vname = ''
@@ -147,7 +148,8 @@ cdef class SCIPBackend(GenericBackend):
         if integer:
             vtypestr = 'I'
 
-        v = self.model.addVar(name=vname, vtype=vtypestr, ub=upper_bound, lb=lower_bound, obj=obj, pricedVar=False)
+        v = self.model.addVar(name=vname, vtype=vtypestr, ub=upper_bound,
+                              lb=lower_bound, obj=obj, pricedVar=False)
         index = v.getIndex()
         assert index == self.ncols()
         self.variables.append(v)
@@ -162,7 +164,7 @@ cdef class SCIPBackend(GenericBackend):
 
         - ``variable`` (integer) -- the variable's id
 
-        - ``vtype`` (integer) :
+        - ``vtype`` (integer):
 
             *  1  Integer
             *  0  Binary
@@ -191,7 +193,7 @@ cdef class SCIPBackend(GenericBackend):
 
         INPUT:
 
-        - ``sense`` (integer) :
+        - ``sense`` (integer):
 
             * +1 => Maximization
             * -1 => Minimization
@@ -639,7 +641,7 @@ cdef class SCIPBackend(GenericBackend):
 
     cpdef get_objective_value(self):
         """
-        Returns the value of the objective function.
+        Return the value of the objective function.
 
         .. NOTE::
 
@@ -713,7 +715,7 @@ cdef class SCIPBackend(GenericBackend):
 
     cpdef get_variable_value(self, int variable):
         """
-        Returns the value of a variable given by the solver.
+        Return the value of a variable given by the solver.
 
         .. NOTE::
 
@@ -740,7 +742,7 @@ cdef class SCIPBackend(GenericBackend):
 
     cpdef get_row_prim(self, int i):
         r"""
-        Returns the value of the auxiliary variable associated with i-th row.
+        Return the value of the auxiliary variable associated with i-th row.
 
         .. NOTE::
 
@@ -1131,7 +1133,7 @@ cdef class SCIPBackend(GenericBackend):
 
     cpdef __copy__(self):
         """
-        Returns a copy of self.
+        Return a copy of self.
 
         EXAMPLES::
 

@@ -981,6 +981,19 @@ class OperationTable(SageObject):
             sage: OT.color_table()
             Graphics object consisting of 37 graphics primitives
 
+        
+        .. PLOT::
+            import matplotlib.pyplot as plt
+            from sage.matrix.operation_table import OperationTable
+            from sage.all import SymmetricGroup, operator
+            OT = OperationTable(SymmetricGroup(3), operation=operator.mul)
+            fig = OT.color_table().matplotlib()
+            managed_fig=plt.figure()
+            canvas_manager = managed_fig.canvas.manager
+            canvas_manager.canvas.figure=fig
+            fig.set_canvas(canvas_manager.canvas)
+            plt.show()
+
         """
 
         # Base matrix plot object, without text

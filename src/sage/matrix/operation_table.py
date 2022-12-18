@@ -18,7 +18,7 @@ from sage.structure.sage_object import SageObject
 from matplotlib.cm import gist_rainbow, Greys
 from sage.plot.matrix_plot import matrix_plot
 from sage.plot.text import text
-from sage.all import copy
+from copy import copy
 
 
 class OperationTable(SageObject):
@@ -977,15 +977,15 @@ class OperationTable(SageObject):
         EXAMPLES::
 
             sage: from sage.matrix.operation_table import OperationTable
-            sage: OT = OperationTable(SymmetricGroup(3), operation=operator.mul)
-            sage: OT.color_table()
+            sage: OTa = OperationTable(SymmetricGroup(3), operation=operator.mul)
+            sage: OTa.color_table()
             Graphics object consisting of 37 graphics primitives
 
         .. PLOT::
 
             from sage.matrix.operation_table import OperationTable
-            OT = OperationTable(SymmetricGroup(3), operation=operator.mul)
-            sphinx_plot(OT.color_table())
+            OTa = OperationTable(SymmetricGroup(3), operation=operator.mul)
+            sphinx_plot(OTa.color_table())
         """
 
         # Base matrix plot object, without text

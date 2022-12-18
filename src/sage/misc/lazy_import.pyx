@@ -1163,6 +1163,7 @@ def get_star_imports(module_name):
         star_imports[module_name] = all
         return all
 
+
 def attributes(a):
     """
     Return the private attributes of a :class:`LazyImport` object in a dictionary.
@@ -1172,10 +1173,10 @@ def attributes(a):
     EXAMPLES::
 
         sage: from sage.misc.lazy_import import attributes
-        sage: lazy_import("sage.all","foo")
+        sage: lazy_import("sage.all", "foo")
         sage: attributes(foo)['_namespace'] is globals()
         True
-        sage: D=attributes(foo)
+        sage: D = attributes(foo)
         sage: del D['_namespace']
         sage: D
         {'_as_name': 'foo',
@@ -1194,6 +1195,7 @@ def attributes(a):
             "_namespace": b._namespace,
             "_at_startup": b._at_startup,
             "_deprecation": b._deprecation}
+
 
 def clean_namespace(namespace=None):
     """
@@ -1226,12 +1228,13 @@ def clean_namespace(namespace=None):
     cdef LazyImport w
     if namespace is None:
         namespace = inspect.currentframe().f_locals
-    for k,v in namespace.items():
+    for k, v in namespace.items():
         if type(v) is LazyImport:
             w = v
             if w._namespace is not None and (w._namespace is not namespace or w._as_name != k):
                 namespace[k] = LazyImport(w._module, w._name, as_name=k, at_startup=w._at_startup,
                                           namespace=namespace, deprecation=w._deprecation)
+
 
 # Add support for _instancedoc_
 from sage.misc.instancedoc import instancedoc

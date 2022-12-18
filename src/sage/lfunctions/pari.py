@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-L-functions from PARI
+`L`-functions from PARI
 
 This is a wrapper around the general PARI L-functions functionality.
 

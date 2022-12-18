@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 r"""
-Element class for Pollack-Stevens' Modular Symbols
+Element class for Pollack-Stevens' modular symbols
 
 This is the class of elements in the spaces of Pollack-Steven's modular symbols as described in [PS2011]_.
 

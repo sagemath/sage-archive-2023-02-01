@@ -1,5 +1,5 @@
 """
-Binary Quadratic Forms with Integer Coefficients
+Binary quadratic forms with integer coefficients
 
 This module provides a specialized class for working with a binary quadratic
 form `a x^2 + b x y + c y^2`, stored as a triple of integers `(a, b, c)`.

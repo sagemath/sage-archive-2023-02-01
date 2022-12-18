@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 r"""
-Manin Relations for overconvergent modular symbols
+Manin relations for overconvergent modular symbols
 
 Code to create the Manin Relations class, which solves the "Manin relations".
 That is, a description of `Div^0(P^1(\QQ))` as a `\ZZ[\Gamma_0(N)]`-module in

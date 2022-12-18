@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 r"""
-Spaces of Distributions for Pollack-Stevens modular symbols
+Spaces of distributions for Pollack-Stevens modular symbols
 
 The Pollack-Stevens version of modular symbols take values on a
 `\Sigma_0(N)`-module which can be either a symmetric power of the standard

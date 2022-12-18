@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 r"""
-Pollack-Stevens' Modular Symbols Spaces
+Pollack-Stevens' modular symbols spaces
 
 This module contains a class for spaces of modular symbols that use Glenn
 Stevens' conventions, as explained in [PS2011]_.

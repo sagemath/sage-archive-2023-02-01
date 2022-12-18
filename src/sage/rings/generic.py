@@ -28,6 +28,8 @@ class ProductTree:
         sage: ms = [x - a^i for i in range(1024)]               # roots of unity
         sage: ys = [F.random_element() for _ in range(1024)]    # input vector
         sage: zs = ProductTree(ms).remainders(R(ys))            # compute FFT!
+        sage: zs == [R(ys) % m for m in ms]
+        True
 
     This class encodes the tree as *layers*: Layer `0` is just a tuple
     of the leaves. Layer `i+1` is obtained from layer `i` by replacing

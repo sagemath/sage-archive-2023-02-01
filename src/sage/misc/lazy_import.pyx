@@ -1195,7 +1195,7 @@ def attributes(a):
             "_at_startup": b._at_startup,
             "_deprecation": b._deprecation}
 
-def clean_namespace(namespace):
+def clean_namespace(namespace=None):
     """
     Adjust :class:`LazyImport` bindings in given namespace to refer to this actual namespace.
 
@@ -1203,6 +1203,11 @@ def clean_namespace(namespace):
     instructions, the data stored on a :class:`LazyImport` object that helps it to adjust the
     binding in the namespace to the actual imported object upon access is not adjusted.
     This routine fixes that.
+
+    INPUT:
+
+    - ``namespace`` -- the namespace where importing the names; by default,
+      import the names to current namespace
 
     EXAMPLES::
 
@@ -1219,6 +1224,8 @@ def clean_namespace(namespace):
         True
     """
     cdef LazyImport w
+    if namespace is None:
+        namespace = inspect.currentframe().f_locals
     for k,v in namespace.items():
         if type(v) is LazyImport:
             w = v

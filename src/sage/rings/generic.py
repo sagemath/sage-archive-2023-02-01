@@ -43,7 +43,7 @@ class ProductTree:
 
     INPUT:
 
-    - ``leaves`` -- a sequence of elements in a common ring
+    - ``leaves`` -- an iterable of elements in a common ring
 
     EXAMPLES::
 
@@ -197,9 +197,9 @@ class ProductTree:
 
 def prod_with_derivative(pairs):
     r"""
-    Given a list of pairs `(f, \partial f)` of ring elements, return
-    the pair `(\prod f, \partial \prod f)`, assuming `\partial` is an
-    operator obeying the standard product rule.
+    Given an iterable of pairs `(f, \partial f)` of ring elements,
+    return the pair `(\prod f, \partial \prod f)`, assuming `\partial`
+    is an operator obeying the standard product rule.
 
     This function is entirely algebraic, hence still works when the
     elements `f` and `\partial f` are all passed through some ring
@@ -209,7 +209,7 @@ def prod_with_derivative(pairs):
 
     INPUT:
 
-    - ``pairs`` -- a sequence of tuples `(f, \partial f)` of elements
+    - ``pairs`` -- an iterable of tuples `(f, \partial f)` of elements
       of a common ring
 
     ALGORITHM: Repeated application of the product rule.

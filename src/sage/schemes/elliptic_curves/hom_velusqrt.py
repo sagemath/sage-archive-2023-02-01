@@ -128,7 +128,7 @@ from sage.structure.all import coercion_model as cm
 from sage.misc.cachefunc import cached_method
 
 from sage.misc.misc_c import prod
-from sage.arith.misc import ProductTree, prod_with_derivative
+from sage.rings.generic import ProductTree, prod_with_derivative
 
 from sage.structure.richcmp import op_EQ
 

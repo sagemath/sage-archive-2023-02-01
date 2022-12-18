@@ -1165,7 +1165,9 @@ def get_star_imports(module_name):
 
 def attributes(a):
     """
-    Returns the private attributes of a LazyImport object in a dictionary (for debugging purposes).
+    Return the private attributes of a :class:`LazyImport` object in a dictionary.
+
+    This is for debugging and doctesting purposes only.
 
     EXAMPLES::
 
@@ -1195,11 +1197,11 @@ def attributes(a):
 
 def clean_namespace(namespace):
     """
-    Adjusts LazyImport bindings in given namespace to refer to this actual namespace.
+    Adjust :class:`LazyImport` bindings in given namespace to refer to this actual namespace.
 
-    When LazyImport objects are imported into other namespaces via normal import
-    instructions, then the data stored on a LazyImport object that helps it to adjust the
-    binding in the namespace to the actual imported object upon access, is not adjusted.
+    When :class:`LazyImport` objects are imported into other namespaces via normal ``import``
+    instructions, the data stored on a :class:`LazyImport` object that helps it to adjust the
+    binding in the namespace to the actual imported object upon access is not adjusted.
     This routine fixes that.
 
     EXAMPLES::
@@ -1221,7 +1223,8 @@ def clean_namespace(namespace):
         if type(v) is LazyImport:
             w = v
             if w._namespace is not None and (w._namespace is not namespace or w._as_name != k):
-                namespace[k]=LazyImport(w._module, w._name, as_name=k, at_startup=w._at_startup, namespace=namespace, deprecation=w._deprecation)
+                namespace[k] = LazyImport(w._module, w._name, as_name=k, at_startup=w._at_startup,
+                                          namespace=namespace, deprecation=w._deprecation)
 
 # Add support for _instancedoc_
 from sage.misc.instancedoc import instancedoc

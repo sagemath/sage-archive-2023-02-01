@@ -6290,7 +6290,34 @@ def dedekind_psi(N):
 
 class ProductTree:
     r"""
-    A simple product tree.
+    A simple binary product tree, i.e., a tree of ring elements in
+    which every node equals the product of its children.
+    (In particular, the *root* equals the product of all *leaves*.)
+
+    Product trees are a very useful building block for fast computer
+    algebra. For example, a quasilinear-time Discrete Fourier Transform
+    (the famous *Fast* Fourier Transform) can be implemented as follows
+    using the :meth:`remainders` method of this class::
+
+        sage: F = GF(65537)
+        sage: a = F(1111)
+        sage: assert a.multiplicative_order() == 1024
+        sage: R.<x> = F[]
+        sage: ms = [x - a^i for i in range(1024)]               # roots of unity
+        sage: ys = [F.random_element() for _ in range(1024)]    # input vector
+        sage: zs = ProductTree(ms).remainders(R(ys))            # compute FFT!
+
+    This class encodes the tree as *layers*: Layer `0` is just a tuple
+    of the leaves. Layer `i+1` is obtained from layer `i` by replacing
+    each pair of two adjacent elements by their product, starting from
+    the left. (If the length is odd, the unpaired element at the end is
+    simply copied as is.) This iteration stops as soon as it yields a
+    layer containing only a single element (the root).
+
+    .. NOTE::
+
+        Use this class if you need the :meth:`remainders` method.
+        To compute just the product, :func:`prod` is likely faster.
 
     INPUT:
 
@@ -6327,11 +6354,6 @@ class ProductTree:
          (9699690, 3359814435017, 729345064647247, 97),
          (32589158477190044730, 70746471270782959),
          (2305567963945518424753102147331756070,)]
-
-    .. NOTE::
-
-        Use this class if you need the :meth:`remainders` method.
-        To compute just the product, :func:`prod` is likely faster.
     """
     def __init__(self, leaves):
         r"""
@@ -6458,18 +6480,16 @@ def prod_with_derivative(pairs):
 
     This function is entirely algebraic, hence still works when the
     elements `f` and `\partial f` are all passed through some ring
-    homomorphism first. (See the polynomial-evaluation example below.)
+    homomorphism first. One particularly useful instance of this is
+    evaluating the derivative of a product of polynomials at a point
+    without fully expanding the product; see the second example below.
 
     INPUT:
 
     - ``pairs`` -- a sequence of tuples `(f, \partial f)` of elements
       of a common ring
 
-    ALGORITHM:
-
-    This function wraps the given pairs in a thin helper class that
-    automatically applies the product rule whenever multiplication
-    is invoked, then calls :func:`prod` on the wrapped pairs.
+    ALGORITHM: Repeated application of the product rule.
 
     EXAMPLES::
 

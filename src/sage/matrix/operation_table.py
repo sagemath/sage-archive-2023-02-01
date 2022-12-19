@@ -17,6 +17,7 @@ This module implements general operation tables, which are very matrix-like.
 from sage.structure.sage_object import SageObject
 from matplotlib.cm import gist_rainbow, Greys
 from sage.plot.matrix_plot import matrix_plot
+from sage.matrix.constructor import Matrix
 from sage.plot.text import text
 from copy import copy
 
@@ -949,17 +950,11 @@ class OperationTable(SageObject):
                    for i in range(self._n) for j in range(self._n)]
         return MS(entries)
 
-
-    ### documentation hack ###
-    # this code makes the docs display the default
-    # argument of color_table as "gist_rainbow"
-    # instead of something like 
-    # <matplotlib.colors.LinearSegmentedColormap object at 0x7fc24f7e10a0>
     gist_rainbow_copy=copy(gist_rainbow)
-    class _ReprOverrideLinearSegmentedColormap(gist_rainbow_copy.__class__):
+    class ReprOverrideLinearSegmentedColormap(gist_rainbow_copy.__class__):
         def __repr__(self):
-            return "gist_rainbow"
-    gist_rainbow_copy.__class__=_ReprOverrideLinearSegmentedColormap
+            return "Matplotlib gist_rainbow colormap"
+    gist_rainbow_copy.__class__=ReprOverrideLinearSegmentedColormap
     
 
     def color_table(self, element_names=True, cmap=gist_rainbow_copy, **options):
@@ -970,12 +965,11 @@ class OperationTable(SageObject):
 
         - ``element_names`` - (default : ``True``) Whether to display text with element names on the image
 
-        - ``cmap`` - (default : ``gist_rainbow``) matplotlib colour map object for plot
+        - ``cmap`` - (default : ``gist_rainbow``) colour map for plot, see matplotlib.cm
 
         - ``**options`` - passed on to matrix_plot call
 
         EXAMPLES::
-
             sage: from sage.matrix.operation_table import OperationTable
             sage: OTa = OperationTable(SymmetricGroup(3), operation=operator.mul)
             sage: OTa.color_table()
@@ -989,7 +983,7 @@ class OperationTable(SageObject):
         """
 
         # Base matrix plot object, without text
-        plot = matrix_plot(self._table, cmap=cmap,
+        plot = matrix_plot(Matrix(self._table), cmap=cmap,
                            frame=False, **options)
 
         if element_names:
@@ -1020,13 +1014,6 @@ class OperationTable(SageObject):
         return plot
 
     def gray_table(self, **options):
-        r"""
-        See ``color_table`` - this uses a grey colour scheme instead of a colourful one.
-
-        INPUT:
-
-        - ``**options`` - passed on to ``color_table`` call
-        """
         return self.color_table(cmap=Greys, **options)
 
     def _ascii_table(self):

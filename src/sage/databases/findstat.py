@@ -3149,12 +3149,12 @@ class FindStatMap(Element,
             sage: findmap(64)._data()                                           # optional -- internet, indirect doctest
             {'Bibliography': {},
              'Codomain': 'Cc0001',
-             'Description': 'Sends a permutation to its reverse.\n\nThe reverse of a permutation $\\sigma$ of length $n$ is given by $\\tau$ with $\\tau(i) = \\sigma(n+1-i)$.',
+             'Description': 'Sends a permutation to its reverse.\r\n\r\nThe reverse of a permutation $\\sigma$ of length $n$ is given by $\\tau$ with $\\tau(i) = \\sigma(n+1-i)$.',
              'Domain': 'Cc0001',
              'Name': 'reverse',
              'Properties': 'bijective, graded, involutive',
              'References': '',
-             'SageCode': 'def mapping(sigma):\n    return sigma.reverse()'}
+             'SageCode': 'def mapping(sigma):\r\n    return sigma.reverse()'}
         """
         fields = "Bibliography,Codomain,Description,Domain,Name,Properties,References,SageCode"
         fields_Bibliography = "Author,Title"

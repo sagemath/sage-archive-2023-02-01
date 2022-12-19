@@ -125,6 +125,11 @@ warnings.filterwarnings('ignore', category=DeprecationWarning,
                         message="'imghdr' is deprecated and slated for removal in Python 3.13",
                         module='sphinx.util.images')
 
+# triggered by docutils 0.19 on Python 3.11
+warnings.filterwarnings('ignore', category=DeprecationWarning,
+                        message=r"Use setlocale\(\), getencoding\(\) and getlocale\(\) instead",
+                        module='docutils.io')
+
 ################ end setup warnings ###############################
 
 

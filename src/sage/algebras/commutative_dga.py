@@ -194,7 +194,6 @@ class Differential(UniqueRepresentation, Morphism,
         else:
             im_gens = {A(a): A(im_gens[a]) for a in im_gens}
 
-        R = A.cover_ring()
         I = A.defining_ideal()
 
         def image_monomial(exponent):

@@ -970,6 +970,7 @@ class OperationTable(SageObject):
         - ``**options`` - passed on to matrix_plot call
 
         EXAMPLES::
+
             sage: from sage.matrix.operation_table import OperationTable
             sage: OTa = OperationTable(SymmetricGroup(3), operation=operator.mul)
             sage: OTa.color_table()

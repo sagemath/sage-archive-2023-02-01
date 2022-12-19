@@ -2213,10 +2213,10 @@ class FindStatStatistic(Element,
               'MathSciNet:1418763': {'Author': 'Simion, R., Stanton, D.',
                'Title': 'Octabasic Laguerre polynomials and permutation statistics'}},
              'Code': 'def statistic(x):\r\n    return len(x.nestings())',
-             'Description': 'The number of nestings of a perfect matching. \r\n\r\n\r\nThis is the number of pairs of edges $((a,b), (c,d))$ such that $a\\le c\\le d\\le b$. i.e., the edge $(c,d)$ is nested inside $(a,b)$.',
+             'Description': 'The number of nestings of a perfect matching.\r\n\r\nThis is the number of pairs of edges $((a,b), (c,d))$ such that $a\\le c\\le d\\le b$. i.e., the edge $(c,d)$ is nested inside $(a,b)$.',
              'Domain': 'Cc0012',
              'Name': 'The number of nestings of a perfect matching.',
-             'References': '[1]  [[MathSciNet:1288802]]\n[2]  [[MathSciNet:1418763]]',
+             'References': '[1]  [[MathSciNet:1288802]]\r\n[2]  [[MathSciNet:1418763]]',
              'SageCode': 'def statistic(x):\r\n    return len(x.nestings())'}
         """
         fields = "Bibliography,Code,Description,Domain,Name,References,SageCode"

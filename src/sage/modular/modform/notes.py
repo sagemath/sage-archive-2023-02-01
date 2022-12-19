@@ -2,7 +2,7 @@
 Design notes
 
 The implementation depends on the fact that we have dimension formulas
-(see `dims.py`) for spaces of modular forms with character, and new
+(see ``dims.py``) for spaces of modular forms with character, and new
 subspaces, so that we don't have to compute `q`-expansions for the whole
 space in order to compute `q`-expansions / elements / and dimensions of
 certain subspaces.  Also, the following design is much simpler than
@@ -12,15 +12,15 @@ span of any elements; they need not be Hecke equivariant or anything
 else.
 
 The internal basis of `q`-expansions of modular forms for the ambient
-space is defined as follows:
+space is defined as follows::
 
   First Block:   Cuspidal Subspace
   Second Block:  Eisenstein Subspace
 
-      Cuspidal Subspace:    Block for each level M dividing N, from highest
-                            level to lowest. The block for level M
-                            contains the images at level N of the
-                            newsubspace of level M (basis, then
+      Cuspidal Subspace:    Block for each level `M` dividing `N`, from highest
+                            level to lowest. The block for level `M`
+                            contains the images at level `N` of the
+                            newsubspace of level `M` (basis, then
                             basis(q**d), then basis(q**e), etc.)
 
      Eisenstein Subspace:   characters, etc.

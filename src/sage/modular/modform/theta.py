@@ -13,7 +13,7 @@ from math import sqrt
 
 def theta2_qexp(prec=10, var='q', K=ZZ, sparse=False):
     r"""
-    Return the `q`-expansion of the series `\theta_2 = \sum_{n \text{odd}} q^{n^2}`.
+    Return the `q`-expansion of the series `\theta_2 = \sum_{n \text{ odd}} q^{n^2}`.
 
     INPUT:
 

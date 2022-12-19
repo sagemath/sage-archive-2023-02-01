@@ -193,7 +193,7 @@ class ProductTree:
         """
         X = [x]
         for V in reversed(self.layers):
-            X = [X[i//2] % V[i] for i in range(len(V))]
+            X = [X[i // 2] % V[i] for i in range(len(V))]
         return X
 
 

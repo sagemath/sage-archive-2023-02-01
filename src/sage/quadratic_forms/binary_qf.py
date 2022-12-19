@@ -495,6 +495,48 @@ class BinaryQF(SageObject):
             self._poly = self(ZZ['x, y'].gens())
         return self._poly
 
+    @staticmethod
+    def from_polynomial(poly):
+        r"""
+        Construct a :class:`BinaryQF` from a bivariate polynomial
+        with integer coefficients. Converse of :meth:`polynomial`.
+
+        EXAMPLES::
+
+            sage: R.<u,v> = ZZ[]
+            sage: f = u^2 + 419*v^2
+            sage: Q = BinaryQF.from_polynomial(f); Q
+            x^2 + 419*y^2
+            sage: Q.polynomial()
+            x^2 + 419*y^2
+            sage: Q.polynomial()(R.gens()) == f
+            True
+
+        The method fails if the given polynomial is not a quadratic form::
+
+            sage: BinaryQF.from_polynomial(u^3 - 5*v)
+            Traceback (most recent call last):
+            ...
+            ValueError: polynomial has monomials of degree != 2
+
+        ...or if the coefficients aren't integers::
+
+            sage: BinaryQF.from_polynomial(u^2/7 + v^2)
+            Traceback (most recent call last):
+            ...
+            TypeError: no conversion of this rational to integer
+        """
+        R = poly.parent()
+        from sage.rings.polynomial.multi_polynomial_ring_base import MPolynomialRing_base
+        if not isinstance(R, MPolynomialRing_base) or R.ngens() != 2:
+            raise TypeError(f'not a bivariate polynomial ring: {R}')
+        if not all(mon.degree() == 2 for mon in poly.monomials()):
+            raise ValueError(f'polynomial has monomials of degree != 2')
+        x,y = R.gens()
+        coeffs = (poly.monomial_coefficient(mon) for mon in (x**2, x*y, y**2))
+        a,b,c = map(ZZ, coeffs)
+        return BinaryQF(a, b, c)
+
     @cached_method
     def discriminant(self):
         """

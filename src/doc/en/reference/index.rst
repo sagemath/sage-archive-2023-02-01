@@ -119,7 +119,7 @@ Number Fields, Function Fields, and Valuations
 Number Theory
 -------------
 
-* :doc:`Diophantine approximation <diophantine_approximation/index>`
+* :doc:`Diophantine Approximation <diophantine_approximation/index>`
 * :doc:`Quadratic Forms <quadratic_forms/index>`
 * :doc:`\\(L\\)-Functions <lfunctions/index>`
 * :doc:`Arithmetic Subgroups of \\({\\rm SL}_2(\\ZZ)\\) <arithgroup/index>`

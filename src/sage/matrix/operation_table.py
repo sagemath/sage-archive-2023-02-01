@@ -950,10 +950,13 @@ class OperationTable(SageObject):
                    for i in range(self._n) for j in range(self._n)]
         return MS(entries)
 
+    # documentation hack
+    # makes the cmap default argument look nice in the docs
+    # by copying the gist_rainbow object and overriding __repr__
     gist_rainbow_copy=copy(gist_rainbow)
     class ReprOverrideLinearSegmentedColormap(gist_rainbow_copy.__class__):
         def __repr__(self):
-            return "Matplotlib gist_rainbow colormap"
+            return "gist_rainbow"
     gist_rainbow_copy.__class__=ReprOverrideLinearSegmentedColormap
     
 
@@ -980,7 +983,7 @@ class OperationTable(SageObject):
 
             from sage.matrix.operation_table import OperationTable
             OTa = OperationTable(SymmetricGroup(3), operation=operator.mul)
-            sphinx_plot(OTa.color_table())
+            sphinx_plot(OTa.color_table(), figsize=(3.0,3.0))
         """
 
         # Base matrix plot object, without text

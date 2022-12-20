@@ -43,16 +43,3 @@ lazy_import('sage.interfaces.r', ['r', 'R', 'r_version'])
 lazy_import('sage.interfaces.read_data', 'read_data')
 lazy_import('sage.interfaces.scilab', 'scilab')
 lazy_import('sage.interfaces.tachyon', 'tachyon_rt')
-
-try:
-    from sage.repl.rich_output.display_manager import get_display_manager as _get_display_manager
-except ImportError:
-    pass
-else:
-    if _get_display_manager().is_in_terminal():
-        for pkg in ['axiom', 'fricas', 'gap' , 'gap3', 'giac', 'gp',
-                    'gnuplot', 'kash', 'magma', 'macaulay2', 'maple',
-                    'mathematica', 'mathics', 'matlab', 'maxima' ,
-                    'mupad', 'mwrank', 'octave', 'qepcad', 'singular',
-                    'sage0', 'lie', 'r']:
-            lazy_import(f'sage.interfaces.{pkg}', f'{pkg}_console')

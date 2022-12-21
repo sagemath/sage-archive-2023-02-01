@@ -157,7 +157,7 @@ cdef class pAdicFixedModElement(FMElement):
         return self.lift_c()
 
     cdef lift_c(self):
-        """
+        r"""
         Returns an integer congruent to this element modulo the precision.
 
         .. WARNING::
@@ -227,7 +227,7 @@ cdef class pAdicFixedModElement(FMElement):
                                   holder.value)
 
     def _integer_(self, Z=None):
-        """
+        r"""
         Return an integer congruent to ``self`` modulo the precision.
 
         .. WARNING::
@@ -449,7 +449,7 @@ cdef class pAdicFixedModElement(FMElement):
         return ans
 
     def _exp_binary_splitting(self, aprec):
-        """
+        r"""
         Compute the exponential power series of this element
 
         This is a helper method for :meth:`exp`.
@@ -508,7 +508,7 @@ cdef class pAdicFixedModElement(FMElement):
         return ans
 
     def _exp_newton(self, aprec, log_algorithm=None):
-        """
+        r"""
         Compute the exponential power series of this element
 
         This is a helper method for :meth:`exp`.
@@ -567,7 +567,6 @@ cdef class pAdicFixedModElement(FMElement):
         return ans
 
 
-
 def make_pAdicFixedModElement(parent, value):
     """
     Unpickles a fixed modulus element.
@@ -580,4 +579,3 @@ def make_pAdicFixedModElement(parent, value):
         2*5^2 + 3*5^3
     """
     return unpickle_fme_v2(pAdicFixedModElement, parent, value)
-

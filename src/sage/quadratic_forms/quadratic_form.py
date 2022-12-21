@@ -1304,7 +1304,7 @@ class QuadraticForm(SageObject):
     def from_polynomial(poly):
         r"""
         Construct a :class:`QuadraticForm` from a multivariate
-        polynomial. Converse of :meth:`polynomial`.
+        polynomial. Inverse of :meth:`polynomial`.
 
         EXAMPLES::
 

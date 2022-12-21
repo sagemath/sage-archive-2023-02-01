@@ -499,7 +499,7 @@ class BinaryQF(SageObject):
     def from_polynomial(poly):
         r"""
         Construct a :class:`BinaryQF` from a bivariate polynomial
-        with integer coefficients. Converse of :meth:`polynomial`.
+        with integer coefficients. Inverse of :meth:`polynomial`.
 
         EXAMPLES::
 

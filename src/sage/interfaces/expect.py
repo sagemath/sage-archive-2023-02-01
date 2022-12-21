@@ -941,7 +941,6 @@ If this all works, you can then make calls like:
         The interface still works after this interrupt::
 
             sage: singular('2+3')
-            Singular crashed -- automatically restarting.
             5
 
         Last, we demonstrate that by default the execution of a command

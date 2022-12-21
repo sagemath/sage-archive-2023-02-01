@@ -341,6 +341,7 @@ import re
 import sys
 import pexpect
 import shlex
+import time
 
 from .expect import Expect, ExpectElement, FunctionElement, ExpectFunction
 
@@ -507,6 +508,52 @@ class Singular(ExtraTabCompletion, Expect):
             'quit;'
         """
         return 'quit;'
+
+    def _send_interrupt(self):
+        """
+        Send an interrupt to Singular. If needed, additional
+        semi-colons are sent until we get back at the prompt.
+
+        TESTS:
+
+        The following works without restarting Singular::
+
+            sage: a = singular(1)
+            sage: _ = singular._expect.sendline('while(1){};')
+            sage: singular.interrupt()
+            True
+
+        We can still access a::
+
+            sage: 2*a
+            2
+
+        Interrupting nothing or unfinished input also works::
+
+            sage: singular.interrupt()
+            True
+            sage: _ = singular._expect.sendline('1+')
+            sage: singular.interrupt()
+            True
+            sage: 3*a
+            3
+
+        """
+        # Work around for Singular bug
+        # http://www.singular.uni-kl.de:8002/trac/ticket/727
+        time.sleep(0.1)
+
+        E = self._expect
+        E.sendline(chr(3))
+        # The following is needed so interrupt() works even when
+        # there is no computation going on.
+        for i in range(5):
+            try:
+                E.expect_upto(self._prompt, timeout=0.1)
+                return
+            except pexpect.TIMEOUT:
+                pass
+            E.sendline(";")
 
     def _read_in_file_command(self, filename):
         r"""

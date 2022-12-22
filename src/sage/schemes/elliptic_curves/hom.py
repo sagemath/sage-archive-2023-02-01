@@ -812,7 +812,7 @@ def find_post_isomorphism(phi, psi):
 
         sage: from sage.schemes.elliptic_curves.hom import find_post_isomorphism
         sage: E = EllipticCurve(GF(7^2), [1,0])
-        sage: f = E.multiplication_by_m_isogeny(1)
+        sage: f = E.scalar_multiplication(1)
         sage: g = choice(E.automorphisms())
         sage: find_post_isomorphism(f, g) == g
         True

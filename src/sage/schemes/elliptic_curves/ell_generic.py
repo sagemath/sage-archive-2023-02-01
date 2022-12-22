@@ -2412,18 +2412,11 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
         The Frobenius *endo*\morphism is the special case where `n`
         is divisible by the degree of the base ring of the curve.
 
-        .. WARNING::
-
-            This method and the :class:`EllipticCurveHom_frobenius` class
-            are currently experimental. Use at your own risk.
-
         EXAMPLES::
 
             sage: z3, = GF(13^3).gens()
             sage: E = EllipticCurve([z3,z3^2])
             sage: E.frobenius_isogeny()
-            doctest:warning
-            ...
             Frobenius isogeny of degree 13:
               From: Elliptic Curve defined by y^2 = x^3 + z3*x + z3^2 over Finite Field in z3 of size 13^3
               To:   Elliptic Curve defined by y^2 = x^3 + (5*z3^2+7*z3+11)*x + (5*z3^2+12*z3+1) over Finite Field in z3 of size 13^3

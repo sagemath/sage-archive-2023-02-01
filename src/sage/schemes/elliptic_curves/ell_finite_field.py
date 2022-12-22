@@ -672,6 +672,28 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
         else:
             return R.gen(1)
 
+    def frobenius_endomorphism(self):
+        r"""
+        Return the `q`-power Frobenius endomorphism of this elliptic
+        curve, where `q` is the cardinality of the (finite) base field.
+
+        EXAMPLES::
+
+            sage: F.<t> = GF(11^5)
+            sage: E = EllipticCurve([t,t])
+            sage: E.frobenius_endomorphism()
+            Frobenius endomorphism of degree 161051 = 11^5:
+              From: Elliptic Curve defined by y^2 = x^3 + t*x + t over Finite Field in z5 of size 11^5
+              To:   Elliptic Curve defined by y^2 = x^3 + t*x + t over Finite Field in z5 of size 11^5
+            sage: E.frobenius_endomorphism() == E.frobenius_isogeny(5)
+            True
+
+        .. SEEALSO::
+
+            :meth:`~sage.schemes.elliptic_curves.ell_generic.EllipticCurve_generic.frobenius_isogeny`
+        """
+        return self.frobenius_isogeny(self.base_field().degree())
+
     def cardinality_pari(self):
         r"""
         Return the cardinality of ``self`` using PARI.

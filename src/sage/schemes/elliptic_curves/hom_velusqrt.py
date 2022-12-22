@@ -1252,9 +1252,9 @@ class EllipticCurveHom_velusqrt(EllipticCurveHom):
               To:   Elliptic Curve defined by y^2 = x^3 + 39*x + 40 over Finite Field in z2 of size 101^2
             sage: phi.dual()
             Isogeny of degree 11 from Elliptic Curve defined by y^2 = x^3 + 39*x + 40 over Finite Field in z2 of size 101^2 to Elliptic Curve defined by y^2 + x*y + y = x^3 + x^2 + x + 1 over Finite Field in z2 of size 101^2
-            sage: phi.dual() * phi == phi.domain().multiplication_by_m_isogeny(11)
+            sage: phi.dual() * phi == phi.domain().scalar_multiplication(11)
             True
-            sage: phi * phi.dual() == phi.codomain().multiplication_by_m_isogeny(11)
+            sage: phi * phi.dual() == phi.codomain().scalar_multiplication(11)
             True
         """
         # FIXME: This code fails if the degree is divisible by the characteristic.

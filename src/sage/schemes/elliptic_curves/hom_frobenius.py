@@ -138,6 +138,8 @@ from sage.structure.sequence import Sequence
 from sage.rings.integer_ring import ZZ
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
+from sage.rings.finite_rings.finite_field_base import FiniteField
+
 from sage.schemes.elliptic_curves.ell_generic import EllipticCurve_generic
 from sage.schemes.elliptic_curves.constructor import EllipticCurve
 
@@ -190,7 +192,9 @@ class EllipticCurveHom_frobenius(EllipticCurveHom):
         if not isinstance(E, EllipticCurve_generic):
             raise ValueError(f'not an elliptic curve: {E}')
 
-        self._p = E.base_ring().characteristic()
+        self._base_ring = E.base_ring()
+
+        self._p = self._base_ring.characteristic()
         if self._p == 0:
             raise ValueError('Frobenius isogenies do not exist in characteristic zero')
 
@@ -207,13 +211,13 @@ class EllipticCurveHom_frobenius(EllipticCurveHom):
         EllipticCurveHom.__init__(self, self._domain, self._codomain)
 
         # over finite fields, isogenous curves have the same number of points
-        # (depends on #32786)
-        if self._domain.base_field().is_finite():
+        # (see #32786)
+        if isinstance(self._base_ring, FiniteField):
             self._domain._fetch_cached_order(self._codomain)
             self._codomain._fetch_cached_order(self._domain)
 
-        self._poly_ring = PolynomialRing(E.base_ring(), ['x'], sparse=True)
-        self._mpoly_ring = PolynomialRing(E.base_ring(), ['x','y'], sparse=True)
+        self._poly_ring = PolynomialRing(self._base_ring, ['x'], sparse=True)
+        self._mpoly_ring = PolynomialRing(self._base_ring, ['x','y'], sparse=True)
         self._xfield = self._poly_ring.fraction_field()
         self._xyfield = self._mpoly_ring.fraction_field()
 
@@ -378,12 +382,17 @@ class EllipticCurveHom_frobenius(EllipticCurveHom):
             sage: pi.scaling_factor()
             1
 
+        The scaling factor lives in the base ring::
+
+            sage: pi.scaling_factor().parent()
+            Finite Field of size 11
+
         ALGORITHM: Inseparable isogenies of degree `>1` have scaling
         factor `0`.
         """
         if self._degree == 1:
-            return ZZ.one()
-        return ZZ.zero()
+            return self._base_ring.one()
+        return self._base_ring.zero()
 
     def kernel_polynomial(self):
         """

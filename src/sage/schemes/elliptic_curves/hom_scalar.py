@@ -4,18 +4,11 @@ Scalar-multiplication morphisms of elliptic curves
 This class provides an :class:`EllipticCurveHom` instantiation for
 multiplication-by-`m` maps on elliptic curves.
 
-.. WARNING::
-
-    This module is currently considered experimental.
-    It may change in a future release without prior warning, or even
-    be removed altogether if things turn out to be unfixably broken.
-
 EXAMPLES:
 
 We can construct and evaluate scalar multiplications::
 
     sage: from sage.schemes.elliptic_curves.hom_scalar import EllipticCurveHom_scalar
-    doctest:warning ...
     sage: E = EllipticCurve('77a1')
     sage: phi = E.scalar_multiplication(5); phi
     Scalar-multiplication endomorphism [5] of Elliptic Curve defined by y^2 + y = x^3 + 2*x over Rational Field
@@ -136,8 +129,6 @@ from sage.schemes.elliptic_curves.ell_generic import EllipticCurve_generic
 from sage.schemes.elliptic_curves.weierstrass_morphism import negation_morphism
 from sage.schemes.elliptic_curves.hom import EllipticCurveHom
 
-from sage.misc.superseded import experimental_warning
-experimental_warning(32826, 'EllipticCurveHom_scalar is experimental code.')
 
 class EllipticCurveHom_scalar(EllipticCurveHom):
 
@@ -393,6 +384,7 @@ class EllipticCurveHom_scalar(EllipticCurveHom):
             sage: u == phi.formal()[1]
             True
             sage: u == E.multiplication_by_m_isogeny(5).scaling_factor()
+            doctest:warning ... DeprecationWarning: ...
             True
 
         ALGORITHM: The scaling factor equals the scalar that is being

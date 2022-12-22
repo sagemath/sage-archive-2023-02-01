@@ -183,8 +183,9 @@ class EllipticCurveHom(Morphism):
             sage: F = E.change_ring(GF(71))
             sage: wE = identity_morphism(E)
             sage: wF = identity_morphism(F)
-            sage: mE = E.multiplication_by_m_isogeny(1)
+            sage: mE = E.scalar_multiplication(1)
             sage: mF = F.multiplication_by_m_isogeny(1)
+            doctest:warning ... DeprecationWarning: ...
             sage: [mE == wE, mF == wF]
             [True, True]
             sage: [a == b for a in (wE,mE) for b in (wF,mF)]
@@ -752,7 +753,7 @@ def compare_via_evaluation(left, right):
         sage: from sage.schemes.elliptic_curves.hom_composite import EllipticCurveHom_composite
         sage: mu = EllipticCurveHom_composite.from_factors([phi, psi])
         sage: from sage.schemes.elliptic_curves.hom import compare_via_evaluation
-        sage: compare_via_evaluation(mu, E.multiplication_by_m_isogeny(7))
+        sage: compare_via_evaluation(mu, E.scalar_multiplication(7))
         True
 
     .. SEEALSO::

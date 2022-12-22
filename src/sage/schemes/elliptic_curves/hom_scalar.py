@@ -387,10 +387,19 @@ class EllipticCurveHom_scalar(EllipticCurveHom):
             doctest:warning ... DeprecationWarning: ...
             True
 
+        The scaling factor lives in the base ring::
+
+            sage: E = EllipticCurve(GF(101^2), [5,5])
+            sage: phi = E.scalar_multiplication(123)
+            sage: phi.scaling_factor()
+            22
+            sage: phi.scaling_factor().parent()
+            Finite Field in z2 of size 101^2
+
         ALGORITHM: The scaling factor equals the scalar that is being
         multiplied by.
         """
-        return self._m
+        return self._base_ring(self._m)
 
     @cached_method
     def kernel_polynomial(self):
@@ -476,9 +485,7 @@ class EllipticCurveHom_scalar(EllipticCurveHom):
         """
         if self._m.is_zero():
             raise ValueError('[0] is not an isogeny')
-        p = self._domain.base_ring().characteristic()
-        return p == 0 or self._m.gcd(p) == 1
-
+        return bool(self.scaling_factor())
 
     def is_injective(self):
         """

@@ -1148,7 +1148,7 @@ cdef class SCIPBackend(GenericBackend):
         cdef SCIPBackend cp = type(self)(maximization=self.is_maximization())
         cp.problem_name(self.problem_name())
         for i, v in enumerate(self.variables):
-            vtype = v.vtype
+            vtype = v.vtype()
             cp.add_variable(self.variable_lower_bound(i),
                             self.variable_upper_bound(i),
                             binary=vtype == 'BINARY',

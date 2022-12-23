@@ -679,13 +679,13 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
 
         EXAMPLES::
 
-            sage: F.<t> = GF(11^5)
+            sage: F.<t> = GF(11^4)
             sage: E = EllipticCurve([t,t])
             sage: E.frobenius_endomorphism()
-            Frobenius endomorphism of degree 161051 = 11^5:
-              From: Elliptic Curve defined by y^2 = x^3 + t*x + t over Finite Field in z5 of size 11^5
-              To:   Elliptic Curve defined by y^2 = x^3 + t*x + t over Finite Field in z5 of size 11^5
-            sage: E.frobenius_endomorphism() == E.frobenius_isogeny(5)
+            Frobenius endomorphism of degree 14641 = 11^4:
+              From: Elliptic Curve defined by y^2 = x^3 + t*x + t over Finite Field in t of size 11^4
+              To:   Elliptic Curve defined by y^2 = x^3 + t*x + t over Finite Field in t of size 11^4
+            sage: E.frobenius_endomorphism() == E.frobenius_isogeny(4)
             True
 
         .. SEEALSO::

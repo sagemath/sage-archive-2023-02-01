@@ -211,7 +211,7 @@ class Differential(UniqueRepresentation, Morphism,
                 raise ValueError("The given dictionary does not determine a degree 1 map")
 
         im_gens = tuple(im_gens.get(x, A.zero()) for x in A.gens())
-        return super(Differential, cls).__classcall__(cls, A, im_gens)
+        return super().__classcall__(cls, A, im_gens)
 
     def __init__(self, A, im_gens):
         r"""
@@ -958,22 +958,15 @@ class GCAlgebra(UniqueRepresentation, QuotientRing_nc):
             # Deal with multigrading: convert lists and tuples to elements
             # of an additive abelian group.
             if degrees:
-                multigrade = False
                 try:
                     rank = len(list(degrees[0]))
                     G = AdditiveAbelianGroup([0] * rank)
                     degrees = [G(vector(d)) for d in degrees]
-                    multigrade = True
                 except TypeError:
                     # The entries of degrees are not iterables, so
                     # treat as singly-graded.
                     pass
-                if multigrade:
-                    if sorted(map(sum, degrees)) != list(map(sum, degrees)):
-                        raise ValueError("the generators should be ordered in increased total degree")
-                else:
-                    if sorted(degrees) != list(degrees):
-                        raise ValueError("the generators should be ordered in increasing degree")
+
             degrees = tuple(degrees)
         if not R or not I:
             if n > 1:
@@ -998,9 +991,9 @@ class GCAlgebra(UniqueRepresentation, QuotientRing_nc):
                              for i in range(n) if is_odd(tot_degs[i])],
                             side='twosided')
 
-        return super(GCAlgebra, cls).__classcall__(cls, base=base, names=names,
-                                                   degrees=degrees, R=R, I=I,
-                                                   category=category)
+        return super().__classcall__(cls, base=base, names=names,
+                                     degrees=degrees, R=R, I=I,
+                                     category=category)
 
     def __init__(self, base, R=None, I=None, names=None, degrees=None, category=None):
         """
@@ -1236,7 +1229,7 @@ class GCAlgebra(UniqueRepresentation, QuotientRing_nc):
                                                         .gens()):
                 return False
             return self.cover_ring().has_coerce_map_from(other.cover_ring())
-        return super(GCAlgebra, self)._coerce_map_from_(other)
+        return super()._coerce_map_from_(other)
 
     def _element_constructor_(self, x, coerce=True):
         r"""
@@ -1755,7 +1748,7 @@ class GCAlgebra_multigraded(GCAlgebra):
                 return False
         elif isinstance(other, GCAlgebra):   # Not multigraded
             return False
-        return super(GCAlgebra_multigraded, self)._coerce_map_from_(other)
+        return super()._coerce_map_from_(other)
 
     def basis(self, n, total=False):
         """
@@ -2012,6 +2005,49 @@ class DifferentialGCAlgebra(GCAlgebra):
         self._differential = Differential(self, differential._dic_)
         self._minimalmodels = {}
         self._numerical_invariants = {}
+
+    def cdg_algebra(self, differential):
+        r"""
+        Construct a differential graded commutative algebra from the underlying
+        graded commutative algebra by specifying a differential. This may be used
+        to get a new differential over the same algebra structure.
+
+        INPUT:
+
+        - ``differential`` -- a dictionary defining a differential or
+          a map defining a valid differential
+
+        The keys of the dictionary are generators of the algebra, and
+        the associated values are their targets under the
+        differential. Any generators which are not specified are
+        assumed to have zero differential. Alternatively, the
+        differential can be defined using the :meth:`differential`
+        method; see below for an example.
+
+        .. SEEALSO::
+
+            :meth:`differential`
+
+        EXAMPLES::
+
+            sage: A.<x,y,z,t> = GradedCommutativeAlgebra(GF(5), degrees=(2, 3, 2, 4))
+            sage: B = A.quotient(A.ideal(x^3-z*t))
+            sage: C = B.cdg_algebra({y:t})
+            sage: C
+            Commutative Differential Graded Algebra with generators ('x', 'y', 'z', 't') in degrees (2, 3, 2, 4) with relations [x^3 - z*t] over Finite Field of size 5 with differential:
+            x --> 0
+            y --> t
+            z --> 0
+            t --> 0
+            sage: C.cdg_algebra({})
+            Commutative Differential Graded Algebra with generators ('x', 'y', 'z', 't') in degrees (2, 3, 2, 4) with relations [x^3 - z*t] over Finite Field of size 5 with differential:
+            x --> 0
+            y --> 0
+            z --> 0
+            t --> 0
+
+        """
+        return self.graded_commutative_algebra().cdg_algebra(differential)
 
     def graded_commutative_algebra(self):
         """

@@ -1899,6 +1899,11 @@ cdef class MixedIntegerLinearProgram(SageObject):
 
         - ``name`` -- A name for the constraint.
 
+        OUTPUT:
+
+        - The row index of the constraint if the constraint has been added
+          to the backend as a unique new row; ``None`` otherwise.
+
         To set a lower and/or upper bound on the variables use the methods
         ``set_min`` and/or ``set_max`` of ``MixedIntegerLinearProgram``.
 
@@ -2108,28 +2113,42 @@ cdef class MixedIntegerLinearProgram(SageObject):
             # Send to backend
             if is_LinearFunction(linear_function):
                 if self._check_redundant and self._is_redundant_constraint(constraint, min, max):
-                    return
+                    return None
+                nrows_before = self._backend.nrows()
                 self._backend.add_linear_constraint(constraint.items(), min, max, name)
             elif is_LinearTensor(linear_function):
+                nrows_before = self._backend.nrows()
                 self._backend.add_linear_constraint_vector(M.degree(), constraint.items(), min, max, name)
             else:
                 assert False, 'unreachable'
+            nrows_after = self._backend.nrows()
+            if nrows_after - nrows_before == 1:
+                return nrows_before
+            return None
         elif is_LinearConstraint(linear_function):
             if not(min is None and max is None):
                 raise ValueError('min and max must not be specified for (in)equalities')
             relation = linear_function
+            row_indices = []
             for lhs, rhs in relation.equations():
-                self.add_constraint(lhs-rhs, min=0, max=0, name=name)
+                row_index = self.add_constraint(lhs-rhs, min=0, max=0, name=name)
+                if row_index is not None:
+                    row_indices.append(row_index)
             for lhs, rhs in relation.inequalities():
-                self.add_constraint(lhs-rhs, max=0, name=name)
+                row_index = self.add_constraint(lhs-rhs, max=0, name=name)
+                if row_index is not None:
+                    row_indices.append(row_index)
+            if len(row_indices) == 1:
+                return row_indices[0]
+            return None
         elif is_LinearTensorConstraint(linear_function):
             if not(min is None and max is None):
                 raise ValueError('min and max must not be specified for (in)equalities')
             relation = linear_function
             M = relation.parent().linear_tensors().free_module()
-            self.add_constraint(relation.lhs() - relation.rhs(),
-                                min=M(0) if relation.is_equation() else None,
-                                max=M(0), name=name)
+            return self.add_constraint(relation.lhs() - relation.rhs(),
+                                       min=M(0) if relation.is_equation() else None,
+                                       max=M(0), name=name)
         else:
             raise ValueError('argument must be a linear function or constraint, got '+str(linear_function))
 

@@ -1862,7 +1862,8 @@ cdef class MixedIntegerLinearProgram(SageObject):
 
     def add_constraint(self, linear_function, max=None, min=None, name=None,
                        return_indices=False):
-        r"""Adds a constraint to the ``MixedIntegerLinearProgram``.
+        r"""
+        Adds a constraint to the ``MixedIntegerLinearProgram``.
 
         INPUT:
 

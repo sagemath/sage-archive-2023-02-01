@@ -1862,8 +1862,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
 
     def add_constraint(self, linear_function, max=None, min=None, name=None,
                        return_indices=False):
-        r"""
-        Adds a constraint to the ``MixedIntegerLinearProgram``.
+        r"""Adds a constraint to the ``MixedIntegerLinearProgram``.
 
         INPUT:
 
@@ -2097,6 +2096,43 @@ cdef class MixedIntegerLinearProgram(SageObject):
             Traceback (most recent call last):
             ...
             ValueError: argument must be a linear function or constraint, got True
+
+        Check that adding and removing constraints works::
+
+            sage: p = MixedIntegerLinearProgram(check_redundant=True)
+            sage: x = p.new_variable(nonnegative=True)
+            sage: p.add_constraint(x[0] + x[1] <= 3)
+            sage: p.set_objective(x[0] + 2*x[1])
+            sage: p.solve()
+            6.0
+
+        We add (non-trivially) redundant constraints::
+
+            sage: c1 = p.add_constraint(0 <= x[0] <= 3, return_indices=True); c1
+            [1, 2]
+            sage: p.solve()
+            6.0
+
+        We add a non-redundant constraint::
+
+            sage: c2 = p.add_constraint(1 <= x[1] <= 2, return_indices=True); c2
+            [3, 4]
+            sage: p.solve()
+            5.0
+
+        We remove the redundant constraints `1` and `2`, keep in mind
+        that indices change when removing constraints::
+
+            sage: p.remove_constraint(1)
+            sage: p.remove_constraint(1)
+            sage: p.solve()
+            5.0
+
+        We remove another constraint::
+
+            sage: p.remove_constraint(2)
+            sage: p.solve()
+            6.0
 
         """
         from sage.numerical.linear_functions import is_LinearFunction, is_LinearConstraint

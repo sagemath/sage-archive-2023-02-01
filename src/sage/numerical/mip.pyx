@@ -2059,7 +2059,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
               <BLANKLINE>
               Constraints:
                 1.0 <= x_0 - x_1
-                -2.0 <= -2.0 x_0 + 2.0 x_1 
+                -2.0 <= -2.0 x_0 + 2.0 x_1
               Variables:
                 x_0 is a continuous variable (min=-oo, max=+oo)
                 x_1 is a continuous variable (min=-oo, max=+oo)
@@ -2275,11 +2275,20 @@ cdef class MixedIntegerLinearProgram(SageObject):
             sage: for each in range(10): p.add_constraint(x - y, max = 10)
             sage: p.number_of_constraints()
             3
+
+        TESTS:
+
+        Removing no constraints does not make Sage crash, see
+        :trac:`34881`::
+
+             sage: MixedIntegerLinearProgram().remove_constraints([])
+
         """
         if self._check_redundant:
             for i in sorted(constraints, reverse=True):
                 self._constraints.pop(i)
-        self._backend.remove_constraints(constraints)
+        if constraints:
+            self._backend.remove_constraints(constraints)
 
     def set_binary(self, ee):
         r"""

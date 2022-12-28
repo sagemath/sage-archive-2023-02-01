@@ -860,7 +860,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
 
         EXAMPLES::
 
-            sage: mip.<a,b> = MixedIntegerLinearProgram(solver='GLPK')
+            sage: mip.<a,b> = MixedIntegerLinearProgram(solver='GLPK')   # indirect doctest
             sage: a[0] + b[2]
             x_0 + x_1
             sage: mip.show()
@@ -2299,7 +2299,8 @@ cdef class MixedIntegerLinearProgram(SageObject):
             sage: p.number_of_constraints()
             2
         """
-        if self._check_redundant: self._constraints.pop(i)
+        if self._check_redundant:
+            self._constraints.pop(i)
         self._backend.remove_constraint(i)
 
     def remove_constraints(self, constraints):
@@ -2644,7 +2645,8 @@ cdef class MixedIntegerLinearProgram(SageObject):
             sage: p.solve()
             9.0
         """
-        if log is not None: self._backend.set_verbosity(log)
+        if log is not None:
+            self._backend.set_verbosity(log)
         self._backend.solve()
         return self._backend.get_objective_value()
 
@@ -3262,7 +3264,7 @@ cdef class MIPVariable(SageObject):
            indexed by arbitrary keys and are created dynamically
            on access
 
-        For more informations, see the method
+        For more information, see the method
         ``MixedIntegerLinearProgram.new_variable``.
 
         EXAMPLES::
@@ -3270,6 +3272,7 @@ cdef class MIPVariable(SageObject):
             sage: p = MixedIntegerLinearProgram(solver='GLPK')
             sage: p.new_variable(nonnegative=True)
             MIPVariable with 0 real components, >= 0
+
         """
         self._dict = {}
         self._p = mip

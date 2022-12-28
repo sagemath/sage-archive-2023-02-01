@@ -2014,10 +2014,22 @@ cdef class MixedIntegerLinearProgram(SageObject):
               x_0 is a continuous variable (min=0.0, max=+oo)
               x_1 is a continuous variable (min=0.0, max=+oo)
 
-        Empty constraint::
+        Trivially true empty constraint:
 
             sage: p = MixedIntegerLinearProgram(solver='GLPK')
-            sage: p.add_constraint(sum([]),min=2)
+            sage: p.add_constraint(sum([]), max=2)
+            0
+            sage: p.solve()
+            0.0
+
+        Infeasible empty constraint::
+
+            sage: p = MixedIntegerLinearProgram(solver='GLPK')
+            sage: p.add_constraint(sum([]), min=2)
+            sage: p.solve()
+            Traceback (most recent call last):
+            ...
+            MIPSolverException: GLPK: Problem has no feasible solution
 
         Min/Max are numerical ::
 
@@ -2078,9 +2090,6 @@ cdef class MixedIntegerLinearProgram(SageObject):
             ...
             ValueError: argument must be a linear function or constraint, got True
         """
-        if linear_function is 0:
-            return
-
         from sage.numerical.linear_functions import is_LinearFunction, is_LinearConstraint
         from sage.numerical.linear_tensor import is_LinearTensor
         from sage.numerical.linear_tensor_constraints import  is_LinearTensorConstraint
@@ -2149,8 +2158,14 @@ cdef class MixedIntegerLinearProgram(SageObject):
             return self.add_constraint(relation.lhs() - relation.rhs(),
                                        min=M(0) if relation.is_equation() else None,
                                        max=M(0), name=name)
+        elif isinstance(linear_function, bool):
+            raise ValueError('argument must be a linear function or constraint, got ' + str(linear_function))
         else:
-            raise ValueError('argument must be a linear function or constraint, got '+str(linear_function))
+            try:
+                linear_function = self.linear_functions_parent()(linear_function)
+            except (TypeError, ValueError):
+                raise ValueError('argument must be a linear function or constraint, got ' + str(linear_function))
+            return self.add_constraint(linear_function, max=max, min=min, name=name)
 
     def _is_redundant_constraint(self, constraint, min_bound, max_bound):
         """

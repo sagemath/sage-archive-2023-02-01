@@ -525,7 +525,7 @@ class InfinitePolynomial_sparse(RingElement):
         try:
             return self(**kwargs)
         except TypeError:
-            str_kwargs = {str(k): v for k,v in kwargs.items()}
+            str_kwargs = {str(k): v for k, v in kwargs.items()}
             return self(**str_kwargs)
 
     def ring(self):

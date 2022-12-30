@@ -14,6 +14,7 @@ cdef class SCIPBackend(GenericBackend):
 
     cdef model
     cdef object variables
+    cdef object constraints
 
     cpdef _get_model(self)
     cpdef get_row_prim(self, int i)

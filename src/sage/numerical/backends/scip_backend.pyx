@@ -60,6 +60,16 @@ cdef class SCIPBackend(GenericBackend):
         self.obj_constant_term = 0.0
         self.variables = []
         self.model.hideOutput()
+        # always set this to None if the list of constraints may change
+        self.constraints = None
+
+    def get_constraints(self):
+        """
+        Get all constraints of the problem.
+        """
+        if self.constraints is None:
+            self.constraints = self.model.getConss()
+        return self.constraints
 
     cpdef _get_model(self):
         """
@@ -360,7 +370,9 @@ cdef class SCIPBackend(GenericBackend):
             raise ValueError("The constraint's index i must satisfy 0 <= i < number_of_constraints")
         if self.model.getStatus() != 'unknown':
             self.model.freeTransform()
-        self.model.delCons(self.model.getConss()[i])
+            self.constraints = None
+        self.model.delCons(self.get_constraints()[i])
+        self.constraints = None
 
     cpdef add_linear_constraint(self, coefficients, lower_bound, upper_bound, name=None):
         """
@@ -408,6 +420,7 @@ cdef class SCIPBackend(GenericBackend):
 
         cons = lower_bound <= (linfun <= upper_bound)
         self.model.addCons(cons, name=name)
+        self.constraints = None
 
     cpdef row(self, int index):
         r"""
@@ -438,7 +451,7 @@ cdef class SCIPBackend(GenericBackend):
             (2.0, 2.0)
         """
         namedvars = [var.name for var in self.variables]
-        valslinear = self.model.getValsLinear(self.model.getConss()[index])
+        valslinear = self.model.getValsLinear(self.get_constraints()[index])
         cdef list indices = []
         cdef list values = []
         for var, coeff in valslinear.iteritems():
@@ -470,7 +483,7 @@ cdef class SCIPBackend(GenericBackend):
             sage: p.row_bounds(0)
             (2.0, 2.0)
         """
-        cons = self.model.getConss()[index]
+        cons = self.get_constraints()[index]
         lhs = self.model.getLhs(cons)
         rhs = self.model.getRhs(cons)
         if lhs == -self.model.infinity():
@@ -548,7 +561,8 @@ cdef class SCIPBackend(GenericBackend):
             sage: p.nrows()
             5
         """
-        mcons = self.model.getConss()
+        mcons = self.get_constraints()
+        self.constraints = None  # is this necessary?
         # after update of
         index = self.add_variable(lower_bound=-self.model.infinity())
         var = self.variables[index]
@@ -770,7 +784,7 @@ cdef class SCIPBackend(GenericBackend):
             sage: lp.get_row_prim(2)
             8.0
         """
-        return self.model.getActivity(self.model.getConss()[i])
+        return self.model.getActivity(self.get_constraints()[i])
 
     cpdef int ncols(self):
         """
@@ -803,7 +817,7 @@ cdef class SCIPBackend(GenericBackend):
             sage: p.nrows()
             2
         """
-        return len(self.model.getConss())
+        return len(self.get_constraints())
 
     cpdef col_name(self, int index):
         """
@@ -840,7 +854,7 @@ cdef class SCIPBackend(GenericBackend):
             sage: p.row_name(0)
             'Empty constraint 1'
         """
-        return self.model.getConss()[index].name
+        return self.get_constraints()[index].name
 
     cpdef bint is_variable_binary(self, int index):
         """
@@ -1159,10 +1173,13 @@ cdef class SCIPBackend(GenericBackend):
         assert self.ncols() == cp.ncols()
 
         for i in range(self.nrows()):
-            cp.add_linear_constraint(zip(*self.row(i)),
-                                     self.row_bounds(i)[0],
-                                     self.row_bounds(i)[1],
-                                     name=self.row_name(i))
+            coefficients = zip(*self.row(i))
+            lower_bound, upper_bound = self.row_bounds(i)
+            name = self.row_name(i)
+            cp.add_linear_constraint(coefficients,
+                                     lower_bound,
+                                     upper_bound,
+                                     name=name)
         assert self.nrows() == cp.nrows()
         return cp
 

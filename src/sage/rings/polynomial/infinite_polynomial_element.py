@@ -328,6 +328,10 @@ class InfinitePolynomial_sparse(RingElement):
             sage: a(x_1=x[100])
             x_100 + x_0
 
+            sage: M = matrix([[1,1],[2,0]])
+            sage: a(x_1=M)
+            [x_0 + 1       1]
+            [      2     x_0]
         """
         # Replace any InfinitePolynomials by their underlying polynomials
         if hasattr(self._p, 'variables'):
@@ -444,40 +448,85 @@ class InfinitePolynomial_sparse(RingElement):
         except AttributeError:
             raise AttributeError('%s has no attribute %s' % (self.__class__, s))
 
-    def subs(self, in_dict):
+    def subs(self, fixed=None, **kwargs):
         """
         Substitute variables in an infinite polynomial.
 
         INPUT:
 
-        - ``in_dict`` - (optional) dictionary of inputs
+        - ``fixed`` - (optional) dict with variable:value pairs
+        - ``**kwargs`` - names parameters
 
         OUTPUT:
-
-        - new object if substitution is possible, otherwise self.
+            a new polynomial
 
         EXAMPLES::
 
             sage: R.<x,y> = InfinitePolynomialRing(QQ)
             sage: f = x[1] + x[1]*x[2]*x[3]
+
+        Passing ``fixed={x[1]: x[0]}``. Note that the keys::
+
             sage: f.subs({x[1]: x[0]})
             x_3*x_2*x_0 + x_0
 
-            sage: f.subs({x[1]: y[1]})
+        Passing the variables as names parameters::
+
+            sage: f.subs(x_1=y[1])
             x_3*x_2*y_1 + y_1
+            sage: f.subs(x_1=y[1], x_2=2)
+            2*x_3*y_1 + y_1
 
         The substitution returns the original polynomial if you try
-        to substitute a variable not present.
+        to substitute a variable not present::
 
             sage: g = x[0] + x[1]
-            sage: g.subs({y[0]:x[0]})
+            sage: g.subs({y[0]: x[0]})
             x_1 + x_0
+
+        The substitution can also handle matrices. It will
+        return a matrix whose entries are polynomials in countably
+        many variables::
+
+            sage: M = matrix([[1,0],[0,2]])
+            sage: N = matrix([[0,3],[4,0]])
+            sage: g = x[0]^2 + 3*x[1]
+            sage: g.subs({'x_0': M})
+            [3*x_1 + 1         0]
+            [        0 3*x_1 + 4]
+            sage: g.subs({x[0]: M, x[1]: N})
+            [ 1  9]
+            [12  4]
+
+        You can only pass one of ``fixed`` or ``kwargs`` at a time::
+
+            sage: g.subs(fixed={x[0]: M}, x_1=N)
+            Traceback (most recent call last):
+            ...
+            ValueError: pass only one of fixed or kwargs
+            sage: g.subs({x[0]: M}, x_1=N)
+            Traceback (most recent call last):
+            ...
+            ValueError: pass only one of fixed or kwargs
+
+        TESTS::
+
+            sage: g.subs(fixed=x[0], x_1=N)
+            Traceback (most recent call last):
+            ...
+            ValueError: fixed must be a dict
         """
-        P = self.parent()._P
-
-        in_dict = {P(i):P(j) for i,j in in_dict.items()}
-
-        return self.parent(self._p.subs(in_dict))
+        if fixed:
+            if not isinstance(fixed, dict):
+                raise ValueError('fixed must be a dict')
+            if kwargs:
+                raise ValueError('pass only one of fixed or kwargs')
+            kwargs = fixed
+        try:
+            return self(**kwargs)
+        except TypeError:
+            str_kwargs = {str(k): v for k,v in kwargs.items()}
+            return self(**str_kwargs)
 
     def ring(self):
         """

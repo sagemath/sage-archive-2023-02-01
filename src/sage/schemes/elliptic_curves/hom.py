@@ -10,6 +10,7 @@ Current implementations of elliptic-curve morphisms (child classes):
 - :class:`~sage.schemes.elliptic_curves.ell_curve_isogeny.EllipticCurveIsogeny`
 - :class:`~sage.schemes.elliptic_curves.weierstrass_morphism.WeierstrassIsomorphism`
 - :class:`~sage.schemes.elliptic_curves.hom_composite.EllipticCurveHom_composite`
+- :class:`~sage.schemes.elliptic_curves.hom_scalar.EllipticCurveHom_scalar`
 - :class:`~sage.schemes.elliptic_curves.hom_velusqrt.EllipticCurveHom_velusqrt`
 
 AUTHORS:
@@ -29,6 +30,8 @@ from sage.arith.misc import integer_floor
 
 from sage.rings.finite_rings import finite_field_base
 from sage.rings.number_field import number_field_base
+
+import sage.schemes.elliptic_curves.weierstrass_morphism as wm
 
 
 class EllipticCurveHom(Morphism):
@@ -174,13 +177,14 @@ class EllipticCurveHom(Morphism):
 
         ::
 
-            sage: from sage.schemes.elliptic_curves.weierstrass_morphism import WeierstrassIsomorphism
+            sage: from sage.schemes.elliptic_curves.weierstrass_morphism import WeierstrassIsomorphism, identity_morphism
             sage: E = EllipticCurve([9,9])
             sage: F = E.change_ring(GF(71))
-            sage: wE = WeierstrassIsomorphism(E, (1,0,0,0))
-            sage: wF = WeierstrassIsomorphism(F, (1,0,0,0))
-            sage: mE = E.multiplication_by_m_isogeny(1)
+            sage: wE = identity_morphism(E)
+            sage: wF = identity_morphism(F)
+            sage: mE = E.scalar_multiplication(1)
             sage: mF = F.multiplication_by_m_isogeny(1)
+            doctest:warning ... DeprecationWarning: ...
             sage: [mE == wE, mF == wF]
             [True, True]
             sage: [a == b for a in (wE,mE) for b in (wF,mF)]
@@ -285,6 +289,7 @@ class EllipticCurveHom(Morphism):
         - :meth:`EllipticCurveIsogeny.kernel_polynomial`
         - :meth:`sage.schemes.elliptic_curves.weierstrass_morphism.WeierstrassIsomorphism.kernel_polynomial`
         - :meth:`sage.schemes.elliptic_curves.hom_composite.EllipticCurveHom_composite.kernel_polynomial`
+        - :meth:`sage.schemes.elliptic_curves.hom_scalar.EllipticCurveHom_scalar.kernel_polynomial`
 
         TESTS::
 
@@ -305,6 +310,7 @@ class EllipticCurveHom(Morphism):
         - :meth:`EllipticCurveIsogeny.dual`
         - :meth:`sage.schemes.elliptic_curves.weierstrass_morphism.WeierstrassIsomorphism.dual`
         - :meth:`sage.schemes.elliptic_curves.hom_composite.EllipticCurveHom_composite.dual`
+        - :meth:`sage.schemes.elliptic_curves.hom_scalar.EllipticCurveHom_scalar.dual`
 
         TESTS::
 
@@ -327,6 +333,7 @@ class EllipticCurveHom(Morphism):
         - :meth:`EllipticCurveIsogeny.rational_maps`
         - :meth:`sage.schemes.elliptic_curves.weierstrass_morphism.WeierstrassIsomorphism.rational_maps`
         - :meth:`sage.schemes.elliptic_curves.hom_composite.EllipticCurveHom_composite.rational_maps`
+        - :meth:`sage.schemes.elliptic_curves.hom_scalar.EllipticCurveHom_scalar.rational_maps`
 
         TESTS::
 
@@ -348,6 +355,7 @@ class EllipticCurveHom(Morphism):
         - :meth:`EllipticCurveIsogeny.x_rational_map`
         - :meth:`sage.schemes.elliptic_curves.weierstrass_morphism.WeierstrassIsomorphism.x_rational_map`
         - :meth:`sage.schemes.elliptic_curves.hom_composite.EllipticCurveHom_composite.x_rational_map`
+        - :meth:`sage.schemes.elliptic_curves.hom_scalar.EllipticCurveHom_scalar.x_rational_map`
 
         TESTS::
 
@@ -377,6 +385,7 @@ class EllipticCurveHom(Morphism):
         - :meth:`EllipticCurveIsogeny.scaling_factor`
         - :meth:`sage.schemes.elliptic_curves.weierstrass_morphism.WeierstrassIsomorphism.scaling_factor`
         - :meth:`sage.schemes.elliptic_curves.hom_composite.EllipticCurveHom_composite.scaling_factor`
+        - :meth:`sage.schemes.elliptic_curves.hom_scalar.EllipticCurveHom_scalar.scaling_factor`
 
         TESTS::
 
@@ -521,27 +530,22 @@ class EllipticCurveHom(Morphism):
         r"""
         Determine whether or not this morphism is separable.
 
-        .. NOTE::
+        Implemented by child classes. For examples, see:
 
-            This method currently always returns ``True`` as Sage does
-            not yet implement inseparable isogenies. This will probably
-            change in the future.
+        - :meth:`EllipticCurveIsogeny.is_separable`
+        - :meth:`sage.schemes.elliptic_curves.weierstrass_morphism.WeierstrassIsomorphism.is_separable`
+        - :meth:`sage.schemes.elliptic_curves.hom_composite.EllipticCurveHom_composite.is_separable`
+        - :meth:`sage.schemes.elliptic_curves.hom_scalar.EllipticCurveHom_scalar.is_separable`
 
-        EXAMPLES::
+        TESTS::
 
-            sage: E = EllipticCurve(GF(17), [0,0,0,3,0])
-            sage: phi = EllipticCurveIsogeny(E,  E((0,0)))
-            sage: phi.is_separable()
-            True
-
-        ::
-
-            sage: E = EllipticCurve('11a1')
-            sage: phi = EllipticCurveIsogeny(E, E.torsion_points())
-            sage: phi.is_separable()
-            True
+            sage: from sage.schemes.elliptic_curves.hom import EllipticCurveHom
+            sage: EllipticCurveHom.is_separable(None)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: ...
         """
-        return True
+        raise NotImplementedError('children must implement')
 
     def is_surjective(self):
         r"""
@@ -648,9 +652,7 @@ class EllipticCurveHom(Morphism):
             sage: psi.rational_maps() == (f, -g)
             True
         """
-        import sage.schemes.elliptic_curves.weierstrass_morphism as wm
-        a1,_,a3,_,_ = self.codomain().a_invariants()
-        return wm.WeierstrassIsomorphism(self.codomain(), (-1,0,-a1,-a3)) * self
+        return wm.negation_morphism(self.codomain()) * self
 
     @cached_method
     def __hash__(self):
@@ -745,7 +747,7 @@ def compare_via_evaluation(left, right):
         sage: from sage.schemes.elliptic_curves.hom_composite import EllipticCurveHom_composite
         sage: mu = EllipticCurveHom_composite.from_factors([phi, psi])
         sage: from sage.schemes.elliptic_curves.hom import compare_via_evaluation
-        sage: compare_via_evaluation(mu, E.multiplication_by_m_isogeny(7))
+        sage: compare_via_evaluation(mu, E.scalar_multiplication(7))
         True
 
     .. SEEALSO::

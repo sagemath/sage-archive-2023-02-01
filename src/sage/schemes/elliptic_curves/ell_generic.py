@@ -2324,6 +2324,7 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
 
             sage: E = EllipticCurve('11a1')
             sage: E.multiplication_by_m_isogeny(7)
+            doctest:warning ... DeprecationWarning: ...
             Isogeny of degree 49 from Elliptic Curve defined by y^2 + y = x^3 - x^2 - 10*x - 20 over Rational Field to Elliptic Curve defined by y^2 + y = x^3 - x^2 - 10*x - 20 over Rational Field
 
         TESTS:
@@ -2363,6 +2364,9 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
             sage: all(mu(-m) == -mu(m) for m in (1,2,3,5,7))
             True
         """
+        from sage.misc.superseded import deprecation
+        deprecation(32826, 'The .multiplication_by_m_isogeny() method is superseded by .scalar_multiplication().')
+
         mx, my = self.multiplication_by_m(m)
 
         torsion_poly = self.torsion_polynomial(abs(m)).monic()
@@ -2376,6 +2380,29 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
                 return psi
 
         assert False, 'bug in multiplication_by_m_isogeny()'
+
+    def scalar_multiplication(self, m):
+        r"""
+        Return the scalar-multiplication map `[m]` on this elliptic
+        curve as a
+        :class:`sage.schemes.elliptic_curves.hom_scalar.EllipticCurveHom_scalar`
+        object.
+
+        EXAMPLES::
+
+            sage: E = EllipticCurve('77a1')
+            sage: m = E.scalar_multiplication(-7); m
+            Scalar-multiplication endomorphism [-7] of Elliptic Curve defined by y^2 + y = x^3 + 2*x over Rational Field
+            sage: m.degree()
+            49
+            sage: P = E(2,3)
+            sage: m(P)
+            (-26/225 : -2132/3375 : 1)
+            sage: m.rational_maps() == E.multiplication_by_m(-7)
+            True
+        """
+        from sage.schemes.elliptic_curves.hom_scalar import EllipticCurveHom_scalar
+        return EllipticCurveHom_scalar(self, m)
 
     def isomorphism_to(self, other):
         """
@@ -2489,9 +2516,9 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
             ....:         continue
             ....:     break
             sage: Aut = E.automorphisms()
-            sage: Aut[0] == E.multiplication_by_m_isogeny(1)
+            sage: Aut[0] == E.scalar_multiplication(1)
             True
-            sage: Aut[1] == E.multiplication_by_m_isogeny(-1)
+            sage: Aut[1] == E.scalar_multiplication(-1)
             True
             sage: sorted(Aut) == Aut
             True

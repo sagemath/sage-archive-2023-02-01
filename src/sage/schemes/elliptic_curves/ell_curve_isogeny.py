@@ -92,7 +92,7 @@ from sage.schemes.elliptic_curves.all import EllipticCurve
 from sage.schemes.elliptic_curves.ell_generic import is_EllipticCurve
 
 from sage.schemes.elliptic_curves.weierstrass_morphism \
-        import WeierstrassIsomorphism, _isomorphisms, baseWI
+        import WeierstrassIsomorphism, _isomorphisms, baseWI, negation_morphism
 
 #
 # Private function for parsing input to determine the type of
@@ -1336,9 +1336,7 @@ class EllipticCurveIsogeny(EllipticCurveHom):
             ((x^2 + (-a)*x - 2)/(x + (-a)), (-x^2*y + (2*a)*x*y - y)/(x^2 + (-2*a)*x - 1))
         """
         output = copy(self)
-        E2 = output._codomain
-        iso = WeierstrassIsomorphism(E2, (-1, 0, -E2.a1(), -E2.a3()))
-        output._set_post_isomorphism(iso)
+        output._set_post_isomorphism(negation_morphism(output._codomain))
         return output
 
     #
@@ -1402,8 +1400,8 @@ class EllipticCurveIsogeny(EllipticCurveHom):
             sage: E = EllipticCurve(QQ, [0,0,0,1,0])
             sage: phi = EllipticCurveIsogeny(E, x)
             sage: old_ratl_maps = phi.rational_maps()
-            sage: from sage.schemes.elliptic_curves.weierstrass_morphism import WeierstrassIsomorphism
-            sage: phi._set_post_isomorphism(WeierstrassIsomorphism(phi.codomain(), (-1,0,0,0)))
+            sage: from sage.schemes.elliptic_curves.weierstrass_morphism import negation_morphism
+            sage: phi._set_post_isomorphism(negation_morphism(phi.codomain()))
             sage: old_ratl_maps == phi.rational_maps()
             False
             sage: old_ratl_maps[1] == -phi.rational_maps()[1]
@@ -2727,6 +2725,30 @@ class EllipticCurveIsogeny(EllipticCurveHom):
         if self.__kernel_polynomial is None:
             self.__init_kernel_polynomial()
         return self.__kernel_polynomial
+
+
+    def is_separable(self):
+        r"""
+        Determine whether or not this isogeny is separable.
+
+        Since :class:`EllipticCurveIsogeny` only implements
+        separable isogenies, this method always returns ``True``.
+
+        EXAMPLES::
+
+            sage: E = EllipticCurve(GF(17), [0,0,0,3,0])
+            sage: phi = EllipticCurveIsogeny(E,  E((0,0)))
+            sage: phi.is_separable()
+            True
+
+        ::
+
+            sage: E = EllipticCurve('11a1')
+            sage: phi = EllipticCurveIsogeny(E, E.torsion_points())
+            sage: phi.is_separable()
+            True
+        """
+        return True
 
 
     def _set_pre_isomorphism(self, preWI):

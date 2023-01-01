@@ -23,6 +23,7 @@ Maps between them
    sage/schemes/elliptic_curves/hom_velusqrt
    sage/schemes/elliptic_curves/hom_composite
    sage/schemes/elliptic_curves/hom_scalar
+   sage/schemes/elliptic_curves/hom_frobenius
    sage/schemes/elliptic_curves/isogeny_small_degree
 
 

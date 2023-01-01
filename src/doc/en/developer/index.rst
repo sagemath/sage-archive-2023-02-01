@@ -24,13 +24,17 @@ Here are brief overviews of each part; for more details, see the extended table
 of contents below.  No matter where you start, good luck and welcome to Sage
 development!
 
-- **Trac server:** all changes go through `the Sage Trac server
+- **Trac server (until early 2023):** all changes go through `the Sage Trac server
   <https://trac.sagemath.org>`_ at some point. It contains bug reports, upgrade
   requests, changes in progress, and those already part of Sage
   today. :ref:`Click here <chapter-sage-trac>` for more information.
 
   Importantly, you will need to :ref:`create a trac account
   <section-trac-account>` in order to contribute.
+
+  **Sage development is scheduled to move to GitHub in early 2023.**
+  See our `transition guide from Trac to GitHub
+  <https://github.com/sagemath/trac-to-github/blob/master/docs/Migration-Trac-to-Github.md>`.
 
 - **Source code:** You need your own copy of Sage's source code to change it.
   `Go there <http://doc.sagemath.org/html/en/installation/source.html>`_ to get it

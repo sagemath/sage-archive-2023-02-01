@@ -52,6 +52,7 @@ from random import randrange
 
 import pexpect
 from pexpect import ExceptionPexpect
+import sage.interfaces.abc
 from sage.interfaces.sagespawn import SageSpawn
 from sage.interfaces.interface import (Interface, InterfaceElement,
             InterfaceFunction, InterfaceFunctionElement)
@@ -1465,11 +1466,28 @@ class FunctionElement(InterfaceFunctionElement):
 
 
 def is_ExpectElement(x):
+    """
+    Return True if ``x`` is of type :class:`ExpectElement`
+
+    This function is deprecated; use :func:`isinstance`
+    (of :class:`sage.interfaces.abc.ExpectElement`) instead.
+
+    EXAMPLES::
+
+        sage: from sage.interfaces.expect import is_ExpectElement
+        sage: is_ExpectElement(2)
+        doctest:...: DeprecationWarning: the function is_ExpectElement is deprecated; use isinstance(x, sage.interfaces.abc.ExpectElement) instead
+        See https://trac.sagemath.org/34804 for details.
+        False
+    """
+    from sage.misc.superseded import deprecation
+    deprecation(34804, "the function is_ExpectElement is deprecated; use isinstance(x, sage.interfaces.abc.ExpectElement) instead")
+
     return isinstance(x, ExpectElement)
 
 
 @instancedoc
-class ExpectElement(InterfaceElement):
+class ExpectElement(InterfaceElement, sage.interfaces.abc.ExpectElement):
     """
     Expect element.
     """

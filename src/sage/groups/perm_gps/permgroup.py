@@ -142,8 +142,7 @@ from sage.misc.randstate import current_randstate
 from sage.groups.group import FiniteGroup
 
 from sage.rings.all import QQ, Integer
-from sage.interfaces.expect import is_ExpectElement
-from sage.interfaces.gap import GapElement
+from sage.interfaces.abc import ExpectElement, GapElement
 from sage.libs.gap.libgap import libgap
 from sage.libs.gap.element import GapElement as LibGapElement
 from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
@@ -385,7 +384,7 @@ def PermutationGroup(gens=None, *args, **kwds):
         See https://trac.sagemath.org/31510 for details.
 
     """
-    if not is_ExpectElement(gens) and hasattr(gens, '_permgroup_'):
+    if not isinstance(gens, ExpectElement) and hasattr(gens, '_permgroup_'):
         return gens._permgroup_()
     if gens is not None and not isinstance(gens, (tuple, list, GapElement)):
         raise TypeError("gens must be a tuple, list, or GapElement")

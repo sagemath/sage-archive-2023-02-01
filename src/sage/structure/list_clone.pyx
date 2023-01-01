@@ -921,9 +921,7 @@ cdef class ClonableArray(ClonableElement):
             sage: type(el._hash_()) == int
             True
         """
-        cdef long hv
-        hv = hash(tuple(self._list))
-        return hash(self._parent) + hv
+        return hash(tuple(self._list))
 
     def __reduce__(self):
         """
@@ -1709,7 +1707,7 @@ cdef class ClonableIntArray(ClonableElement):
             hv = hash(None)
         else:
             hv = hash(tuple(self))
-        return hash(self._parent) + hv
+        return hv
 
     def __reduce__(self):
         """

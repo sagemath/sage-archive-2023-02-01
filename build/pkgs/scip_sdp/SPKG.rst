@@ -29,4 +29,4 @@ Upstream Contact
 
 http://www.opt.tu-darmstadt.de/scipsdp/
 
-​https://github.com/scipopt/SCIP-SDP
+https://github.com/scipopt/SCIP-SDP

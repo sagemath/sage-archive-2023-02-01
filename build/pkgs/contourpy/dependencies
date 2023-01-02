@@ -1,4 +1,4 @@
-$(MP_LIBRARY)
+$(PYTHON) | $(PYTHON_TOOLCHAIN) pybind11
 
 ----------
 All lines of this file are ignored except the first.

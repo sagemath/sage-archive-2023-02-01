@@ -159,6 +159,8 @@ from sage.modules.free_module import VectorSpace
 from sage.modules.free_module_element import vector
 from sage.rings.real_mpfr import RR
 
+from sage.interfaces.abc import GapElement
+
 _NumberFields = NumberFields()
 
 
@@ -1819,7 +1821,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
                 raise TypeError("%s has unsupported PARI type %s" % (x, x.type()))
             x = self.absolute_polynomial().parent()(x)
             return self._element_class(self, x)
-        elif sage.interfaces.gap.is_GapElement(x):
+        elif isinstance(x, GapElement):
             s = x._sage_repr()
             if self.variable_name() in s:
                 return self._convert_from_str(s)
@@ -10501,11 +10503,21 @@ class NumberField_absolute(NumberField_generic):
             sage: x = polygen(K,'x')
             sage: factor(x*x+4)  # indirect doctest
             (x - 2*i) * (x + 2*i)
+
+        TESTS::
+
+            sage: with seed(0):
+            ....:     P.<y> = NumberField(QQ['a'].random_element(30,10^100), 'a')[]
+            sage: (3*y^4/4).factor()
+            (3/4) * y^4
         """
         if self.degree() == 1:
             factors = poly.change_ring(QQ).factor()
             return Factorization([(p.change_ring(self), e)
                                   for p, e in factors], self(factors.unit()))
+        elif poly.is_term():
+            return Factorization([(poly.parent().gen(), poly.degree())],
+                                 poly.leading_coefficient())
 
         # Convert the polynomial we want to factor to PARI
         f = poly._pari_with_name()
@@ -11143,8 +11155,7 @@ class NumberField_cyclotomic(NumberField_absolute, sage.rings.abc.NumberField_cy
                 return NumberField_absolute._element_constructor_(self, x)
         elif isinstance(x, pari_gen):
             return NumberField_absolute._element_constructor_(self, x, check=check)
-        elif (sage.interfaces.gap.is_GapElement(x) or
-              isinstance(x, sage.libs.gap.element.GapElement)):
+        elif isinstance(x, (sage.libs.gap.element.GapElement, GapElement)):
             return self._coerce_from_gap(x)
         elif isinstance(x, str):
             return self._convert_from_str(x)

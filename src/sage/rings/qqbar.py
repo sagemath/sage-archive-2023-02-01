@@ -2656,9 +2656,11 @@ def number_field_elements_from_algebraics(numbers, minimal=False, same_field=Fal
 
         sage: elems = [sqrt(5), 2^(1/3)+sqrt(3)*I, 3/4]
         sage: nf, nums, hom = number_field_elements_from_algebraics(elems, embedded=True)
-        sage: nf
+        sage: nf # random (polynomial and root not unique)
         Number Field in a with defining polynomial y^24 - 6*y^23 ...- 9*y^2 + 1
           with a = 0.2598679? + 0.0572892?*I
+        sage: nf.is_isomorphic(NumberField(x^24 - 9*x^22 + 135*x^20 - 720*x^18 + 1821*x^16 - 3015*x^14 + 3974*x^12 - 3015*x^10 + 1821*x^8 - 720*x^6 + 135*x^4 - 9*x^2 + 1, 'a'))
+        True
         sage: list(map(QQbar, nums)) == elems == list(map(hom, nums))
         True
 
@@ -7857,16 +7859,21 @@ class ANExtensionElement(ANDescr):
             sage: b = a._descr
             sage: type(b)
             <class 'sage.rings.qqbar.ANExtensionElement'>
-            sage: b.neg(a)
+            sage: c = b.neg(None); c # random (not uniquely represented)
             -1/3*a^3 + 1/3*a^2 - a - 1 where a^4 - 2*a^3 + a^2 + 6*a + 3 = 0 and a in 1.724744871391589? + 1.573132184970987?*I
-            sage: b.neg("ham spam and eggs")
-            -1/3*a^3 + 1/3*a^2 - a - 1 where a^4 - 2*a^3 + a^2 + 6*a + 3 = 0 and a in 1.724744871391589? + 1.573132184970987?*I
+            sage: c.generator() == b.generator() and c.field_element_value() + b.field_element_value() == 0
+            True
+
+        The parameter is ignored::
+
+            sage: b.neg("random").generator() == c.generator() and b.neg("random").field_element_value() == c.field_element_value()
+            True
         """
         return ANExtensionElement(self._generator, -self._value)
 
     def invert(self, n):
         r"""
-        1/self.
+        Reciprocal of self.
 
         EXAMPLES::
 
@@ -7875,16 +7882,20 @@ class ANExtensionElement(ANDescr):
             sage: b = a._descr
             sage: type(b)
             <class 'sage.rings.qqbar.ANExtensionElement'>
-            sage: b.invert(a)
+            sage: c = b.invert(None); c # random (not uniquely represented)
             -7/3*a^3 + 19/3*a^2 - 7*a - 9 where a^4 - 2*a^3 + a^2 + 6*a + 3 = 0 and a in 1.724744871391589? + 1.573132184970987?*I
-            sage: b.invert("ham spam and eggs")
-            -7/3*a^3 + 19/3*a^2 - 7*a - 9 where a^4 - 2*a^3 + a^2 + 6*a + 3 = 0 and a in 1.724744871391589? + 1.573132184970987?*I
+            sage: c.generator() == b.generator() and c.field_element_value() * b.field_element_value() == 1
+            True
+
+        The parameter is ignored::
+
+            sage: b.invert("random").generator() == c.generator() and b.invert("random").field_element_value() == c.field_element_value()
+            True
         """
         return ANExtensionElement(self._generator, ~self._value)
 
     def conjugate(self, n):
-        r"""
-        Negation of self.
+        r"""Complex conjugate of self.
 
         EXAMPLES::
 
@@ -7893,10 +7904,23 @@ class ANExtensionElement(ANDescr):
             sage: b = a._descr
             sage: type(b)
             <class 'sage.rings.qqbar.ANExtensionElement'>
-            sage: b.conjugate(a)
+            sage: c = b.conjugate(None); c # random (not uniquely represented)
             1/3*a^3 - 1/3*a^2 + a + 1 where a^4 - 2*a^3 + a^2 + 6*a + 3 = 0 and a in 1.724744871391589? - 1.573132184970987?*I
-            sage: b.conjugate("ham spam and eggs")
-            1/3*a^3 - 1/3*a^2 + a + 1 where a^4 - 2*a^3 + a^2 + 6*a + 3 = 0 and a in 1.724744871391589? - 1.573132184970987?*I
+
+        Internally, complex conjugation is implemented by taking the
+        same abstract field element but conjugating the complex embedding of
+        the field::
+
+            sage: c.generator() == b.generator().conjugate()
+            True
+            sage: c.field_element_value() == b.field_element_value()
+            True
+
+        The parameter is ignored::
+
+            sage: b.conjugate("random").generator() == c.generator() and b.conjugate("random").field_element_value() == c.field_element_value()
+            True
+
         """
         if self._exactly_real:
             return self

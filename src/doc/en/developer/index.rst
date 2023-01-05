@@ -4,6 +4,15 @@
 Welcome to the Sage Developer's Guide!
 ======================================
 
+**Sage development is scheduled to move to GitHub in February 2023.** The exact
+date will be announced in `<https://groups.google.com/g/sage-devel>`_. After
+the transition, some parts of this guide (especially those related with `the
+Sage Trac server <https://trac.sagemath.org>`_) will become obsolete and be
+updated according to the new workflow on GitHub. See our `transition guide from Trac to
+GitHub
+<https://github.com/sagemath/trac-to-github/blob/master/docs/Migration-Trac-to-Github.md>`_
+for the preliminary version of the workflow.
+
 Everybody who uses Sage is encouraged to contribute something back to Sage at
 some point. You could:
 
@@ -19,15 +28,6 @@ This document tells you what you need to know to do all the above, from
 reporting bugs to modifying and extending Sage and its documentation.  We also
 discuss how to share your new and modified code with other Sage users around the
 globe.
-
-**Sage development is scheduled to move to GitHub in February 2023.** The exact
-date will be announced in `<https://groups.google.com/g/sage-devel>`_. After
-the transition, some parts of this guide (especially those related with `the
-Sage Trac server <https://trac.sagemath.org>`_) will become obsolete and be
-updated according to the new workflow on GitHub. See our `transition guide from Trac to
-GitHub
-<https://github.com/sagemath/trac-to-github/blob/master/docs/Migration-Trac-to-Github.md>`_
-for the preliminary version of the workflow.
 
 Here are brief overviews of each part; for more details, see the extended table
 of contents below.  No matter where you start, good luck and welcome to Sage

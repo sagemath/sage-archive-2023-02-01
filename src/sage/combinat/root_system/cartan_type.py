@@ -828,12 +828,12 @@ class CartanTypeFactory(SageObject):
              ['E', 6, 1], ['E', 7, 1], ['E', 8, 1], ['F', 4, 1], ['G', 2, 1], ['BC', 1, 2], ['BC', 5, 2],
              ['B', 5, 1]^*, ['C', 4, 1]^*, ['F', 4, 1]^*, ['G', 2, 1]^*, ['BC', 1, 2]^*, ['BC', 5, 2]^*]
         """
-        finite_crystallographic = \
-            [CartanType (t)       for t in [['A', 1], ['A', 5], ['B', 1], ['B', 5],
-                                            ['C', 1], ['C', 5], ['D', 2], ['D', 3], ['D', 5],
-                                            ["E", 6], ["E", 7], ["E", 8],
-                                            ["F", 4],
-                                            ["G", 2]]]
+        finite_crystallographic = [CartanType(t)
+            for t in [['A', 1], ['A', 5], ['B', 1], ['B', 5],
+                      ['C', 1], ['C', 5], ['D', 2], ['D', 3], ['D', 5],
+                      ["E", 6], ["E", 7], ["E", 8],
+                      ["F", 4],
+                      ["G", 2]]]
 
         # Support for hand constructed Dynkin diagrams as Cartan types is not yet ready enough for including an example here.
         # from sage.combinat.root_system.dynkin_diagram import DynkinDiagram_class

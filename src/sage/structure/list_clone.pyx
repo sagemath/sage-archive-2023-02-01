@@ -1278,7 +1278,7 @@ cdef class ClonableIntArray(ClonableElement):
         if self._list is not NULL:
             raise ValueError("resizing is forbidden")
         self._alloc_(len(lst))
-        for i from 0 <= i < self._len:
+        for i in range(self._len):
             self._list[i] = lst[i]
 
         self._is_immutable = immutable
@@ -1390,7 +1390,7 @@ cdef class ClonableIntArray(ClonableElement):
         cdef int i
         cdef list L = <list> PyList_New(self._len)
         cdef object o
-        for i from 0<=i<self._len:
+        for i in range(self._len):
             o = PyInt_FromLong(self._list[i])
             Py_INCREF(o)
             PyList_SET_ITEM(L, i, o)
@@ -1524,7 +1524,7 @@ cdef class ClonableIntArray(ClonableElement):
             False
         """
         cdef int i
-        for i from 0 <= i < self._len:
+        for i in range(self._len):
             if item == self._list[i]:
                 return True
         return False
@@ -1545,7 +1545,7 @@ cdef class ClonableIntArray(ClonableElement):
             ValueError: list.index(x): x not in list
         """
         cdef int i
-        for i from 0 <= i < self._len:
+        for i in range(self._len):
             if item == self._list[i]:
                 return i
         raise ValueError("list.index(x): x not in list")
@@ -1664,7 +1664,7 @@ cdef class ClonableIntArray(ClonableElement):
         res._parent = self._parent
         if self:
             res._alloc_(self._len)
-            for i from 0 <= i < res._len:
+            for i in range(self._len):
                 res._list[i] = self._list[i]
         if HAS_DICTIONARY(self):
             res.__dict__ = self.__dict__.copy()

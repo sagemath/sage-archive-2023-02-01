@@ -6,14 +6,16 @@
 The Sage Trac Server
 ====================
 
-**Sage development is scheduled to move to GitHub in February 2023.** The exact
-date will be announced in `<https://groups.google.com/g/sage-devel>`_. After
-the transition, some parts of this guide (especially those related with `the
-Sage Trac server <https://trac.sagemath.org>`_) will become obsolete and be
-updated according to the new workflow on GitHub. See our `transition guide from Trac to
-GitHub
-<https://github.com/sagemath/trac-to-github/blob/master/docs/Migration-Trac-to-Github.md>`_
-for the preliminary version of the workflow.
+.. WARNING::
+
+    **Sage development is scheduled to move to GitHub in February 2023.** The exact
+    date will be announced in `<https://groups.google.com/g/sage-devel>`_. After
+    the transition, some parts of this guide (especially those related with `the
+    Sage Trac server <https://trac.sagemath.org>`_) will become obsolete and be
+    updated according to the new workflow on GitHub. See our `transition guide from Trac to
+    GitHub
+    <https://github.com/sagemath/trac-to-github/blob/master/docs/Migration-Trac-to-Github.md>`_
+    for the preliminary version of the workflow.
 
 Sometimes you will only want to work on local changes to Sage, for
 your own private needs.  However, typically it is beneficial to
@@ -42,9 +44,11 @@ trac server. Items on the server are called *tickets*, and anyone may
 search or browse the tickets. For a list of recent changes, just visit
 the :trac:`Sage trac timeline <timeline>`.
 
-**Sage development is scheduled to move to GitHub in February 2023.**
-All functions of our Trac server will be taken over by our main repository,
-https://github.com/sagemath/sage.
+.. WARNING::
+
+    **Sage development is scheduled to move to GitHub in February 2023.**
+    All functions of our Trac server will be taken over by our main repository,
+    https://github.com/sagemath/sage.
 
 
 .. _section-trac-account:
@@ -348,10 +352,12 @@ other tests that run on GitHub Actions.
   look at the log, especially if the patch buildbot did not give you
   the green blob.
 
-  **Sage development is scheduled to move to GitHub in February 2023.**
-  After the move, the patch buildbot will no longer be available; the three
-  workflows above are considered a full replacement. If you miss any features
-  of the patch buildbot, please report this in :trac:`33457`.
+.. WARNING::
+
+    **Sage development is scheduled to move to GitHub in February 2023.**
+    After the move, the patch buildbot will no longer be available; the three
+    workflows above are considered a full replacement. If you miss any features
+    of the patch buildbot, please report this in :trac:`33457`.
 
 The following are some other relevant issues:
 

@@ -6,14 +6,16 @@
 Using Git with the Sage Trac Server
 ===================================
 
-**Sage development is scheduled to move to GitHub in February 2023.** The exact
-date will be announced in `<https://groups.google.com/g/sage-devel>`_. After
-the transition, some parts of this guide (especially those related with `the
-Sage Trac server <https://trac.sagemath.org>`_) will become obsolete and be
-updated according to the new workflow on GitHub. See our `transition guide from Trac to
-GitHub
-<https://github.com/sagemath/trac-to-github/blob/master/docs/Migration-Trac-to-Github.md>`_
-for the preliminary version of the workflow.
+.. WARNING::
+
+    **Sage development is scheduled to move to GitHub in February 2023.** The exact
+    date will be announced in `<https://groups.google.com/g/sage-devel>`_. After
+    the transition, some parts of this guide (especially those related with `the
+    Sage Trac server <https://trac.sagemath.org>`_) will become obsolete and be
+    updated according to the new workflow on GitHub. See our `transition guide from Trac to
+    GitHub
+    <https://github.com/sagemath/trac-to-github/blob/master/docs/Migration-Trac-to-Github.md>`_
+    for the preliminary version of the workflow.
 
 Now we continue our introduction to git from :ref:`chapter-walkthrough`.
 We discuss how to push your local changes to a remote repository
@@ -163,10 +165,12 @@ repository, use these commands::
     [user@localhost sage]$ git remote add trac https://github.com/sagemath/sagetrac-mirror.git -t master
     [user@localhost sage]$ git remote set-url --push trac git@trac.sagemath.org:sage.git
 
-**Sage development is scheduled to move to GitHub in February 2023.** After the
-move, the Sage trac server git@trac.sagemath.org:sage.git will no longer be
-available, but all branches will be available (in read-only mode) on
-https://github.com/sagemath/sagetrac-mirror.git.
+.. WARNING::
+
+    **Sage development is scheduled to move to GitHub in February 2023.** After the
+    move, the Sage trac server git@trac.sagemath.org:sage.git will no longer be
+    available, but all branches will be available (in read-only mode) on
+    https://github.com/sagemath/sagetrac-mirror.git.
 
 Instead of ``trac`` you can use any other name you want, of course.
 To verify that it is set up correctly::

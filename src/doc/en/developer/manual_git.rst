@@ -6,6 +6,15 @@
 Using Git with the Sage Trac Server
 ===================================
 
+**Sage development is scheduled to move to GitHub in February 2023.** The exact
+date will be announced in `<https://groups.google.com/g/sage-devel>`_. After
+the transition, some parts of this guide (especially those related with `the
+Sage Trac server <https://trac.sagemath.org>`_) will become obsolete and be
+updated according to the new workflow on GitHub. See our `transition guide from Trac to
+GitHub
+<https://github.com/sagemath/trac-to-github/blob/master/docs/Migration-Trac-to-Github.md>`_
+for the preliminary version of the workflow.
+
 Now we continue our introduction to git from :ref:`chapter-walkthrough`.
 We discuss how to push your local changes to a remote repository
 so that your changes can be reviewed for inclusion in Sage.
@@ -33,10 +42,6 @@ In order to push changes securely to a remote repository, git uses
 public-key cryptography. This section will show you how to set up the
 necessary cryptographic keys for Secure Shell (SSH).
 
-**Sage development is scheduled to move to GitHub in early 2023.**
-See our `transition guide from Trac to GitHub
-<https://github.com/sagemath/trac-to-github/blob/master/docs/Migration-Trac-to-Github.md>`
-for the new procedures.
 
 Checking whether you have already have suitable SSH keys
 --------------------------------------------------------
@@ -158,13 +163,10 @@ repository, use these commands::
     [user@localhost sage]$ git remote add trac https://github.com/sagemath/sagetrac-mirror.git -t master
     [user@localhost sage]$ git remote set-url --push trac git@trac.sagemath.org:sage.git
 
-**Sage development is scheduled to move to GitHub in early 2023.**
-After the move, the Sage trac server git@trac.sagemath.org:sage.git will no longer be
+**Sage development is scheduled to move to GitHub in February 2023.** After the
+move, the Sage trac server git@trac.sagemath.org:sage.git will no longer be
 available, but all branches will be available (in read-only mode) on
-https://github.com/sagemath/sagetrac-mirror.git; see our `transition guide from Trac
-to GitHub
-<https://github.com/sagemath/trac-to-github/blob/master/docs/Migration-Trac-to-Github.md>`
-for more details.
+https://github.com/sagemath/sagetrac-mirror.git.
 
 Instead of ``trac`` you can use any other name you want, of course.
 To verify that it is set up correctly::
@@ -224,11 +226,6 @@ following commands instead::
 Checking Out Tickets
 --------------------
 
-**Sage development is scheduled to move to GitHub in early 2023.**
-See our `transition guide from Trac to GitHub
-<https://github.com/sagemath/trac-to-github/blob/master/docs/Migration-Trac-to-Github.md>`
-for the new procedures.
-
 Trac tickets that are finished or in the process of being worked on
 can have a git branch attached to them. This is the "Branch:" field in
 the ticket description. The branch name is generally of the form
@@ -271,11 +268,6 @@ local branch.
 Pushing Your Changes to a Ticket
 --------------------------------
 
-**Sage development is scheduled to move to GitHub in early 2023.**
-See our `transition guide from Trac to GitHub
-<https://github.com/sagemath/trac-to-github/blob/master/docs/Migration-Trac-to-Github.md>`
-for the new procedures.
-
 To add your local branch to a trac ticket, you should first decide on
 a name on the Sage trac repository.
 
@@ -311,11 +303,6 @@ The ``Branch`` field on the trac ticket can appear in red/green. See
 
 Getting Changes
 ---------------
-
-**Sage development is scheduled to move to GitHub in early 2023.**
-See our `transition guide from Trac to GitHub
-<https://github.com/sagemath/trac-to-github/blob/master/docs/Migration-Trac-to-Github.md>`
-for the new procedures.
 
 A common task during development is to synchronize your local copy of
 the branch with the branch on trac. In particular, assume you
@@ -360,11 +347,6 @@ section.
 
 Updating Master
 ---------------
-
-**Sage development is scheduled to move to GitHub in early 2023.**
-See our `transition guide from Trac to GitHub
-<https://github.com/sagemath/trac-to-github/blob/master/docs/Migration-Trac-to-Github.md>`
-for the new procedures.
 
 The ``master`` branch can be updated just like any other branch. However, your
 local copy of the master branch should stay **identical** to the trac master

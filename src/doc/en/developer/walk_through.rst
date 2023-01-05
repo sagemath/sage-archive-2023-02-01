@@ -6,6 +6,15 @@
 Sage Development Process
 ========================
 
+**Sage development is scheduled to move to GitHub in February 2023.** The exact
+date will be announced in `<https://groups.google.com/g/sage-devel>`_. After
+the transition, some parts of this guide (especially those related with `the
+Sage Trac server <https://trac.sagemath.org>`_) will become obsolete and be
+updated according to the new workflow on GitHub. See our `transition guide from Trac to
+GitHub
+<https://github.com/sagemath/trac-to-github/blob/master/docs/Migration-Trac-to-Github.md>`_
+for the preliminary version of the workflow.
+
 This section is a concise overview of the Sage development process. In
 it, we will see how to make changes to the Sage source code and record
 them in the ``git`` revision control system.
@@ -111,11 +120,9 @@ For the experts, note that the repository at
 `git.sagemath.org <http://git.sagemath.org>`_ is where development
 actually takes place.
 
-**Sage development is scheduled to move to GitHub in early 2023.**
+**Sage development is scheduled to move to GitHub in February 2023.**
 After the move, https://github.com/sagemath/sage.git will be the
 primary repository.
-See our `transition guide from Trac to GitHub
-<https://github.com/sagemath/trac-to-github/blob/master/docs/Migration-Trac-to-Github.md>`.
 
 .. _section-walkthrough-branch:
 

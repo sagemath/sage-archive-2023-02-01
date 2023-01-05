@@ -20,21 +20,26 @@ reporting bugs to modifying and extending Sage and its documentation.  We also
 discuss how to share your new and modified code with other Sage users around the
 globe.
 
+**Sage development is scheduled to move to GitHub in February 2023.** The exact
+date will be announced in `<https://groups.google.com/g/sage-devel>`_. After
+the transition, some parts of this guide (especially those related with `the
+Sage Trac server <https://trac.sagemath.org>`_) will become obsolete and be
+updated according to the new workflow on GitHub. See our `transition guide from Trac to
+GitHub
+<https://github.com/sagemath/trac-to-github/blob/master/docs/Migration-Trac-to-Github.md>`_
+for the preliminary version of the workflow.
+
 Here are brief overviews of each part; for more details, see the extended table
 of contents below.  No matter where you start, good luck and welcome to Sage
 development!
 
-- **Trac server (until early 2023):** all changes go through `the Sage Trac server
+- **Trac server:** all changes go through `the Sage Trac server
   <https://trac.sagemath.org>`_ at some point. It contains bug reports, upgrade
   requests, changes in progress, and those already part of Sage
   today. :ref:`Click here <chapter-sage-trac>` for more information.
 
   Importantly, you will need to :ref:`create a trac account
   <section-trac-account>` in order to contribute.
-
-  **Sage development is scheduled to move to GitHub in early 2023.**
-  See our `transition guide from Trac to GitHub
-  <https://github.com/sagemath/trac-to-github/blob/master/docs/Migration-Trac-to-Github.md>`.
 
 - **Source code:** You need your own copy of Sage's source code to change it.
   `Go there <http://doc.sagemath.org/html/en/installation/source.html>`_ to get it
@@ -48,7 +53,7 @@ development!
   As an easy way to get started, you can run and edit Sage's code and contribute
   your changes using `Gitpod <https://www.gitpod.io>`_,
   a free online development environment based on VS Code.
-  It will launch a pre-made workspace with all dependencies and tools installed 
+  It will launch a pre-made workspace with all dependencies and tools installed
   so that you can start contributing straight away.
   Start by `going to Gitpod <https://gitpod.io/#https://github.com/sagemath/sage>`_,
   and read :ref:`our Gitpod guidelines <section-gitpod>` to learn more.

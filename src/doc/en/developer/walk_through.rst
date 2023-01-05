@@ -111,6 +111,11 @@ For the experts, note that the repository at
 `git.sagemath.org <http://git.sagemath.org>`_ is where development
 actually takes place.
 
+**Sage development is scheduled to move to GitHub in early 2023.**
+After the move, https://github.com/sagemath/sage.git will be the
+primary repository.
+See our `transition guide from Trac to GitHub
+<https://github.com/sagemath/trac-to-github/blob/master/docs/Migration-Trac-to-Github.md>`.
 
 .. _section-walkthrough-branch:
 

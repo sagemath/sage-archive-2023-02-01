@@ -33,6 +33,10 @@ In order to push changes securely to a remote repository, git uses
 public-key cryptography. This section will show you how to set up the
 necessary cryptographic keys for Secure Shell (SSH).
 
+**Sage development is scheduled to move to GitHub in early 2023.**
+See our `transition guide from Trac to GitHub
+<https://github.com/sagemath/trac-to-github/blob/master/docs/Migration-Trac-to-Github.md>`
+for the new procedures.
 
 Checking whether you have already have suitable SSH keys
 --------------------------------------------------------
@@ -154,6 +158,14 @@ repository, use these commands::
     [user@localhost sage]$ git remote add trac https://github.com/sagemath/sagetrac-mirror.git -t master
     [user@localhost sage]$ git remote set-url --push trac git@trac.sagemath.org:sage.git
 
+**Sage development is scheduled to move to GitHub in early 2023.**
+After the move, the Sage trac server git@trac.sagemath.org:sage.git will no longer be
+available, but all branches will be available (in read-only mode) on
+https://github.com/sagemath/sagetrac-mirror.git; see our `transition guide from Trac
+to GitHub
+<https://github.com/sagemath/trac-to-github/blob/master/docs/Migration-Trac-to-Github.md>`
+for more details.
+
 Instead of ``trac`` you can use any other name you want, of course.
 To verify that it is set up correctly::
 
@@ -201,12 +213,21 @@ following commands instead::
     trac        git@trac.sagemath.org:sage.git (fetch)
     trac        git@trac.sagemath.org:sage.git (push)
 
+* The Patch buildbot will automatically test your ticket. See :trac:`wiki/patchbot`
+  for more information about its features and limitations. Make sure that you
+  look at the log, especially if the patch buildbot did not give you
+  the green blob.
+
 
 .. _section-git-checkout:
 
 Checking Out Tickets
 --------------------
 
+**Sage development is scheduled to move to GitHub in early 2023.**
+See our `transition guide from Trac to GitHub
+<https://github.com/sagemath/trac-to-github/blob/master/docs/Migration-Trac-to-Github.md>`
+for the new procedures.
 
 Trac tickets that are finished or in the process of being worked on
 can have a git branch attached to them. This is the "Branch:" field in
@@ -250,6 +271,11 @@ local branch.
 Pushing Your Changes to a Ticket
 --------------------------------
 
+**Sage development is scheduled to move to GitHub in early 2023.**
+See our `transition guide from Trac to GitHub
+<https://github.com/sagemath/trac-to-github/blob/master/docs/Migration-Trac-to-Github.md>`
+for the new procedures.
+
 To add your local branch to a trac ticket, you should first decide on
 a name on the Sage trac repository.
 
@@ -280,10 +306,16 @@ branch.
 The ``Branch`` field on the trac ticket can appear in red/green. See
 :ref:`section-trac-fields` to learn what it means.
 
+
 .. _section-git-pull:
 
 Getting Changes
 ---------------
+
+**Sage development is scheduled to move to GitHub in early 2023.**
+See our `transition guide from Trac to GitHub
+<https://github.com/sagemath/trac-to-github/blob/master/docs/Migration-Trac-to-Github.md>`
+for the new procedures.
 
 A common task during development is to synchronize your local copy of
 the branch with the branch on trac. In particular, assume you
@@ -328,6 +360,11 @@ section.
 
 Updating Master
 ---------------
+
+**Sage development is scheduled to move to GitHub in early 2023.**
+See our `transition guide from Trac to GitHub
+<https://github.com/sagemath/trac-to-github/blob/master/docs/Migration-Trac-to-Github.md>`
+for the new procedures.
 
 The ``master`` branch can be updated just like any other branch. However, your
 local copy of the master branch should stay **identical** to the trac master

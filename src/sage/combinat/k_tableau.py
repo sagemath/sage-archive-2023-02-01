@@ -1205,7 +1205,8 @@ class WeakTableau_core(WeakTableau_abstract):
         """
         R = [v for v in self.shape().to_partition().cells() if self[v[0]][v[1]] < r]
         L = [v for v in sw if self[v[0]][v[1]] <= r]
-        return max(v[0] for v in L+R)
+        return max(v[0] for v in L + R)
+
 
 class WeakTableaux_core(WeakTableaux_abstract):
     r"""
@@ -4341,7 +4342,8 @@ class StrongTableaux(UniqueRepresentation, Parent):
             sage: StrongTableaux.follows_tableau_unsigned_standard([], 4)
             [[[1]]]
         """
-        v = max([0]+[abs(v) for rows in Tlist for v in rows if v is not None])+1
+        v = 1 + max((abs(v) for rows in Tlist for v in rows if v is not None),
+                    default=0)
         out = []
         sh = Core([len(r) for r in Tlist], k + 1)
         for ga in sh.strong_covers():
@@ -4506,8 +4508,8 @@ class StrongTableaux(UniqueRepresentation, Parent):
         m = -min(marks) # the largest marked cell
         transeq = [] # start with the empty list and append on the right
         sh = Core([len(r) for r in T], k + 1)
-        j = max([ c-r for r,row in enumerate(LL) for c,val in enumerate(row)
-                  if val == -m ])
+        j = max(c - r for r, row in enumerate(LL) for c, val in enumerate(row)
+                if val == -m)
         P = sh.to_partition()
         for l in range(k):
             msh = sh.affine_symmetric_group_action([j-l,j+1], transposition=True)

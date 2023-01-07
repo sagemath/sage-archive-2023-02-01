@@ -371,14 +371,14 @@ def generating_function_of_integral_points(polyhedron, split=False,
         INFO:sage.geometry.polyhedron.generating_function:(2/6) split polyhedron by b0 <= b2 < b1
         INFO:sage.geometry.polyhedron.generating_function:using polyhedron
             b2 >= b0
-            b1 >= b2 + 1
+            b1 >= 1 + b2
             b0 >= 0
         ...
         INFO:sage.geometry.polyhedron.generating_function:(3/6) split polyhedron by b1 < b0 <= b2
         INFO:sage.geometry.polyhedron.generating_function:using polyhedron
             b2 >= b0
             b1 >= 0
-            b0 >= b1 + 1
+            b0 >= 1 + b1
         ...
         INFO:sage.geometry.polyhedron.generating_function:(4/6) split polyhedron by b1 <= b2 < b0
         INFO:sage.geometry.polyhedron.generating_function:using polyhedron

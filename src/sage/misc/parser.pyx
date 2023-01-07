@@ -75,6 +75,7 @@ enum_map = {
   MATRIX:     'MATRIX',
 }
 
+
 def token_to_str(int token):
     """
     For speed reasons, tokens are integers. This function returns a string
@@ -271,11 +272,11 @@ cdef class Tokenizer:
                     return NOT_EQ
                 elif s[pos] == '=':
                     self.pos += 2
-                    return '='
+                    return ord('=')
 
             elif s[pos] == '*' and s[pos+1] == '*':
                 self.pos += 2
-                return '^'
+                return ord('^')
 
         # simple tokens
         if s[pos] in "+-*/^()=><,[]{}!":
@@ -508,6 +509,30 @@ cdef class Parser:
         self.callable_constructor = make_function
         self.implicit_multiplication = implicit_multiplication
 
+    def _variable_constructor(self):
+        """
+        Return the variable constructor of this parser.
+
+        EXAMPLES::
+
+            sage: from sage.calculus.calculus import SR_parser
+            sage: SR_parser._variable_constructor()
+            <sage.misc.parser.LookupNameMaker...
+        """
+        return self.variable_constructor
+
+    def _callable_constructor(self):
+        """
+        Return the callable constructor of this parser.
+
+        EXAMPLES::
+
+            sage: from sage.calculus.calculus import SR_parser
+            sage: SR_parser._callable_constructor()
+            <sage.misc.parser.LookupNameMaker...
+        """
+        return self.callable_constructor
+
     cpdef parse(self, s, bint accept_eqn=True):
         """
         Parse the given string.
@@ -584,13 +609,13 @@ cdef class Parser:
         """
         cdef int token
         all = []
-        if tokens.next() == '(':
-            token = ','
-            while token == ',':
+        if tokens.next() == c'(':
+            token = c','
+            while token == c',':
                 all.append(self.p_list(tokens))
                 token = tokens.next()
 
-            if token == ')':
+            if token == c')':
                 from sage.matrix.constructor import matrix
                 return matrix(all)
             else:
@@ -612,8 +637,8 @@ cdef class Parser:
             [(1, 2, 3), [a + 1, b + 2, c + 3, (d + 4,)]]
         """
         all = []
-        cdef int token = ','
-        while token == ',':
+        cdef int token = c','
+        while token == c',':
             token = tokens.peek()
             if token == MATRIX:
                 tokens.next()
@@ -626,14 +651,14 @@ cdef class Parser:
                 else:
                     tokens.backtrack()
                     obj = self.p_eqn(tokens)
-            elif token == '[':
+            elif token == c'[':
                 obj = self.p_list(tokens)
-            elif token == '(':
+            elif token == c'(':
                 obj = self.p_tuple(tokens)
             elif token == EOS:
                 return all
-            elif token == ']' or token == ')':
-                tokens.token = ','
+            elif token == c']' or token == c')':
+                tokens.token = c','
                 return all
             else:
                 obj = self.p_eqn(tokens)
@@ -657,11 +682,11 @@ cdef class Parser:
             []
         """
         cdef int token = tokens.next()
-        if token != '[':
+        if token != c'[':
             self.parse_error(tokens, "Malformed list")
         all = self.p_sequence(tokens)
         token = tokens.next()
-        if token != ']':
+        if token != c']':
             self.parse_error(tokens, "Malformed list")
         return all
 
@@ -679,20 +704,20 @@ cdef class Parser:
         cdef int start = tokens.pos
         cdef int token = tokens.next()
         cdef bint real_tuple = True
-        if token != '(':
+        if token != c'(':
             self.parse_error(tokens, "Malformed tuple")
         all = self.p_sequence(tokens)
         if len(all) == 1:
             if tokens.last() != c',':
                 real_tuple = False
         token = tokens.next()
-        if token != ')':
+        if token != c')':
             self.parse_error(tokens, "Malformed tuple")
         if real_tuple:
             return tuple(all)
         else:
             token = tokens.peek()
-            if token == ',' or token == EOS:
+            if token == c',' or token == EOS:
                 return all[0]
             else:
                 # we have to reparse the entire thing as an expression
@@ -728,15 +753,15 @@ cdef class Parser:
         """
         lhs = self.p_expr(tokens)
         cdef int op = tokens.next()
-        if op == '=':
+        if op == c'=':
             return lhs == self.p_expr(tokens)
         elif op == NOT_EQ:
             return lhs != self.p_expr(tokens)
-        elif op == '<':
+        elif op == c'<':
             return lhs < self.p_expr(tokens)
         elif op == LESS_EQ:
             return lhs <= self.p_expr(tokens)
-        elif op == '>':
+        elif op == c'>':
             return lhs > self.p_expr(tokens)
         elif op == GREATER_EQ:
             return lhs >= self.p_expr(tokens)
@@ -768,9 +793,9 @@ cdef class Parser:
         cdef int op
         operand1 = self.p_term(tokens)
         op = tokens.next()
-        while op == '+' or op == '-':
+        while op == c'+' or op == c'-':
             operand2 = self.p_term(tokens)
-            if op == '+':
+            if op == c'+':
                 operand1 = operand1 + operand2
             else:
                 operand1 = operand1 - operand2
@@ -803,17 +828,17 @@ cdef class Parser:
         operand1 = self.p_factor(tokens)
         op = tokens.next()
         if op == NAME and self.implicit_multiplication:
-            op = '*'
+            op = c'*'
             tokens.backtrack()
-        while op == '*' or op == '/':
+        while op == c'*' or op == c'/':
             operand2 = self.p_factor(tokens)
-            if op == '*':
+            if op == c'*':
                 operand1 = operand1 * operand2
             else:
                 operand1 = operand1 / operand2
             op = tokens.next()
             if op == NAME and self.implicit_multiplication:
-                op = '*'
+                op = c'*'
                 tokens.backtrack()
         tokens.backtrack()
         return operand1
@@ -837,9 +862,9 @@ cdef class Parser:
             t^11
         """
         cdef int token = tokens.next()
-        if token == '+':
+        if token == c'+':
             return self.p_factor(tokens)
-        elif token == '-':
+        elif token == c'-':
             return -self.p_factor(tokens)
         else:
             tokens.backtrack()
@@ -873,13 +898,13 @@ cdef class Parser:
         """
         operand1 = self.p_atom(tokens)
         cdef int token = tokens.next()
-        if token == '^':
+        if token == c'^':
             operand2 = self.p_factor(tokens)
             return operand1 ** operand2
-        elif token == "!":
+        elif token == c"!":
             from sage.functions.all import factorial
             operand1 = factorial(operand1)
-            if tokens.peek() == '^':
+            if tokens.peek() == c'^':
                 tokens.next()
                 operand2 = self.p_factor(tokens)
                 return operand1 ** operand2
@@ -924,20 +949,20 @@ cdef class Parser:
         elif token == NAME:
             name = tokens.last_token_string()
             token = tokens.next()
-            if token == '(':
+            if token == c'(':
                 func = self.callable_constructor(name)
                 args, kwds = self.p_args(tokens)
                 token = tokens.next()
-                if token != ')':
+                if token != c')':
                     self.parse_error(tokens, "Bad function call")
                 return func(*args, **kwds)
             else:
                 tokens.backtrack()
                 return self.variable_constructor(name)
-        elif token == '(':
+        elif token == c'(':
             expr = self.p_expr(tokens)
             token = tokens.next()
-            if token != ')':
+            if token != c')':
                 self.parse_error(tokens, "Mismatched parentheses")
             return expr
         else:
@@ -959,10 +984,10 @@ cdef class Parser:
         """
         args = []
         kwds = {}
-        if tokens.peek() == ')':
+        if tokens.peek() == c')':
             return args, kwds
-        cdef int token = ','
-        while token == ',':
+        cdef int token = c','
+        while token == c',':
             arg = self.p_arg(tokens)
             if isinstance(arg, tuple):
                 name, value = arg
@@ -1004,11 +1029,11 @@ cdef class Parser:
 
         """
         cdef int token = tokens.next()
-        if token == NAME and tokens.peek() == '=':
+        if token == NAME and tokens.peek() == c'=':
             name = tokens.last_token_string()
             tokens.next()
             return name, self.p_expr(tokens)
-        if token == "[" :
+        if token == c"[":
             tokens.backtrack()
             return self.p_list(tokens)
         else:
@@ -1073,4 +1098,3 @@ cdef class LookupNameMaker:
             if self.fallback is not None:
                 return self.fallback(name)
             raise NameError("Unknown variable: '{}'".format(name))
-

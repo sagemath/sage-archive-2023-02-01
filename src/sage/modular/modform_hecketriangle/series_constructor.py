@@ -20,19 +20,20 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.rings.all import ZZ, QQ, infinity, PowerSeriesRing
+from sage.arith.misc import bernoulli, sigma, rising_factorial
+from sage.misc.cachefunc import cached_method
 from sage.rings.big_oh import O
-from sage.arith.all import bernoulli, sigma, rising_factorial
-
+from sage.rings.infinity import infinity
+from sage.rings.integer_ring import ZZ
+from sage.rings.power_series_ring import PowerSeriesRing
+from sage.rings.rational_field import QQ
 from sage.structure.sage_object import SageObject
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.misc.cachefunc import cached_method
 
 from .hecke_triangle_groups import HeckeTriangleGroup
 
 
-
-class MFSeriesConstructor(SageObject,UniqueRepresentation):
+class MFSeriesConstructor(SageObject, UniqueRepresentation):
     r"""
     Constructor for the Fourier expansion of some
     (specific, basic) modular forms.
@@ -42,7 +43,7 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
     """
 
     @staticmethod
-    def __classcall__(cls, group = HeckeTriangleGroup(3), prec=ZZ(10)):
+    def __classcall__(cls, group=HeckeTriangleGroup(3), prec=ZZ(10)):
         r"""
         Return a (cached) instance with canonical parameters.
 
@@ -63,20 +64,19 @@ class MFSeriesConstructor(SageObject,UniqueRepresentation):
             sage: MFSeriesConstructor(group=5, prec=12).prec()
             12
         """
-
-        if (group==infinity):
+        if (group == infinity):
             group = HeckeTriangleGroup(infinity)
         else:
             try:
                 group = HeckeTriangleGroup(ZZ(group))
             except TypeError:
                 group = HeckeTriangleGroup(group.n())
-        prec=ZZ(prec)
+        prec = ZZ(prec)
         # We don't need this assumption the precision may in principle also be negative.
         # if (prec<1):
         #     raise Exception("prec must be an Integer >=1")
 
-        return super(MFSeriesConstructor,cls).__classcall__(cls, group, prec)
+        return super().__classcall__(cls, group, prec)
 
     def __init__(self, group, prec):
         r"""

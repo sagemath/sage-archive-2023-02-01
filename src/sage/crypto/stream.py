@@ -54,14 +54,14 @@ class LFSRCryptosystem(SymmetricKeyCryptosystem):
         because of the dependence on binary strings.
         """
         if field is None:
-           field = FiniteField(2)
+            field = FiniteField(2)
         if field.cardinality() != 2:
             raise NotImplementedError("Not yet implemented.")
         S = BinaryStrings()
         SymmetricKeyCryptosystem.__init__(self, S, S, None)
         self._field = field
 
-    def __eq__(self,right):
+    def __eq__(self, right):
         return type(self) is type(right) and self._field == right._field
 
     def __call__(self, key):
@@ -103,7 +103,7 @@ class ShrinkingGeneratorCryptosystem(SymmetricKeyCryptosystem):
     """
     Shrinking generator cryptosystem class
     """
-    def __init__(self, field = None):
+    def __init__(self, field=None):
         """
         Create a shrinking generator cryptosystem.
 
@@ -118,7 +118,7 @@ class ShrinkingGeneratorCryptosystem(SymmetricKeyCryptosystem):
             Shrinking generator cryptosystem over Finite Field of size 2
         """
         if field is None:
-           field = FiniteField(2)
+            field = FiniteField(2)
         if field.cardinality() != 2:
             raise NotImplementedError("Not yet implemented.")
         S = BinaryStrings()
@@ -288,7 +288,7 @@ def blum_blum_shub(length, seed=None, p=None, q=None,
     is the period. ::
 
         sage: from sage.crypto.stream import blum_blum_shub
-        sage: from sage.crypto.util import carmichael_lambda
+        sage: from sage.arith.misc import carmichael_lambda
         sage: carmichael_lambda(carmichael_lambda(7*11))
         4
         sage: s = [GF(2)(int(str(x))) for x in blum_blum_shub(60, p=7, q=11, seed=13)]

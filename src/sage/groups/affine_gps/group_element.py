@@ -132,11 +132,11 @@ class AffineGroupElement(MultiplicativeGroupElement):
             if not is_Matrix(A):
                 raise TypeError('A must be a matrix')
             if not (A.parent() is parent.matrix_space()):
-                raise TypeError('A must be an element of '+str(parent.matrix_space()))
+                raise TypeError('A must be an element of ' + str(parent.matrix_space()))
             if not (b.parent() is parent.vector_space()):
-                raise TypeError('b must be an element of '+str(parent.vector_space()))
+                raise TypeError('b must be an element of ' + str(parent.vector_space()))
             parent._element_constructor_check(A, b)
-        super(AffineGroupElement, self).__init__(parent)
+        super().__init__(parent)
         self._A = A
         self._b = b
 
@@ -422,12 +422,12 @@ class AffineGroupElement(MultiplicativeGroupElement):
         from sage.rings.polynomial.multi_polynomial import is_MPolynomial
         if is_MPolynomial(v) and parent.degree() == v.parent().ngens():
             ring = v.parent()
-            from sage.modules.all import vector
+            from sage.modules.free_module_element import vector
             image_coords = self._A * vector(ring, ring.gens()) + self._b
             return v(*image_coords)
 
-        from sage.geometry.polyhedron.base import is_Polyhedron
-        if is_Polyhedron(v):
+        import sage.geometry.abc
+        if isinstance(v, sage.geometry.abc.Polyhedron):
             return self._A*v + self._b
 
         # otherwise, coerce v into the vector space
@@ -455,7 +455,7 @@ class AffineGroupElement(MultiplicativeGroupElement):
         if self_on_left:
             return self(x)
 
-    def inverse(self):
+    def __invert__(self):
         """
         Return the inverse group element.
 
@@ -473,18 +473,16 @@ class AffineGroupElement(MultiplicativeGroupElement):
             sage: ~g
                   [1 1]     [1]
             x |-> [0 1] x + [0]
-            sage: g * g.inverse()
+            sage: g * g.inverse()   # indirect doctest
                   [1 0]     [0]
             x |-> [0 1] x + [0]
             sage: g * g.inverse() == g.inverse() * g == G(1)
             True
         """
         parent = self.parent()
-        A = parent.matrix_space()(self._A.inverse())
-        b = -A*self.b()
+        A = parent.matrix_space()(~self._A)
+        b = -A * self.b()
         return parent.element_class(parent, A, b, check=False)
-
-    __invert__ = inverse
 
     def _richcmp_(self, other, op):
         """
@@ -533,4 +531,3 @@ class AffineGroupElement(MultiplicativeGroupElement):
             [[1, 2, 3, 10], [4, 5, 6, 11], [7, 8, 0, 12], [0, 0, 0, 1]]
         """
         return [r.list() for r in self.matrix().rows()]
-

@@ -40,7 +40,7 @@ EXAMPLES::
     sage: R = macaulay2('ZZ/5[x,y,z]')  # optional - macaulay2
     sage: R                             # optional - macaulay2
     ZZ
-    --[x, y, z]
+    --[x...z]
      5
     sage: x = macaulay2('x')            # optional - macaulay2
     sage: y = macaulay2('y')            # optional - macaulay2
@@ -126,7 +126,7 @@ from sage.interfaces.interface import AsciiArtString
 from sage.misc.multireplace import multiple_replace
 from sage.misc.superseded import deprecated_function_alias
 from sage.interfaces.tab_completion import ExtraTabCompletion
-from sage.docs.instancedoc import instancedoc
+from sage.misc.instancedoc import instancedoc
 from sage.structure.global_options import GlobalOptions
 
 
@@ -216,14 +216,14 @@ class Macaulay2(ExtraTabCompletion, Expect):
             )
         command = "%s --no-debug --no-readline --silent -e '%s'" % (command, init_str)
         Expect.__init__(self,
-                        name = 'macaulay2',
-                        prompt = PROMPT,
-                        command = command,
-                        server = server,
-                        server_tmpdir = server_tmpdir,
-                        script_subdirectory = script_subdirectory,
-                        verbose_start = False,
-                        logfile = logfile,
+                        name='macaulay2',
+                        prompt=PROMPT,
+                        command=command,
+                        server=server,
+                        server_tmpdir=server_tmpdir,
+                        script_subdirectory=script_subdirectory,
+                        verbose_start=False,
+                        logfile=logfile,
                         eval_using_file_cutoff=500)
 
     # Macaulay2 provides no "clear" function. However, Macaulay2 does provide
@@ -435,7 +435,7 @@ class Macaulay2(ExtraTabCompletion, Expect):
 
             sage: R = macaulay2('QQ[x, y]')  # indirect doctest, optional - macaulay2
             sage: R.net()                    # optional - macaulay2
-            QQ[x, y]
+            QQ[x...y]
             sage: S = R / macaulay2('ideal {x^2 - y}')         # optional - macaulay2
             sage: macaulay2.eval('class x === %s' % S.name())  # optional - macaulay2
             true
@@ -675,7 +675,7 @@ class Macaulay2(ExtraTabCompletion, Expect):
         EXAMPLES::
 
             sage: R2 = macaulay2.ring('QQ', '[x, y]'); R2            # optional - macaulay2
-            QQ[x, y]
+            QQ[x...y]
             sage: I = macaulay2.ideal( ('y^2 - x^3', 'x - y') ); I   # optional - macaulay2
                       3    2
             ideal (- x  + y , x - y)
@@ -694,7 +694,7 @@ class Macaulay2(ExtraTabCompletion, Expect):
                 gens2.append(self(g))
             else:
                 gens2.append(g)
-        return self('ideal {%s}'%(",".join([g.name() for g in gens2])))
+        return self('ideal {%s}' % (",".join(g.name() for g in gens2)))
 
     def ring(self, base_ring='ZZ', vars='[x]', order='Lex'):
         r"""
@@ -752,7 +752,7 @@ class Macaulay2(ExtraTabCompletion, Expect):
             ****...
             ...
               * "input" -- read Macaulay2 commands and echo
-              * "notify" -- whether to notify the user when a file is loaded
+              * "notify" -- whether to notify the user when a file is loaded...
 
         TESTS:
 
@@ -764,13 +764,13 @@ class Macaulay2(ExtraTabCompletion, Expect):
             sage: shell.run_cell('macaulay2.help("try")')  # optional - macaulay2
             try -- catch an error
             ****...
-            The object "try" is a keyword.
+            The object "try" is a...
 
             sage: from sage.repl.interpreter import get_test_shell
             sage: shell = get_test_shell()
             sage: shell.run_cell('macaulay2.help("errorDepth")')  # optional - macaulay2
             errorDepth...
-            The object "errorDepth" is an integer.
+            The object "errorDepth" is a...
         """
         r = self.eval('help "%s"' % s)
         end = r.rfind("\n\nDIV")
@@ -885,7 +885,7 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
             | 1 2 |
             | 3 4 |
             sage: latex(m) # optional - macaulay2
-            \begin{pmatrix}...1...2...3...4...\end{pmatrix}
+            \left(\begin{smallmatrix} 1&2\\ 3&4\\ \end{smallmatrix}\right)
         """
         s = self.tex().external_string().strip('"').strip('$').replace('\\\\','\\')
         s = s.replace(r"\bgroup","").replace(r"\egroup","")
@@ -912,11 +912,11 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
             sage: str(x+y)                                 # optional - macaulay2
             x + y
             sage: str(macaulay2("QQ[x,y,z]"))              # optional - macaulay2
-            QQ[x, y, z]
+            QQ[x...z]
             sage: str(macaulay2("QQ[x,y,z]/(x+y+z)"))      # optional - macaulay2
-            QQ[x, y, z]
-            -----------
-             x + y + z
+             QQ[x...z]
+            -------...
+            x + y + z
         """
         P = self._check_valid()
         return P.get(self._name)
@@ -1178,8 +1178,6 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
         """
         P = self.parent()
         return P.eval('{0}===false or {0}==0'.format(self._name)) != 'true'
-
-    __nonzero__ = __bool__
 
     def sage_polystring(self):
         """
@@ -1540,10 +1538,10 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
         cls_cls_str = str(self.cls().cls())
 
         if repr_str == "ZZ":
-            from sage.rings.all import ZZ
+            from sage.rings.integer_ring import ZZ
             return ZZ
         elif repr_str == "QQ":
-            from sage.rings.all import QQ
+            from sage.rings.rational_field import QQ
             return QQ
 
         if cls_cls_str == "Type":
@@ -1562,7 +1560,8 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
                 #Handle the ZZ/n case
                 ambient = self.ambient()
                 if ambient.external_string() == 'ZZ':
-                    from sage.rings.all import ZZ, GF
+                    from sage.rings.integer_ring import ZZ
+                    from sage.rings.finite_rings.finite_field_constructor import GF
                     external_string = self.external_string()
                     zz, n = external_string.split("/")
 
@@ -1574,7 +1573,7 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
                     ideal = self.ideal()._sage_()
                     return ambient_ring.quotient(ideal, names=ambient_ring.variable_names())
             elif cls_str == "PolynomialRing":
-                from sage.rings.all import PolynomialRing
+                from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
                 from sage.rings.polynomial.term_order import inv_macaulay2_name_mapping
 
                 #Get the base ring
@@ -1600,7 +1599,8 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
 
                 return PolynomialRing(base_ring, order=order, names=gens)
             elif cls_str == "GaloisField":
-                from sage.rings.all import ZZ, GF
+                from sage.rings.integer_ring import ZZ
+                from sage.rings.finite_rings.finite_field_constructor import GF
                 gf, n = repr_str.split(" ")
                 n = ZZ(n)
                 if n.is_prime():
@@ -1630,7 +1630,7 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
                     graph_cls = DiGraph
                 adj_mat = self.adjacencyMatrix().sage()
                 g = graph_cls(adj_mat, format='adjacency_matrix')
-                g.relabel(self.vertices())
+                g.relabel(self.vertices(sort=True))
                 return g
             elif cls_str == "ChainComplex":
                 from sage.homology.chain_complex import ChainComplex
@@ -1659,10 +1659,10 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
         else:
             #Handle the integers and rationals separately
             if cls_str == "ZZ":
-                from sage.rings.all import ZZ
+                from sage.rings.integer_ring import ZZ
                 return ZZ(repr_str)
             elif cls_str == "QQ":
-                from sage.rings.all import QQ
+                from sage.rings.rational_field import QQ
                 repr_str = self.external_string()
                 if "/" not in repr_str:
                     repr_str = repr_str + "/1"
@@ -1713,7 +1713,7 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
             sage: matrix(ZZ, m.transpose()).dimensions()  # optional - macaulay2
             (0, 2)
         """
-        from sage.matrix.all import matrix
+        from sage.matrix.constructor import matrix
         m = matrix(R, self.entries()._sage_())
         if not m.nrows():
             return matrix(R, 0, self.numcols()._sage_())
@@ -1742,7 +1742,7 @@ class Macaulay2Function(ExpectFunction):
             ****...
             ...
               * "input" -- read Macaulay2 commands and echo
-              * "notify" -- whether to notify the user when a file is loaded
+              * "notify" -- whether to notify the user when a file is loaded...
 
         TESTS:
 
@@ -1753,15 +1753,15 @@ class Macaulay2Function(ExpectFunction):
             sage: shell = get_test_shell()
             sage: shell.run_cell('macaulay2.matrix?')  # optional - macaulay2
             ...
-            +----------------------------+
-            |i1 : matrix{{1,2,3},{4,5,6}}|
-            |                            |
-            |o1 = | 1 2 3 |              |
-            |     | 4 5 6 |              |
-            |                            |
-            |              2        3    |
-            |o1 : Matrix ZZ  <--- ZZ     |
-            +----------------------------+
+            +--------------------------------+
+            |  i1 : matrix{{1,2,3},{4,5,6}}  |
+            |                                |
+            |  o1 = | 1 2 3 |                |
+            |       | 4 5 6 |                |
+            |                                |
+            |                2        3      |
+            |  o1 : Matrix ZZ  <--- ZZ       |
+            +--------------------------------+
             ...
         """
         r = self._parent.help(self._name)
@@ -1793,17 +1793,20 @@ class Macaulay2FunctionElement(FunctionElement):
             sage: shell = get_test_shell()
             sage: shell.run_cell('I = macaulay2("ideal {4}")')  # optional - macaulay2
             sage: shell.run_cell('I.resolution?')  # optional - macaulay2
-            Signature:...
+            Signature:   I.resolution(*args, **kwds)
+            Type:        Macaulay2FunctionElement
+            String form: resolution
+            File:        ...
             Docstring:
             resolution -- projective resolution
             ****...
             <BLANKLINE>
             resolution(Ideal) -- compute a projective resolution of...
             ****...
-            |      1      4      6      4      1      |
-            |o3 = R  <-- R  <-- R  <-- R  <-- R  <-- 0|
-            |                                         |
-            |     0      1      2      3      4      5|
+            |        1      4      6      4      1        |
+            |  o3 = R  <-- R  <-- R  <-- R  <-- R  <-- 0  |
+            |                                             |
+            |       0      1      2      3      4      5  |
             ...
         """
         P = self._obj.parent()
@@ -1861,7 +1864,6 @@ def macaulay2_console():
     os.system('M2')
 
 
-
 def reduce_load_macaulay2():
     """
     Used for reconstructing a copy of the Macaulay2 interpreter from a pickle.
@@ -1873,4 +1875,3 @@ def reduce_load_macaulay2():
         Macaulay2
     """
     return macaulay2
-

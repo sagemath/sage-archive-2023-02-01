@@ -27,12 +27,14 @@ the full Hecke algebra, only with the anemic algebra.
 # ****************************************************************************
 
 import sage.rings.infinity
-import sage.rings.commutative_algebra
 from sage.matrix.constructor import matrix
-from sage.arith.all import lcm, gcd
+from sage.arith.functions import lcm
+from sage.arith.misc import gcd
 from sage.misc.latex import latex
 from sage.matrix.matrix_space import MatrixSpace
-from sage.rings.all import ZZ, QQ
+from sage.rings.ring import CommutativeAlgebra
+from sage.rings.integer_ring import ZZ
+from sage.rings.rational_field import QQ
 from sage.structure.element import Element
 from sage.structure.unique_representation import CachedRepresentation
 from sage.misc.cachefunc import cached_method
@@ -102,7 +104,7 @@ def _heckebasis(M):
 
 
 @richcmp_method
-class HeckeAlgebra_base(CachedRepresentation, sage.rings.commutative_algebra.CommutativeAlgebra):
+class HeckeAlgebra_base(CachedRepresentation, CommutativeAlgebra):
     """
     Base class for algebras of Hecke operators on a fixed Hecke module.
 
@@ -150,7 +152,6 @@ class HeckeAlgebra_base(CachedRepresentation, sage.rings.commutative_algebra.Com
             Hecke operator on Modular Forms subspace of dimension 2 of ... defined by:
             [-3  0]
             [ 0  1]
-
         """
         if isinstance(M, tuple):
             M = M[0]
@@ -159,7 +160,7 @@ class HeckeAlgebra_base(CachedRepresentation, sage.rings.commutative_algebra.Com
         except AttributeError:
             # The AttributeError occurs if M is not a free module; then it might not have a basis_matrix method
             pass
-        return super(HeckeAlgebra_base, cls).__classcall__(cls, M)
+        return super().__classcall__(cls, M)
 
     def __init__(self, M):
         """
@@ -170,7 +171,6 @@ class HeckeAlgebra_base(CachedRepresentation, sage.rings.commutative_algebra.Com
             sage: from sage.modular.hecke.algebra import HeckeAlgebra_base
             sage: type(HeckeAlgebra_base(CuspForms(1, 12)))
             <class 'sage.modular.hecke.algebra.HeckeAlgebra_base_with_category'>
-
         """
         if isinstance(M, tuple):
             M = M[0]
@@ -178,7 +178,7 @@ class HeckeAlgebra_base(CachedRepresentation, sage.rings.commutative_algebra.Com
         if not module.is_HeckeModule(M):
             raise TypeError("M (=%s) must be a HeckeModule" % M)
         self.__M = M
-        sage.rings.commutative_algebra.CommutativeAlgebra.__init__(self, M.base_ring())
+        CommutativeAlgebra.__init__(self, M.base_ring())
 
     def _an_element_impl(self):
         r"""
@@ -207,9 +207,9 @@ class HeckeAlgebra_base(CachedRepresentation, sage.rings.commutative_algebra.Com
         - something that can be converted into an element of the
           underlying matrix space.
 
-        In the last case, the parameter ``check'' controls whether or
+        In the last case, the parameter ``check`` controls whether or
         not to check that this element really does lie in the
-        appropriate algebra. At present, setting ``check=True'' raises
+        appropriate algebra. At present, setting ``check=True`` raises
         a NotImplementedError unless x is a scalar (or a diagonal
         matrix).
 
@@ -292,9 +292,7 @@ class HeckeAlgebra_base(CachedRepresentation, sage.rings.commutative_algebra.Com
         """
         if x.parent() == self or (not self.is_anemic() and x.parent() == self.anemic_subalgebra()):
             return self(x)
-        else:
-            return self(self.matrix_space()(1) * self.base_ring().coerce(x))
-        # return self._coerce_try(x, self.matrix_space())
+        return self(self.matrix_space()(1) * self.base_ring().coerce(x))
 
     def gen(self, n):
         """
@@ -402,16 +400,20 @@ class HeckeAlgebra_base(CachedRepresentation, sage.rings.commutative_algebra.Com
         EXAMPLES::
 
             sage: ModularSymbols(Gamma1(3), 3).hecke_algebra().basis()
-            (Hecke operator on Modular Symbols space of dimension 2 for Gamma_1(3) of weight 3 with sign 0 and over Rational Field defined by:
+            (Hecke operator on Modular Symbols space of dimension 2 for Gamma_1(3) of weight 3 with sign 0 over Rational Field defined by:
             [1 0]
             [0 1],
-            Hecke operator on Modular Symbols space of dimension 2 for Gamma_1(3) of weight 3 with sign 0 and over Rational Field defined by:
+            Hecke operator on Modular Symbols space of dimension 2 for Gamma_1(3) of weight 3 with sign 0 over Rational Field defined by:
             [0 0]
             [0 2])
 
             sage: M = ModularSymbols(Gamma0(22), sign=1)
-            sage: [B[0,0] for B in M.hecke_algebra().basis()]
-            [-955, -994, -706, -490, -1070]
+            sage: H = M.hecke_algebra()
+            sage: B = H.basis()
+            sage: len(B)
+            5
+            sage: all(b in H for b in B)
+            True
             sage: [B[0, 0] for B in M.anemic_hecke_algebra().basis()]
             Traceback (most recent call last):
             ...
@@ -554,7 +556,7 @@ class HeckeAlgebra_base(CachedRepresentation, sage.rings.commutative_algebra.Com
 
             sage: T = ModularSymbols(Gamma1(7), 4).hecke_algebra()
             sage: T.diamond_bracket_operator(3)
-            Diamond bracket operator <3> on Modular Symbols space of dimension 12 for Gamma_1(7) of weight 4 with sign 0 and over Rational Field
+            Diamond bracket operator <3> on Modular Symbols space of dimension 12 for Gamma_1(7) of weight 4 with sign 0 over Rational Field
         """
         return self.__M._diamond_operator_class()(self, d)
 
@@ -662,7 +664,7 @@ class HeckeAlgebra_anemic(HeckeAlgebra_base):
 
             sage: T = ModularSymbols(Gamma1(5),3).anemic_hecke_algebra()
             sage: T.hecke_operator(2)
-            Hecke operator T_2 on Modular Symbols space of dimension 4 for Gamma_1(5) of weight 3 with sign 0 and over Rational Field
+            Hecke operator T_2 on Modular Symbols space of dimension 4 for Gamma_1(5) of weight 3 with sign 0 over Rational Field
             sage: T.hecke_operator(5)
             Traceback (most recent call last):
             ...

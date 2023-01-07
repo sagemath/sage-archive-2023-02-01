@@ -38,14 +38,13 @@ The KASH interface offers three pieces of functionality:
 Issues
 ------
 
-For some reason hitting Control-C to interrupt a calculation
-doesn't work correctly. (TODO)
+For some reason hitting :kbd:`Control` + :kbd:`C` to interrupt a calculation
+does not work correctly. (TODO)
 
 Tutorial
 --------
 
-The examples in this tutorial require that kash
-be installed.
+The examples in this tutorial require that kash be installed.
 
 Basics
 ~~~~~~
@@ -426,7 +425,7 @@ unlike for the other interfaces.
 # ****************************************************************************
 
 from .expect import Expect, ExpectElement
-from sage.docs.instancedoc import instancedoc
+from sage.misc.instancedoc import instancedoc
 import os
 
 from sage.misc.sage_eval import sage_eval
@@ -557,24 +556,6 @@ class Kash(Expect):
             return s
         else:
             return s.replace("\\\n", "")
-
-#     def help(self, name=None):
-#         """
-#         Return help on KASH commands.
-
-#         EXAMPLES::
-
-#             sage: X = kash.help('IntegerRing')   # optional - kash
-
-#         """
-#         if name is None:
-#           print '\nTo use KASH help enter kash.help(s). '
-#           print 'The syntax of the string s is given below.\n'
-#           print self.eval('?')
-#         elif name[0] == '?':
-#           print self.eval(name)
-#         else:
-#           print self.eval('?%s'%name)
 
     def help(self, name=None):
         """
@@ -738,7 +719,7 @@ class KashElement(ExpectElement):
         # Kash has separate integer and boolean types, and FALSE does not
         # compare equal to 0 (i.e, FALSE = 0 is FALSE)
 
-        # Python 2.x uses __nonzero__ for type conversion to 'bool', so we
+        # Python 3.x uses __bool__ for type conversion to 'bool', so we
         # have to test against FALSE, and sage.structure.element.Element's
         # default implementation of is_zero() is to return 'not self', so
         # our boolean conversion also has to test against 0.
@@ -746,8 +727,6 @@ class KashElement(ExpectElement):
         P = self.parent()
         return (P.eval('%s = FALSE' % self.name()) == 'FALSE' and
                 P.eval('%s = 0' % self.name()) == 'FALSE')
-
-    __nonzero__ = __bool__
 
     def _sage_(self, locals={}, *args):
         """

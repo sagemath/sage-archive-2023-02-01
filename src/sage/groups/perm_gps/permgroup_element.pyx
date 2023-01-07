@@ -88,7 +88,7 @@ We create element of a permutation group of large degree::
     (1,30)(2,29)(3,28)(4,27)(5,26)(6,25)(7,24)(8,23)(9,22)(10,21)(11,20)(12,19)(13,18)(14,17)(15,16)
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
 #       Copyright (C) 2006 David Joyner
 #       Copyright (C) 2019 Vincent Delecroix <20100.delecroix@gmail.com>
@@ -97,8 +97,8 @@ We create element of a permutation group of large degree::
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 import copy
 import random
@@ -944,7 +944,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
 
             sage: S = SymmetricGroup(['a', 'b'])
             sage: latex(S.gens())
-            \left[(\text{\texttt{a}},\text{\texttt{b}})\right]
+            \left((\text{\texttt{a}},\text{\texttt{b}})\right)
         """
         from sage.misc.latex import latex
         return "".join(("(" + ",".join(latex(x) for x in cycle) + ")")
@@ -963,7 +963,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
 
         EXAMPLES::
 
-            sage: G = PermutationGroup([[(1,2,3),(4,5)]],5)
+            sage: G = PermutationGroup([[(1,2,3),(4,5)]])
             sage: g = G.gen(0)
             sage: g[0]
             (1,2,3)
@@ -1044,11 +1044,11 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             sage: g(x)
             Traceback (most recent call last):
             ...
-            ValueError: Must be in the domain or a list, tuple or string.
+            ValueError: must be in the domain or a list, tuple or string
             sage: g(3/2)
             Traceback (most recent call last):
             ...
-            ValueError: Must be in the domain or a list, tuple or string.
+            ValueError: must be in the domain or a list, tuple or string
         """
         to_gap = self._parent._domain_to_gap
         from_gap = self._parent._domain_from_gap
@@ -1061,12 +1061,11 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             # current behavior where if you pass in an integer which
             # is not in the domain of the permutation group, then that
             # integer itself will be returned.
-            if isinstance(i, (long, int, Integer)):
+            if isinstance(i, (int, Integer)):
                 return i
 
-
-            if not isinstance(i,(list,tuple,str)):
-                raise ValueError("Must be in the domain or a list, tuple or string.")
+            if not isinstance(i, (list, tuple, str)):
+                raise ValueError("must be in the domain or a list, tuple or string")
 
             permuted = [i[self.perm[j]] for j from 0 <= j < self.n]
             if isinstance(i, tuple):
@@ -1175,7 +1174,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
         return result
 
     cpdef _act_on_(self, x, bint self_on_left):
-        """
+        r"""
         Return the result of the action of ``self`` on ``x``.
 
         For example, if ``x=f(z)`` is a polynomial, then this function returns
@@ -1557,10 +1556,10 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             sage: prod(primes(150))
             1492182350939279320058875736615841068547583863326864530410
             sage: L = [tuple(range(sum(primes(p))+1, sum(primes(p))+1+p)) for p in primes(150)]
-            sage: t=PermutationGroupElement(L).multiplicative_order(); t
+            sage: t = PermutationGroupElement(L).multiplicative_order(); t
             1492182350939279320058875736615841068547583863326864530410
             sage: type(t)
-            <type 'sage.rings.integer.Integer'>
+            <class 'sage.rings.integer.Integer'>
         """
         order = None
         cdef long long order_c = 1
@@ -1619,7 +1618,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
         return ~self
 
     def sign(self):
-        """
+        r"""
         Returns the sign of self, which is `(-1)^{s}`, where
         `s` is the number of swaps.
 
@@ -1804,9 +1803,10 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             '(1,3)(2)'
         """
         cycles = self.cycle_tuples(singletons)
-        if len(cycles) == 0:
+        if not cycles:
             return '()'
-        return ''.join([repr(c) for c in cycles]).replace(', ',',').replace(',)',')')
+        text = ''.join(repr(c) for c in cycles)
+        return text.replace(', ', ',').replace(',)', ')')
 
     def cycle_type(self, singletons=True, as_list=False):
         r"""
@@ -1848,20 +1848,20 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             [2, 1, 1]
         """
         cycle_type = [len(c) for c in self.cycle_tuples(singletons)]
-        cycle_type.sort(reverse = True)
+        cycle_type.sort(reverse=True)
         if as_list:
             return cycle_type
         else:
             from sage.combinat.partition import _Partitions
             return _Partitions(cycle_type)
 
-    def has_descent(self, i, side = "right", positive = False):
-        """
+    def has_descent(self, i, side="right", positive=False):
+        r"""
         INPUT:
 
-         - ``i``: an element of the index set
-         - ``side``: "left" or "right" (default: "right")
-         - ``positive``: a boolean (default: False)
+        - ``i`` -- an element of the index set
+        - ``side`` -- "left" or "right" (default: "right")
+        - ``positive`` -- a boolean (default: False)
 
         Returns whether ``self`` has a left (resp. right) descent at
         position ``i``. If ``positive`` is True, then test for a non

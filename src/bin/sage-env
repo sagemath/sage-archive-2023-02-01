@@ -107,57 +107,21 @@ resolvelinks() {
     echo "$out"
 }
 
-# New value for SAGE_ROOT: either SAGE_ROOT (if given)
-# or a guessed value based on pwd.
+# Make sure that SAGE_ROOT is either an absolute physical directory name
+# or empty.
 if [ -n "$SAGE_ROOT" ]; then
-    NEW_SAGE_ROOT="$SAGE_ROOT"
-elif [ -f sage -a -d build ]; then
-    NEW_SAGE_ROOT="."
-elif [ -f ../../sage -a -d ../../build ]; then
-    NEW_SAGE_ROOT="../.."
+    export SAGE_ROOT=$(cd "$SAGE_ROOT" 2>/dev/null && pwd -P)
 fi
-
-if [ -n "$NEW_SAGE_ROOT" ]; then
-    # Make NEW_SAGE_ROOT absolute
-    NEW_SAGE_ROOT=`cd "$NEW_SAGE_ROOT" && pwd -P`
-
-    # Warn if NEW_SAGE_ROOT does not equal the old SAGE_ROOT
-    if [ "$SAGE_ROOT" != "$NEW_SAGE_ROOT" -a -n "$SAGE_ROOT" ]; then
-        echo >&2 "Warning: overwriting SAGE_ROOT environment variable:"
-        echo >&2 "Old SAGE_ROOT=$SAGE_ROOT"
-        echo >&2 "New SAGE_ROOT=$NEW_SAGE_ROOT"
-    fi
-fi
-
 
 # Don't execute the commands more than once for the same version of
-# sage-env.  Check this after checking the validity of SAGE_ROOT, but
-# before modifying its value.
-#
-# The idea of versioning is that SAGE_ENV_SOURCED will be set to a
-# "version number" of sage-env.  If a different version of sage-env was
-# sourced earlier (when upgrading), we still source the new version.
-# The sage-env version should be increased whenever a newer sage-env is
-# required for upgrading.  Note that build/make/deps might also need
-# to be changed: the packages which need the new sage-env must depend on
-# SAGE_ROOT_REPO (the root repo contains sage-env).
-#
-# sage-env version history:
-# - sage-4.7.1: version 1 (#10469)
-# - sage-5.4:   version 2 (#13395)
-# - sage-5.10:  version 3 (#14699)
-# - sage-6.0:   version 4 (#14715)
-#
-SAGE_ENV_VERSION=4
+# sage-env... for the same combination of SAGE_LOCAL and SAGE_VENV.
+# "6" indicates the version of the format of the value of SAGE_ENV_VERSION.
+SAGE_ENV_VERSION="6:$SAGE_LOCAL:$SAGE_VENV:$SAGE_SRC"
 if [ "$SAGE_ENV_SOURCED" = "$SAGE_ENV_VERSION" ]; then
     # Already sourced, nothing to do.
     return 0
 fi
-export SAGE_ENV_SOURCED=$SAGE_ENV_VERSION
-
-if [ -n "$NEW_SAGE_ROOT" ]; then
-    export SAGE_ROOT="$NEW_SAGE_ROOT"
-fi
+export SAGE_ENV_SOURCED="$SAGE_ENV_VERSION"
 
 # The compilers are set in order of priority by
 # 1) environment variables
@@ -235,7 +199,7 @@ fi
 
 
 if [ 1 = 2 ]; then
-    echo "The following enviroment variables can be set by the user"
+    echo "The following environment variables can be set by the user"
     echo "AR          The archiver (e.g. ar, /usr/ccs/bin/ar or /usr/bin/ar)"
     echo "AS          The assembler (e.g. as, /usr/ccs/bin/as or /usr/bin/as)"
     echo "CC          The C compiler (e.g cc, /opt/SUNWspro/bin/cc or /usr/bin/gcc)"
@@ -252,24 +216,23 @@ if [ 1 = 2 ]; then
     echo "SHAREDFLAGS Flag(s) necessary for building a shared library (e.g. -fPIC or -xcode=pic32)"
     echo "We attempt to set this to sensible values, but check below to"
     echo "ensure they are OK. If you wish to override any then please use:"
-    echo "setenv NAME_OF_ENVIROMENT_VARIABLE value_of_enviroment_variable"
+    echo "setenv NAME_OF_ENVIRONMENT_VARIABLE value_of_environment_variable"
     echo "(if you use tcsh, csh or a similar shell) or"
-    echo "NAME_OF_ENVIROMENT_VARIABLE value_of_enviroment_variable"
-    echo "export NAME_OF_ENVIROMENT_VARIABLE"
+    echo "NAME_OF_ENVIRONMENT_VARIABLE value_of_environment_variable"
+    echo "export NAME_OF_ENVIRONMENT_VARIABLE"
     echo "if you use sh, bash or a similar shell"
 fi
 
 # Setting Sage-related location environment variables,
 # depending on SAGE_ROOT and SAGE_LOCAL which are already defined.
 if [ -n "$SAGE_LOCAL" ]; then
-    export SAGE_ETC="$SAGE_LOCAL/etc"
     export SAGE_SHARE="$SAGE_LOCAL/share"
     export SAGE_SPKG_INST="$SAGE_LOCAL/var/lib/sage/installed"
 fi
 if [ -n "$SAGE_SHARE" ]; then
     export SAGE_DOC="$SAGE_SHARE/doc/sage"
 fi
-if [ -n "$SAGE_ROOT" ]; then
+if [ -d "$SAGE_ROOT" ]; then
     export SAGE_LOGS="$SAGE_ROOT/logs/pkgs"
     export SAGE_SRC="$SAGE_ROOT/src"
 fi
@@ -293,10 +256,7 @@ fi
 if [ -n "$SAGE_VENV" ]; then
     export PATH="$SAGE_VENV/bin:$PATH"
 fi
-if [ -n "$SAGE_SRC" ]; then
-    export PATH="$SAGE_SRC/bin:$PATH"
-fi
-if [ -n "$SAGE_ROOT" ]; then
+if [ -d "$SAGE_ROOT" ]; then
     export PATH="$SAGE_ROOT/build/bin:$PATH"
 fi
 
@@ -315,30 +275,7 @@ export UNAME=`uname | sed 's/CYGWIN.*/CYGWIN/' `
 
 # Mac OS X-specific setup
 if [ "$UNAME" = "Darwin" ]; then
-  export MACOSX_VERSION=`uname -r | awk -F. '{print $1}'`
-  case "$SAGE_MACOSX_DEPLOYMENT_TARGET" in
-  legacy)
-    # legacy behavior of the Sage distribution.
-    # set MACOSX_DEPLOYMENT_TARGET -- if set incorrectly, this can
-    # cause lots of random "Abort trap" issues on OSX. see trac
-    # #7095 for an example.
-    if [ $MACOSX_VERSION -ge 14 ]; then
-        # various packages have still have issues with
-        # two digit OS X versions
-        MACOSX_DEPLOYMENT_TARGET=10.9
-    else
-        MACOSX_DEPLOYMENT_TARGET=10.$[$MACOSX_VERSION-4]
-    fi
-    export MACOSX_DEPLOYMENT_TARGET
-    ;;
-  "")
-    # Do nothing
-    ;;
-  *)
-    # A fixed version set at configure time.
-    export MACOSX_DEPLOYMENT_TARGET=$SAGE_MACOSX_DEPLOYMENT_TARGET
-    ;;
-  esac
+    export MACOSX_VERSION=`uname -r | awk -F. '{print $1}'`
     # Work around problems on recent OS X crashing with an error message
     # "... may have been in progress in another thread when fork() was called"
     # when objective-C functions are called after fork(). See Trac #25921.
@@ -358,12 +295,17 @@ if [ -n "$SAGE_LOCAL" ]; then
 fi
 
 if [ -n "$SAGE_LOCAL" ]; then
-    SINGULARPATH="$SAGE_LOCAL/share/singular" && export SINGULARPATH
-    SINGULAR_EXECUTABLE="$SAGE_LOCAL/bin/Singular" && export SINGULAR_EXECUTABLE
+    # Ensure that there is a colon at the end of $INFOPATH by
+    # stripping the existing one (if it exists), and then adding a new
+    # one. This forces the "info" program to check various default
+    # system locations when the user does not have $INFOPATH set. This
+    # is necessary to find some *.info files installed by system
+    # packages when "info" from the SPKG is used.
+    export INFOPATH="${SAGE_LOCAL}/share/info:${INFOPATH%:}:"
 fi
 
 if [ -z "$SAGE_REPO_ANONYMOUS" ]; then
-    SAGE_REPO_ANONYMOUS="https://gitlab.com/sagemath/dev/tracmirror.git"
+    SAGE_REPO_ANONYMOUS="https://github.com/sagemath/sagetrac-mirror.git"
     export SAGE_REPO_ANONYMOUS
 fi
 if [ -z "$SAGE_REPO_AUTHENTICATED" ]; then
@@ -371,7 +313,7 @@ if [ -z "$SAGE_REPO_AUTHENTICATED" ]; then
         export SAGE_REPO_AUTHENTICATED
 fi
 
-if [ -n "$SAGE_ROOT" ]; then
+if [ -d "$SAGE_ROOT" ]; then
     if [ -z "$SAGE_DISTFILES" ]; then
         SAGE_DISTFILES="$SAGE_ROOT/upstream"
         export SAGE_DISTFILES
@@ -523,7 +465,7 @@ export __sage__=""
 if [ -n "$SAGE_LOCAL" -a -d "$SAGE_LOCAL/libexec/ccache" ]; then
     PATH="$SAGE_LOCAL/libexec/ccache:$PATH"
 fi
-if [ -n "$SAGE_ROOT" -a -z "$CCACHE_BASEDIR" ]; then
+if [ -d "$SAGE_ROOT" -a -z "$CCACHE_BASEDIR" ]; then
     export CCACHE_BASEDIR="$SAGE_ROOT"
 fi
 
@@ -609,12 +551,6 @@ if [ "$UNAME" = "CYGWIN" -a -n "$SAGE_LOCAL" ]; then
     LD_LIBRARY_PATH="$SAGE_LOCAL/bin:$LD_LIBRARY_PATH" && export LD_LIBRARY_PATH
 fi
 
-# See trac 7186 -- this is needed if ecl is moved
-if [ -n "$SAGE_LOCAL" ]; then
-    ECLDIR="$SAGE_LOCAL/lib/ecl/" && export ECLDIR
-fi
-
-
 # Handle parallel building/testing/...
 case "$SAGE_NUM_THREADS,$SAGE_NUM_THREADS_PARALLEL" in
     [1-9][0-9]*,[1-9][0-9]*)
@@ -657,19 +593,6 @@ fi
 export MAKE
 
 export PIP_FORMAT="columns"
-
-# When building documentation, use MathJax by default. To turn it off,
-# set SAGE_DOC_MATHJAX to be "no" or "False".
-if [ -z "$SAGE_DOC_MATHJAX" ]; then
-    # For backwards compatibility, we use the value of SAGE_DOC_JSMATH
-    # if it is set.
-    if [ -n "$SAGE_DOC_JSMATH" ]; then
-        SAGE_DOC_MATHJAX="$SAGE_DOC_JSMATH"
-    else
-        SAGE_DOC_MATHJAX="True"
-    fi
-    export SAGE_DOC_MATHJAX
-fi
 
 # Set the cysignals crash logs directory
 if [ -z "$CYSIGNALS_CRASH_LOGS" ]; then

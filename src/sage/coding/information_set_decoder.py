@@ -100,7 +100,7 @@ class InformationSetAlgorithm(SageObject):
         sage: from sage.coding.decoder import DecodingError
         sage: class MinimalISD(InformationSetAlgorithm):
         ....:     def __init__(self, code, decoding_interval):
-        ....:         super(MinimalISD, self).__init__(code, decoding_interval, "MinimalISD")
+        ....:         super().__init__(code, decoding_interval, "MinimalISD")
         ....:     def calibrate(self):
         ....:         self._parameters = { } # calibrate parameters here
         ....:         self._time_estimate = 10.0  # calibrated time estimate
@@ -417,13 +417,12 @@ class LeeBrickellISDAlgorithm(InformationSetAlgorithm):
             if search_size > decoding_interval[1]:
                 raise ValueError("The search size parameter has to be at most"
                                  " the maximal number of allowed errors")
-            super(LeeBrickellISDAlgorithm, self).__init__(code, decoding_interval, "Lee-Brickell",
-                                                              parameters={ 'search_size': search_size })
+            super().__init__(code, decoding_interval, "Lee-Brickell",
+                             parameters={'search_size': search_size})
             self._parameters_specified = True
         else:
             self._parameters_specified = False
-            super(LeeBrickellISDAlgorithm, self).__init__(code, decoding_interval, "Lee-Brickell")
-
+            super().__init__(code, decoding_interval, "Lee-Brickell")
 
     def decode(self, r):
         r"""
@@ -458,7 +457,7 @@ class LeeBrickellISDAlgorithm(InformationSetAlgorithm):
             True
         """
         import itertools
-        from sage.all import sample
+        from sage.misc.prandom import sample
         C = self.code()
         n, k = C.length(), C.dimension()
         tau = self.decoding_interval()
@@ -543,11 +542,11 @@ class LeeBrickellISDAlgorithm(InformationSetAlgorithm):
             sage: A.time_estimate() #random
             0.0008162108571427874
         """
-        from sage.all import sample, mean, random_vector, random_matrix, randint
-        try:
-            from time import process_time
-        except ImportError:
-            from time import clock as process_time
+        from sage.matrix.special import random_matrix
+        from sage.misc.prandom import sample, randint
+        from sage.modules.free_module_element import random_vector
+        from time import process_time
+
         C = self.code()
         G = C.generator_matrix()
         n, k = C.length(), C.dimension()
@@ -555,6 +554,7 @@ class LeeBrickellISDAlgorithm(InformationSetAlgorithm):
         F = C.base_ring()
         q = F.cardinality()
         Fstar = F.list()[1:]
+
         def time_information_set_steps():
             before = process_time()
             while True:
@@ -565,6 +565,7 @@ class LeeBrickellISDAlgorithm(InformationSetAlgorithm):
                 except ZeroDivisionError:
                     continue
                 return process_time() - before
+
         def time_search_loop(p):
             y = random_vector(F, n)
             g = random_matrix(F, p, n).rows()
@@ -573,8 +574,8 @@ class LeeBrickellISDAlgorithm(InformationSetAlgorithm):
             before = process_time()
             for m in scalars:
                 e = y - sum(m[i]*g[i] for i in range(p))
-            return (process_time() - before)/100.
-        T = mean([ time_information_set_steps() for s in range(5) ])
+            return (process_time() - before) / 100.
+        T = sum([ time_information_set_steps() for s in range(5) ]) / 5.
         P = [ time_search_loop(p) for p in range(tau+1) ]
 
         def compute_estimate(p):
@@ -822,8 +823,7 @@ class LinearCodeInformationSetDecoder(Decoder):
 
         self._number_errors = number_errors
 
-        super(LinearCodeInformationSetDecoder, self).__init__(
-            code, code.ambient_space(), code._default_encoder_name)
+        super().__init__(code, code.ambient_space(), code._default_encoder_name)
 
         if algorithm is None:
             if kwargs:

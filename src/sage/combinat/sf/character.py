@@ -31,8 +31,7 @@ from sage.combinat.sf.sfa import SymmetricFunctionAlgebra_generic as SFA_generic
 from sage.misc.cachefunc import cached_method
 from sage.categories.homset import Hom
 from sage.categories.morphism import SetMorphism
-from sage.arith.all import divisors, moebius
-from sage.functions.other import binomial
+from sage.arith.all import divisors, moebius, binomial
 from sage.rings.integer import Integer
 
 
@@ -105,7 +104,7 @@ class generic_character(SFA_generic):
         """
         if sexpr == 0:
             return self(0)
-        if sexpr.support() == [[]]:
+        if list(sexpr.support()) == [[]]:
             return self._from_dict({self.one_basis(): sexpr.coefficient([])},
                                    remove_zeros=False)
         out = self.zero()
@@ -595,4 +594,3 @@ class irreducible_character_basis(generic_character):
             3*s[1] - 2*s[1, 1] - 2*s[2] + s[2, 1]
         """
         return self._other(self._self_to_power_on_basis(lam))
-

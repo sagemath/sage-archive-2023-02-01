@@ -254,14 +254,10 @@ class NFCuspsSpace(UniqueRepresentation, Parent):
 
             sage: k.<a> = NumberField(x^2 + 5)
             sage: kCusps = NFCusps(k)
-            sage: c = kCusps(a,2)  # py2
+            sage: c = kCusps(a,2)
             Traceback (most recent call last):
             ...
-            TypeError: __call__() takes exactly 2 arguments (3 given)
-            sage: c = kCusps(a,2)  # py3
-            Traceback (most recent call last):
-            ...
-            TypeError: __call__() takes 2 positional arguments but 3 were given
+            TypeError: ...__call__() takes 2 positional arguments but 3 were given
 
          ::
 
@@ -976,7 +972,7 @@ class NFCusp(Element):
                         w = ((1 - f) * Aux) / (M1[2] * M2[2])
                         AuxCoeff[3] = u
                         AuxCoeff[1] = w
-                    from sage.matrix.all import Matrix
+                    from sage.matrix.constructor import Matrix
                     Maux = Matrix(k, 2, AuxCoeff)
                     M1inv = Matrix(k, 2, M1).inverse()
                     Mtrans = Matrix(k, 2, M2) * Maux * M1inv
@@ -1057,7 +1053,7 @@ def Gamma0_NFCusps(N):
             g = (A * B).gens_reduced()[0]
 
         # for every divisor of N we have to find cusps
-        from sage.arith.all import divisors
+        from sage.arith.misc import divisors
         for d in divisors(N):
             # find delta prime coprime to B in inverse class of d*A
             # by searching in our list of auxiliary prime ideals
@@ -1121,7 +1117,7 @@ def number_of_Gamma0_NFCusps(N):
     """
     k = N.number_field()
     # The number of Gamma0(N)-sub-orbits for each Gamma-orbit:
-    from sage.arith.all import divisors
+    from sage.arith.misc import divisors
     Ugens = [k(u) for u in k.unit_group().gens()]
     s = sum([len((d + N / d).invertible_residues_mod(Ugens))
              for d in divisors(N)])

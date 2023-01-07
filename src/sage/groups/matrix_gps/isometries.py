@@ -1,10 +1,10 @@
 r"""
 Groups of isometries.
 
-Let `M = \ZZ^n` or `\QQ^n`, `b: M \times M \rightarrow \QQ$ a bilinear form and
-$f: M \rightarrow M$ a linear map. We say that $f$ is an isometry if for all
-elements $x,y$ of $M$ we have that $b(x,y)=b(f(x),f(y))$.
-A group of isometries is a subgroup of $GL(M)$ consisting of isometries.
+Let `M = \ZZ^n` or `\QQ^n`, `b: M \times M \rightarrow \QQ` a bilinear form and
+`f: M \rightarrow M` a linear map. We say that `f` is an isometry if for all
+elements `x,y` of `M` we have that `b(x,y)=b(f(x),f(y))`.
+A group of isometries is a subgroup of `GL(M)` consisting of isometries.
 
 EXAMPLES::
 
@@ -116,9 +116,9 @@ class GroupOfIsometries(FinitelyGeneratedMatrixGroup_gap):
             Q = invariant_quotient_module
             for f in gens:
                 self._check_matrix(f)
-                if (not I is None) and I*f != I:
+                if (I is not None) and I * f != I:
                     raise ValueError("the submodule is not preserved")
-                if not Q is None and (Q.W() != Q.W()*f or Q.V()*f != Q.V()):
+                if Q is not None and (Q.W() != Q.W()*f or Q.V()*f != Q.V()):
                     raise ValueError("the quotient module is not preserved")
         if len(gens) == 0:    # handle the trivial group
             gens = [G.parent().identity_matrix()]

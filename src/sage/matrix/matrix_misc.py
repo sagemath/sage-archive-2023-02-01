@@ -19,7 +19,6 @@ Miscellaneous matrix functions
 #*****************************************************************************
 
 from sage.categories.fields import Fields
-from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 _Fields = Fields()
 
 
@@ -40,10 +39,10 @@ def prm_mul(p1, p2, mask_free, prec):
 
     - `p1,p2` -- polynomials as dictionaries
 
-    - `mask_free` -- an integer mask that give the list of free variables
+    - ``mask_free`` -- an integer mask that give the list of free variables
       (the `i`-th variable is free if the `i`-th bit of ``mask_free`` is `1`)
 
-    - `prec` -- if `prec` is not None, truncate the product at precision `prec`
+    - ``prec`` -- if ``prec`` is not ``None``, truncate the product at precision ``prec``
 
     EXAMPLES::
 
@@ -269,6 +268,8 @@ def permanental_minor_polynomial(A, permanent_only=False, var='t', prec=None):
         prec = int(prec)
         if prec == 0:
             raise ValueError('the argument `prec` must be a positive integer')
+
+    from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
     K = PolynomialRing(A.base_ring(), var)
     nrows = A.nrows()

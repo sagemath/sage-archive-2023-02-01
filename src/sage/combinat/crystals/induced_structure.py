@@ -27,6 +27,7 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.structure.element_wrapper import ElementWrapper
 
+
 class InducedCrystal(UniqueRepresentation, Parent):
     r"""
     A crystal induced from an injection.
@@ -89,7 +90,7 @@ class InducedCrystal(UniqueRepresentation, Parent):
         True
         sage: I = crystals.Induced(P, phi, phi_inv)
         sage: I.digraph()
-        Multi-digraph on 24 vertices
+        Digraph on 24 vertices
 
     We construct an example without a specified inverse map::
 
@@ -120,7 +121,7 @@ class InducedCrystal(UniqueRepresentation, Parent):
         if from_crystal:
             return InducedFromCrystal(X, phi, inverse)
 
-        return super(InducedCrystal, cls).__classcall__(cls, X, phi, inverse)
+        return super().__classcall__(cls, X, phi, inverse)
 
     def __init__(self, X, phi, inverse):
         """
@@ -686,4 +687,3 @@ class InducedFromCrystal(UniqueRepresentation, Parent):
                 (1, 0, 1, 0)
             """
             return self.parent()._inverse(self.value).weight()
-

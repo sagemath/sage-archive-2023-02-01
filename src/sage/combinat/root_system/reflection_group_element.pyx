@@ -11,7 +11,7 @@ AUTHORS:
 - Christian Stump (initial version 2011--2015)
 - Travis Scrimshaw (14-03-2017): moved element code
 """
-#*****************************************************************************
+# ***************************************************************************
 #       Copyright (C) 2011-2016 Christian Stump <christian.stump at gmail.com>
 #       Copyright (C) 2017 Travis Scrimshaw <tcscrims at gmail.com>
 #
@@ -19,15 +19,16 @@ AUTHORS:
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ***************************************************************************
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.misc_c import prod
 from sage.arith.functions import lcm
 from sage.combinat.root_system.cartan_type import CartanType, CartanType_abstract
-from sage.rings.all import ZZ, QQ
+from sage.rings.integer_ring import ZZ
+from sage.rings.rational_field import QQ
 from sage.interfaces.gap3 import gap3
 from sage.combinat.root_system.cartan_matrix import CartanMatrix
 from sage.misc.sage_eval import sage_eval
@@ -656,7 +657,7 @@ cdef class ComplexReflectionGroupElement(PermutationGroupElement):
         cdef list M_gals = [x.galois_conjugates(m) if hasattr(x,"galois_conjugates") else [x] for x in M]
         cdef list conjugates = []
         cdef int i
-        for i in xrange(len(M_gals[0])):
+        for i in range(len(M_gals[0])):
             conjugates.append(Matrix(rk, [X[i] for X in M_gals]))
         return conjugates
 
@@ -976,12 +977,12 @@ cdef class RealReflectionGroupElement(ComplexReflectionGroupElement):
         cdef int j
         ret = Phi[0].parent().zero()
         if on_space == "primal":
-            for j in xrange(n):
+            for j in range(n):
                 ret += vec[j] * Phi[w.perm[j]]
             return ret
         elif on_space == "dual":
             w = <RealReflectionGroupElement>(~w)
-            for j in xrange(n):
+            for j in range(n):
                 ret += Phi[w.perm[j]] * vec[j]
             return ret
         else:
@@ -1121,7 +1122,8 @@ cdef class RealReflectionGroupElement(ComplexReflectionGroupElement):
             self = <RealReflectionGroupElement>(~self)
         elif side != "right":
             raise ValueError('side must be "left" or "right"')
-        return [Phi[i] for i in xrange(N) if self.perm[i] >= N]
+        return [Phi[i] for i in range(N) if self.perm[i] >= N]
+
 
 def _gap_factorization(w, gens):
     r"""

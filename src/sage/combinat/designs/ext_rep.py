@@ -42,7 +42,7 @@ import bz2
 
 from urllib.request import urlopen
 
-from sage.misc.all import tmp_filename
+from sage.misc.temporary_file import tmp_filename
 
 
 XML_NAMESPACE   = 'http://designtheory.org/xml-namespace'
@@ -600,7 +600,7 @@ def _encode_attribute(string):
     else:
         return string
 
-class XTree(object):
+class XTree():
     '''
     A lazy class to wrap a rooted tree representing an XML document.
     The tree's nodes are tuples of the structure:
@@ -774,7 +774,7 @@ class XTree(object):
 
         return len(self.xt_children)
 
-class XTreeProcessor(object):
+class XTreeProcessor():
     '''
     An incremental event-driven parser for ext-rep documents.
     The processing stages:
@@ -961,8 +961,8 @@ class XTreeProcessor(object):
             #@ this stripping may distort char data in the <info> subtree
             # if they are not bracketed in some way.
             data = data.strip()
-            if data != '':
-                # we use the xtree's childrens list here to collect char data
+            if data:
+                # we use the xtree's children list here to collect char data
                 # since only leaves have char data.
                 self.current_node[2].append(data)
 

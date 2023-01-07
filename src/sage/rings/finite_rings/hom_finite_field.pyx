@@ -217,20 +217,20 @@ cdef class FiniteFieldHomomorphism_generic(RingHomomorphism_im_gens):
             sage: FiniteFieldHomomorphism_generic(Hom(ZZ, QQ))
             Traceback (most recent call last):
             ...
-            TypeError: The domain is not a finite field
+            TypeError: The domain is not a finite field or does not provide the required interface for finite fields
 
             sage: R.<x> = k[]
             sage: FiniteFieldHomomorphism_generic(Hom(k, R))
             Traceback (most recent call last):
             ...
-            TypeError: The codomain is not a finite field
+            TypeError: The codomain is not a finite field or does not provide the required interface for finite fields
         """
         domain = parent.domain()
         codomain = parent.codomain()
         if not is_FiniteField(domain):
-            raise TypeError("The domain is not a finite field")
+            raise TypeError("The domain is not a finite field or does not provide the required interface for finite fields")
         if not is_FiniteField(codomain):
-            raise TypeError("The codomain is not a finite field")
+            raise TypeError("The codomain is not a finite field or does not provide the required interface for finite fields")
         if domain.characteristic() != codomain.characteristic() or codomain.degree() % domain.degree() != 0:
             raise ValueError("No embedding of %s into %s" % (domain, codomain))
         if im_gens is None:
@@ -271,7 +271,7 @@ cdef class FiniteFieldHomomorphism_generic(RingHomomorphism_im_gens):
               To:   Finite Field in z2 of size 2^2
               Defn: 1 |--> 1
         """
-        cdef FiniteFieldHomomorphism_generic out = super(FiniteFieldHomomorphism_generic, self).__copy__()
+        cdef FiniteFieldHomomorphism_generic out = super().__copy__()
         out._section_class = self._section_class
         return out
 
@@ -421,7 +421,7 @@ cdef class FiniteFieldHomomorphism_generic(RingHomomorphism_im_gens):
             sage: Frob = k.frobenius_endomorphism()
             sage: embed = Frob.fixed_field()[1]
             sage: hash(embed)  # random
-            -2441354824160407762 
+            -2441354824160407762
         """
         return Morphism.__hash__(self)
 
@@ -520,10 +520,10 @@ cdef class FrobeniusEndomorphism_finite_field(FrobeniusEndomorphism_generic):
             sage: FrobeniusEndomorphism_finite_field(k['x'])
             Traceback (most recent call last):
             ...
-            TypeError: The domain must be a finite field
+            TypeError: The domain is not a finite field or does not provide the required interface for finite fields
         """
         if not is_FiniteField(domain):
-            raise TypeError("The domain must be a finite field")
+            raise TypeError("The domain is not a finite field or does not provide the required interface for finite fields")
         try:
             n = Integer(n)
         except TypeError:
@@ -826,31 +826,6 @@ cdef class FrobeniusEndomorphism_finite_field(FrobeniusEndomorphism_generic):
         """
         return Morphism.__hash__(self)
 
-    cdef dict _extra_slots(self):
-        r"""
-        Helper function for copying and pickling
-
-        TESTS::
-
-            sage: k.<t> = GF(5^3)
-            sage: Frob = k.frobenius_endomorphism(2)
-            sage: Frob.__reduce__()  # indirect doctest
-            (<built-in function unpickle_map>,
-             (<class 'sage.rings.finite_rings.hom_finite_field_givaro.FrobeniusEndomorphism_givaro'>,
-              Automorphism group of Finite Field in t of size 5^3,
-              {},
-              {'_codomain': Finite Field in t of size 5^3,
-               '_domain': Finite Field in t of size 5^3,
-               '_is_coercion': False,
-               '_lift': None,
-               '_power': 2,
-               '_repr_type_str': None}))
-        """
-        cdef dict slots
-        slots = FrobeniusEndomorphism_generic._extra_slots(self)
-        slots['_power'] = self._power
-        return slots
-
     cdef _update_slots(self, dict slots):
         r"""
         Helper function for copying and pickling
@@ -865,11 +840,10 @@ cdef class FrobeniusEndomorphism_finite_field(FrobeniusEndomorphism_generic):
             sage: phi = copy(Frob)
             sage: phi
             Frobenius endomorphism t |--> t^(5^2) on Finite Field in t of size 5^3
-            sage: Frob == phi 
+            sage: Frob == phi
             True
         """
         FrobeniusEndomorphism_generic._update_slots(self, slots)
-        self._power = slots['_power']
         domain = self.domain()
         self._degree = domain.degree()
         self._degree_fixed = domain.degree().gcd(self._power)

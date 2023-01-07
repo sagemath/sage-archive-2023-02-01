@@ -1,11 +1,11 @@
-# distutils: libraries = NTL_LIBRARIES ntl m
+# distutils: libraries = NTL_LIBRARIES gmp m
 # distutils: extra_compile_args = NTL_CFLAGS
 # distutils: include_dirs = NTL_INCDIR
 # distutils: library_dirs = NTL_LIBDIR
 # distutils: extra_link_args = NTL_LIBEXTRA
 # distutils: language = c++
 """
-p-Adic Printing
+`p`-adic Printing
 
 This file contains code for printing p-adic elements.
 
@@ -373,7 +373,7 @@ cdef class pAdicPrinter_class(SageObject):
               p-adic digits into strings (so that no separator need be
               used in 'digits' mode).
 
-            - show_prec -- Specify how the precision is printed; it 
+            - show_prec -- Specify how the precision is printed; it
               can be 'none', 'bigoh' or 'dots' (the latter being not
               available for all modes)
 

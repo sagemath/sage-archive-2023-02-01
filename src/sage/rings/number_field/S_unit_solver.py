@@ -1,7 +1,7 @@
 r"""
 Solve S-unit equation x + y = 1
 
-Inspired by work of Tzanakis--de Weger, Baker--Wustholz and Smart, we use the LLL methods in Sage to implement an algorithm that returns all S-unit solutions to the equation $x + y = 1$.
+Inspired by work of Tzanakis--de Weger, Baker--Wustholz and Smart, we use the LLL methods in Sage to implement an algorithm that returns all S-unit solutions to the equation `x + y = 1`.
 
 REFERENCES:
 
@@ -24,10 +24,10 @@ EXAMPLES::
     sage: from sage.rings.number_field.S_unit_solver import solve_S_unit_equation, eq_up_to_order
     sage: K.<xi> = NumberField(x^2+x+1)
     sage: S = K.primes_above(3)
-    sage: expected = [((2, 1), (4, 0), xi + 2, -xi - 1),
-    ....:             ((5, -1), (4, -1), 1/3*xi + 2/3, -1/3*xi + 1/3),
-    ....:             ((5, 0), (1, 0), -xi, xi + 1),
-    ....:             ((1, 1), (2, 0), -xi + 1, xi)]
+    sage: expected = [((0, 1), (4, 0), xi + 2, -xi - 1),
+    ....:             ((1, -1), (0, -1), 1/3*xi + 2/3, -1/3*xi + 1/3),
+    ....:             ((1, 0), (5, 0), xi + 1, -xi),
+    ....:             ((2, 0), (5, 1), xi, -xi + 1)]
     sage: sols = solve_S_unit_equation(K, S, 200)
     sage: eq_up_to_order(sols, expected)
     True
@@ -54,8 +54,8 @@ EXAMPLES::
 # ****************************************************************************
 
 
-from sage.rings.all import Infinity
-from sage.calculus.var import var
+from sage.rings.infinity import Infinity
+from sage.symbolic.ring import SR
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
 from sage.rings.real_mpfr import RealField, RR
@@ -68,12 +68,12 @@ from sage.rings.finite_rings.integer_mod_ring import Integers
 from sage.rings.finite_rings.integer_mod import mod
 from sage.rings.padics.factory import Qp
 from sage.combinat.combination import Combinations
-from sage.misc.all import prod
-from sage.arith.all import factorial
+from sage.misc.misc_c import prod
+from sage.arith.functions import lcm
+from sage.arith.misc import gcd, CRT, factorial
 from sage.matrix.constructor import matrix, identity_matrix, vector, block_matrix, zero_matrix
 from sage.modules.free_module_element import zero_vector
 from itertools import combinations_with_replacement
-from sage.arith.all import gcd, lcm, CRT
 from copy import copy
 import itertools
 
@@ -142,7 +142,7 @@ def c3_func(SUK, prec=106):
 
     REFERENCES:
 
-    - [AKMRVW]_ arXiv:1903.00977
+    - [AKMRVW]_ :arxiv:`1903.00977`
 
     """
 
@@ -541,7 +541,7 @@ def Omega_prime(dK, v, mu_list, prec=106):
 
     REFERENCES:
 
-    - [AKMRVW]_ arXiv:1903:.00977
+    - [AKMRVW]_ :arxiv:`1903.00977`
     """
 
     R = RealField(prec)
@@ -609,7 +609,7 @@ def Yu_C1_star(n, v, prec=106):
     C1 *= (n**n * (n+1)**(n+1))/factorial(n)
     C1 *= p**fp/(q**u)
     C1 *= ( dK / (fp * R(p).log()) )**(n+2)
-    C1 *= R (max( dK, exp(1) )).log()
+    C1 *= R(max( dK, exp(1) )).log()
     C1 *= max( R(exp(4)*(n+1)*dK).log(), ep, fp * R(p).log() )
 
     C1_star = R((n+1) * C1)
@@ -619,7 +619,7 @@ def Yu_C1_star(n, v, prec=106):
 
 def Yu_bound(SUK, v, prec=106):
     r"""
-    Return `c8` such that `c8 >= exp(2)/\log(2)` and `ord_p (\Theta - 1) < c8 \log B`, 
+    Return `c8` such that `c8 >= exp(2)/\log(2)` and `ord_p (\Theta - 1) < c8 \log B`,
     where `\Theta = \prod_{j=1}^n \alpha_j^{b_j}` and `B \geq \max_j |b_j|` and `B \geq 3`.
 
     INPUT:
@@ -645,8 +645,7 @@ def Yu_bound(SUK, v, prec=106):
 
     - [Sma1995]_ p. 825
     - [Yu2007]_ p. 189--193 esp. Theorem 1
-    - [AKMRVW]_ arXiv:1903.00977
-
+    - [AKMRVW]_ :arxiv:`1903.00977`
     """
 
     # We are using Theorem 1 of "p-adic logarithmic forms and group varieties III" by Kunrui Yu.
@@ -675,7 +674,7 @@ def Yu_bound(SUK, v, prec=106):
     else:
         # K and v don't satisfy the theorem hypotheses, and we must move to a quadratic extension L.
         # For justification of this next bound, see [AKMRVW].
-        x = var('x')
+        x = SR.var('x')
         if p == 2:
             L_over_K = K.extension(x**2 + x + 1, 'xi0')
         else:
@@ -727,7 +726,7 @@ def K0_func(SUK, A, prec=106):
     REFERENCES:
 
     - [Sma1995]_ p. 824
-    - [AKMRVW]_ arXiv:1903.00977
+    - [AKMRVW]_ :arxiv:`1903.00977`
     """
     R = RealField(prec)
 
@@ -850,7 +849,7 @@ def K1_func(SUK, v, A, prec=106):
 
     - ``SUK`` -- a group of `S`-units
     - ``v`` -- an infinite place of ``K`` (element of ``SUK.number_field().places(prec)``)
-    - ``A`` -- a list of all products of each potential ``a``, ``b`` in the $S$-unit equation ``ax + by + 1 = 0`` with each root of unity of ``K``
+    - ``A`` -- a list of all products of each potential ``a``, ``b`` in the `S`-unit equation ``ax + by + 1 = 0`` with each root of unity of ``K``
     - ``prec`` -- the precision of the real field (default: 106)
 
     OUTPUT:
@@ -946,6 +945,8 @@ def minimal_vector(A, y, prec=106):
     ::
 
         sage: B = random_matrix(ZZ, 3)
+        sage: while not B.determinant():
+        ....:     B = random_matrix(ZZ, 3)
         sage: B # random
         [-2 -1 -1]
         [ 1  1 -2]
@@ -1422,11 +1423,11 @@ def defining_polynomial_for_Kp(prime, prec=106):
         # We are going to find which factor of f is related to the prime ideal 'prime'
 
         L = [g.change_ring(ZZ) for g, _ in factors]
-        A = [g for g in L if (g(theta)).valuation(prime) >= e*N/2];
+        A = [g for g in L if (g(theta)).valuation(prime) >= e*N/2]
 
         # We narrow down the list unitl only one value remains
 
-        if len(A) == 1: 
+        if len(A) == 1:
             return A[0].change_ring(Integers(p**prec)).change_ring(ZZ)
         else:
             N += 1
@@ -1780,20 +1781,20 @@ def sieve_ordering(SUK, q):
         sage: SUK = K.S_unit_group(S=3)
         sage: sieve_data = list(sieve_ordering(SUK, 19))
         sage: sieve_data[0]
-        (Fractional ideal (-2*xi^2 + 3),
-        Fractional ideal (xi - 3),
-        Fractional ideal (2*xi + 1))
+        (Fractional ideal (xi - 3),
+         Fractional ideal (-2*xi^2 + 3),
+         Fractional ideal (2*xi + 1))
 
         sage: sieve_data[1]
-        (Residue field of Fractional ideal (-2*xi^2 + 3),
-        Residue field of Fractional ideal (xi - 3),
-        Residue field of Fractional ideal (2*xi + 1))
+        (Residue field of Fractional ideal (xi - 3),
+         Residue field of Fractional ideal (-2*xi^2 + 3),
+         Residue field of Fractional ideal (2*xi + 1))
 
         sage: sieve_data[2]
-        ([18, 9, 16, 8], [18, 7, 10, 4], [18, 3, 12, 10])
+        ([18, 7, 16, 4], [18, 9, 12, 8], [18, 3, 10, 10])
 
         sage: sieve_data[3]
-        (972, 972, 3888)
+        (486, 648, 11664)
     """
 
     K = SUK.number_field()
@@ -2654,10 +2655,10 @@ def sieve_below_bound(K, S, bound=10, bump=10, split_primes_list=[], verbose=Fal
         sage: S = SUK.primes()
         sage: sols = sieve_below_bound(K, S, 10)
         sage: expected = [
-        ....: ((5, -1), (4, -1), 1/3*xi + 2/3, -1/3*xi + 1/3),
-        ....: ((2, 1), (4, 0), xi + 2, -xi - 1),
-        ....: ((2, 0), (1, 1), xi, -xi + 1),
-        ....: ((5, 0), (1, 0), -xi, xi + 1)]
+        ....: ((1, -1), (0, -1), 1/3*xi + 2/3, -1/3*xi + 1/3),
+        ....: ((0, 1), (4, 0), xi + 2, -xi - 1),
+        ....: ((2, 0), (5, 1), xi, -xi + 1),
+        ....: ((1, 0), (5, 0), xi + 1, -xi)]
         sage: eq_up_to_order(sols, expected)
         True
     """
@@ -2715,10 +2716,10 @@ def solve_S_unit_equation(K, S, prec=106, include_exponents=True, include_bound=
         sage: S = K.primes_above(3)
         sage: sols = solve_S_unit_equation(K, S, 200)
         sage: expected = [
-        ....: ((2, 1), (4, 0), xi + 2, -xi - 1),
-        ....: ((5, -1), (4, -1), 1/3*xi + 2/3, -1/3*xi + 1/3),
-        ....: ((5, 0), (1, 0), -xi, xi + 1),
-        ....: ((1, 1), (2, 0), -xi + 1, xi)]
+        ....: ((0, 1), (4, 0), xi + 2, -xi - 1),
+        ....: ((1, -1), (0, -1), 1/3*xi + 2/3, -1/3*xi + 1/3),
+        ....: ((1, 0), (5, 0), xi + 1, -xi),
+        ....: ((2, 0), (5, 1), xi, -xi + 1)]
         sage: eq_up_to_order(sols, expected)
         True
 
@@ -2726,7 +2727,7 @@ def solve_S_unit_equation(K, S, prec=106, include_exponents=True, include_bound=
 
         sage: solutions, bound = solve_S_unit_equation(K, S, 100, include_bound=True)
         sage: bound
-        6
+        7
 
     You can omit the exponent vectors::
 

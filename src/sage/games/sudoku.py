@@ -131,7 +131,7 @@ class Sudoku(SageObject):
         |4 9 1|8 5 6|7 2 3|
         +-----+-----+-----+
     """
-    def __init__(self, puzzle, verify_input = True):
+    def __init__(self, puzzle, verify_input=True):
         r"""
         Initialize a Sudoku puzzle, determine its size, sanity-check the inputs.
 
@@ -177,7 +177,7 @@ class Sudoku(SageObject):
             self.puzzle = tuple(puzzle)
         elif is_Matrix(puzzle):
             puzzle_size = puzzle.ncols()
-            if verify_input and not(puzzle.is_square()):
+            if verify_input and not puzzle.is_square():
                 raise ValueError('Sudoku puzzle must be a square matrix')
             self.puzzle = tuple([int(x) for x in puzzle.list()])
         elif isinstance(puzzle, str):
@@ -312,7 +312,7 @@ class Sudoku(SageObject):
             ValueError: Sudoku puzzles only convert to matrices over Integer Ring, not Rational Field
         """
         from sage.rings.integer_ring import ZZ, IntegerRing_class
-        if R and not(isinstance(R, IntegerRing_class)):
+        if R and not isinstance(R, IntegerRing_class):
             raise ValueError('Sudoku puzzles only convert to matrices over %s, not %s' % (ZZ, R))
         return self.to_matrix()
 
@@ -594,7 +594,7 @@ class Sudoku(SageObject):
             sage: next(too_big.solve(algorithm='backtrack'))
             Traceback (most recent call last):
             ...
-            ValueError: The Sudoku backtrack algorithm is limited to puzzles of size 16 or smaller.
+            ValueError: the Sudoku backtrack algorithm is limited to puzzles of size 16 or smaller
 
         An attempt to use a non-existent algorithm. ::
 
@@ -605,7 +605,7 @@ class Sudoku(SageObject):
         """
         if algorithm == 'backtrack':
             if self.n > 4:
-                raise ValueError('The Sudoku backtrack algorithm is limited to puzzles of size 16 or smaller.')
+                raise ValueError('the Sudoku backtrack algorithm is limited to puzzles of size 16 or smaller')
             else:
                 gen = self.backtrack()
         elif algorithm == 'dlx':
@@ -613,7 +613,7 @@ class Sudoku(SageObject):
         else:
             raise NotImplementedError('%s is not an algorithm for Sudoku puzzles' % algorithm)
         for soln in gen:
-            yield Sudoku(soln, verify_input = 'False')
+            yield Sudoku(soln, verify_input='False')
 
     def backtrack(self):
         r"""
@@ -880,11 +880,11 @@ class Sudoku(SageObject):
         # These rows will represent the original hints, plus a single entry in every other location,
         # consistent with the requirements imposed on a solution to a Sudoku puzzle
         for cover in DLXCPP(ones):
-            if not(count_only):
-                solution = [0]*nfour
+            if not count_only:
+                solution = [0] * nfour
                 for r in cover:
                     row, col, entry = rowinfo[r]
-                    solution[row*nsquare+col] = entry+1
+                    solution[row * nsquare + col] = entry + 1
                 yield solution
             else:
                 yield None

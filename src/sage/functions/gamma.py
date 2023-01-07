@@ -1,12 +1,11 @@
 """
 Gamma and related functions
 """
-
 from sage.symbolic.function import GinacFunction, BuiltinFunction
-from sage.libs.pynac.pynac import (register_symbol, symbol_table)
+from sage.symbolic.expression import register_symbol, symbol_table
 from sage.structure.all import parent as s_parent
-from sage.rings.all import Rational, ComplexField
-from sage.rings.complex_mpfr import is_ComplexNumber
+from sage.rings.complex_mpfr import ComplexField
+from sage.rings.rational import Rational
 from sage.functions.exp_integral import Ei
 from sage.libs.mpmath import utils as mpmath_utils
 from .log import exp
@@ -286,6 +285,7 @@ class Function_log_gamma(GinacFunction):
                                                 sympy='loggamma',
                                                 fricas='logGamma'))
 
+
 log_gamma = Function_log_gamma()
 
 
@@ -357,12 +357,12 @@ class Function_gamma_inc(BuiltinFunction):
         TESTS::
 
             sage: b = RBF(1, 1e-10)
-            sage: gamma(b)
-            [1.00000000 +/- 8.07e-10]
-            sage: gamma(CBF(b))
-            [1.00000000 +/- 8.07e-10]
-            sage: gamma(CBF(b), 4)
-            [0.01831564 +/- 2.65e-9]
+            sage: gamma(b) # abs tol 1e-9
+            [1.0000000000 +/- 5.78e-11]
+            sage: gamma(CBF(b)) # abs tol 1e-9
+            [1.0000000000 +/- 5.78e-11]
+            sage: gamma(CBF(b), 4) # abs tol 2e-9
+            [0.018315639 +/- 9.00e-10]
             sage: gamma(CBF(1), b)
             [0.3678794412 +/- 6.54e-11]
         """
@@ -551,9 +551,9 @@ class Function_gamma_inc_lower(BuiltinFunction):
             from sage.rings.infinity import Infinity
             return Infinity
         elif x == 1:
-            return 1-exp(-y)
-        elif (2*x).is_integer():
-            return self(x,y,hold=True)._sympy_()
+            return 1 - exp(-y)
+        elif (2 * x).is_integer():
+            return self(x, y, hold=True)._sympy_()
         else:
             return None
 
@@ -584,23 +584,12 @@ class Function_gamma_inc_lower(BuiltinFunction):
             except AttributeError:
                 C = R
         if algorithm == 'pari':
-            try:
-                v = ComplexField(prec)(x).gamma() - ComplexField(prec)(x).gamma_inc(y)
-            except AttributeError:
-                if not (is_ComplexNumber(x)):
-                    if is_ComplexNumber(y):
-                        C = y.parent()
-                    else:
-                        C = ComplexField()
-                        x = C(x)
-            v = ComplexField(prec)(x).gamma() - ComplexField(prec)(x).gamma_inc(y)
+            Cx = ComplexField(prec)(x)
+            v = Cx.gamma() - Cx.gamma_inc(y)
         else:
             import mpmath
             v = ComplexField(prec)(mpmath_utils.call(mpmath.gammainc, x, 0, y, parent=R))
-        if v.is_real():
-            return R(v)
-        else:
-            return C(v)
+        return R(v) if v.is_real() else C(v)
 
     def _derivative_(self, x, y, diff_param=None):
         """
@@ -618,7 +607,7 @@ class Function_gamma_inc_lower(BuiltinFunction):
             raise NotImplementedError("cannot differentiate gamma_inc_lower in the"
                                       " first parameter")
         else:
-            return exp(-y)*y**(x - 1)
+            return exp(-y) * y**(x - 1)
 
     def _mathematica_init_evaled_(self, *args):
         r"""
@@ -715,7 +704,7 @@ def gamma(a, *args, **kwds):
     if not args:
         return gamma1(a, **kwds)
     if len(args) > 1:
-        raise TypeError("Symbolic function gamma takes at most 2 arguments (%s given)"% (len(args) + 1))
+        raise TypeError("Symbolic function gamma takes at most 2 arguments (%s given)" % (len(args) + 1))
     return gamma_inc(a, args[0], **kwds)
 
 
@@ -724,7 +713,7 @@ def gamma(a, *args, **kwds):
 symbol_table['functions']['gamma'] = gamma
 
 
-def _mathematica_gamma(*args):
+def _mathematica_gamma3(*args):
     r"""
     EXAMPLES::
 
@@ -735,16 +724,10 @@ def _mathematica_gamma(*args):
         sage: mathematica('Gamma[4/3, 0, 1]').sage()  # indirect doctest, optional - mathematica
         gamma(4/3) - gamma(4/3, 1)
     """
-    if not args or len(args) > 3:
-        raise TypeError("Mathematica function Gamma takes 1 to 3 arguments"
-                        " (%s given)" % (len(args)))
-    elif len(args) == 3:
-        return gamma_inc(args[0], args[1]) - gamma_inc(args[0], args[2])
-    else:
-        return gamma(*args)
+    assert len(args) == 3
+    return gamma_inc(args[0], args[1]) - gamma_inc(args[0], args[2])
 
-
-register_symbol(_mathematica_gamma, dict(mathematica='Gamma'))
+register_symbol(_mathematica_gamma3, dict(mathematica='Gamma'), 3)
 
 
 class Function_psi1(GinacFunction):
@@ -790,11 +773,16 @@ class Function_psi1(GinacFunction):
             -5.28903989659219
             sage: psi(x)._sympy_()
             polygamma(0, x)
+            sage: psi(x)._fricas_()    # optional - fricas
+            digamma(x)
         """
         GinacFunction.__init__(self, "psi", nargs=1, latex_name=r'\psi',
                                conversions=dict(mathematica='PolyGamma',
                                                 maxima='psi[0]',
-                                                sympy='digamma'))
+                                                maple='Psi',
+                                                sympy='digamma',
+                                                fricas='digamma'))
+
 
 class Function_psi2(GinacFunction):
     def __init__(self):
@@ -841,11 +829,20 @@ class Function_psi2(GinacFunction):
             psi(2, x) + 1
             sage: psi(2, x)._sympy_()
             polygamma(2, x)
+            sage: psi(2, x)._fricas_()  # optional - fricas
+            polygamma(2,x)
+
+        Fixed conversion::
+
+            sage: psi(2,x)._maple_init_()
+            'Psi(2,x)'
         """
         GinacFunction.__init__(self, "psi", nargs=2, latex_name=r'\psi',
                                conversions=dict(mathematica='PolyGamma',
                                                 sympy='polygamma',
-                                                giac='Psi'))
+                                                maple='Psi',
+                                                giac='Psi',
+                                                fricas='polygamma'))
 
     def _maxima_init_evaled_(self, *args):
         """
@@ -868,10 +865,11 @@ class Function_psi2(GinacFunction):
             else:
                 args_maxima.append(str(a))
         n, x = args_maxima
-        return "psi[%s](%s)"%(n, x)
+        return "psi[%s](%s)" % (n, x)
 
 psi1 = Function_psi1()
 psi2 = Function_psi2()
+
 
 def psi(x, *args, **kwds):
     r"""
@@ -924,8 +922,11 @@ def psi(x, *args, **kwds):
 # two functions with different number of arguments and the same name
 symbol_table['functions']['psi'] = psi
 
-def _swap_psi(a, b): return psi(b, a)
-register_symbol(_swap_psi, {'giac': 'Psi'})
+
+def _swap_psi(a, b):
+    return psi(b, a)
+
+register_symbol(_swap_psi, {'giac': 'Psi'}, 2)
 
 
 class Function_beta(GinacFunction):
@@ -1031,8 +1032,18 @@ class Function_beta(GinacFunction):
                                latex_name=r"\operatorname{B}",
                                conversions=dict(maxima='beta',
                                                 mathematica='Beta',
+                                                maple='Beta',
                                                 sympy='beta',
                                                 fricas='Beta',
                                                 giac='Beta'))
+
+    def _method_arguments(self, x, y):
+        r"""
+        TESTS::
+
+            sage: RBF(beta(sin(3),sqrt(RBF(2).add_error(1e-8)/3)))  # abs tol 6e-7
+            [7.407662 +/- 6.17e-7]
+        """
+        return [x, y]
 
 beta = Function_beta()

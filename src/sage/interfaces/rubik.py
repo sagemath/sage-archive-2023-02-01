@@ -34,11 +34,13 @@ AUTHOR:
 
 import pexpect
 import time
-from . import cleaner
+import shlex
+
+from . import quit
 
 from sage.cpython.string import bytes_to_str
 from sage.groups.perm_gps.cubegroup import index2singmaster
-
+import sage.features.rubiks
 
 
 # Can't seem to find consistency in letter ordering
@@ -96,8 +98,6 @@ class OptimalSolver:
     """
     Interface to Michael Reid's optimal Rubik's Cube solver.
     """
-    __cmd = "optimal"
-
     def __init__(self, verbose=False, wait=True):
         self.verbose = verbose
         self.start()
@@ -107,8 +107,9 @@ class OptimalSolver:
             print("Done.")
 
     def start(self):
-        child = pexpect.spawn(self.__cmd)
-        cleaner.cleaner(child.pid, self.__cmd)
+        cmd = shlex.quote(sage.features.rubiks.optimal().absolute_filename())
+        child = pexpect.spawn(cmd)
+        quit.register_spawned_process(child.pid, cmd)
         child.timeout = None
         self.child = child
         self._ready = False
@@ -154,17 +155,17 @@ class OptimalSolver:
         self.ready()
         self.child.sendline(self.format_cube(facets))
         self.child.expect(r"([LRUDBF'2 ]+)\s+\((\d+)q\*?, (\d+)f\*?\)")
-        self.child.sendline(chr(3)) # send ctrl-c
+        self.child.sendline(chr(3))  # send ctrl-c
         return bytes_to_str(self.child.match.groups()[0]).strip()
 
     def format_cube(self, facets):
         L = []
         optimal_solver_list = [SingNot(x) for x in optimal_solver_tokens]
         for f in optimal_solver_format.split(" "):
-            ix = facets[singmaster_list.index(SingNot(f))-1]
+            ix = facets[singmaster_list.index(SingNot(f)) - 1]
             facet = singmaster_list[ix]
             L.append(optimal_solver_list[optimal_solver_list.index(facet)])
-        return " ".join([str(f) for f in L])
+        return " ".join(str(f) for f in L)
 
 
 move_map = {
@@ -184,8 +185,6 @@ move_map = {
 
 
 class CubexSolver:
-
-    __cmd = "cubex"
 
     def __call__(self, facets):
         return self.solve(facets)
@@ -212,7 +211,8 @@ class CubexSolver:
             True
         """
         s = self.format_cube(facets)
-        child = pexpect.spawn(self.__cmd+" "+s)
+        cmd = shlex.quote(sage.features.rubiks.cubex().absolute_filename()) + " " + s
+        child = pexpect.spawn(cmd)
         ix = child.expect(['210.*?:', r'^5\d+(.*)'])
         if ix == 0:
             child.expect(['211', pexpect.EOF])
@@ -238,8 +238,6 @@ class CubexSolver:
 
 class DikSolver:
 
-    __cmd = "dikcube"
-
     def __call__(self, facets):
         return self.solve(facets)
 
@@ -259,7 +257,8 @@ class DikSolver:
             "R2 F'"
         """
         cube_str = self.format_cube(facets)
-        child = pexpect.spawn(self.__cmd + " -p")
+        cmd = shlex.quote(sage.features.rubiks.dikcube().absolute_filename()) + " -p"
+        child = pexpect.spawn(cmd)
         child.expect('Initialization done!')
         child.sendline(cube_str)
 
@@ -287,7 +286,8 @@ class DikSolver:
             # format the string into our notation
             child.close(True)
             sol = bytes_to_str(sol)
-            return ' '.join([self.rot_map[m[0]]+str(4-int(m[1])) for m in reversed(sol.split(' '))]).replace('1', '').replace('3',"'")
+            return ' '.join(self.rot_map[m[0]] + str(4 - int(m[1]))
+                            for m in reversed(sol.split(' '))).replace('1', '').replace('3', "'")
         elif ix == 1:
             # invalid format
             child.close(True)

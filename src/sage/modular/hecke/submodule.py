@@ -27,7 +27,6 @@ import sage.modules.all
 from . import module
 
 
-
 def is_HeckeSubmodule(x):
     r"""
     Return True if x is of type HeckeSubmodule.
@@ -97,10 +96,9 @@ class HeckeSubmodule(module.HeckeModule_free_module):
         if not (dual_free_module is None):
             if not sage.modules.free_module.is_FreeModule(dual_free_module):
                 raise TypeError("dual_free_module must be a free module")
-            if dual_free_module.rank () != submodule.rank():
+            if dual_free_module.rank() != submodule.rank():
                 raise ArithmeticError("dual_free_module must have the same rank as submodule")
             self.dual_free_module.set_cache(dual_free_module)
-
 
     def _repr_(self):
         r"""
@@ -158,7 +156,7 @@ class HeckeSubmodule(module.HeckeModule_free_module):
             (1,23)
         """
         z = self.ambient_hecke_module()(x).element()
-        if check and not z in self.__submodule:
+        if check and z not in self.__submodule:
             raise TypeError("x does not coerce to an element of this Hecke module")
         return self.element_class(self, z)
 
@@ -364,7 +362,8 @@ class HeckeSubmodule(module.HeckeModule_free_module):
             bound = A.hecke_bound()
         while True:
             if anemic:
-                while N % p == 0: p = arith.next_prime(p)
+                while N % p == 0:
+                    p = arith.next_prime(p)
             verbose("using T_%s"%p)
             f = self.hecke_polynomial(p)
             T = A.hecke_matrix(p)
@@ -553,8 +552,8 @@ class HeckeSubmodule(module.HeckeModule_free_module):
             # then we compute the dual on each eigenspace, then put them
             # together.
             if len(self.star_eigenvalues()) == 2:
-                V = self.plus_submodule(compute_dual = False).dual_free_module() + \
-                    self.minus_submodule(compute_dual = False).dual_free_module()
+                V = self.plus_submodule(compute_dual=False).dual_free_module() + \
+                    self.minus_submodule(compute_dual=False).dual_free_module()
                 return V
 
             # At this point, we know that self is an eigenspace for star.
@@ -568,7 +567,8 @@ class HeckeSubmodule(module.HeckeModule_free_module):
             bound = A.hecke_bound()
         while True:
             if anemic:
-                while N % p == 0: p = arith.next_prime(p)
+                while N % p == 0:
+                    p = arith.next_prime(p)
             verbose("using T_%s"%p)
             f = self.hecke_polynomial(p)
             T = A.dual_hecke_matrix(p)

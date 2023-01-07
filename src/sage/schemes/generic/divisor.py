@@ -43,7 +43,7 @@ EXAMPLES::
 from sage.misc.latex import latex
 from sage.misc.repr import repr_lincomb
 from sage.misc.search import search
-from sage.rings.all import ZZ
+from sage.rings.integer_ring import ZZ
 from sage.structure.formal_sum import FormalSum
 
 from .morphism import is_SchemeMorphism
@@ -177,8 +177,8 @@ class Divisor_generic(FormalSum):
             sage: D = Divisor_generic([(4, x), (-5, y), (1, x+2*y)], Div)
             sage: D._latex_()
             '\\mathrm{V}\\left(x + 2 y\\right)
-            + 4\\mathrm{V}\\left(x\\right)
-            - 5\\mathrm{V}\\left(y\\right)'
+            + 4 \\mathrm{V}\\left(x\\right)
+            - 5 \\mathrm{V}\\left(y\\right)'
         """
         # The code is copied from _repr_ with latex adjustments
         terms = list(self)
@@ -433,12 +433,11 @@ class Divisor_curve(Divisor_generic):
             -1
         """
         P = self.parent().scheme()(P)
-        if not(P in self.support()):
+        if P not in self.support():
             return self.base_ring().zero()
         t, i = search(self.support(), P)
         assert t
         try:
             return self._points[i][0]
         except AttributeError:
-                raise NotImplementedError
-
+            raise NotImplementedError

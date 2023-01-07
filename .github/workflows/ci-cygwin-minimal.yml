@@ -13,7 +13,7 @@ env:
   MAKE: make -j8
   SAGE_NUM_THREADS: 3
   CYGWIN: winsymlinks:native
-  CONFIGURE_ARGS: --enable-experimental-packages --enable-download-from-upstream-url --enable-fat-binary
+  EXTRA_CONFIGURE_ARGS: --enable-fat-binary
   SAGE_LOCAL: /opt/sage-${{ github.sha }}
 
 jobs:
@@ -43,7 +43,7 @@ jobs:
       shell: bash {0}
       run: |
         choco --version
-        PACKAGES="python38 python38-pip"
+        PACKAGES="python39 python39-pip"
         choco install $PACKAGES --source cygwin
     - name: tox
       run: |
@@ -84,7 +84,7 @@ jobs:
   cygwin-stage-i-b:
     env:
       STAGE: i-b
-      TARGETS: cython setuptools_scm kiwisolver dateutil cycler pyparsing nose certifi pkgconfig pplpy
+      TARGETS: cython setuptools_scm kiwisolver dateutil cycler pyparsing certifi pkgconfig pplpy
       LOCAL_ARTIFACT_NAME: sage-local-commit-${{ github.sha }}-cygwin-${{ matrix.pkgs }}
       LOGS_ARTIFACT_NAME: logs-commit-${{ github.sha }}-cygwin-${{ matrix.pkgs }}
 
@@ -103,7 +103,7 @@ jobs:
       shell: bash {0}
       run: |
         choco --version
-        PACKAGES="python38 python38-pip"
+        PACKAGES="python39 python39-pip"
         choco install $PACKAGES --source cygwin
     - name: tox
       run: |
@@ -168,7 +168,7 @@ jobs:
       shell: bash {0}
       run: |
         choco --version
-        PACKAGES="python38 python38-pip"
+        PACKAGES="python39 python39-pip"
         choco install $PACKAGES --source cygwin
     - uses: actions/download-artifact@v2
       with:
@@ -217,7 +217,7 @@ jobs:
     env:
       STAGE: ii-b
       PREVIOUS_STAGES: i-*
-      TARGETS: singular maxima gap pari gfan palp flintqs ratpoints arb ecm givaro
+      TARGETS: singular maxima gap pari gfan palp flintqs arb ecm givaro
       LOCAL_ARTIFACT_NAME: sage-local-commit-${{ github.sha }}-cygwin-${{ matrix.pkgs }}
       LOGS_ARTIFACT_NAME: logs-commit-${{ github.sha }}-cygwin-${{ matrix.pkgs }}
 
@@ -238,7 +238,7 @@ jobs:
       shell: bash {0}
       run: |
         choco --version
-        PACKAGES="python38 python38-pip"
+        PACKAGES="python39 python39-pip"
         choco install $PACKAGES --source cygwin
     - uses: actions/download-artifact@v2
       with:
@@ -306,7 +306,7 @@ jobs:
       shell: bash {0}
       run: |
         choco --version
-        PACKAGES="python38 python38-pip"
+        PACKAGES="python39 python39-pip"
         choco install $PACKAGES --source cygwin
     - uses: actions/download-artifact@v2
       with:
@@ -353,7 +353,7 @@ jobs:
     env:
       STAGE: ii-d
       PREVIOUS_STAGES: i-*
-      TARGETS: ipython ipywidgets notebook thebe
+      TARGETS: ipython ipywidgets notebook
       LOCAL_ARTIFACT_NAME: sage-local-commit-${{ github.sha }}-cygwin-${{ matrix.pkgs }}
       LOGS_ARTIFACT_NAME: logs-commit-${{ github.sha }}-cygwin-${{ matrix.pkgs }}
 
@@ -374,7 +374,7 @@ jobs:
       shell: bash {0}
       run: |
         choco --version
-        PACKAGES="python38 python38-pip"
+        PACKAGES="python39 python39-pip"
         choco install $PACKAGES --source cygwin
     - uses: actions/download-artifact@v2
       with:
@@ -421,7 +421,7 @@ jobs:
     env:
       STAGE: ii-e
       PREVIOUS_STAGES: i-*
-      TARGETS: threejs tachyon pillow jmol m4rie sympy lrcalc lcalc symmetrica cliquer libbraiding planarity rw elliptic_curves combinatorial_designs zn_poly sympow
+      TARGETS: threejs tachyon pillow jmol m4rie sympy lrcalc lcalc symmetrica cliquer libbraiding planarity rw elliptic_curves combinatorial_designs sympow
       LOCAL_ARTIFACT_NAME: sage-local-commit-${{ github.sha }}-cygwin-${{ matrix.pkgs }}
       LOGS_ARTIFACT_NAME: logs-commit-${{ github.sha }}-cygwin-${{ matrix.pkgs }}
 
@@ -442,7 +442,7 @@ jobs:
       shell: bash {0}
       run: |
         choco --version
-        PACKAGES="python38 python38-pip"
+        PACKAGES="python39 python39-pip"
         choco install $PACKAGES --source cygwin
     - uses: actions/download-artifact@v2
       with:
@@ -514,7 +514,7 @@ jobs:
       shell: bash {0}
       run: |
         choco --version
-        PACKAGES="python38 python38-pip"
+        PACKAGES="python39 python39-pip"
         choco install $PACKAGES --source cygwin
     - uses: actions/download-artifact@v2
       with:
@@ -586,7 +586,7 @@ jobs:
       shell: bash {0}
       run: |
         choco --version
-        PACKAGES="python38 python38-pip"
+        PACKAGES="python39 python39-pip"
         choco install $PACKAGES --source cygwin
     - uses: actions/download-artifact@v2
       with:
@@ -658,7 +658,7 @@ jobs:
       shell: bash {0}
       run: |
         choco --version
-        PACKAGES="python38 python38-pip"
+        PACKAGES="python39 python39-pip"
         choco install $PACKAGES --source cygwin
     - uses: actions/download-artifact@v2
       with:
@@ -728,7 +728,7 @@ jobs:
       shell: bash {0}
       run: |
         choco --version
-        PACKAGES="python38 python38-pip"
+        PACKAGES="python39 python39-pip"
         choco install $PACKAGES --source cygwin
     - uses: actions/download-artifact@v2
       with:
@@ -796,7 +796,7 @@ jobs:
       shell: bash {0}
       run: |
         choco --version
-        PACKAGES="python38 python38-pip"
+        PACKAGES="python39 python39-pip"
         choco install $PACKAGES --source cygwin
     - uses: actions/download-artifact@v2
       with:
@@ -864,7 +864,7 @@ jobs:
       shell: bash {0}
       run: |
         choco --version
-        PACKAGES="python38 python38-pip"
+        PACKAGES="python39 python39-pip"
         choco install $PACKAGES --source cygwin
     - uses: actions/download-artifact@v2
       with:
@@ -932,7 +932,7 @@ jobs:
       shell: bash {0}
       run: |
         choco --version
-        PACKAGES="python38 python38-pip"
+        PACKAGES="python39 python39-pip"
         choco install $PACKAGES --source cygwin
     - uses: actions/download-artifact@v2
       with:
@@ -1000,7 +1000,7 @@ jobs:
       shell: bash {0}
       run: |
         choco --version
-        PACKAGES="python38 python38-pip"
+        PACKAGES="python39 python39-pip"
         choco install $PACKAGES --source cygwin
     - uses: actions/download-artifact@v2
       with:

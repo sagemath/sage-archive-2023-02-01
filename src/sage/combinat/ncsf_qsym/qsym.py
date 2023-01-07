@@ -1581,7 +1581,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
                 EXAMPLES::
 
-                    sage: F=QuasiSymmetricFunctions(QQ).Fundamental()
+                    sage: F = QuasiSymmetricFunctions(QQ).Fundamental()
                     sage: F[3].expand(3)
                     x0^3 + x0^2*x1 + x0*x1^2 + x1^3 + x0^2*x2 + x0*x1*x2 + x1^2*x2 + x0*x2^2 + x1*x2^2 + x2^3
                     sage: F[2,1].expand(3)
@@ -1590,7 +1590,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                 One can use a different set of variable by adding an optional
                 argument ``alphabet=...`` ::
 
-                    sage: F=QuasiSymmetricFunctions(QQ).Fundamental()
+                    sage: F = QuasiSymmetricFunctions(QQ).Fundamental()
                     sage: F[3].expand(2,alphabet='y')
                     y0^3 + y0^2*y1 + y0*y1^2 + y1^3
 
@@ -1663,7 +1663,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                     M = self.parent().realization_of().Monomial()
                     return M( self ).to_symmetric_function()
                 else:
-                    raise ValueError("%s is not a symmetric function"%self)
+                    raise ValueError("%s is not a symmetric function" % self)
 
     class Monomial(CombinatorialFreeModule, BindableClass):
         r"""
@@ -1798,7 +1798,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
             EXAMPLES::
 
-                sage: M=QuasiSymmetricFunctions(QQ).Monomial()
+                sage: M = QuasiSymmetricFunctions(QQ).Monomial()
                 sage: M[4,2,3].coproduct()
                 M[] # M[4, 2, 3] + M[4] # M[2, 3] + M[4, 2] # M[3] + M[4, 2, 3] # M[]
                 sage: M.coproduct_on_basis(Composition([]))
@@ -1806,7 +1806,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
             """
             return self.tensor_square().sum_of_monomials((self._indices(compo[:i]),
                                                           self._indices(compo[i:]))
-                                                         for i in range(0,len(compo)+1))
+                                                         for i in range(len(compo)+1))
 
         def lambda_of_monomial(self, I, n):
             r"""
@@ -1908,7 +1908,8 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
             # The following algorithm is a rewriting of the formula in the docstring.
             # We are working over QQ because there are denominators which don't
             # immediately cancel.
-            from sage.rings.all import ZZ, QQ
+            from sage.rings.integer_ring import ZZ
+            from sage.rings.rational_field import QQ
             QQM = QuasiSymmetricFunctions(QQ).M()
             QQ_result = QQM.zero()
             for lam in Partitions(n):
@@ -2021,7 +2022,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                 One can use a different set of variables by using the
                 optional argument ``alphabet``::
 
-                    sage: M=QuasiSymmetricFunctions(QQ).Monomial()
+                    sage: M = QuasiSymmetricFunctions(QQ).Monomial()
                     sage: M[2,1,1].expand(4,alphabet='y')
                     y0^2*y1*y2 + y0^2*y1*y3 + y0^2*y2*y3 + y1^2*y2*y3
 
@@ -2038,6 +2039,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                 M = self.parent()
                 P = PolynomialRing(M.base_ring(), n, alphabet)
                 x = P.gens()
+
                 def on_basis(comp, i):
                     if not comp:
                         return P.one()
@@ -2143,7 +2145,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                                          for I, coeff in self
                         if list(I) in _Partitions}, remove_zeros=False)
                 else:
-                    raise ValueError("%s is not a symmetric function"%self)
+                    raise ValueError("%s is not a symmetric function" % self)
 
     M = Monomial
 
@@ -2758,7 +2760,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
             """
             return self.tensor_square().sum_of_monomials((self._indices(compo[:i]),
                                                           self._indices(compo[i:]))
-                                                         for i in range(0,len(compo)+1))
+                                                         for i in range(len(compo)+1))
 
         def product_on_basis(self, I, J):
             r"""
@@ -2897,7 +2899,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                 return (matrix([[]]), [])
             CO = compositions_order(n)
             # ZZ is faster than over QQ for inverting a matrix
-            from sage.rings.all import ZZ
+            from sage.rings.integer_ring import ZZ
             MS = MatrixSpace(ZZ, len(CO))
             M = MS([[number_of_SSRCT(al, be) for al in CO] for be in CO])
             return (M.inverse_of_unit(), CO)
@@ -3682,6 +3684,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
             if l <= n:
                 from sage.misc.cachefunc import cached_function
                 from sage.arith.all import gcd
+
                 @cached_function
                 def monolambda(I):
                     # expansion of self[I] in monomial basis,
@@ -3906,7 +3909,9 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
             """
             R = self.base_ring()
             minus_one = -R.one()
-            def z(J): return R(J.to_partition().centralizer_size())
+
+            def z(J):
+                return R(J.to_partition().centralizer_size())
             return self._from_dict({J: minus_one**(len(I)-len(J)) / z(J) * coeff_lp(I, J)
                                     for J in I.fatter()})
 
@@ -4046,7 +4051,9 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
             """
             R = self.base_ring()
             minus_one = -R.one()
-            def z(J): return R(J.to_partition().centralizer_size())
+
+            def z(J):
+                return R(J.to_partition().centralizer_size())
             return self._from_dict({J: minus_one**(len(I)-len(J)) * R.prod(J) / (coeff_ell(I, J) * z(J))
                                     for J in I.fatter()})
 

@@ -79,24 +79,24 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 # ****************************************************************************
 
-from sage.arith.all import gcd, binomial, srange
-from sage.rings.all import (PolynomialRing,
-                            Integer,
-                            ZZ)
+from sage.arith.misc import gcd, binomial
 
-from sage.rings.ring import CommutativeRing
-from sage.rings.rational_field import is_RationalField
+from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
+from sage.rings.integer import Integer
+from sage.rings.integer_ring import ZZ
 from sage.rings.polynomial.multi_polynomial_ring import is_MPolynomialRing
 from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
-from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+from sage.rings.rational_field import is_RationalField
 
 from sage.categories.fields import Fields
+from sage.categories.rings import Rings
 from sage.categories.number_fields import NumberFields
 from sage.categories.homset import Hom
 from sage.categories.map import Map
-from sage.misc.all import (latex,
-                           prod)
-from sage.misc.all import cartesian_product_iterator
+from sage.misc.latex import latex
+from sage.misc.misc_c import prod
+from sage.misc.mrange import cartesian_product_iterator
 from sage.misc.persist import register_unpickle_override
 
 from sage.structure.category_object import normalize_names
@@ -106,11 +106,13 @@ from sage.combinat.integer_vector_weighted import WeightedIntegerVectors
 from sage.combinat.permutation import Permutation
 from sage.combinat.tuple import Tuples
 from sage.combinat.tuple import UnorderedTuples
+from sage.combinat.subset import Subsets
 from sage.matrix.constructor import matrix
 from sage.modules.free_module_element import prepare
 from sage.schemes.generic.ambient_space import AmbientSpace
 from sage.schemes.projective.projective_homset import (SchemeHomset_points_projective_ring,
-                                                       SchemeHomset_points_projective_field)
+                                                       SchemeHomset_points_projective_field,
+                                                       SchemeHomset_polynomial_projective_space)
 from sage.schemes.projective.projective_point import (SchemeMorphism_point_projective_ring,
                                                       SchemeMorphism_point_projective_field,
                                                       SchemeMorphism_point_projective_finite_field)
@@ -121,6 +123,8 @@ from sage.schemes.projective.projective_morphism import (SchemeMorphism_polynomi
 
 # for better efficiency
 _Fields = Fields()
+_Rings = Rings()
+_CommRings = _Rings.Commutative()
 
 
 def is_ProjectiveSpace(x):
@@ -258,10 +262,9 @@ def ProjectiveSpace(n, R=None, names=None):
             return ProjectiveSpace_rational_field(n, R, names)
         else:
             return ProjectiveSpace_field(n, R, names)
-    elif isinstance(R, CommutativeRing):
+    elif R in _CommRings:
         return ProjectiveSpace_ring(n, R, names)
-    else:
-        raise TypeError("R (=%s) must be a commutative ring" % R)
+    raise TypeError("R (=%s) must be a commutative ring" % R)
 
 
 class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
@@ -324,7 +327,7 @@ class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
             True
         """
         normalized_names = normalize_names(n + 1, names)
-        return super(ProjectiveSpace_ring, cls).__classcall__(cls, n, R, normalized_names)
+        return super().__classcall__(cls, n, R, normalized_names)
 
     def __init__(self, n, R=ZZ, names=None):
         """
@@ -457,7 +460,7 @@ class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
             sage: P._validate([x*y - z^2, x])
             [x*y - z^2, x]
 
-       ::
+        ::
 
             sage: P.<x, y, z> = ProjectiveSpace(2, ZZ)
             sage: P._validate((x*y - z, x))
@@ -465,7 +468,7 @@ class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
             ...
             TypeError: x*y - z is not a homogeneous polynomial
 
-      ::
+        ::
 
             sage: P.<x, y, z> = ProjectiveSpace(2, ZZ)
             sage: P._validate(x*y - z)
@@ -739,6 +742,20 @@ class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
         """
         return SchemeMorphism_polynomial_projective_space(*args, **kwds)
 
+    def _homset(self, *args, **kwds):
+        """                                          ii
+        Construct the Hom-set
+
+        EXAMPLES::
+
+            sage: P.<x,y,z> = ProjectiveSpace(2, QQ)
+            sage: Hom(P, P)
+            Set of morphisms
+              From: Projective Space of dimension 2 over Rational Field
+              To:   Projective Space of dimension 2 over Rational Field
+        """
+        return SchemeHomset_polynomial_projective_space(*args, **kwds)
+
     def _point_homset(self, *args, **kwds):
         """
         Construct a point Hom-set.
@@ -852,7 +869,7 @@ class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
         """
         if v is None:
             v = self.gens()
-        return '(%s)' % (" : ".join([repr(f) for f in v]))
+        return '(%s)' % (" : ".join(repr(f) for f in v))
 
     def _latex_generic_point(self, v=None):
         """
@@ -1300,6 +1317,508 @@ class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
         monomials.reverse()  # order the monomials greatest to least via the given monomial order
         return Hom(self, CS)(monomials)
 
+    def point_transformation_matrix(self, points_source, points_target, normalize=True):
+        r"""
+
+        Returns a unique element of PGL that transforms one set of points to another.
+
+        Given a projective space of dimension n and a set of n+2 source points and a set of n+2 target
+        points in the same projective space, such that no n+1 points of each set are linearly dependent
+        find the unique element of PGL that translates the source points to the target points.
+
+        .. warning::
+            over non-exact rings such as the ComplexField, the returned matrix could
+            be very far from correct.
+
+        INPUT:
+
+            - ``points_source`` -- points in source projective space.
+
+            - ``points_target`` -- points in target projective space.
+
+            - ``normalize`` -- (default: `True`) If the returned matrix should be normalized.
+              Only works over exact rings. If the base ring is a field, the matrix is normalized so
+              that the last nonzero entry in the last row is 1. If the base ring is a ring, then
+              the matrix is normalized so that the entries are elements of the base ring.
+
+        OUTPUT: Transformation matrix - element of PGL.
+
+        ALGORITHM:
+
+        See [Hutz2007]_, Proposition 2.16 for details.
+
+        EXAMPLES::
+
+            sage: P1.<a,b,c>=ProjectiveSpace(QQ, 2)
+            sage: points_source=[P1([1, 4, 1]), P1([1, 2, 2]), P1([3, 5, 1]), P1([1, -1, 1])]
+            sage: points_target=[P1([5, -2, 7]), P1([3, -2, 3]), P1([6, -5, 9]), P1([3, 6, 7])]
+            sage: m = P1.point_transformation_matrix(points_source, points_target); m
+            [ -13/59 -128/59  -25/59]
+            [538/177    8/59  26/177]
+            [ -45/59 -196/59       1]
+            sage: [m*points_source[i] == points_target[i] for i in range(4)]
+            [True, True, True, True]
+
+        ::
+
+            sage: P.<a,b> = ProjectiveSpace(GF(13),  1)
+            sage: points_source = [P([-6, 7]), P([1, 4]), P([3, 2])]
+            sage: points_target = [P([-1, 2]), P([0, 2]), P([-1, 6])]
+            sage: P.point_transformation_matrix(points_source, points_target)
+            [10  4]
+            [10  1]
+
+        ::
+
+            sage: P.<a,b> = ProjectiveSpace(QQ, 1)
+            sage: points_source = [P([-6, -4]), P([1, 4]), P([3, 2])]
+            sage: points_target = [P([-1, 2]), P([0, 2]), P([-7, -3])]
+            sage: P.point_transformation_matrix(points_source, points_target)
+            Traceback (most recent call last):
+            ...
+            ValueError: source points not independent
+
+        ::
+
+            sage: R.<t> = FunctionField(QQ)
+            sage: P.<a,b> = ProjectiveSpace(R, 1)
+            sage: points_source = [P([-6*t, 7]), P([1, 4]), P([3, 2])]
+            sage: points_target = [P([-1, 2*t]), P([0, 2]), P([-1, 6])]
+            sage: P.point_transformation_matrix(points_source, points_target)
+            [             (1/3*t + 7/12)/(t^2 - 53/24*t)            (-1/12*t - 7/48)/(t^2 - 53/24*t)]
+            [(-2/3*t^2 - 7/36*t - 35/12)/(t^2 - 53/24*t)                                           1]
+
+        ::
+
+            sage: P1.<a,b,c>=ProjectiveSpace(RR, 2)
+            sage: points_source=[P1([1, 4, 1]), P1([1, 2, 2]), P1([3, 5, 1]), P1([1, -1, 1])]
+            sage: points_target=[P1([5, -2, 7]), P1([3, -2, 3]), P1([6, -5, 9]), P1([3, 6, 7])]
+            sage: P1.point_transformation_matrix(points_source, points_target) # abs tol 1e-13
+            [-0.0619047619047597  -0.609523809523810  -0.119047619047621]
+            [  0.853968253968253  0.0380952380952380  0.0412698412698421]
+            [ -0.214285714285712  -0.933333333333333   0.280952380952379]
+
+        ::
+
+            sage: P1.<a,b,c>=ProjectiveSpace(ZZ, 2)
+            sage: points_source=[P1([1, 4, 1]), P1([1, 2, 2]), P1([3, 5, 1]), P1([1, -1, 1])]
+            sage: points_target=[P1([5, -2, 7]), P1([3, -2, 3]), P1([6, -5, 9]), P1([3, 6, 7])]
+            sage: P1.point_transformation_matrix(points_source, points_target)
+            [ -39 -384  -75]
+            [ 538   24   26]
+            [-135 -588  177]
+
+        ::
+
+            sage: P1.<a,b,c>=ProjectiveSpace(ZZ, 2)
+            sage: points_source=[P1([1, 4, 1]), P1([1, 2, 2]), P1([3, 5, 1]), P1([1, -1, 1])]
+            sage: points_target=[P1([5, -2, 7]), P1([3, -2, 3]), P1([6, -5, 9]), P1([3, 6, 7])]
+            sage: P1.point_transformation_matrix(points_source, points_target, normalize=False)
+            [-13/30 -64/15   -5/6]
+            [269/45   4/15  13/45]
+            [  -3/2 -98/15  59/30]
+
+        ::
+
+            sage: R.<t> = ZZ[]
+            sage: P.<a,b> = ProjectiveSpace(R, 1)
+            sage: points_source = [P([-6*t, 7]), P([1, 4]), P([3, 2])]
+            sage: points_target = [P([-1, 2*t]), P([0, 2]), P([-1, 6])]
+            sage: P.point_transformation_matrix(points_source, points_target)
+            [         -48*t - 84           12*t + 21]
+            [96*t^2 + 28*t + 420    -144*t^2 + 318*t]
+
+        TESTS::
+
+            sage: P.<a,b> = ProjectiveSpace(QQ, 1)
+            sage: points_source = [P([-6, -1]), P([1, 4]), P([3, 2])]
+            sage: points_target = [P([-1, 2]), P([0, 2]), P([-2, 4])]
+            sage: P.point_transformation_matrix(points_source, points_target)
+            Traceback (most recent call last):
+            ...
+            ValueError: target points not independent
+
+        ::
+
+            sage: P.<a,b,c>=ProjectiveSpace(QQ, 2)
+            sage: points_source=[P([1, 4, 1]), P([2, -7, 9]), P([3, 5, 1])]
+            sage: points_target=[P([5, -2, 7]), P([3, -2, 3]), P([6, -5, 9]), P([6, -1, 1])]
+            sage: P.point_transformation_matrix(points_source, points_target)
+            Traceback (most recent call last):
+            ...
+            ValueError: incorrect number of points in source, need 4 points
+
+        ::
+
+            sage: P.<a,b,c>=ProjectiveSpace(QQ, 2)
+            sage: points_source=[P([1, 4, 1]), P([2, -7, 9]), P([3, 5, 1]), P([1, -1, 1])]
+            sage: points_target=[P([5, -2, 7]), P([3, -2, 3]), P([6, -5, 9]), P([6, -1, 1]),P([7, 8, -9])]
+            sage: P.point_transformation_matrix(points_source, points_target)
+            Traceback (most recent call last):
+            ...
+            ValueError: incorrect number of points in target, need 4 points
+
+        ::
+
+            sage: P.<a,b,c>=ProjectiveSpace(QQ, 2)
+            sage: P1.<x,y,z>=ProjectiveSpace(QQ, 2)
+            sage: points_source=[P([1, 4, 1]), P([2, -7, 9]), P([3, 5, 1]), P1([1, -1, 1])]
+            sage: points_target=[P([5, -2, 7]), P([3, -2, 3]), P([6, -5, 9]), P([6, -1, 1])]
+            sage: P.point_transformation_matrix(points_source, points_target)
+            Traceback (most recent call last):
+            ...
+            ValueError: source points not in self
+
+        ::
+
+            sage: P.<a,b,c>=ProjectiveSpace(QQ, 2)
+            sage: P1.<x,y,z>=ProjectiveSpace(QQ, 2)
+            sage: points_source=[P([1, 4, 1]), P([2, -7, 9]), P([3, 5, 1]), P([1, -1, 1])]
+            sage: points_target=[P([5, -2, 7]), P([3, -2, 3]), P([6, -5, 9]), P1([6, -1, 1])]
+            sage: P.point_transformation_matrix(points_source, points_target)
+            Traceback (most recent call last):
+            ...
+            ValueError: target points not in self
+
+        ::
+
+            sage: P.<x,y,z>=ProjectiveSpace(ZZ,2)
+            sage: points_source = [P(1, 0, 0), P(0, 1, 0), P(0, 0, 1), P(1, -1, -1)]
+            sage: points_target = [P(0, 1, 0), P(-2, 0, 1), P(0, 0, 1), P(1, -1, -1)]
+            sage: P.point_transformation_matrix(points_source,points_target,normalize=True)
+            [ 0 -2  0]
+            [-2  0  0]
+            [ 0  1  1]
+        """
+        r = self.base_ring()
+        n = self.dimension_relative()
+        # makes sure there aren't to few or two many points
+        if len(points_source) != n + 2:
+            raise ValueError("incorrect number of points in source, need %d points" % (n + 2))
+        if len(points_target) != n + 2:
+            raise ValueError("incorrect number of points in target, need %d points" % (n + 2))
+        if any(x.codomain() != self for x in points_source):
+            raise ValueError("source points not in self")
+        if any(x.codomain() != self for x in points_target):
+            raise ValueError("target points not in self")
+        Ms = matrix(r, [list(s) for s in points_source])
+        if any(m == 0 for m in Ms.minors(n + 1)):
+            raise ValueError("source points not independent")
+        Mt = matrix(r, [list(t) for t in points_target])
+        if any(l == 0 for l in Mt.minors(n + 1)):
+            raise ValueError("target points not independent")
+
+        # get_matrix calculates the transform from the list of points
+        # [ [1 : 0 : 0 : ... ]
+        #   [0 : 1 : 0 : ... ]
+        #   [0 : 0 : 1 : ... ]
+        #   ...
+        #   [1 : 1 : 1 : ... ] ]
+        # to the list of points S
+        def get_matrix(S, N):
+            a = matrix(N+1, N+1, [S[j][i] for i in range(N+1) for j in range(N+1)])
+            b = matrix(N+1, 1, list(S[N+1]))
+            X = a.solve_right(b)
+            m = matrix(N+1, N+1, [X[i,0]*S[i][j] for i in range(N+1) for j in range(N+1)])
+            m = m.transpose()
+            return m
+
+        m_source = get_matrix(points_source, n)
+        m_target = get_matrix(points_target, n)
+        return_mat = m_target*m_source.inverse()
+        if normalize:
+            R = self.base_ring()
+            if R.is_exact():
+                if R.is_field():
+                    last_row = list(return_mat.rows()[-1])[:]
+                    last_ele = last_row.pop()
+                    while last_ele == 0:
+                        last_ele = last_row.pop()
+                    return_mat *= ZZ(1)/last_ele
+                else:
+                    lcm = return_mat[0][0].denominator()
+                    for row in return_mat.rows():
+                        for ele in row:
+                            lcm = lcm.lcm(ele.denominator())
+                    return_mat *= lcm
+        return return_mat
+
+    def hyperplane_transformation_matrix(self, plane_1, plane_2):
+        r"""
+        Return a PGL element sending ``plane_1`` to ``plane_2``.
+
+        ``plane_1`` and ``plane_2`` must be hyperplanes (subschemes of
+        codimension 1, each defined by a single linear homogeneous equation).
+
+        INPUT:
+
+        - ``plane_1``, ``plane_2`` -- hyperplanes of this projective space
+
+        OUTPUT: An element of PGL
+
+        EXAMPLES::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: plane1 = P.subscheme(x)
+            sage: plane2 = P.subscheme(y)
+            sage: m = P.hyperplane_transformation_matrix(plane1, plane2); m
+            [0 1]
+            [1 0]
+            sage: plane2(m*P((0,1)))
+            (1 : 0)
+
+        ::
+
+            sage: P.<x,y,z,w> = ProjectiveSpace(QQ, 3)
+            sage: plane1 = P.subscheme(x + 2*y + z)
+            sage: plane2 = P.subscheme(2*x + y + z)
+            sage: P.hyperplane_transformation_matrix(plane1, plane2)
+            [1 0 0 0]
+            [0 4 0 0]
+            [0 0 2 0]
+            [0 0 0 1]
+
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(ZZ, 1)
+            sage: plane1 = P.subscheme(x + y)
+            sage: plane2 = P.subscheme(y)
+            sage: P.hyperplane_transformation_matrix(plane1, plane2)
+            [-1  0]
+            [ 1  1]
+
+        ::
+
+            sage: K.<v> = CyclotomicField(3)
+            sage: P.<x,y,z> = ProjectiveSpace(K, 2)
+            sage: plane1 = P.subscheme(x - 2*v*y + z)
+            sage: plane2 = P.subscheme(x + v*y + v*z)
+            sage: m = P.hyperplane_transformation_matrix(plane1, plane2)
+            sage: m
+            [   v    0    0]
+            [   0 -2*v    0]
+            [   0    0    1]
+
+        ::
+
+            sage: R.<x> = QQ[]
+            sage: K.<k> = NumberField(x^2+1)
+            sage: P.<x,y,z,w> = ProjectiveSpace(K, 3)
+            sage: plane1 = P.subscheme(k*x + 2*k*y + z)
+            sage: plane2 = P.subscheme(7*k*x + y + 9*z)
+            sage: m = P.hyperplane_transformation_matrix(plane1, plane2); m
+            [   1    0    0    0]
+            [   0 14*k    0    0]
+            [   0    0  7/9    0]
+            [   0    0    0    1]
+
+        ::
+
+            sage: K.<v> = CyclotomicField(3)
+            sage: R.<t> = K[]
+            sage: F.<w> = K.extension(t^5 + 2)
+            sage: G.<u> = F.absolute_field()
+            sage: P.<x,y,z> = ProjectiveSpace(G, 2)
+            sage: plane1 = P.subscheme(x - 2*u*y + z)
+            sage: plane2 = P.subscheme(x + u*y + z)
+            sage: m = P.hyperplane_transformation_matrix(plane1, plane2)
+            sage: plane2(m*P((2*u, 1, 0)))
+            (-u : 1 : 0)
+
+        ::
+
+            sage: P.<x,y,z> = ProjectiveSpace(FiniteField(2), 2)
+            sage: plane1 = P.subscheme(x + y + z)
+            sage: plane2 = P.subscheme(z)
+            sage: P.hyperplane_transformation_matrix(plane1, plane2)
+            [1 0 0]
+            [1 1 0]
+            [1 1 1]
+
+        ::
+
+            sage: R.<t> = QQ[]
+            sage: P.<x,y,z> = ProjectiveSpace(R, 2)
+            sage: plane1 = P.subscheme(x + 9*t*y + z)
+            sage: plane2 = P.subscheme(x + z)
+            sage: P.hyperplane_transformation_matrix(plane1, plane2)
+            [  1 9*t   0]
+            [  1   0   0]
+            [  0   0   1]
+
+        TESTS::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: plane1 = P.subscheme(x^2)
+            sage: plane2 = P.subscheme(y)
+            sage: P.hyperplane_transformation_matrix(plane1, plane2)
+            Traceback (most recent call last):
+            ...
+            ValueError: plane_1 must be defined by a single degree 1 equation
+        """
+        from sage.schemes.projective.projective_subscheme import AlgebraicScheme_subscheme_projective
+        if not isinstance(plane_1, AlgebraicScheme_subscheme_projective):
+            raise TypeError('plane_1 must be a subscheme')
+        if not isinstance(plane_2, AlgebraicScheme_subscheme_projective):
+            raise TypeError('plane_2 must be a subscheme')
+        if plane_1.ambient_space() != self:
+            raise ValueError('plane_1 must be a subscheme of this projective space')
+        if plane_2.ambient_space() != self:
+            raise ValueError('plane_2 must be a subscheme of this projective space')
+        if len(plane_1.defining_polynomials()) > 1 or plane_1.defining_polynomials()[0].degree() != 1:
+            raise ValueError('plane_1 must be defined by a single degree 1 equation')
+        if len(plane_2.defining_polynomials()) > 1 or plane_2.defining_polynomials()[0].degree() != 1:
+            raise ValueError('plane_2 must be defined by a single degree 1 equation')
+        N = self.dimension_relative()
+        CR = self.coordinate_ring()
+        points = []
+        from sage.rings.rational_field import QQ
+        P_QQ = ProjectiveSpace(QQ, N)
+        # to determine the PGL transform, we need N+2 points source points and N+2 target points,
+        # of which no N+1 are co-planar. Additionally, in order to map plane_1 to plane_2, N source
+        # points must lie on plane_1, and N target points must lie on plane_2
+        for plane in [plane_1, plane_2]:
+            source_points = []
+            nonzero_places = []
+            height_1 = P_QQ.points_of_bounded_height(bound=1)
+
+            # first we find N planar points
+            # we have a single linear equation with N+1 variables
+            # first we add a point for each variable with coefficient 0
+            # giving us J points added in this loop
+            for i in range(N+1):
+                if plane.defining_polynomials()[0].coefficient(CR.gens()[i]) == 0:
+                    L = [0]*(N+1)
+                    L[i] = 1
+                    source_points.append(self(L))
+                else:
+                    nonzero_places.append(i)
+            # next we add a point for each variable with non-zero coefficient, except the last
+            # giving us a total of (N+1) - J - 1 = N - J points added in this loop
+            # resulting in exactly J + (N-J) = N points on the plane
+            for i in range(len(nonzero_places)-1):
+                nonzero_place1 = nonzero_places[i]
+                nonzero_place2 = nonzero_places[i+1]
+                L = [0]*(N+1)
+                L[nonzero_place1] = -1*plane.defining_polynomials()[0].coefficient(CR.gens()[nonzero_place2])
+                L[nonzero_place2] = plane.defining_polynomials()[0].coefficient(CR.gens()[nonzero_place1])
+                source_points.append(self(L))
+
+            # next we add independent points until we have N+2 points total
+            for point in height_1:
+                if len(source_points) == N:
+                    try:
+                        plane(point)
+                    except (ValueError, TypeError):
+                        source_points.append(self(point))
+                        base_list = [list(s) for s in source_points]
+                elif len(source_points) == N + 1:
+                    Ms = matrix(base_list + [point.change_ring(self.base_ring())])
+                    if not any([m == 0 for m in Ms.minors(N + 1)]):
+                        source_points.append(self(point))
+                        break
+            if len(source_points) != N+2:
+                raise NotImplementedError('Failed to automatically find sufficient independent points.' +
+                    ' Please find the necessary independent points manually, then use point transformation matrix.')
+            points.append(source_points)
+        return self.point_transformation_matrix(points[0], points[1])
+
+    def is_linearly_independent(self, points, n=None):
+        r"""
+        Return whether the set of points is linearly independent.
+
+        Alternatively, specify ``n`` to check if every subset of
+        size ``n`` is linearly independent.
+
+        INPUT:
+
+        - ``points`` -- a list of points in this projective space.
+
+        - ``n`` -- (Optional) A positive integer less than or equal to the length
+          of ``points``. Specifies the size of the subsets to check for
+          linear independence.
+
+        OUTPUT:
+
+        - ``True`` if ``points`` is linearly independent, ``False`` otherwise.
+
+        EXAMPLES::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: points = [P((1, 0, 1)), P((1, 2, 1)), P((1, 3, 4))]
+            sage: P.is_linearly_independent(points)
+            True
+
+        ::
+
+            sage: P.<x,y,z> = ProjectiveSpace(GF(5), 2)
+            sage: points = [P((1, 0, 1)), P((1, 2, 1)), P((1, 3, 4)), P((0, 0 ,1))]
+            sage: P.is_linearly_independent(points, 2)
+            True
+
+        ::
+
+            sage: R.<c> = QQ[]
+            sage: P.<x,y,z> = ProjectiveSpace(R, 2)
+            sage: points = [P((c, 0, 1)), P((0, c, 1)), P((1, 0, 4)), P((0, 0 ,1))]
+            sage: P.is_linearly_independent(points, 3)
+            False
+
+        ::
+
+            sage: R.<c> = QQ[]
+            sage: P.<x,y,z> = ProjectiveSpace(FractionField(R), 2)
+            sage: points = [P((c, 0, 1)), P((0, c, 1)), P((1, 3, 4)), P((0, 0 ,1))]
+            sage: P.is_linearly_independent(points, 3)
+            True
+
+        ::
+
+            sage: K.<k> = CyclotomicField(3)
+            sage: P.<x,y,z> = ProjectiveSpace(K, 2)
+            sage: points = [P((k, k^2, 1)), P((0, k, 1)), P((1, 0, 4)), P((0, 0 ,1))]
+            sage: P.is_linearly_independent(points, 3)
+            True
+
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: points = [P((1, 0)), P((1, 1))]
+            sage: P.is_linearly_independent(points)
+            True
+
+        TESTS::
+
+            sage: points = [P(1, 0), P(1, 1), P(2, 1)]
+            sage: P.is_linearly_independent(points, 5)
+            Traceback (most recent call last):
+            ...
+            ValueError: n must be a non negative integer not greater than the length of points
+        """
+        if not isinstance(points, list):
+            raise TypeError("points must be a list")
+        if any(not isinstance(point, SchemeMorphism_point_projective_ring) for point in points):
+            raise TypeError("points must be a list of projective points")
+        if any(x.codomain() != self for x in points):
+            raise ValueError("points not in this projective space")
+        if n is None:
+            M = matrix([list(t) for t in points])
+            return M.rank() == len(points)
+        n = Integer(n)
+        if n < 1 or n > len(points):
+            raise ValueError('n must be a non negative integer not greater than the length of points')
+        all_subsets = Subsets(range(len(points)), n)
+        linearly_independent = True
+        for subset in all_subsets:
+            point_list = []
+            for index in subset:
+                point_list.append(list(points[index]))
+            M = matrix(point_list)
+            if M.rank() != n:
+                linearly_independent = False
+                break
+        return linearly_independent
+
 
 class ProjectiveSpace_field(ProjectiveSpace_ring):
     def _point_homset(self, *args, **kwds):
@@ -1349,18 +1868,12 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
 
     def points_of_bounded_height(self, **kwds):
         r"""
-        Returns an iterator of the points in self of absolute height of at most the given bound.
+        Return an iterator of the points in ``self`` of absolute multiplicative
+        height of at most the given bound.
 
-        Bound check is strict for the rational field. Requires self to be projective space
-        over a number field. Uses the
-        Doyle-Krumm algorithm 4 (algorithm 5 for imaginary quadratic) for
-        computing algebraic numbers up to a given height [DK2013]_.
+        ALGORITHM:
 
-        The algorithm requires floating point arithmetic, so the user is
-        allowed to specify the precision for such calculations.
-        Additionally, due to floating point issues, points
-        slightly larger than the bound may be returned. This can be controlled
-        by lowering the tolerance.
+        This is an implementation of Algorithm 6 in [Krumm2016]_.
 
         INPUT:
 
@@ -1368,74 +1881,113 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
 
         - ``bound`` - a real number
 
-        - ``tolerance`` - a rational number in (0,1] used in doyle-krumm algorithm-4
-
-        - ``precision`` - the precision to use for computing the elements of bounded height of number fields.
+        - ``precision`` - (default: 53) a positive integer
 
         OUTPUT:
 
-        - an iterator of points in this space
+        - an iterator of points of bounded height
 
         EXAMPLES::
 
             sage: P.<x,y> = ProjectiveSpace(QQ, 1)
-            sage: sorted(list(P.points_of_bounded_height(bound=5)))
-            [(0 : 1), (1 : -5), (1 : -4), (1 : -3), (1 : -2), (1 : -1), (1 : 0),
-             (1 : 1), (1 : 2), (1 : 3), (1 : 4), (1 : 5), (2 : -5), (2 : -3),
-             (2 : -1), (2 : 1), (2 : 3), (2 : 5), (3 : -5), (3 : -4), (3 : -2),
-             (3 : -1), (3 : 1), (3 : 2), (3 : 4), (3 : 5), (4 : -5), (4 : -3),
-             (4 : -1), (4 : 1), (4 : 3), (4 : 5), (5 : -4), (5 : -3), (5 : -2),
-             (5 : -1), (5 : 1), (5 : 2), (5 : 3), (5 : 4)]
+            sage: sorted(list(P.points_of_bounded_height(bound=2)))
+            [(-2 : 1), (-1 : 1), (-1/2 : 1), (0 : 1),
+             (1/2 : 1), (1 : 0), (1 : 1), (2 : 1)]
 
         ::
 
             sage: u = QQ['u'].0
             sage: P.<x,y,z> = ProjectiveSpace(NumberField(u^2 - 2, 'v'), 2)
-            sage: len(list(P.points_of_bounded_height(bound=1.5, tolerance=0.1)))
+            sage: len(list(P.points_of_bounded_height(bound=2)))
+            265
+
+        ::
+
+            sage: CF.<a> = CyclotomicField(3)
+            sage: R.<x> = CF[]
+            sage: L.<l> = CF.extension(x^3 + 2)
+            sage: Q.<x,y> = ProjectiveSpace(L, 1)
+            sage: sorted(list(Q.points_of_bounded_height(bound=1)))
+            [(0 : 1), (1 : 0), (a + 1 : 1), (a : 1),
+             (-1 : 1), (-a - 1 : 1), (-a : 1), (1 : 1)]
+
+        ::
+
+            sage: R.<x> = QQ[]
+            sage: F.<a> = NumberField(x^4 - 8*x^2 + 3)
+            sage: P.<x,y,z> = ProjectiveSpace(F, 2)
+            sage: all([exp(p.global_height()) <= 1 for p in P.points_of_bounded_height(bound=1)])
+            True
+
+        ::
+
+            sage: K.<a> = CyclotomicField(3)
+            sage: P.<x,y,z> = ProjectiveSpace(K, 2)
+            sage: len(list(P.points_of_bounded_height(bound=1)))
             57
+
+        ::
+
+            sage: u = QQ['u'].0
+            sage: K.<k> = NumberField(u^2 - 2)
+            sage: P.<x,y> = ProjectiveSpace(K, 1)
+            sage: len(list(P.points_of_bounded_height(bound=2)))
+            24
+
+        ::
+
+            sage: R.<x> = QQ[]
+            sage: K.<k> = NumberField(x^4 - 8*x^2 + 3)
+            sage: P.<x,y> = ProjectiveSpace(K, 1)
+            sage: len(list(P.points_of_bounded_height(bound=2)))
+            108
+
+        ::
+
+            sage: R.<x> = QQ[]
+            sage: K.<v> = NumberField(x^5 + x^3 + 1)
+            sage: P.<x,y,z> = ProjectiveSpace(K, 2)
+            sage: L = P.points_of_bounded_height(bound=1.2)
+            sage: len(list(L))
+            109
         """
-        if is_RationalField(self.base_ring()):
-            ftype = False  # stores whether the field is a number field or the rational field
-        elif self.base_ring() in NumberFields():  # true for rational field as well, so check is_RationalField first
-            ftype = True
+        from sage.schemes.projective.proj_bdd_height import QQ_points_of_bounded_height, IQ_points_of_bounded_height, points_of_bounded_height
+
+        R = self.base_ring()
+
+        # whether the field is a number field or the rational field
+        if is_RationalField(R):
+            field_type = False
+        elif R in NumberFields():
+            # true for rational field as well, so check is_RationalField first
+            field_type = True
         else:
             raise NotImplementedError("self must be projective space over a number field")
 
         bound = kwds.pop('bound')
-        B = bound**(self.base_ring().absolute_degree())  # convert to relative height
+        prec = kwds.pop('precision', 53)
 
-        n = self.dimension_relative()
-        R = self.base_ring()
-        if ftype:
-            zero = R.zero()
-            i = n
-            while not i < 0:
-                P = [zero for _ in range(i)] + [R.one()]
-                P += [zero for _ in range(n - i)]
-                yield self(P)
-                tol = kwds.pop('tolerance', 1e-2)
-                prec = kwds.pop('precision', 53)
-                iters = [R.elements_of_bounded_height(bound=B, tolerance=tol, precision=prec) for _ in range(i)]
-                for x in iters:
-                    next(x)  # put at zero
-                j = 0
-                while j < i:
-                    try:
-                        P[j] = next(iters[j])
-                        yield self(P)
-                        j = 0
-                    except StopIteration:
-                        iters[j] = R.elements_of_bounded_height(bound=B, tolerance=tol, precision=prec)  # reset
-                        next(iters[j])  # put at zero
-                        P[j] = zero
-                        j += 1
-                i -= 1
-        else:  # base ring QQ
-            zero = (0,) * (n + 1)
-            for c in cartesian_product_iterator([srange(-B, B + 1)
-                                                 for _ in range(n + 1)]):
-                if gcd(c) == 1 and c > zero:
-                    yield self.point(c, check=False)
+        # Convert between absolute and relative height for calling Krumm's algorithm
+        bound = bound**R.absolute_degree()
+
+        dim = self.dimension_relative()
+
+        if field_type:
+            # for imaginary quadratic field
+            r1, r2 = R.signature()
+            r = r1 + r2 - 1
+
+            if R.is_relative():
+                deg = R.relative_degree()
+            else:
+                deg = R.degree()
+
+            if deg == 2 and r == 0:
+                return IQ_points_of_bounded_height(self, R, dim, bound)
+
+            return points_of_bounded_height(self, R, dim, bound, prec)
+        else:
+            return QQ_points_of_bounded_height(dim, bound)
 
     def subscheme_from_Chow_form(self, Ch, dim):
         r"""
@@ -1547,140 +2099,6 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
             return self.subscheme(ch.coefficients())
         else:
             return self.subscheme(ch)
-
-    def point_transformation_matrix(self, points_source, points_target):
-        r"""
-
-        Returns a unique element of PGL that transforms one set of points to another.
-
-        Given a projective space of degree n and a set of n+2 source points and a set of n+2 target
-        points in the same projective space, such that no n+1 points of each set are linearly dependent
-        finds the unique element of PGL that translates the source points to the target points.
-
-
-        Warning :: will not work over precision fields
-
-        INPUT:
-
-            - ``points_source`` - points in source projective space.
-
-            - ``points_target`` - points in target projective space.
-
-        OUTPUT: Transformation matrix - element of PGL.
-
-        EXAMPLES::
-
-            sage: P1.<a,b,c>=ProjectiveSpace(QQ, 2)
-            sage: points_source=[P1([1,4,1]),P1([1,2,2]),P1([3,5,1]),P1([1,-1,1])]
-            sage: points_target=[P1([5,-2,7]),P1([3,-2,3]),P1([6,-5,9]), P1([3,6,7])]
-            sage: m = P1.point_transformation_matrix(points_source, points_target); m
-            [ -13/59 -128/59  -25/59]
-            [538/177    8/59  26/177]
-            [ -45/59 -196/59       1]
-            sage: [P1(list(m*vector(list(points_source[i])))) == points_target[i] for i in range(4)]
-            [True, True, True, True]
-
-        ::
-
-            sage: P.<a,b> = ProjectiveSpace(GF(13),1)
-            sage: points_source = [P([-6,7]), P([1,4]), P([3,2])]
-            sage: points_target = [P([-1,2]), P([0,2]), P([-1,6])]
-            sage: P.point_transformation_matrix(points_source, points_target)
-            [10  4]
-            [10  1]
-
-        ::
-
-            sage: P.<a,b> = ProjectiveSpace(QQ,1)
-            sage: points_source = [P([-6,-4]), P([1,4]), P([3,2])]
-            sage: points_target = [P([-1,2]), P([0,2]), P([-7,-3])]
-            sage: P.point_transformation_matrix(points_source, points_target)
-            Traceback (most recent call last):
-            ...
-            ValueError: source points not independent
-
-        ::
-
-            sage: P.<a,b> = ProjectiveSpace(QQ,1)
-            sage: points_source = [P([-6,-1]), P([1,4]), P([3,2])]
-            sage: points_target = [P([-1,2]), P([0,2]), P([-2,4])]
-            sage: P.point_transformation_matrix(points_source, points_target)
-            Traceback (most recent call last):
-            ...
-            ValueError: target points not independent
-
-        ::
-
-            sage: P.<a,b,c>=ProjectiveSpace(QQ, 2)
-            sage: points_source=[P([1,4,1]),P([2,-7,9]),P([3,5,1])]
-            sage: points_target=[P([5,-2,7]),P([3,-2,3]),P([6,-5,9]),P([6,-1,1])]
-            sage: P.point_transformation_matrix(points_source, points_target)
-            Traceback (most recent call last):
-            ...
-            ValueError: incorrect number of points in source, need 4 points
-
-        ::
-
-            sage: P.<a,b,c>=ProjectiveSpace(QQ, 2)
-            sage: points_source=[P([1,4,1]),P([2,-7,9]),P([3,5,1]),P([1,-1,1])]
-            sage: points_target=[P([5,-2,7]),P([3,-2,3]),P([6,-5,9]),P([6,-1,1]),P([7,8,-9])]
-            sage: P.point_transformation_matrix(points_source, points_target)
-            Traceback (most recent call last):
-            ...
-            ValueError: incorrect number of points in target, need 4 points
-
-        ::
-
-            sage: P.<a,b,c>=ProjectiveSpace(QQ, 2)
-            sage: P1.<x,y,z>=ProjectiveSpace(QQ, 2)
-            sage: points_source=[P([1,4,1]),P([2,-7,9]),P([3,5,1]),P1([1,-1,1])]
-            sage: points_target=[P([5,-2,7]),P([3,-2,3]),P([6,-5,9]),P([6,-1,1])]
-            sage: P.point_transformation_matrix(points_source, points_target)
-            Traceback (most recent call last):
-            ...
-            ValueError: source points not in self
-
-        ::
-
-            sage: P.<a,b,c>=ProjectiveSpace(QQ, 2)
-            sage: P1.<x,y,z>=ProjectiveSpace(QQ, 2)
-            sage: points_source=[P([1,4,1]),P([2,-7,9]),P([3,5,1]),P([1,-1,1])]
-            sage: points_target=[P([5,-2,7]),P([3,-2,3]),P([6,-5,9]),P1([6,-1,1])]
-            sage: P.point_transformation_matrix(points_source, points_target)
-            Traceback (most recent call last):
-            ...
-            ValueError: target points not in self
-        """
-        r = self.base_ring()
-        n = self.dimension_relative()
-        P = ProjectiveSpace(r, n * (n + 2), 'p')
-        # makes sure there aren't to few or two many points
-        if len(points_source) != n + 2:
-            raise ValueError("incorrect number of points in source, need %d points" % (n + 2))
-        if len(points_target) != n + 2:
-            raise ValueError("incorrect number of points in target, need %d points" % (n + 2))
-        if any(x.codomain() != self for x in points_source):
-            raise ValueError("source points not in self")
-        if any(x.codomain() != self for x in points_target):
-            raise ValueError("target points not in self")
-        # putting points as the rows of the matrix
-        Ms = matrix(r, [list(s) for s in points_source])
-        if any(m == 0 for m in Ms.minors(n + 1)):
-            raise ValueError("source points not independent")
-        Mt = matrix(r, [list(t) for t in points_target])
-        if any(l == 0 for l in Mt.minors(n + 1)):
-            raise ValueError("target points not independent")
-        A = matrix(P.coordinate_ring(), n + 1, n + 1, P.gens())
-        # transpose to get image points and then get the list of image points with columns
-        funct = (A * Ms.transpose()).columns()
-        eq = []
-        for fk, ptk in zip(funct, points_target):
-            # n+2 num f point and n is size of pts
-            eq += [fk[i] * ptk[j] - fk[j] * ptk[i]
-                   for i in range(n + 1) for j in range(i + 1, n + 1)]
-        v = P.subscheme(eq)
-        w = v.rational_points()
-        return matrix(r, n + 1, n + 1, list(w[0]))
 
     def curve(self, F):
         r"""

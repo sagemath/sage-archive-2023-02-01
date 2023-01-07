@@ -153,7 +153,7 @@ class CartesianProductFunctor(CovariantFunctorialConstruction, MultivariateConst
             sage: cartesian_product([set([0,1,2]), [0,1]])
             The Cartesian product of ({0, 1, 2}, {0, 1})
             sage: _.category()
-            Category of Cartesian products of sets
+            Category of Cartesian products of finite enumerated sets
 
         Check that the empty product is handled correctly:
 
@@ -188,9 +188,9 @@ class CartesianProductFunctor(CovariantFunctorialConstruction, MultivariateConst
             from sage.sets.cartesian_product import CartesianProduct
             return CartesianProduct((), cat)
         elif self._forced_category is not None:
-            return super(CartesianProductFunctor, self).__call__(args, category=self._forced_category, **kwds)
+            return super().__call__(args, category=self._forced_category, **kwds)
 
-        return super(CartesianProductFunctor, self).__call__(args, **kwds)
+        return super().__call__(args, **kwds)
 
     def __eq__(self, other):
         r"""
@@ -283,4 +283,3 @@ EXAMPLES::
     sage: cartesian_product
     The cartesian_product functorial construction
 """
-

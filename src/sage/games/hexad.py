@@ -124,7 +124,7 @@ def picture_set(A, L):
     return set([A[x] for x in L])
 
 
-class Minimog(object):
+class Minimog():
     r"""
     This implements the Conway/Curtis minimog idea for describing
     the Steiner triple system `S(5, 6, 12)`.
@@ -711,4 +711,3 @@ class Minimog(object):
                 return str(x) + ' --> ' + str(y) + ". The total went from " + str(total) + " to " + str(total - x + y) + "."
         print("This is a hexad. \n There is no winning move, so make a random legal move.")
         return L0
-

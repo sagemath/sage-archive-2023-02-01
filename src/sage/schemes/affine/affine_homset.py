@@ -23,30 +23,33 @@ AUTHORS:
 - Ben Hutz (2018): add numerical point support
 """
 
-
-#*****************************************************************************
-#       Copyright (C) 2006 William Stein <wstein@gmail.com>
+# *****************************************************************************
+#        Copyright (C) 2006 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#  as published by the Free Software Foundation; either version 2 of
-#  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#   Distributed under the terms of the GNU General Public License (GPL)
+#   as published by the Free Software Foundation; either version 2 of
+#   the License, or (at your option) any later version.
+#                   http://www.gnu.org/licenses/
+# *****************************************************************************
+
+from copy import copy
 
 from sage.misc.verbose import verbose
-from sage.rings.all import ZZ, CC, RR
+from sage.rings.integer_ring import ZZ
+from sage.rings.real_mpfr import RR
+from sage.rings.cc import CC
 from sage.rings.rational_field import is_RationalField
 from sage.categories.fields import Fields
 from sage.categories.number_fields import NumberFields
 from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-import sage.schemes.generic.homset
-from copy import copy
+from sage.schemes.generic.homset import SchemeHomset_points, SchemeHomset_generic
 
-#*******************************************************************
-# Affine varieties
-#*******************************************************************
-class SchemeHomset_points_spec(sage.schemes.generic.homset.SchemeHomset_generic):
+# *******************************************************************
+#  Affine varieties
+# *******************************************************************
+
+class SchemeHomset_points_spec(SchemeHomset_generic):
     """
     Set of rational points of an affine variety.
 
@@ -60,7 +63,6 @@ class SchemeHomset_points_spec(sage.schemes.generic.homset.SchemeHomset_generic)
         sage: SchemeHomset_points_spec(Spec(QQ), Spec(QQ))
         Set of rational points of Spectrum of Rational Field
     """
-
     def _element_constructor_(self, *args, **kwds):
         """
         The element constructor.
@@ -84,7 +86,7 @@ class SchemeHomset_points_spec(sage.schemes.generic.homset.SchemeHomset_generic)
               Defn: Ring endomorphism of Rational Field
                       Defn: 1 |--> 1
         """
-        return sage.schemes.generic.homset.SchemeHomset_generic._element_constructor_(self, *args, **kwds)
+        return super()._element_constructor_(*args, **kwds)
 
     def _repr_(self):
         """
@@ -99,14 +101,47 @@ class SchemeHomset_points_spec(sage.schemes.generic.homset.SchemeHomset_generic)
             sage: S._repr_()
             'Set of rational points of Spectrum of Rational Field'
         """
-        return 'Set of rational points of '+str(self.codomain())
+        return 'Set of rational points of {}'.format(self.codomain())
 
 
+class SchemeHomset_polynomial_affine_space(SchemeHomset_generic):
+    """
+    Set of morphisms between affine spaces defined by polynomials.
 
-#*******************************************************************
-# Affine varieties
-#*******************************************************************
-class SchemeHomset_points_affine(sage.schemes.generic.homset.SchemeHomset_points):
+    EXAMPLES::
+
+        sage: A.<x,y> = AffineSpace(2, QQ)
+        sage: Hom(A, A)
+        Set of morphisms
+          From: Affine Space of dimension 2 over Rational Field
+          To:   Affine Space of dimension 2 over Rational Field
+    """
+    def identity(self):
+        """
+        The identity morphism of this homset.
+
+        EXAMPLES::
+
+            sage: A.<x,y> = AffineSpace(2, QQ)
+            sage: I = A.identity_morphism()
+            sage: I.parent()
+            Set of morphisms
+              From: Affine Space of dimension 2 over Rational Field
+              To:   Affine Space of dimension 2 over Rational Field
+            sage: _.identity() == I
+            True
+        """
+        if self.is_endomorphism_set():
+            from sage.schemes.generic.morphism import SchemeMorphism_polynomial_id
+            return SchemeMorphism_polynomial_id(self.domain())
+        raise TypeError("identity map is only defined for endomorphisms")
+
+
+# *******************************************************************
+#  Affine varieties
+# *******************************************************************
+
+class SchemeHomset_points_affine(SchemeHomset_points):
     """
     Set of rational points of an affine variety.
 
@@ -209,7 +244,7 @@ class SchemeHomset_points_affine(sage.schemes.generic.homset.SchemeHomset_points
             sage: A.<x,y> = AffineSpace(CC, 2)
             sage: E = A.subscheme([y^3 - x^3 - x^2, x*y])
             sage: E(A.base_ring()).points()
-            verbose 0 (124: affine_homset.py, points) Warning: computations in the numerical fields are inexact;points may be computed partially or incorrectly.
+            verbose 0 (...: affine_homset.py, points) Warning: computations in the numerical fields are inexact;points may be computed partially or incorrectly.
             [(-1.00000000000000, 0.000000000000000),
             (0.000000000000000, 0.000000000000000)]
 
@@ -218,7 +253,7 @@ class SchemeHomset_points_affine(sage.schemes.generic.homset.SchemeHomset_points
             sage: A.<x1,x2> = AffineSpace(CDF, 2)
             sage: E = A.subscheme([x1^2 + x2^2 + x1*x2, x1 + x2])
             sage: E(A.base_ring()).points()
-            verbose 0 (124: affine_homset.py, points) Warning: computations in the numerical fields are inexact;points may be computed partially or incorrectly.
+            verbose 0 (...: affine_homset.py, points) Warning: computations in the numerical fields are inexact;points may be computed partially or incorrectly.
             [(0.0, 0.0)]
         """
         from sage.schemes.affine.affine_space import is_AffineSpace
@@ -398,7 +433,7 @@ class SchemeHomset_points_affine(sage.schemes.generic.homset.SchemeHomset_points
         from sage.schemes.affine.affine_space import is_AffineSpace
         if F is None:
             F = CC
-        if not F in Fields() or not hasattr(F, 'precision'):
+        if F not in Fields() or not hasattr(F, 'precision'):
             raise TypeError('F must be a numerical field')
         X = self.codomain()
         if X.base_ring() not in NumberFields():

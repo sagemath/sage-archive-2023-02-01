@@ -113,7 +113,7 @@ cdef inline bint integer_check_long(x, long* value, int* err) except -1:
 
     We create a pure Python wrapper of this function::
 
-        sage: cython('''
+        sage: cython('''  # optional - sage.misc.cython
         ....: from sage.arith.long cimport *
         ....: from sage.rings.integer cimport smallInteger
         ....: def check_long(x):
@@ -194,15 +194,10 @@ cdef inline long dig(const digit* D, int n):
 cdef inline bint integer_check_long_py(x, long* value, int* err):
     """
     Part of ``integer_check_long`` in ``long.pxd``, checking only for
-    Python objects of type ``int`` and ``long``. See that function for
+    Python objects of type ``int``. See that function for
     documentation and tests.
     """
-    if not isinstance(x, long):
-        if isinstance(x, int):
-            # This can happen only on Python 2
-            value[0] = PyInt_AS_LONG(x)
-            err[0] = 0
-            return 1
+    if not isinstance(x, int):
         err[0] = ERR_TYPE
         return 0
 
@@ -273,7 +268,7 @@ cdef inline bint is_small_python_int(obj):
 
     EXAMPLES::
 
-        sage: cython('''
+        sage: cython('''  # optional - sage.misc.cython
         ....: from sage.arith.long cimport is_small_python_int
         ....: def is_small_wrapper(x):
         ....:     return is_small_python_int(x)

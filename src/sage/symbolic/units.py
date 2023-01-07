@@ -93,7 +93,7 @@ import re
 from .ring import SR
 from .expression import Expression
 from sage.interfaces.tab_completion import ExtraTabCompletion
-from sage.docs.instancedoc import instancedoc
+from sage.misc.instancedoc import instancedoc
 
 ###############################################################################
 # Unit conversions dictionary.
@@ -497,7 +497,7 @@ def evalunitdict():
 
         sage: sage.symbolic.units.evalunitdict()
     """
-    from sage.misc.all import sage_eval
+    from sage.misc.sage_eval import sage_eval
     for key, value in unitdict.items():
         unitdict[key] = dict([(a,sage_eval(repr(b))) for a, b in value.items()])
 
@@ -509,11 +509,13 @@ def evalunitdict():
     # Format the table for easier use.
     #
     for k, v in unitdict.items():
-        for a in v: unit_to_type[a] = k
+        for a in v:
+            unit_to_type[a] = k
 
     for w in unitdict:
         for j in unitdict[w]:
-            if isinstance(unitdict[w][j], tuple): unitdict[w][j] = unitdict[w][j][0]
+            if isinstance(unitdict[w][j], tuple):
+                unitdict[w][j] = unitdict[w][j][0]
         value_to_unit[w] = {b: a for a, b in unitdict[w].items()}
 
 
@@ -976,7 +978,7 @@ def unit_derivations_expr(v):
     Z = unit_derivations[v]
     if isinstance(Z,str):
         d = dict([(x,str_to_unit(x)) for x in vars_in_str(Z)])
-        from sage.misc.all import sage_eval
+        from sage.misc.sage_eval import sage_eval
         Z = sage_eval(Z, d)
         unit_derivations[v] = Z
     return Z
@@ -1385,7 +1387,7 @@ def base_units(unit):
         sage: sage.symbolic.units.base_units(var('x'))
         x
     """
-    from sage.misc.all import sage_eval
+    from sage.misc.sage_eval import sage_eval
     if str(unit) not in unit_to_type:
         return unit
     elif unit_to_type[str(unit)] == 'si_prefixes' or unit_to_type[str(unit)] == 'unit_multipliers':
@@ -1449,12 +1451,13 @@ def convert_temperature(expr, target):
     if len(expr.variables()) != 1:
         raise ValueError("Cannot convert")
     elif target is None or unit_to_type[str(target)] == 'temperature':
-        from sage.misc.all import sage_eval
+        from sage.misc.sage_eval import sage_eval
         expr_temp = expr.variables()[0]
         coeff = expr/expr_temp
         if target is not None:
             target_temp = target.variables()[0]
-        a = sage_eval(unitdict['temperature'][str(expr_temp)], locals = {'x':coeff})
+        a = sage_eval(unitdict['temperature'][str(expr_temp)],
+                      locals={'x': coeff})
         if  target is None or target_temp == units.temperature.kelvin:
             return a[0]*units.temperature.kelvin
         elif target_temp == units.temperature.celsius or target_temp == units.temperature.centigrade:

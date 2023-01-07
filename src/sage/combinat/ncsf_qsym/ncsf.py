@@ -30,7 +30,7 @@ from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.misc_c import prod
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.functions.other import factorial
+from sage.arith.misc import factorial
 from sage.categories.realizations import Category_realization_of_parent
 from sage.categories.rings import Rings
 from sage.categories.fields import Fields
@@ -1644,7 +1644,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
                 EXAMPLES::
 
-                    sage: R=NonCommutativeSymmetricFunctions(QQ).R()
+                    sage: R = NonCommutativeSymmetricFunctions(QQ).R()
                     sage: R[2,1].to_symmetric_group_algebra()
                     [1, 3, 2] + [2, 3, 1]
                     sage: R([]).to_symmetric_group_algebra()
@@ -2224,7 +2224,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
                 EXAMPLES::
 
-                    sage: S=NonCommutativeSymmetricFunctions(QQ).S()
+                    sage: S = NonCommutativeSymmetricFunctions(QQ).S()
                     sage: S.antipode
                     Generic endomorphism of Non-Commutative Symmetric Functions over the Rational Field in the Complete basis
                 """
@@ -2245,7 +2245,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
                 EXAMPLES::
 
-                    sage: S=NonCommutativeSymmetricFunctions(QQ).S()
+                    sage: S = NonCommutativeSymmetricFunctions(QQ).S()
                     sage: S.coproduct
                     Generic morphism:
                       From: Non-Commutative Symmetric Functions over the Rational Field in the Complete basis
@@ -2585,7 +2585,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
             EXAMPLES::
 
-                sage: R=NonCommutativeSymmetricFunctions(QQ).ribbon()
+                sage: R = NonCommutativeSymmetricFunctions(QQ).ribbon()
                 sage: R.dual()
                 Quasisymmetric functions over the Rational Field in the Fundamental basis
             """
@@ -2683,7 +2683,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
             EXAMPLES::
 
-                sage: R=NonCommutativeSymmetricFunctions(QQ).R()
+                sage: R = NonCommutativeSymmetricFunctions(QQ).R()
                 sage: R.to_symmetric_function_on_basis(Composition([3,1,1]))
                 s[3, 1, 1]
                 sage: R.to_symmetric_function_on_basis(Composition([4,2,1]))
@@ -3039,7 +3039,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
             EXAMPLES::
 
-                sage: S=NonCommutativeSymmetricFunctions(QQ).complete()
+                sage: S = NonCommutativeSymmetricFunctions(QQ).complete()
                 sage: S.to_symmetric_function_on_basis([2,1,3])
                 h[3, 2, 1]
                 sage: S.to_symmetric_function_on_basis([])
@@ -3097,7 +3097,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
             EXAMPLES::
 
-                sage: S=NonCommutativeSymmetricFunctions(QQ).S()
+                sage: S = NonCommutativeSymmetricFunctions(QQ).S()
                 sage: S._to_symmetric_group_algebra_on_basis(Composition([1,2]))
                 [1, 2, 3] + [2, 1, 3] + [3, 1, 2]
                 sage: S._to_symmetric_group_algebra_on_basis(Composition([]))
@@ -3794,8 +3794,6 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 sage: all( psi_int_test(i) for i in range(4) )
                 True
                 sage: psi_int_test(4)   # long time
-                True
-                sage: psi_int_test(5)   # long time
                 True
             """
             # The algorithm used here is described in
@@ -4712,7 +4710,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
             EXAMPLES::
 
-                sage: I=NonCommutativeSymmetricFunctions(QQ).I()
+                sage: I = NonCommutativeSymmetricFunctions(QQ).I()
                 sage: I._H([2,0,1])
                 S[2, 1]
                 sage: I._H([2,0,1,-1])
@@ -4743,7 +4741,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
             EXAMPLES::
 
-                sage: I=NonCommutativeSymmetricFunctions(QQ).I()
+                sage: I = NonCommutativeSymmetricFunctions(QQ).I()
                 sage: I._to_complete_on_basis(Composition([]))
                 S[]
                 sage: I._to_complete_on_basis(Composition([2,1,3]))
@@ -4777,7 +4775,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
             EXAMPLES::
 
-                sage: I=NonCommutativeSymmetricFunctions(QQ).I()
+                sage: I = NonCommutativeSymmetricFunctions(QQ).I()
                 sage: I._from_complete_on_basis(Composition([]))
                 I[]
                 sage: I._from_complete_on_basis(Composition([2,1,3]))
@@ -4802,7 +4800,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
             EXAMPLES::
 
-                sage: I=NonCommutativeSymmetricFunctions(QQ).Immaculate()
+                sage: I = NonCommutativeSymmetricFunctions(QQ).Immaculate()
                 sage: I.dual()
                 Quasisymmetric functions over the Rational Field in the dualImmaculate
                 basis
@@ -5013,7 +5011,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 return (matrix([[]]), [])
             CO = compositions_order(n)
             # ZZ is faster than over QQ for inverting a matrix
-            from sage.rings.all import ZZ
+            from sage.rings.integer_ring import ZZ
             MS = MatrixSpace(ZZ, len(CO))
             return (MS([[number_of_SSRCT(al,be) for be in CO] for al in CO]).inverse(),
                     CO)

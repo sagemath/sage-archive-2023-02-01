@@ -30,12 +30,6 @@ cdef class PPLBackend(GenericBackend):
 
     """
     MIP Backend that uses the exact MIP solver from the Parma Polyhedra Library.
-
-    General backend testsuite::
-
-        sage: from sage.numerical.backends.generic_backend import get_solver
-        sage: p = get_solver(solver = "PPL")
-        sage: TestSuite(p).run(skip="_test_pickling")
     """
 
     cdef object mip
@@ -73,7 +67,7 @@ cdef class PPLBackend(GenericBackend):
         """
 
         if base_ring is not None:
-            from sage.rings.all import QQ
+            from sage.rings.rational_field import QQ
             if base_ring is not QQ:
                 raise TypeError('The PPL backend only supports rational data.')
 
@@ -96,7 +90,7 @@ cdef class PPLBackend(GenericBackend):
             self.set_sense(-1)
 
     cpdef base_ring(self):
-        from sage.rings.all import QQ
+        from sage.rings.rational_field import QQ
         return QQ
 
     cpdef zero(self):
@@ -146,7 +140,7 @@ cdef class PPLBackend(GenericBackend):
             sage: p.base_ring()
             Rational Field
             sage: type(p.zero())
-            <type 'sage.rings.rational.Rational'>
+            <class 'sage.rings.rational.Rational'>
             sage: p.init_mip()
         """
 
@@ -1076,7 +1070,7 @@ cdef class PPLBackend(GenericBackend):
         - ``index`` (integer) -- the variable's id
 
         - ``value`` -- real value, or ``None`` to mean that the
-          variable has not upper bound. When set to ``None``
+          variable has not upper bound. When set to ``False``
           (default), the method returns the current value.
 
         EXAMPLES::
@@ -1108,7 +1102,7 @@ cdef class PPLBackend(GenericBackend):
         - ``index`` (integer) -- the variable's id
 
         - ``value`` -- real value, or ``None`` to mean that the
-          variable has not lower bound. When set to ``None``
+          variable has not lower bound. When set to ``False``
           (default), the method returns the current value.
 
         EXAMPLES::

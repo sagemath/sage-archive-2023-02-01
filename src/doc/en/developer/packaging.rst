@@ -79,7 +79,21 @@ the following source types:
      (see :ref:`section-spkg-install`);
 
    - Sage records the version number of the package installed using a file in
-     ``$SAGE_LOCAL/var/lib/sage/installed/`` and will re-run the installation
+     ``$SAGE_LOCAL/var/lib/sage/installed/`` and will rerun the installation
+     if ``package-version.txt`` changes.
+
+#. A ``wheel`` package:
+
+   - comes from the wheel file named in the required file ``checksums.ini``
+     and hosted on the Sage mirrors;
+
+   - per policy, only platform-independent wheels are allowed, i.e.,
+     ``*-none-any.whl`` files;
+
+   - its version number is defined by the required file ``package-version.txt``;
+
+   - Sage records the version number of the package installed using a file in
+     ``$SAGE_LOCAL/var/lib/sage/installed/`` and will rerun the installation
      if ``package-version.txt`` changes.
 
 #. A ``pip`` package:
@@ -103,17 +117,25 @@ the following source types:
 
    - the file ``package-version.txt`` is optional;
 
-   - installing the package runs the build and install scripts
+   - installing the package runs the installation script ``spkg-install``
      (see :ref:`section-spkg-install`);
 
    - Sage records the version number of the package installed using a file in
-     ``$SAGE_LOCAL/var/lib/sage/installed/`` and will re-run the installation
+     ``$SAGE_LOCAL/var/lib/sage/installed/`` and will rerun the installation
      if ``package-version.txt`` changes.
+
+#. A ``dummy`` package:
+
+   - is only used for recording the names of equivalent system packages;
+
+   - there is no ``spkg-install`` script, and attempts to install the package
+     using Sage will give an error message.
 
 To summarize: the package source type is determined as follows: if
 there is a file ``requirements.txt``, it is a ``pip`` package. If not,
-then if there is a ``checksums.ini`` file, it is ``normal``;
-otherwise, it is a ``script`` package.
+then if there is a ``checksums.ini`` file, it is ``normal`` or ``wheel``.
+Otherwise, if it has an ``spkg-install`` script, it is a ``script`` package,
+and if it does not, then it is a ``dummy`` package.
 
 
 .. _section-directory-structure:
@@ -166,12 +188,15 @@ The following are some additional files which can be added:
     |-- distros
     |   |-- platform1.txt
     |   `-- platform2.txt
+    |-- has_nonfree_dependencies
+    |-- huge
     |-- patches
     |   |-- bar.patch
     |   `-- baz.patch
     |-- spkg-check.in
     |-- spkg-configure.m4
-    `-- spkg-src
+    |-- spkg-src
+    `-- trees.txt
 
 We discuss the individual files in the following sections.
 
@@ -385,9 +410,9 @@ begin with ``sdh_``, which stands for "Sage-distribution helper".
 
 - ``sdh_configure [...]``: Runs ``./configure`` with arguments
   ``--prefix="$SAGE_LOCAL"``, ``--libdir="$SAGE_LOCAL/lib"``,
-  ``--disable-maintainer-mode``, and
-  ``--disable-dependency-tracking``. Additional arguments to
-  ``./configure`` may be given as arguments.
+  ``--disable-static``, ``--disable-maintainer-mode``, and
+  ``--disable-dependency-tracking``. Additional arguments to ``./configure``
+  may be given as arguments.
 
 - ``sdh_make [...]``: Runs ``$MAKE`` with the default target.
    Additional arguments to ``$MAKE`` may be given as arguments.
@@ -410,6 +435,16 @@ begin with ``sdh_``, which stands for "Sage-distribution helper".
    ``sdh_pip_install`` actually does the installation via ``pip wheel``,
    creating a wheel file in ``dist/``, followed by
    ``sdh_store_and_pip_install_wheel`` (see below).
+
+- ``sdh_pip_editable_install [...]``: The equivalent of running ``pip install -e``
+   with the given arguments, as well as additional default arguments used for
+   installing packages into Sage with pip. The last argument must be
+   ``.`` to indicate installation from the current directory.
+   See `pip documentation <https://pip.pypa.io/en/stable/cli/pip_install/#editable-installs>`_
+   for more details concerning editable installs.
+
+- ``sdh_pip_uninstall [...]``: Runs ``pip uninstall`` with the given arguments.
+   If unsuccessful, it displays a warning.
 
 - ``sdh_store_and_pip_install_wheel .``: The current directory,
    indicated by the required argument ``.``, must have a subdirectory
@@ -534,7 +569,12 @@ would simply contain:
 Python-based packages
 ---------------------
 
-The best way to install a Python-based package is to use pip, in which
+Python-based packages should declare ``$(PYTHON)`` as a dependency,
+and most Python-based packages will also have ``$(PYTHON_TOOLCHAIN)`` as
+an order-only dependency, which will ensure that fundamental packages such
+as ``pip`` and ``setuptools`` are available at the time of building the package.
+
+The best way to install a Python-based package is to use ``pip``, in which
 case the ``spkg-install.in`` script template might just consist of
 
 .. CODE-BLOCK:: bash
@@ -545,21 +585,20 @@ Where ``sdh_pip_install`` is a function provided by ``sage-dist-helpers`` that
 points to the correct ``pip`` for the Python used by Sage, and includes some
 default flags needed for correct installation into Sage.
 
-If pip will not work but a command like ``python3 setup.py install``
+If ``pip`` will not work for a package but a command like ``python3 setup.py install``
 will, you may use ``sdh_setup_bdist_wheel``, followed by
 ``sdh_store_and_pip_install_wheel .``.
 
-For ``spkg-check.in`` script templates, make sure to call
-``sage-python23`` rather than ``python``. This will ensure that the
-correct version of Python is used to check the package.
-The same holds for ; for example, the ``scipy`` ``spkg-check.in``
-file contains the line
+For ``spkg-check.in`` script templates, use ``python3`` rather
+than just ``python``.  The paths are set by the Sage build system
+so that this runs the correct version of Python.
+For example, the ``scipy`` ``spkg-check.in`` file contains the line
 
 .. CODE-BLOCK:: bash
 
-    exec sage-python23 spkg-check.py
+    exec python3 spkg-check.py
 
-All normal Python packages must have a file ``install-requires.txt``.
+All normal Python packages and all wheel packages must have a file ``install-requires.txt``.
 If a Python package is available on PyPI, this file must contain the
 name of the package as it is known to PyPI.  Optionally,
 ``install-requires.txt`` can encode version constraints (such as lower
@@ -569,8 +608,9 @@ and upper bounds).  The constraints are in the format of the
 or `setup.py
 <https://packaging.python.org/discussions/install-requires-vs-requirements/#id5>`_.
 
-The files may include comments (starting with ``#``) that explain why a particular lower
-bound is warranted or why we wish to include or reject certain versions.
+It is strongly recommended to include comments (starting with ``#``)
+in the file that explain why a particular lower or upper bound is
+warranted or why we wish to include or reject certain versions.
 
 For example:
 
@@ -595,50 +635,54 @@ Developers and downstream packagers are invited to refine the version
 constraints based on their experience and tests.  When a package
 update is made in order to pick up a critical bug fix from a newer
 version, then the lower bound should be adjusted.
+Setting upper bounds to guard against incompatible future changes is
+a complex topic; see :trac:`33520`.
 
 
 .. _section-spkg-SPKG-txt:
 
-The SPKG.rst or SPKG.txt File
------------------------------
+The SPKG.rst File
+-----------------
 
-The ``SPKG.txt`` file should follow this pattern:
+The ``SPKG.rst`` file should follow this pattern:
 
 .. CODE-BLOCK:: text
 
-     = PACKAGE_NAME =
+     PACKAGE_NAME: One line description
 
-     == Description ==
+     Description
+     -----------
 
      What does the package do?
 
-     == License ==
+     License
+     -------
 
      What is the license? If non-standard, is it GPLv3+ compatible?
 
-     == Upstream Contact ==
+     Upstream Contact
+     ----------------
 
-     Provide information for upstream contact.
+     Provide information for upstream contact.  Usually just an URL.
 
-     == Dependencies ==
+     Dependencies
+     ------------
 
-     Put a bulleted list of dependencies here:
+     Only put special dependencies here that are not captured by the
+     ``dependencies`` file. Otherwise omit this section.
 
-     * python
-     * readline
+     Special Update/Build Instructions
+     ---------------------------------
 
-     == Special Update/Build Instructions ==
-
-     If the tarball was modified by hand and not via a spkg-src
-     script, describe what was changed.
+     If the tarball was modified by hand and not via an ``spkg-src``
+     script, describe what was changed. Otherwise omit this section.
 
 
-with ``PACKAGE_NAME`` replaced by the package name. Legacy
-``SPKG.txt`` files have an additional changelog section, but this
+with ``PACKAGE_NAME`` replaced by the SPKG name (= the directory name in
+``build/pkgs``).
+
+Legacy ``SPKG.txt`` files have an additional changelog section, but this
 information is now kept in the git repository.
-
-It is now also possible to use an ``SPKG.rst`` file instead, with the same
-sections.
 
 .. _section-dependencies:
 
@@ -656,7 +700,6 @@ for ``eclib``:
 
     ----------
     All lines of this file are ignored except the first.
-    It is copied by SAGE_ROOT/build/make/install into SAGE_ROOT/build/make/Makefile.
 
 For Python packages, common dependencies include ``pip``,
 ``setuptools``, and ``future``. If your package depends on any of
@@ -677,7 +720,6 @@ If there are no dependencies, you can use
 
     ----------
     All lines of this file are ignored except the first.
-    It is copied by SAGE_ROOT/build/make/install into SAGE_ROOT/build/make/Makefile.
 
 There are actually two kinds of dependencies: there are normal
 dependencies and order-only dependencies, which are weaker. The syntax
@@ -696,11 +738,21 @@ If there is no ``|``, then all dependencies are normal.
   dependency (for example, a dependency on pip simply because the
   ``spkg-install`` file uses pip).
 
+  Alternatively, you can put the order-only dependencies in a separate
+  file ``dependencies_order_only``.
+
 - If A has a **normal dependency** on B, it means additionally that A
   should be rebuilt every time that B gets updated. This is the most
   common kind of dependency. A normal dependency is what you need for
   libraries: if we upgrade NTL, we should rebuild everything which
   uses NTL.
+
+Some packages are only needed for self-tests of a package (``spkg-check``).
+These dependencies should be declared in a separate file ``dependencies_check``.
+
+Some dependencies are optional in the sense that they are only
+a dependency if they are configured to be installed. These dependencies
+should be declared in a separate file ``dependencies_optional``.
 
 In order to check that the dependencies of your package are likely
 correct, the following command should work without errors::
@@ -710,6 +762,48 @@ correct, the following command should work without errors::
 Finally, note that standard packages should only depend on standard
 packages and optional packages should only depend on standard or
 optional packages.
+
+
+.. _section-spkg-tags:
+
+Package tags
+------------
+
+You can mark a package as "huge" by placing an empty file named
+``huge`` in the package directory.  For example, the package
+``polytopes_db_4d`` is a large database whose compressed tarball has a
+size of 9 GB.
+
+For some other packages, we have placed an empty file named
+``has_nonfree_dependencies`` in the package directory. This is to
+indicate that Sage with this package installed cannot be
+redistributed, and also that the package can only be installed after
+installing some other, non-free package.
+
+We use these tags in our continuous integration scripts to filter
+out packages that we cannot or should not test automatically.
+
+
+.. _section-trees:
+
+Where packages are installed
+----------------------------
+
+The Sage distribution has the notion of several installation trees.
+
+- ``$SAGE_VENV`` is the default installation tree for all Python packages, i.e.,
+  normal packages with an ``install-requires.txt``, wheel packages, and pip packages
+  with a ``requirements.txt``.
+
+- ``$SAGE_LOCAL`` is the default installation tree for all non-Python packages.
+
+- ``$SAGE_DOCS`` (only set at build time) is an installation tree for the
+  HTML and PDF documentation.
+
+By placing a file ``trees.txt`` in the package directory, the installation tree
+can be overridden.  For example, ``build/pkgs/python3/trees.txt`` contains the
+word ``SAGE_VENV``, and ``build/pkgs/sagemath_doc_html/trees.txt`` contains the
+word ``SAGE_DOCS``.
 
 
 .. _section-spkg-patching:
@@ -953,7 +1047,7 @@ In addition to these fields in ``checksums.ini``, the optional field
 ``upstream_url`` holds an URL to the upstream package archive.
 
 The Release Manager uses the information in ``upstream_url`` to
-download the upstream package archvive and to make it available on the
+download the upstream package archive and to make it available on the
 Sage mirrors when a new release is prepared.  On Trac tickets
 upgrading a package, the ticket description should no longer contain
 the upstream URL to avoid duplication of information.
@@ -1012,17 +1106,22 @@ set the ``upstream_url`` field in ``checksums.ini`` described above.
 
 For Python packages available from PyPI, you can use::
 
-    [user@localhost]$ sage -package create scikit_spatial --pypi --type optional
+    [user@localhost]$ sage --package create scikit_spatial --pypi --type optional
 
 This automatically downloads the most recent version from PyPI and also
 obtains most of the necessary information by querying PyPI.
-The ``dependencies`` file may need editing, and also you may want to set
-lower and upper bounds for acceptable package versions in the file
-``install-requires.txt``.
+The ``dependencies`` file may need editing (watch out for warnings regarding
+``--no-deps`` that Sage issues during installation of the package!).
+Also you may want to set lower and upper bounds for acceptable package versions
+in the file ``install-requires.txt``.
 
 To create a pip package rather than a normal package, you can use::
 
-    [user@localhost]$ sage -package create scikit_spatial --pypi --source pip --type optional
+    [user@localhost]$ sage --package create scikit_spatial --pypi --source pip --type optional
+
+To create a wheel package rather than a normal package, you can use::
+
+    [user@localhost]$ sage --package create scikit_spatial --pypi --source wheel --type optional
 
 
 .. _section-manual-build:
@@ -1118,6 +1217,9 @@ must meet the following requirements:
 
 - **Build Support**. The code must build on all the fully supported
   platforms (Linux, macOS, Cygwin); see :ref:`chapter-portability_testing`.
+  It must be installed either from source as a normal package,
+  or as a Python (platform-independent) wheel package, see
+  :ref:`section-package-source-types`.
 
 - **Quality**. The code should be "better" than any other available
   code (that passes the two above criteria), and the authors need to

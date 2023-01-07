@@ -34,7 +34,7 @@ from copy import copy
 cdef class GenericBackend:
 
     cpdef base_ring(self):
-        from sage.rings.all import RDF
+        from sage.rings.real_double import RDF
         return RDF
 
     cpdef zero(self):
@@ -532,7 +532,7 @@ cdef class GenericBackend:
         p = cls()                         # fresh instance of the backend
         if tester is None:
             tester = p._tester(**options)
-        from sage.modules.all import vector
+        from sage.modules.free_module_element import vector
         # Ensure there are at least 2 variables
         p.add_variables(2)
         coeffs = ([0, vector([1, 2])], [1, vector([2, 3])])
@@ -872,10 +872,13 @@ cdef class GenericBackend:
         raise NotImplementedError()
 
     def _test_ncols_nonnegative(self, **options):
+        # Trac #31103: This method has already been migrated to pytest (generic_backend_test)
+        # and should be removed as soon as the external sage_numerical_backends packages
+        # are updated to invoke pytest as part of their testsuite.
         tester = self._tester(**options)
         p = self
         tester.assertGreaterEqual(self.ncols(), 0)
-    
+
     cpdef int nrows(self):
         """
         Return the number of rows/constraints.
@@ -945,7 +948,9 @@ cdef class GenericBackend:
             2
             sage: p.add_linear_constraint([(0, 1], (1, 2)], None, 3) # optional - Nonexistent_LP_solver
             sage: p.set_objective([2, 5])                          # optional - Nonexistent_LP_solver
-            sage: p.write_lp(os.path.join(SAGE_TMP, "lp_problem.lp"))            # optional - Nonexistent_LP_solver
+            sage: from tempfile import NamedTemporaryFile  # optional - Nonexistent_LP_solver
+            sage: with NamedTemporaryFile(suffix=".lp") as f:  # optional - Nonexistent_LP_solver
+            ....:     p.write_lp(f.name)
         """
         raise NotImplementedError()
 
@@ -965,7 +970,10 @@ cdef class GenericBackend:
             2
             sage: p.add_linear_constraint([(0, 1), (1, 2)], None, 3) # optional - Nonexistent_LP_solver
             sage: p.set_objective([2, 5])                          # optional - Nonexistent_LP_solver
-            sage: p.write_lp(os.path.join(SAGE_TMP, "lp_problem.lp"))            # optional - Nonexistent_LP_solver
+            sage: from tempfile import NamedTemporaryFile  # optional - Nonexistent_LP_solver
+            sage: with NamedTemporaryFile(suffix=".lp") as f:  # optional - Nonexistent_LP_solver
+            ....:     p.write_lp(f.name)
+
         """
         raise NotImplementedError()
 
@@ -1233,11 +1241,13 @@ cdef class GenericBackend:
         """
         tester.assertEqual(type(self), type(cp),
                            "Classes do not match")
+
         def assert_equal_problem_data(method):
             tester.assertEqual(getattr(self, method)(), getattr(cp, method)(),
                                "{} does not match".format(method))
         for method in ("ncols", "nrows", "objective_constant_term", "problem_name", "is_maximization"):
             assert_equal_problem_data(method)
+
         def assert_equal_col_data(method):
             for i in range(self.ncols()):
                 tester.assertEqual(getattr(self, method)(i), getattr(cp, method)(i),
@@ -1248,13 +1258,14 @@ cdef class GenericBackend:
             # TODO: Add a test elsewhere to ensure that variable_lower_bound, variable_upper_bound
             # are consistent with col_bounds.
             assert_equal_col_data(method)
+
         def assert_equal_row_data(method):
             for i in range(self.nrows()):
                 tester.assertEqual(getattr(self, method)(i), getattr(cp, method)(i),
                                    "{}({}) does not match".format(method, i))
         for method in ("row_bounds", "row", "row_name"):
             assert_equal_row_data(method)
-    
+
     def _test_copy(self, **options):
         """
         Test whether the backend can be copied
@@ -1303,7 +1314,7 @@ cdef class GenericBackend:
         - ``index`` (integer) -- the variable's id
 
         - ``value`` -- real value, or ``None`` to mean that the
-          variable has not upper bound. When set to ``None``
+          variable has not upper bound. When set to ``False``
           (default), the method returns the current value.
 
         EXAMPLES::
@@ -1329,7 +1340,7 @@ cdef class GenericBackend:
         - ``index`` (integer) -- the variable's id
 
         - ``value`` -- real value, or ``None`` to mean that the
-          variable has not lower bound. When set to ``None``
+          variable has not lower bound. When set to ``False``
           (default), the method returns the current value.
 
         EXAMPLES::
@@ -1688,18 +1699,18 @@ cpdef GenericBackend get_solver(constraint_generation = False, solver = None, ba
         <...sage.numerical.backends.ppl_backend.PPLBackend...>
         sage: p.base_ring()
         Rational Field
-        sage: p = get_solver(base_ring=AA); p
+        sage: p = get_solver(base_ring=AA); p                                         # optional - sage.rings.number_field
         <...sage.numerical.backends.interactivelp_backend.InteractiveLPBackend...>
-        sage: p.base_ring()
+        sage: p.base_ring()                                                           # optional - sage.rings.number_field
         Algebraic Real Field
-        sage: d = polytopes.dodecahedron()
-        sage: p = get_solver(base_ring=d.base_ring()); p
+        sage: d = polytopes.dodecahedron()                                            # optional - sage.rings.number_field
+        sage: p = get_solver(base_ring=d.base_ring()); p                              # optional - sage.rings.number_field
         <...sage.numerical.backends.interactivelp_backend.InteractiveLPBackend...>
-        sage: p.base_ring()
+        sage: p.base_ring()                                                           # optional - sage.rings.number_field
         Number Field in sqrt5 with defining polynomial x^2 - 5 with sqrt5 = 2.236067977499790?
-        sage: p = get_solver(solver='InteractiveLP', base_ring=QQ); p
+        sage: p = get_solver(solver='InteractiveLP', base_ring=QQ); p                 # optional - sage.rings.number_field
         <...sage.numerical.backends.interactivelp_backend.InteractiveLPBackend...>
-        sage: p.base_ring()
+        sage: p.base_ring()                                                           # optional - sage.rings.number_field
         Rational Field
 
     Passing a callable as the 'solver'::

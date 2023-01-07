@@ -10,17 +10,20 @@ Congruence Subgroup `\Gamma(N)`
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from .congroup_generic import CongruenceSubgroup
-from sage.misc.all import prod
-from sage.rings.all import ZZ, Zmod, QQ
-from sage.rings.integer import GCD_list
+from sage.arith.misc import gcd
 from sage.groups.matrix_gps.finitely_generated import MatrixGroup
 from sage.matrix.constructor import matrix
+from sage.misc.misc_c import prod
 from sage.modular.cusps import Cusp
-from sage.arith.all import gcd
+from sage.rings.finite_rings.integer_mod_ring import Zmod
+from sage.rings.integer import GCD_list
+from sage.rings.integer_ring import ZZ
+from sage.rings.rational_field import QQ
 from sage.structure.richcmp import richcmp_method, richcmp
 
+from .congroup_generic import CongruenceSubgroup
 from .congroup_sl2z import SL2Z
+
 
 _gamma_cache = {}
 def Gamma_constructor(N):
@@ -47,7 +50,8 @@ def Gamma_constructor(N):
         sage: G is G2
         False
     """
-    if N == 1: return SL2Z
+    if N == 1:
+        return SL2Z
     try:
         return _gamma_cache[N]
     except KeyError:
@@ -343,5 +347,6 @@ def _lift_pair(U,V,N):
             v = N
     while gcd(u, v) > 1:
         u = u+N
-        if u > N*v: raise ValueError("(U, V, N) must be coprime")
+        if u > N*v:
+            raise ValueError("(U, V, N) must be coprime")
     return (u, v)

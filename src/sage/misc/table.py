@@ -179,24 +179,24 @@ class table(SageObject):
         <table border="1" class="table_form">
         <tbody>
         <tr>
-        <th><script type="math/tex">x</script></th>
-        <th><script type="math/tex">\sin(x)</script></th>
+        <th style="text-align:left">\(x\)</th>
+        <th style="text-align:left">\(\sin(x)\)</th>
         </tr>
         <tr class ="row-a">
-        <td><script type="math/tex">0</script></td>
-        <td><script type="math/tex">0.00</script></td>
+        <td style="text-align:left">\(0\)</td>
+        <td style="text-align:left">\(0.00\)</td>
         </tr>
         <tr class ="row-b">
-        <td><script type="math/tex">1</script></td>
-        <td><script type="math/tex">0.84</script></td>
+        <td style="text-align:left">\(1\)</td>
+        <td style="text-align:left">\(0.84\)</td>
         </tr>
         <tr class ="row-a">
-        <td><script type="math/tex">2</script></td>
-        <td><script type="math/tex">0.91</script></td>
+        <td style="text-align:left">\(2\)</td>
+        <td style="text-align:left">\(0.91\)</td>
         </tr>
         <tr class ="row-b">
-        <td><script type="math/tex">3</script></td>
-        <td><script type="math/tex">0.14</script></td>
+        <td style="text-align:left">\(3\)</td>
+        <td style="text-align:left">\(0.14\)</td>
         </tr>
         </tbody>
         </table>
@@ -207,7 +207,7 @@ class table(SageObject):
         sage: table(rows=[[1,2,3], [4,5,6]], columns=[[0,0,0], [0,0,1024]])
         Traceback (most recent call last):
         ...
-        ValueError: Don't set both 'rows' and 'columns' when defining a table.
+        ValueError: do not set both 'rows' and 'columns' when defining a table
 
         sage: table(columns=[[0,0,0], [0,0,1024]])
         0 0
@@ -251,7 +251,7 @@ class table(SageObject):
         """
         # If both rows and columns are set, raise an error.
         if rows and columns:
-            raise ValueError("Don't set both 'rows' and 'columns' when defining a table.")
+            raise ValueError("do not set both 'rows' and 'columns' when defining a table")
         # If columns is set, use its transpose for rows.
         if columns:
             rows = list(zip(*columns))
@@ -268,7 +268,7 @@ class table(SageObject):
             self._options['header_column'] = True
         elif header_column:
             self._options['header_column'] = True
-            rows = [(a,) + tuple(x) for (a,x) in zip(header_column, rows)]
+            rows = [(a,) + tuple(x) for (a, x) in zip(header_column, rows)]
         else:
             self._options['header_column'] = False
 
@@ -442,7 +442,7 @@ class table(SageObject):
         if len(rows) == 0 or nc == 0:
             return ""
 
-        frame_line = "+" + "+".join("-" * (x+2) for x in self._widths()) + "+\n"
+        frame_line = "+" + "+".join("-" * (x + 2) for x in self._widths()) + "+\n"
 
         if self._options['header_column'] and self._options['frame']:
             frame_line = "+" + frame_line[1:].replace('+', '++', 1)
@@ -503,7 +503,7 @@ class table(SageObject):
         """
         frame = self._options['frame']
         widths = self._widths()
-        frame_line = "+" + "+".join("-" * (x+2) for x in widths) + "+\n"
+        frame_line = "+" + "+".join("-" * (x + 2) for x in widths) + "+\n"
 
         align = self._options['align']
         if align == 'right':
@@ -607,16 +607,16 @@ class table(SageObject):
         # table header
         s = "\\begin{tabular}{"
         s += frame_char + align_char + frame_char + head_col_char
-        s += frame_char.join([align_char] * (nc-1))
+        s += frame_char.join([align_char] * (nc - 1))
         s += frame_char + "}" + frame_str + "\n"
         # first row
         s += " & ".join(LatexExpr(x) if isinstance(x, (str, LatexExpr))
-                      else '$' + latex(x).strip() + '$' for x in rows[0])
+                        else '$' + latex(x).strip() + '$' for x in rows[0])
         s += " \\\\" + frame_str + head_row_str + "\n"
         # other rows
         for row in rows[1:]:
             s += " & ".join(LatexExpr(x) if isinstance(x, (str, LatexExpr))
-                          else '$' + latex(x).strip() + '$' for x in row)
+                            else '$' + latex(x).strip() + '$' for x in row)
             s += " \\\\" + frame_str + "\n"
         s += "\\end{tabular}"
         return s
@@ -648,22 +648,22 @@ class table(SageObject):
             <table  class="table_form">
             <tbody>
             <tr class ="row-a">
-            <td><script type="math/tex">\sin(x)</script></td>
-            <td><script type="math/tex">x</script></td>
-            <td>text</td>
+            <td style="text-align:left">\(\sin(x)\)</td>
+            <td style="text-align:left">\(x\)</td>
+            <td style="text-align:left">text</td>
             </tr>
             <tr class ="row-b">
-            <td><script type="math/tex">1</script></td>
-            <td><script type="math/tex">34342</script></td>
-            <td><script type="math/tex">3</script></td>
+            <td style="text-align:left">\(1\)</td>
+            <td style="text-align:left">\(34342\)</td>
+            <td style="text-align:left">\(3\)</td>
             </tr>
             <tr class ="row-a">
-            <td><script type="math/tex">\left(\begin{array}{rr}
+            <td style="text-align:left">\(\left(\begin{array}{rr}
             1 & 0 \\
             0 & 1
-            \end{array}\right)</script></td>
-            <td><script type="math/tex">5</script></td>
-            <td><script type="math/tex">6</script></td>
+            \end{array}\right)\)</td>
+            <td style="text-align:left">\(5\)</td>
+            <td style="text-align:left">\(6\)</td>
             </tr>
             </tbody>
             </table>
@@ -690,24 +690,24 @@ class table(SageObject):
             <table border="1" class="table_form">
             <tbody>
             <tr>
-            <th><script type="math/tex">x</script></th>
-            <th><script type="math/tex">\sin(x)</script></th>
+            <th style="text-align:left">\(x\)</th>
+            <th style="text-align:left">\(\sin(x)\)</th>
             </tr>
             <tr class ="row-a">
-            <td><script type="math/tex">0</script></td>
-            <td><script type="math/tex">0.00</script></td>
+            <td style="text-align:left">\(0\)</td>
+            <td style="text-align:left">\(0.00\)</td>
             </tr>
             <tr class ="row-b">
-            <td><script type="math/tex">1</script></td>
-            <td><script type="math/tex">0.84</script></td>
+            <td style="text-align:left">\(1\)</td>
+            <td style="text-align:left">\(0.84\)</td>
             </tr>
             <tr class ="row-a">
-            <td><script type="math/tex">2</script></td>
-            <td><script type="math/tex">0.91</script></td>
+            <td style="text-align:left">\(2\)</td>
+            <td style="text-align:left">\(0.91\)</td>
             </tr>
             <tr class ="row-b">
-            <td><script type="math/tex">3</script></td>
-            <td><script type="math/tex">0.14</script></td>
+            <td style="text-align:left">\(3\)</td>
+            <td style="text-align:left">\(0.14\)</td>
             </tr>
             </tbody>
             </table>
@@ -724,7 +724,7 @@ class table(SageObject):
         if rows:
             s.writelines([
                 # If the table has < 100 rows, don't truncate the output in the notebook
-                '<div class="notruncate">\n' if len(rows) <= 100 else '<div class="truncate">' ,
+                '<div class="notruncate">\n' if len(rows) <= 100 else '<div class="truncate">',
                 '<table {} class="table_form">\n'.format(frame),
                 '<tbody>\n',
             ])
@@ -776,9 +776,9 @@ class table(SageObject):
             sage: s = StringIO()
             sage: T._html_table_row(s, ['a', 2, '$x$'])
             sage: print(s.getvalue())
-            <td>a</td>
-            <td><script type="math/tex">2</script></td>
-            <td><script type="math/tex">x</script></td>
+            <td style="text-align:left">a</td>
+            <td style="text-align:left">\(2\)</td>
+            <td style="text-align:left">\(x\)</td>
         """
         from sage.plot.all import Graphics
         from .latex import latex
@@ -790,27 +790,40 @@ class table(SageObject):
         elif not isinstance(row, (list, tuple)):
             row = [row]
 
-        column_tag = "<th>%s</th>\n" if header else "<td>%s</td>\n"
+        align_char = self._options['align'][0]   # 'l', 'c', 'r'
+
+        if align_char == 'l':
+            style = 'text-align:left'
+        elif align_char == 'c':
+            style = 'text-align:center'
+        elif align_char == 'r':
+            style = 'text-align:right'
+        else:
+            style = ''
+
+        style_attr = f' style="{style}"' if style else ''
+
+        column_tag = f'<th{style_attr}>%s</th>\n' if header else f'<td{style_attr}>%s</td>\n'
 
         if self._options['header_column']:
-            first_column_tag = '<th class="ch">%s</th>\n' if header else '<td class="ch">%s</td>\n'
+            first_column_tag = '<th class="ch"{style_attr}>%s</th>\n' if header else '<td class="ch"{style_attr}>%s</td>\n'
         else:
             first_column_tag = column_tag
 
-        # First entry of row:
+        # first entry of row
         entry = row[0]
         if isinstance(entry, Graphics):
-            file.write(first_column_tag % entry.show(linkmode = True))
+            file.write(first_column_tag % entry.show(linkmode=True))
         elif isinstance(entry, str):
             file.write(first_column_tag % math_parse(entry))
         else:
-            file.write(first_column_tag % ('<script type="math/tex">%s</script>' % latex(entry)))
+            file.write(first_column_tag % (r'\(%s\)' % latex(entry)))
 
-        # Other entries:
+        # other entries
         for column in range(1, len(row)):
             if isinstance(row[column], Graphics):
-                file.write(column_tag % row[column].show(linkmode = True))
+                file.write(column_tag % row[column].show(linkmode=True))
             elif isinstance(row[column], str):
                 file.write(column_tag % math_parse(row[column]))
             else:
-                file.write(column_tag % ('<script type="math/tex">%s</script>' % latex(row[column])))
+                file.write(column_tag % (r'\(%s\)' % latex(row[column])))

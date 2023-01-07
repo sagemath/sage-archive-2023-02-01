@@ -5,7 +5,7 @@ Module List
 -----------
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
    sage/modular/modform/constructor
    sage/modular/modform/space
@@ -23,9 +23,8 @@ Module List
    sage/modular/modform/hecke_operator_on_qexp
    sage/modular/modform/numerical
    sage/modular/modform/vm_basis
-   sage/modular/modform/ambient
    sage/modular/modform/half_integral
-   sage/modular/modform/find_generators
+   sage/modular/modform/ring
    sage/modular/modform/j_invariant
    sage/modular/modform/theta
 
@@ -33,7 +32,7 @@ Design Notes
 ------------
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
    sage/modular/modform/notes
 

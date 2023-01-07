@@ -1,7 +1,8 @@
 SAGE_SPKG_CONFIGURE([python3], [
-   m4_pushdef([MIN_VERSION],               [3.6.0])
-   m4_pushdef([MIN_NONDEPRECATED_VERSION], [3.7.0])
-   m4_pushdef([LT_VERSION],                [3.10.0])
+   m4_pushdef([MIN_VERSION],               [3.8.0])
+   m4_pushdef([MIN_NONDEPRECATED_VERSION], [3.8.0])
+   m4_pushdef([LT_STABLE_VERSION],         [3.11.0])
+   m4_pushdef([LT_VERSION],                [3.11.0])
    AC_ARG_WITH([python],
                [AS_HELP_STRING([--with-python=PYTHON3],
                                [Python 3 executable to use for the Sage venv; default: python3])])
@@ -19,10 +20,11 @@ SAGE_SPKG_CONFIGURE([python3], [
    dnl
    dnl However, if we add another package (providing a shared library linked into a Python module)
    dnl that also uses libsqlite3, then we will have to put the DEPCHECK back in.
-   SAGE_SPKG_DEPCHECK([bzip2 xz libffi], [
+   SAGE_SPKG_DEPCHECK([bzip2 liblzma libffi], [
       dnl Check if we can do venv with a system python3
       dnl instead of building our own copy.
-      check_modules="sqlite3, ctypes, math, hashlib, crypt, readline, socket, zlib, distutils.core"
+      dnl  Trac #31160: We no longer check for readline here.
+      check_modules="sqlite3, ctypes, math, hashlib, crypt, socket, zlib, distutils.core, ssl, ensurepip"
       AC_CACHE_CHECK([for python3 >= ]MIN_VERSION[, < ]LT_VERSION[ with modules $check_modules], [ac_cv_path_PYTHON3], [
         AS_IF([test x"$ac_path_PYTHON3" != x], [dnl checking explicitly specified $with_python
            AC_MSG_RESULT([])
@@ -43,7 +45,7 @@ SAGE_SPKG_CONFIGURE([python3], [
            AS_IF([test -z "$ac_cv_path_PYTHON3"], [
                AC_MSG_ERROR([the python3 selected using --with-python=$with_python is not suitable])
            ])
-	], [dnl checking the default system python3
+        ], [dnl checking the default system python3
            AC_MSG_RESULT([])
            AC_PATH_PROGS_FEATURE_CHECK([PYTHON3], [python3], [
                 SAGE_CHECK_PYTHON_FOR_VENV([$ac_path_PYTHON3],
@@ -61,13 +63,19 @@ SAGE_SPKG_CONFIGURE([python3], [
                     ])
                 ])
             ])
-	])
+        ])
       ])
       AS_IF([test -z "$ac_cv_path_PYTHON3"], [
           AC_MSG_NOTICE([to try to use a different system python, use ./configure --with-python=/path/to/python])
           sage_spkg_install_python3=yes
       ])
     ])
+    AS_CASE([$host],
+            [*-*-cygwin*], [AS_VAR_IF([sage_spkg_install_python3], [yes], [
+                                AS_VAR_APPEND([SAGE_SPKG_ERRORS], ["
+  On Cygwin, python3 must be installed as a system package. This is an error."])
+                            ])
+                           ])
 ],, [
     dnl PRE
 ], [
@@ -97,17 +105,41 @@ SAGE_SPKG_CONFIGURE([python3], [
                 CFLAGS_MARCH=""
             ])
         ])
+
+        AS_IF([test -n "$OPENMP_CFLAGS$OPENMP_CXXFLAGS"], [
+            AC_MSG_CHECKING([whether OpenMP works with the C/C++ compilers configured for building extensions for $PYTHON_FOR_VENV])
+            SAGE_PYTHON_CHECK_DISTUTILS([CC="$CC" CXX="$CXX" CFLAGS="$CFLAGS $OPENMP_CFLAGS" CXXFLAGS="$CXXFLAGS $OPENMP_CXXFLAGS" conftest_venv/bin/python3], [
+                AC_MSG_RESULT([yes])
+            ], [
+                AC_MSG_RESULT([no, $reason; disabling use OpenMP])
+                OPENMP_CFLAGS=""
+                OPENMP_CXXFLAGS=""
+            ])
+        ])
+
         AX_COMPARE_VERSION([$python3_version], [lt], MIN_NONDEPRECATED_VERSION, [
             AC_MSG_NOTICE([deprecation notice: Support for system python < MIN_NONDEPRECATED_VERSION is deprecated
 and will be removed in the next development cycle.  Consider using a newer version of Python
 that may be available on your system or can be installed using the system package manager.
 To build Sage with a different system python, use ./configure --with-python=/path/to/python])
         ])
-    ], [
-        SAGE_MACOSX_DEPLOYMENT_TARGET=legacy
+        AX_COMPARE_VERSION([$python3_version], [ge], LT_STABLE_VERSION, [
+            AC_MSG_WARN([Support for system python >= LT_STABLE_VERSION is experimental.
+To build Sage with a different system python, use ./configure --with-python=/path/to/python])
+        ])
     ])
     AC_SUBST([PYTHON_FOR_VENV])
-    AC_SUBST([SAGE_MACOSX_DEPLOYMENT_TARGET])
+
+    AS_VAR_IF([SAGE_VENV], [auto], [SAGE_VENV=$SAGE_VENV_AUTO])
+    AS_CASE([$SAGE_VENV],
+        [no],  [SAGE_VENV='${SAGE_LOCAL}'],dnl Quoted so that it is resolved at build time by shell/Makefile
+        [yes], [AS_IF([test -n "$PYTHON_FOR_VENV"], [
+                   PYTHON_VERSION=$("$PYTHON_FOR_VENV" -c "import sysconfig; print(sysconfig.get_python_version())")
+                ], [
+                   PYTHON_VERSION=$(echo $(cat build/pkgs/python3/package-version.txt))
+                ])
+                SAGE_VENV='${SAGE_LOCAL}'/var/lib/sage/venv-python$PYTHON_VERSION]
+    )
 
     dnl These temporary directories are created by the check above
     dnl and need to be cleaned up to prevent the "rm -f conftest*"

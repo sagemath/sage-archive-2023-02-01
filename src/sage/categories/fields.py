@@ -76,7 +76,7 @@ class Fields(CategoryWithAxiom):
 
         This implementation will not be needed anymore once every
         field in Sage will be properly declared in the category
-        :class:`Fields`().
+        :class:`Fields() <Fields>`.
 
         Caveat: this should eventually be fixed::
 
@@ -395,7 +395,8 @@ class Fields(CategoryWithAxiom):
             """
             if self.characteristic() == 0:
                 return True
-            else: raise NotImplementedError
+            else:
+                raise NotImplementedError
 
         def _test_characteristic_fields(self, **options):
             """
@@ -500,18 +501,6 @@ class Fields(CategoryWithAxiom):
 
             return Factorization(factors, unit=unit, sort=False)
 
-        def _pow_int(self, n):
-            r"""
-            Returns the vector space of dimension `n` over ``self``.
-
-            EXAMPLES::
-
-                sage: QQ^4
-                Vector space of dimension 4 over Rational Field
-            """
-            from sage.modules.all import FreeModule
-            return FreeModule(self, n)
-
         def vector_space(self, *args, **kwds):
             r"""
             Gives an isomorphism of this field with a vector space over a subfield.
@@ -535,10 +524,10 @@ class Fields(CategoryWithAxiom):
 
             EXAMPLES::
 
-                sage: K.<a> = Qq(125)
-                sage: V, fr, to = K.vector_space()
-                sage: v = V([1,2,3])
-                sage: fr(v, 7)
+                sage: K.<a> = Qq(125)                                   # optional - sage.rings.padics
+                sage: V, fr, to = K.vector_space()                      # optional - sage.rings.padics
+                sage: v = V([1, 2, 3])                                  # optional - sage.rings.padics
+                sage: fr(v, 7)                                          # optional - sage.rings.padics
                 (3*a^2 + 2*a + 1) + O(5^7)
             """
             return self.free_module(*args, **kwds)

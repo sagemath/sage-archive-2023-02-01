@@ -24,7 +24,7 @@ from cysignals.pselect import PSelecter
 from cysignals.pysignals import changesignal
 
 
-cdef class ContainChildren(object):
+cdef class ContainChildren():
     """
     Context manager which will ensure that all forked child processes
     will be forced to exit if they try to exit the context.
@@ -202,8 +202,7 @@ def terminate(sp, interval=1, signals=[signal.SIGTERM, signal.SIGKILL]):
         sage: cmd = [sys.executable, '-c', 'import sys; print("y")\n'
         ....:                              'sys.stdout.flush()\n'
         ....:                              'while True: pass']
-        sage: sp = Popen(cmd, stdout=PIPE)  # py2
-        sage: sp = Popen(cmd, stdout=PIPE, encoding='ascii')  # py3
+        sage: sp = Popen(cmd, stdout=PIPE, encoding='ascii')
         sage: with terminate(sp, interval=0.2):
         ....:     print(sp.stdout.readline())
         y
@@ -219,8 +218,7 @@ def terminate(sp, interval=1, signals=[signal.SIGTERM, signal.SIGKILL]):
         ....:          'signal(SIGTERM, SIG_IGN)\n' \
         ....:          'print("y"); sys.stdout.flush()\n' \
         ....:          'while True: pass'
-        sage: sp = Popen(cmd, stdout=PIPE)  # py2
-        sage: sp = Popen(cmd, stdout=PIPE, encoding='ascii')  # py3
+        sage: sp = Popen(cmd, stdout=PIPE, encoding='ascii')
         sage: with terminate(sp, interval=0.2):
         ....:     print(sp.stdout.readline())
         y

@@ -62,7 +62,7 @@ class CartanType(CartanType_standard_untwisted_affine):
             sage: latex(ct)
             A_{4}^{(1)}
         """
-        return "A_{%s}^{(1)}"%self.n
+        return "A_{%s}^{(1)}" % self.n
 
     def dynkin_diagram(self):
         """
@@ -79,7 +79,7 @@ class CartanType(CartanType_standard_untwisted_affine):
              O---O---O
              1   2   3
              A3~
-            sage: sorted(a.edges())
+            sage: a.edges(sort=True)
             [(0, 1, 1),
              (0, 3, 1),
              (1, 0, 1),
@@ -94,7 +94,7 @@ class CartanType(CartanType_standard_untwisted_affine):
             O<=>O
             0   1
             A1~
-            sage: sorted(a.edges())
+            sage: a.edges(sort=True)
             [(0, 1, 2), (1, 0, 2)]
         """
         from .dynkin_diagram import DynkinDiagram_class

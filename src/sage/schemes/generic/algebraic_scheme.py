@@ -128,8 +128,9 @@ AUTHORS:
 
 from sage.categories.number_fields import NumberFields
 
-from sage.rings.all import ZZ, QQbar
 from sage.rings.ideal import is_Ideal
+from sage.rings.integer_ring import ZZ
+from sage.rings.qqbar import QQbar
 from sage.rings.rational_field import is_RationalField
 from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
 from sage.rings.number_field.order import is_NumberFieldOrder
@@ -142,7 +143,8 @@ from sage.structure.richcmp import richcmp, richcmp_method
 
 from sage.calculus.functions import jacobian
 
-from sage.arith.all import gcd, lcm
+from sage.arith.functions import lcm
+from sage.arith.misc import gcd
 
 import sage.schemes.affine
 from . import ambient_space
@@ -247,7 +249,7 @@ class AlgebraicScheme(scheme.Scheme):
         scheme.Scheme.__init__(self, A.base_scheme())
 
     def _latex_(self):
-        """
+        r"""
         Return a LaTeX representation of this algebraic scheme.
 
         TESTS::
@@ -257,9 +259,9 @@ class AlgebraicScheme(scheme.Scheme):
             sage: S = AlgebraicScheme(P); S
             Subscheme of Projective Space of dimension 3 over Integer Ring
             sage: S._latex_()
-            '\text{Subscheme of } {\\mathbf P}_{\\Bold{Z}}^3'
+            '\\text{Subscheme of ${\\mathbf P}_{\\Bold{Z}}^3$}'
         """
-        return "\text{Subscheme of } %s" % latex(self.__A)
+        return r"\text{{Subscheme of ${}$}}".format(latex(self.__A))
 
     def is_projective(self):
         """
@@ -338,6 +340,22 @@ class AlgebraicScheme(scheme.Scheme):
             True
         """
         return self.__A
+
+    def identity_morphism(self):
+        """
+        Return the identity morphism.
+
+        OUTPUT: the identity morphism of the scheme ``self``
+
+        EXAMPLES::
+
+            sage: X = Spec(QQ)
+            sage: X.identity_morphism()
+            Scheme endomorphism of Spectrum of Rational Field
+              Defn: Identity map
+        """
+        from sage.schemes.generic.morphism import SchemeMorphism_polynomial_id
+        return SchemeMorphism_polynomial_id(self)
 
     def embedding_morphism(self):
         r"""
@@ -1470,52 +1488,46 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
 
         EXAMPLES::
 
-        sage: P2.<y0,y1,y2> = ProjectiveSpace(ZZ, 2)
-        sage: Z = P2.subscheme([y0^2 - y1*y2, y2])
-        sage: Z**3
-        Closed subscheme of Product of projective spaces P^2 x P^2 x P^2 over
-        Integer Ring defined by:
-          x0^2 - x1*x2,
-          x2,
-          x3^2 - x4*x5,
-          x5,
-          x6^2 - x7*x8,
-          x8
+            sage: P2.<y0,y1,y2> = ProjectiveSpace(ZZ, 2)
+            sage: Z = P2.subscheme([y0^2 - y1*y2, y2])
+            sage: Z**3
+            Closed subscheme of Product of projective spaces P^2 x P^2 x P^2 over
+            Integer Ring defined by:
+              x0^2 - x1*x2,
+              x2,
+              x3^2 - x4*x5,
+              x5,
+              x6^2 - x7*x8,
+              x8
 
-        ::
+            sage: A2.<x,y> = AffineSpace(QQ, 2)
+            sage: V = A2.subscheme([x^2-y, x-1])
+            sage: V**4
+            Closed subscheme of Affine Space of dimension 8 over Rational Field
+            defined by:
+              x0^2 - x1,
+              x0 - 1,
+              x2^2 - x3,
+              x2 - 1,
+              x4^2 - x5,
+              x4 - 1,
+              x6^2 - x7,
+              x6 - 1
 
-        sage: A2.<x,y> = AffineSpace(QQ, 2)
-        sage: V = A2.subscheme([x^2-y, x-1])
-        sage: V**4
-        Closed subscheme of Affine Space of dimension 8 over Rational Field
-        defined by:
-          x0^2 - x1,
-          x0 - 1,
-          x2^2 - x3,
-          x2 - 1,
-          x4^2 - x5,
-          x4 - 1,
-          x6^2 - x7,
-          x6 - 1
+            sage: T.<x0,x1,x2,x3,x4,x5> = ProductProjectiveSpaces([2,2], ZZ)
+            sage: X = T.subscheme([x0*x4 - x1*x3])
+            sage: X^2
+            Closed subscheme of Product of projective spaces P^2 x P^2 x P^2 x P^2
+            over Integer Ring defined by:
+              -x1*x3 + x0*x4,
+              -x7*x9 + x6*x10
 
-        ::
-
-        sage: T.<x0,x1,x2,x3,x4,x5> = ProductProjectiveSpaces([2,2], ZZ)
-        sage: X = T.subscheme([x0*x4 - x1*x3])
-        sage: X^2
-        Closed subscheme of Product of projective spaces P^2 x P^2 x P^2 x P^2
-        over Integer Ring defined by:
-          -x1*x3 + x0*x4,
-          -x7*x9 + x6*x10
-
-        ::
-
-        sage: E = EllipticCurve([0,0,0,0,1])
-        sage: E^2
-        Closed subscheme of Product of projective spaces P^2 x P^2 over Rational
-        Field defined by:
-          -x0^3 + x1^2*x2 - x2^3,
-          -x3^3 + x4^2*x5 - x5^3
+            sage: E = EllipticCurve([0,0,0,0,1])
+            sage: E^2
+            Closed subscheme of Product of projective spaces P^2 x P^2 over Rational
+            Field defined by:
+              -x0^3 + x1^2*x2 - x2^3,
+              -x3^3 + x4^2*x5 - x5^3
         """
         AS = self.ambient_space().__pow__(m)
         CR = AS.coordinate_ring()
@@ -1988,7 +2000,7 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
             Closed subscheme of Affine Space of dimension 4 over Number Field in w
             with defining polynomial x^5 - 2 defined by:
               (-w)*z0^3 + (3*w)*z0*z1^2 + z2^2 - z3^2,
-              (-3*w)*z0^2*z1 + (w)*z1^3 + 2*z2*z3 - 1
+              (-3*w)*z0^2*z1 + w*z1^3 + 2*z2*z3 - 1
             sage: X.weil_restriction().ambient_space() is A.weil_restriction()
             True
 

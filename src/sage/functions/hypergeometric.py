@@ -1,5 +1,5 @@
 r"""
-Hypergeometric Functions
+Hypergeometric functions
 
 This module implements manipulation of infinite hypergeometric series
 represented in standard parametric form (as `\,_pF_q` functions).
@@ -145,7 +145,7 @@ Series expansions of confluent hypergeometric functions::
 
     sage: hypergeometric_M(2, 2, x).series(x, 3)
     1 + 1*x + 1/2*x^2 + Order(x^3)
-    sage: hypergeometric_U(2, 2, x).series(x == 3, 100).subs(x=1).n() # known bug (see :trac:`25688`)
+    sage: hypergeometric_U(2, 2, x).series(x == 3, 100).subs(x=1).n()
     0.403652637676806
     sage: hypergeometric_U(2, 2, 1).n()
     0.403652637676806
@@ -388,25 +388,7 @@ class Hypergeometric(BuiltinFunction):
         return (t * derivative(z, diff_param) *
                 hypergeometric([c + 1 for c in a], [c + 1 for c in b], z))
 
-    class EvaluationMethods(object):
-        def _fast_float_(self, *args):
-            """
-            Do not support the old ``fast_float``.
-
-            OUTPUT:
-
-            This method raises ``NotImplementedError``; use the newer
-            ``fast_callable`` implementation.
-
-            EXAMPLES::
-
-                sage: f = hypergeometric([], [], x)
-                sage: f._fast_float_()
-                Traceback (most recent call last):
-                ...
-                NotImplementedError
-            """
-            raise NotImplementedError
+    class EvaluationMethods():
 
         def _fast_callable_(self, a, b, z, etb):
             """
@@ -429,8 +411,6 @@ class Hypergeometric(BuiltinFunction):
                 (x, y)
                 sage: f = fast_callable(hypergeometric([y], [], x), vars=[x, y])
                 sage: f(3, 4)
-                doctest:...: DeprecationWarning: Substitution using function-call syntax and unnamed arguments is deprecated and will be removed from a future release of Sage; you can use named arguments instead, like EXPR(x=..., y=...)
-                See http://trac.sagemath.org/5930 for details.
                 hypergeometric((4,), (), 3)
             """
             return etb.call(self, *map(etb.var, etb._vars))
@@ -1024,7 +1004,7 @@ class Hypergeometric_M(BuiltinFunction):
         raise NotImplementedError('derivative of hypergeometric function '
                                   'with respect to parameters')
 
-    class EvaluationMethods(object):
+    class EvaluationMethods():
         def generalized(self, a, b, z):
             """
             Return as a generalized hypergeometric function.
@@ -1129,7 +1109,7 @@ class Hypergeometric_U(BuiltinFunction):
         raise NotImplementedError('derivative of hypergeometric function '
                                   'with respect to parameters')
 
-    class EvaluationMethods(object):
+    class EvaluationMethods():
         def generalized(self, a, b, z):
             """
             Return in terms of the generalized hypergeometric function.

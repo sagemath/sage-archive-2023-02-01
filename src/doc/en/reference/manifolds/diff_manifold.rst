@@ -2,7 +2,7 @@ Differentiable Manifolds
 ========================
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
    sage/manifolds/differentiable/manifold
 
@@ -23,6 +23,8 @@ Differentiable Manifolds
    diff_form
 
    mixed_form
+
+   sage/manifolds/differentiable/de_rham_cohomology
 
    multivector
 

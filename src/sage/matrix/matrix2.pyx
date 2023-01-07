@@ -62,6 +62,9 @@ AUTHORS:
 - Michael Jung (2020-10-02): added Bär-Faddeev-LeVerrier algorithm for the
   Pfaffian
 
+- Moritz Firsching(2020-10-05): added ``quantum_determinant``
+
+- Dima Pasechnik (2022-11-08): fixed ``echelonize`` for inexact matrices
 """
 
 # ****************************************************************************
@@ -89,12 +92,7 @@ from sage.rings.number_field.number_field_base import is_NumberField
 from sage.rings.integer_ring import ZZ, is_IntegerRing
 from sage.rings.integer import Integer
 from sage.rings.rational_field import QQ, is_RationalField
-from sage.rings.real_double import RDF
-from sage.rings.complex_double import CDF
-from sage.rings.real_mpfr import RealField
-from sage.rings.complex_mpfr import ComplexField
-from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
-from sage.misc.derivative import multi_derivative
+import sage.rings.abc
 from sage.arith.numerical_approx cimport digits_to_bits
 from copy import copy
 
@@ -228,8 +226,8 @@ cdef class Matrix(Matrix1):
 
         - ``check`` -- boolean (default: ``True``); verify the answer
           if the system is non-square or rank-deficient, and if its
-          entries lie in an exact ring. Meaningless over inexact rings,
-          or when the system is square and of full rank.
+          entries lie in an exact ring. Meaningless over most inexact
+          rings, or when the system is square and of full rank.
 
         OUTPUT:
 
@@ -243,12 +241,13 @@ cdef class Matrix(Matrix1):
         If the system is not square or does not have full rank, then a
         solution is attempted via other means. For example, over
         ``RDF`` or ``CDF`` a least-squares solution is returned, as
-        with MATLAB's "backslash" operator. For inexact rings, the
+        with MATLAB's "backslash" operator. For most inexact rings, the
         ``check`` parameter is ignored because an approximate solution
         will be returned in any case. Over exact rings, on the other
         hand, setting the ``check`` parameter results in an additional
         test to determine whether or not the answer actually solves the
-        system exactly.
+        system exactly. If a symbolic system involves only exact elements,
+        its solution can still be checked.
 
         If `B` is a vector, the result is returned as a vector, as well,
         and as a matrix, otherwise.
@@ -399,6 +398,25 @@ cdef class Matrix(Matrix1):
             (0.5 - 1.5*I, 0.5 + 0.5*I)
             sage: b = vector(QQ[I], [1+I, 2])
             sage: x = A.solve_left(b)
+
+        Over the inexact ring ``SR``, we can still verify the solution
+        if all of the elements involved were exact to begin with; if
+        any are inexact, however, the ``check`` is still skipped
+        (:trac:`29729` and :trac:`33159`)::
+
+            sage: A = matrix(SR, [[1, 1]])                  # optional - sage.symbolic
+            sage: b = vector(SR, [2, 3])                    # optional - sage.symbolic
+            sage: A.solve_left(b)                           # optional - sage.symbolic
+            Traceback (most recent call last):
+            ...
+            ValueError: matrix equation has no solutions
+
+
+        In this case, turning off the ``check`` leads to a wrong result::
+
+            sage: A.solve_left(b, check=False)              # optional - sage.symbolic
+            (2)
+
         """
         if is_Vector(B):
             try:
@@ -437,8 +455,8 @@ cdef class Matrix(Matrix1):
 
         - ``check`` -- boolean (default: ``True``); verify the answer
           if the system is non-square or rank-deficient, and if its
-          entries lie in an exact ring. Meaningless over inexact rings,
-          or when the system is square and of full rank.
+          entries lie in an exact ring. Meaningless over most inexact
+          rings, or when the system is square and of full rank.
 
         OUTPUT:
 
@@ -452,12 +470,13 @@ cdef class Matrix(Matrix1):
         If the system is not square or does not have full rank, then a
         solution is attempted via other means. For example, over
         ``RDF`` or ``CDF`` a least-squares solution is returned, as
-        with MATLAB's "backslash" operator. For inexact rings, the
+        with MATLAB's "backslash" operator. For most inexact rings, the
         ``check`` parameter is ignored because an approximate solution
         will be returned in any case. Over exact rings, on the other
         hand, setting the ``check`` parameter results in an additional
         test to determine whether or not the answer actually solves the
-        system exactly.
+        system exactly. If a symbolic system involves only exact elements,
+        its solution can still be checked.
 
         If `B` is a vector, the result is returned as a vector, as well,
         and as a matrix, otherwise.
@@ -605,21 +624,20 @@ cdef class Matrix(Matrix1):
         Solving a system of linear equations symbolically using symbolic
         matrices::
 
-            sage: var('a,b,c,d,x,y')
+            sage: var('a,b,c,d,x,y')                                        # optional - sage.symbolic
             (a, b, c, d, x, y)
-            sage: A=matrix(SR,2,[a,b,c,d]); A
+            sage: A = matrix(SR, 2, [a,b,c,d]); A                           # optional - sage.symbolic
             [a b]
             [c d]
-            sage: result=vector(SR,[3,5]); result
+            sage: result = vector(SR, [3,5]); result                        # optional - sage.symbolic
             (3, 5)
-            sage: soln=A.solve_right(result)
-            sage: soln
+            sage: soln = A.solve_right(result); soln                        # optional - sage.symbolic
             (-b*(3*c/a - 5)/(a*(b*c/a - d)) + 3/a, (3*c/a - 5)/(b*c/a - d))
-            sage: (a*x+b*y).subs(x=soln[0],y=soln[1]).simplify_full()
+            sage: (a*x+b*y).subs(x=soln[0], y=soln[1]).simplify_full()      # optional - sage.symbolic
             3
-            sage: (c*x+d*y).subs(x=soln[0],y=soln[1]).simplify_full()
+            sage: (c*x+d*y).subs(x=soln[0], y=soln[1]).simplify_full()      # optional - sage.symbolic
             5
-            sage: (A*soln).apply_map(lambda x: x.simplify_full())
+            sage: (A*soln).apply_map(lambda x: x.simplify_full())           # optional - sage.symbolic
             (3, 5)
 
         Over inexact rings, the output of this function may not be an exact
@@ -767,14 +785,13 @@ cdef class Matrix(Matrix1):
             sage: b = vector(QQ[I], [1+I, 2])
             sage: x = A.solve_right(b)
 
-        Calling this method with anything but a vector or matrix is
-        deprecated::
+        This method must be called with a vector or a matrix::
 
-            sage: A = matrix(CDF, 5, [1/(i+j+1) for i in range(5) for j in range(5)])
-            sage: x = A.solve_right([1]*5)
-            doctest:...: DeprecationWarning: solve_right should be called with
-            a vector or matrix
-            See http://trac.sagemath.org/17405 for details.
+            sage: A = matrix(CDF, 2, [1 for i in range(4)])
+            sage: x = A.solve_right([1]*2)
+            Traceback (most recent call last):
+            ...
+            TypeError: the second argument must be a vector or a matrix
 
         Over inexact rings, the ``check`` parameter is ignored as the result is
         only an approximate solution (:trac:`13932`)::
@@ -782,17 +799,47 @@ cdef class Matrix(Matrix1):
             sage: RF = RealField(52)
             sage: B = matrix(RF, 2, 2, 1)
             sage: A = matrix(RF, [[0.24, 1, 0], [1, 0, 0]])
-            sage: 0 < (A * A.solve_right(B) - B).norm() < 1e-14
+            sage: 0 <= (A * A.solve_right(B) - B).norm() < 1e-14
             True
+
+        Over the inexact ring ``SR``, we can still verify the solution
+        if all of the elements involved were exact to begin with; if
+        any are inexact, however, the ``check`` is still skipped
+        (:trac:`29729` and :trac:`33159`)::
+
+            sage: m = matrix(SR, [0])                       # optional - sage.symbolic
+            sage: b = vector(SR, [1])                       # optional - sage.symbolic
+            sage: m.solve_right(b, check=True)              # optional - sage.symbolic
+            Traceback (most recent call last):
+            ...
+            ValueError: matrix equation has no solutions
+
+        In this case, turning off the ``check`` leads to a wrong result::
+
+            sage: m.solve_right(b, check=False)             # optional - sage.symbolic
+            (0)
+
+        In the following, we have an inexact entry in the matrix, so
+        the ``check`` is still skipped leading to a wrong result::
+
+            sage: m = matrix(SR, [0.0])                     # optional - sage.symbolic
+            sage: m.solve_right(b, check=True)              # optional - sage.symbolic
+            (0)
+
+        ::
+
+            sage: SC = SR.subring(no_variables=True)        # optional - sage.symbolic
+            sage: m = matrix(SC, [0])                       # optional - sage.symbolic
+            sage: b = vector(SC, [1])                       # optional - sage.symbolic
+            sage: m.solve_right(b)                          # optional - sage.symbolic
+            Traceback (most recent call last):
+            ...
+            ValueError: matrix equation has no solutions
         """
         try:
             L = B.base_ring()
         except AttributeError:
-            from sage.misc.superseded import deprecation
-            deprecation(17405, "solve_right should be called with a vector "
-                               "or matrix")
-            from sage.modules.free_module_element import vector
-            B = vector(B)
+            raise TypeError("the second argument must be a vector or a matrix")
         b_is_vec = is_Vector(B)
         if b_is_vec:
             if self.nrows() != B.degree():
@@ -816,14 +863,21 @@ cdef class Matrix(Matrix1):
             K = P
             self = self.change_ring(P)
 
-        # If our field is inexact, checking the answer is doomed anyway.
-        check = (check and K.is_exact())
+        # If our field is inexact, checking the answer is doomed in
+        # most cases. But here we handle the special ones.
+        if isinstance(K, sage.rings.abc.SymbolicRing):
+            # Elements of SR "remember" whether or not they are exact.
+            # If every element in the system is exact, we can probably
+            # still check the solution over the inexact ring SR.
+            check = (check and all( e.is_exact()
+                                    for e in self.list() + B.list() ))
+        else:
+            check = (check and K.is_exact())
 
         if not K.is_integral_domain():
             # The non-integral-domain case is handled almost entirely
             # separately.
-            from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
-            if is_IntegerModRing(K):
+            if isinstance(K, sage.rings.abc.IntegerModRing):
                 from sage.libs.pari import pari
                 A = pari(self.lift())
                 b = pari(B).lift()
@@ -1482,19 +1536,15 @@ cdef class Matrix(Matrix1):
         Beware that the ``exact`` algorithm is not numerically stable,
         but the default ``numpy`` algorithm is::
 
-            sage: M = matrix(RR, 3, 3, [1,2,3,1/3,2/3,3/3,1/5,2/5,3/5])
-            sage: M.pseudoinverse()  # tol 1e-15
-            [0.0620518477661335 0.0206839492553778 0.0124103695532267]
-            [ 0.124103695532267 0.0413678985107557 0.0248207391064534]
-            [ 0.186155543298400 0.0620518477661335 0.0372311086596801]
-            sage: M.pseudoinverse(algorithm="numpy")  # tol 1e-15
-            [0.0620518477661335 0.0206839492553778 0.0124103695532267]
-            [ 0.124103695532267 0.0413678985107557 0.0248207391064534]
-            [ 0.186155543298400 0.0620518477661335 0.0372311086596801]
-            sage: M.pseudoinverse(algorithm="exact")
-            [ 0.125000000000000 0.0625000000000000 0.0312500000000000]
-            [ 0.250000000000000  0.125000000000000 0.0625000000000000]
-            [ 0.000000000000000  0.000000000000000 0.0625000000000000]
+            sage: M = matrix.hilbert(12,ring=RR)
+            sage: (~M*M).norm()  # a considerable error
+            1.3...
+            sage: Mx = M.pseudoinverse(algorithm="exact")
+            sage: (Mx*M).norm()  # huge error
+            11.5...
+            sage: Mx = M.pseudoinverse(algorithm="numpy")
+            sage: (Mx*M).norm()  # still OK
+            1.00...
 
         When multiplying the given matrix with the pseudoinverse, the
         result is symmetric for the ``exact`` algorithm or hermitian
@@ -1528,6 +1578,11 @@ cdef class Matrix(Matrix1):
             [-1286742750677287/643371375338643 1000799917193445/1000799917193444]
             [  519646110850445/346430740566963  -300239975158034/600479950316067]
 
+        Although it is not too far off::
+
+            sage: (~M-M.pseudoinverse(algorithm="numpy")).norm() < 1e-14
+            True
+
         TESTS::
 
             sage: M.pseudoinverse(algorithm="exact")
@@ -1545,6 +1600,8 @@ cdef class Matrix(Matrix1):
         ring = self.base_ring()
         if algorithm is None:
             # Choose algorithm depending on base ring
+            from sage.rings.real_mpfr import RealField
+            from sage.rings.complex_mpfr import ComplexField
             is_complex = ComplexField(2).has_coerce_map_from(ring)
             if is_complex:
                 if ring.is_exact():
@@ -1585,7 +1642,7 @@ cdef class Matrix(Matrix1):
         Q = (At * A) * (B * Bt)
         return Bt * ~Q * At
 
-    def rook_vector(self, algorithm="ButeraPernici", complement=False, use_complement=None):
+    def rook_vector(self, algorithm=None, complement=False, use_complement=None):
         r"""
         Return the rook vector of this matrix.
 
@@ -1739,6 +1796,9 @@ cdef class Matrix(Matrix1):
         cdef Matrix B
         zero = self.base_ring().zero()
         one  = self.base_ring().one()
+
+        if algorithm is None:
+            algorithm = "ButeraPernici"
 
         # we first run through the coefficients of the matrix to compute the
         # number of non-zero coefficients and to see whether or not it contains
@@ -1985,9 +2045,6 @@ cdef class Matrix(Matrix1):
             sage: A.determinant() == B.determinant()
             True
         """
-        from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
-        from sage.symbolic.ring import is_SymbolicExpressionRing
-
         cdef Py_ssize_t n
         n = self._ncols
 
@@ -2031,7 +2088,7 @@ cdef class Matrix(Matrix1):
             return d
 
         # Special case for Z/nZ or GF(p):
-        if is_IntegerModRing(R) and self.is_dense():
+        if isinstance(R, sage.rings.abc.IntegerModRing) and self.is_dense():
             import sys
             # If the characteristic is prime and smaller than a machine
             # word, use PARI.
@@ -2076,7 +2133,7 @@ cdef class Matrix(Matrix1):
         # is then assumed to not be a variable in the symbolic ring.  But this
         # resulted in further exceptions/ errors.
 
-        var = 'A0123456789' if is_SymbolicExpressionRing(R) else 'x'
+        var = 'A0123456789' if isinstance(R, sage.rings.abc.SymbolicRing) else 'x'
         try:
             charp = self.charpoly(var, algorithm="df")
         except ValueError:
@@ -2107,11 +2164,87 @@ cdef class Matrix(Matrix1):
                 if (level - i) % 2:
                     d -= self.get_unsafe(level,level) * self._det_by_minors(level)
                 else:
-                     d += self.get_unsafe(level,level) * self._det_by_minors(level)
+                    d += self.get_unsafe(level,level) * self._det_by_minors(level)
             # undo all our permutations to get us back to where we started
             for i from 0 <= i < level:
                 self.swap_rows(level, i)
             return d
+
+    def quantum_determinant(self, q=None):
+        r"""
+        Return the quantum deteminant of ``self``.
+
+        The quantum determinant of a matrix `M = (m_{ij})_{i,j=1}^n`
+        is defined by
+
+        .. MATH::
+
+            \det_q(M) =
+            \sum_{\sigma \in S_n} (-q)^{\ell(\sigma)} M_{\sigma(i),j},
+
+        where `S_n` is the symmetric group on `\{1, \ldots, n\}` and
+        `\ell(\sigma)` denotes the length of `\sigma` written as simple
+        transpositions (equivalently the number of inversions when
+        written in one-line notation).
+
+        INPUT:
+
+        - ``q`` -- the parameter `q`; the default is `q \in F[q]`,
+          where `F` is the base ring of ``self``
+
+        EXAMPLES::
+
+            sage: A = matrix(SR, 2, lambda i, j: f'a{i}{j}'); A             # optional - sage.symbolic
+            [a00 a01]
+            [a10 a11]
+            sage: A.quantum_determinant()                                   # optional - sage.symbolic
+            -a01*a10*q + a00*a11
+
+            sage: A = matrix(SR, 3, lambda i, j: f'a{i}{j}')                # optional - sage.symbolic
+            sage: A.quantum_determinant()                                   # optional - sage.symbolic
+            -a02*a11*a20*q^3 + (a01*a12*a20 + a02*a10*a21)*q^2
+             + (-a00*a12*a21 - a01*a10*a22)*q + a00*a11*a22
+
+            sage: R.<q> = LaurentPolynomialRing(ZZ)
+            sage: MS = MatrixSpace(Integers(8), 3)
+            sage: A = MS([1,7,3, 1,1,1, 3,4,5])
+            sage: A.det()
+            6
+            sage: A.quantum_determinant(q^-2)
+            7*q^-6 + q^-4 + q^-2 + 5
+
+            sage: S.<x,y> = PolynomialRing(GF(7))
+            sage: R.<q> = LaurentPolynomialRing(S)
+            sage: MS = MatrixSpace(S, 3, sparse=True)
+            sage: A = MS([[x, y, 3], [4, 2+y, x^2], [0, 1-x, x+y]])
+            sage: A.det()
+            x^4 - x^3 + x^2*y + x*y^2 + 2*x^2 - 2*x*y + 3*y^2 + 2*x - 2
+            sage: A.quantum_determinant()
+            (2*x - 2)*q^2 + (x^4 - x^3 + 3*x*y + 3*y^2)*q + x^2*y + x*y^2 + 2*x^2 + 2*x*y
+            sage: A.quantum_determinant(int(2))
+            2*x^4 - 2*x^3 + x^2*y + x*y^2 + 2*x^2 + x*y - y^2 + x - 1
+            sage: A.quantum_determinant(q*x + q^-1*y)
+            (2*x*y^2 - 2*y^2)*q^-2 + (x^4*y - x^3*y + 3*x*y^2 + 3*y^3)*q^-1
+             + (-2*x^2*y + x*y^2 + 2*x^2 - 2*x*y)
+             + (x^5 - x^4 + 3*x^2*y + 3*x*y^2)*q + (2*x^3 - 2*x^2)*q^2
+        """
+        cdef Py_ssize_t n = self._ncols
+
+        if self._nrows != n:
+            raise ValueError("self must be a square matrix")
+
+        if q is None:
+            from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+            q = PolynomialRing(self.base_ring(), 'q').gen()
+
+        from sage.misc.misc_c import prod
+        from sage.combinat.permutation import Permutations
+        cdef Py_ssize_t i
+        return sum((-q)**s.number_of_inversions()
+                   * prod(self.get_unsafe(s[i] - 1, i) for i in range(n))
+                   for s in Permutations(n))
+
+    qdet = quantum_determinant
 
     def pfaffian(self, algorithm=None, check=True):
         r"""
@@ -2183,7 +2316,8 @@ cdef class Matrix(Matrix1):
         the implementation raises an error because correct results cannot be
         guaranteed.
 
-        To access the algorithm using the above defintion, use ``'definition'``.
+        To access the algorithm using the above definition,
+        use ``'definition'``.
         However, notice that this algorithm is usually very slow.
 
         By default, i.e. if no options are set, the implementation tries to
@@ -2386,14 +2520,14 @@ cdef class Matrix(Matrix1):
         r"""
         Computes the Pfaffian of ``self`` using the Baer-Faddeev-LeVerrier
         algorithm.
-        
+
         .. WARNING::
-        
+
             This method assumes that the base ring is an `\QQ`-algebra.
 
         OUTPUT:
 
-        - an element (possibly coerced) originated from the base ring of 
+        - an element (possibly coerced) originated from the base ring of
           ``self`` representing the Pfaffian
 
         EXAMPLES:
@@ -2409,7 +2543,7 @@ cdef class Matrix(Matrix1):
             ....:             (1/2, -3/2, -1, -5/2, -1/2, 0)])
             sage: A.pfaffian(algorithm='bfl')
             -1/2
-            
+
         TESTS::
 
             sage: A = random_matrix(ZZ[x], 6)
@@ -2662,20 +2796,28 @@ cdef class Matrix(Matrix1):
 
             sage: factor(A.minpoly('y'))
             (y + 1) * (y + 2)^2
-
         """
         f = self.fetch('minpoly')
         if not f is None:
             return f.change_variable_name(var)
         f = self.charpoly(var=var, **kwds)
-        if f.is_squarefree():  # is_squarefree for polys much faster than factor.
-            # Then f must be the minpoly
-            self.cache('minpoly', f)
-            return f
+        try:
+            no_sq = f.is_squarefree()
+            # is_squarefree for polys much faster than factor.
+        except (TypeError, NotImplementedError):
+            pass
+        else:
+            if no_sq:
+                # Then f must be the minpoly
+                self.cache('minpoly', f)
+                return f
 
         # Now we have to work harder.  We find the power of each
         # irreducible factor that divides the minpoly.
-        mp = f.radical()
+        try:
+            mp = f.radical()
+        except (TypeError, NotImplementedError):
+            raise NotImplementedError("minimal polynomial not implemented")
         for h, e in f.factor():
             if e > 1:
                 # Find the power of B so that the dimension
@@ -2692,6 +2834,20 @@ cdef class Matrix(Matrix1):
                 mp *= h**(n-1)
         self.cache('minpoly', mp)
         return mp
+
+    def _test_minpoly(self, **options):
+        """
+        Check that :meth:`minpoly` works.
+
+        EXAMPLES::
+
+            sage: a = matrix([[1,2],[3,4]])
+            sage: a._test_minpoly()
+        """
+        if self.nrows() == self.ncols() and self.base_ring().is_exact():
+            tester = self._tester(**options)
+            # At least check that the minimal polynomial kills the matrix
+            tester.assertTrue(self.minpoly().subs(x=self).is_zero())
 
     def charpoly(self, var = 'x', algorithm = None):
         r"""
@@ -2851,7 +3007,7 @@ cdef class Matrix(Matrix1):
             sage: M = MatrixSpace(RR, 2)
             sage: A = M(range(2^2))
             sage: type(A)
-            <type 'sage.matrix.matrix_generic_dense.Matrix_generic_dense'>
+            <class 'sage.matrix.matrix_generic_dense.Matrix_generic_dense'>
             sage: A.charpoly('x')
             x^2 - 3.00000000000000*x - 2.00000000000000
             sage: A.charpoly('y')
@@ -3224,10 +3380,8 @@ cdef class Matrix(Matrix1):
 
             sage: M = random_matrix(ZZ, 10, 20)
             sage: N = random_matrix(ZZ, 20, 10)
-            sage: M.trace_of_product(N)
-            -1629
-            sage: (M*N).trace()
-            -1629
+            sage: M.trace_of_product(N) == (M*N).trace()
+            True
         """
         if self._nrows != other._ncols or other._nrows != self._ncols:
             raise ArithmeticError("incompatible dimensions")
@@ -4260,7 +4414,7 @@ cdef class Matrix(Matrix1):
         algorithm = kwds.pop('algorithm', None)
         if algorithm is None:
             algorithm = 'default'
-        elif not algorithm in ['default', 'generic', 'flint', 'pari', 'padic', 'pluq']:
+        elif algorithm not in ['default', 'generic', 'flint', 'pari', 'padic', 'pluq']:
             raise ValueError("matrix kernel algorithm '%s' not recognized" % algorithm )
         elif algorithm == 'padic' and not (is_IntegerRing(R) or is_RationalField(R)):
             raise ValueError("'padic' matrix kernel algorithm only available over the rationals and the integers, not over %s" % R)
@@ -4277,7 +4431,7 @@ cdef class Matrix(Matrix1):
         basis = kwds.pop('basis', None)
         if basis is None:
             basis = 'echelon'
-        elif not basis in ['computed', 'echelon', 'pivot', 'LLL']:
+        elif basis not in ['computed', 'echelon', 'pivot', 'LLL']:
             raise ValueError("matrix kernel basis format '%s' not recognized" % basis )
         elif basis == 'pivot' and R not in _Fields:
             raise ValueError('pivot basis only available over a field, not over %s' % R)
@@ -5062,16 +5216,6 @@ cdef class Matrix(Matrix1):
         """
         return self.row_module()
 
-    def _row_ambient_module(self, base_ring=None):
-        if base_ring is None:
-            base_ring = self.base_ring()
-        x = self.fetch('row_ambient_module_%s'%base_ring)
-        if not x is None:
-            return x
-        x = sage.modules.free_module.FreeModule(base_ring, self.ncols(), sparse=self.is_sparse())
-        self.cache('row_ambient_module',x)
-        return x
-
     def row_module(self, base_ring=None):
         """
         Return the free module over the base ring spanned by the rows of
@@ -5086,7 +5230,7 @@ cdef class Matrix(Matrix1):
             [1 0]
             [0 2]
         """
-        M = self._row_ambient_module(base_ring = base_ring)
+        M = self.row_ambient_module(base_ring=base_ring)
         if (base_ring is None or base_ring == self.base_ring()) and self.fetch('in_echelon_form'):
             if self.rank() != self.nrows():
                 rows = self.matrix_from_rows(range(self.rank())).rows()
@@ -5122,15 +5266,6 @@ cdef class Matrix(Matrix1):
             [1 1]
         """
         return self.row_module(base_ring=base_ring)
-
-    def _column_ambient_module(self):
-        x = self.fetch('column_ambient_module')
-        if not x is None:
-            return x
-        x = sage.modules.free_module.FreeModule(self.base_ring(), self.nrows(),
-                                                sparse=self.is_sparse())
-        self.cache('column_ambient_module',x)
-        return x
 
     def column_module(self):
         """
@@ -5387,8 +5522,7 @@ cdef class Matrix(Matrix1):
             Edual = decomp_seq([])
         F = f.factor()
         if len(F) == 1:
-            V = sage.modules.free_module.FreeModule(
-                              self.base_ring(), self.nrows(), sparse=self.is_sparse())
+            V = self.column_ambient_module()
             m = F[0][1]
             if dual:
                 return decomp_seq([(V, m==1)]), decomp_seq([(V, m==1)])
@@ -5829,7 +5963,7 @@ cdef class Matrix(Matrix1):
             sage: A._eigenspace_format(None) == 'all'
             True
         """
-        if not format in [None, 'all', 'galois']:
+        if format not in [None, 'all', 'galois']:
             msg = "format keyword must be None, 'all' or 'galois', not {0}"
             raise ValueError(msg.format(format))
 
@@ -6117,7 +6251,7 @@ cdef class Matrix(Matrix1):
             ...
             ValueError: algebraic_multiplicity keyword must be True or False
         """
-        if not algebraic_multiplicity in [True, False]:
+        if algebraic_multiplicity not in [True, False]:
             msg = 'algebraic_multiplicity keyword must be True or False'
             raise ValueError(msg.format(algebraic_multiplicity))
         if not self.is_square():
@@ -6359,7 +6493,7 @@ cdef class Matrix(Matrix1):
             ...
             ValueError: algebraic_multiplicity keyword must be True or False
         """
-        if not algebraic_multiplicity in [True, False]:
+        if algebraic_multiplicity not in [True, False]:
             msg = 'algebraic_multiplicity keyword must be True or False'
             raise ValueError(msg.format(algebraic_multiplicity))
         if not self.is_square():
@@ -6878,16 +7012,36 @@ cdef class Matrix(Matrix1):
         the algebraic multiplicity. The following examples show that these
         cases are detected (:trac:`27842`)::
 
-            sage: A = matrix(SR, [(225/548, 0, -175/274*sqrt(193/1446)), (0, 1/2, 0), (-63/548*sqrt(723/386), 0, 49/548)])
-            sage: A.eigenmatrix_left()
+            sage: A = matrix(SR, [(225/548, 0, -175/274*sqrt(193/1446)),            # optional - sage.symbolic
+            ....:                 (0, 1/2, 0),
+            ....:                 (-63/548*sqrt(723/386), 0, 49/548)])
+            sage: A.eigenmatrix_left()                                              # optional - sage.symbolic
             Traceback (most recent call last):
             ...
             RuntimeError: failed to compute eigenvectors for eigenvalue ..., check eigenvectors_left() for partial results
-            sage: B = matrix(SR, [(1/2, -7/2*sqrt(1/386), 0, 49/2*sqrt(1/279078)), (-7/2*sqrt(1/386), 211/772, 0, -8425/772*sqrt(1/723)), (0, 0, 1/2, 0), (49/2*sqrt(1/279078), -8425/772*sqrt(1/723), 0, 561/772)])
-            sage: B.eigenmatrix_left()  # long time (1.2 seconds)
+            sage: B = matrix(SR, [(1/2, -7/2*sqrt(1/386), 0, 49/2*sqrt(1/279078)),  # optional - sage.symbolic
+            ....:                 (-7/2*sqrt(1/386), 211/772, 0, -8425/772*sqrt(1/723)),
+            ....:                 (0, 0, 1/2, 0),
+            ....:                 (49/2*sqrt(1/279078), -8425/772*sqrt(1/723), 0, 561/772)])
+            sage: B.eigenmatrix_left()  # long time (1.2 seconds)                   # optional - sage.symbolic
             Traceback (most recent call last):
             ...
             RuntimeError: failed to compute eigenvectors for eigenvalue ..., check eigenvectors_left() for partial results
+
+        The following example shows that :trac:`12595` has been resolved::
+
+            sage: m = Matrix(CDF, 8, [[-1, -1, -1, -1, 1, -3, -1, -1],
+            ....:                     [1, 1, 1, 1, -1, -1, 1, -3],
+            ....:                     [-1, 3, -1, -1, 1, 1, -1, -1],
+            ....:                     [-1, -1, -1, 3, 1, 1, -1, -1],
+            ....:                     [1, 1, -3, 1, -1, -1, 1, 1],
+            ....:                     [1, 1, 1, 1, -1, -1, -3, 1],
+            ....:                     [3, -1, -1, -1, 1, 1, -1, -1],
+            ....:                     [1, 1, 1, 1, 3, -1, 1, 1]])
+            sage: d, p = m.eigenmatrix_left()
+            sage: mm = p.inverse() * d * p  # This should be equal to m up to numerical noise
+            sage: norm(mm - m) < 1e-12
+            True
         """
         from sage.misc.flatten import flatten
         from sage.matrix.constructor import diagonal_matrix, matrix
@@ -7164,10 +7318,9 @@ cdef class Matrix(Matrix1):
             [ 0  1  2]
             [ 0  0  0]
 
-            sage: B=random_matrix(QQ,3,num_bound=10); B
-            [ -4  -3   6]
-            [  5  -5 9/2]
-            [3/2  -4  -7]
+            sage: B = random_matrix(QQ, 3, num_bound=10)
+            sage: while B.rank() != 3:
+            ....:     B = random_matrix(QQ, 3, num_bound=10)
             sage: B.rref()
             [1 0 0]
             [0 1 0]
@@ -7297,7 +7450,7 @@ cdef class Matrix(Matrix1):
                 raise NotImplementedError("%s\nechelon form over %s not yet implemented"%(msg, self.base_ring()))
 
             for c from 0 <= c < self.ncols():
-               for r from 0 <= r < self.nrows():
+                for r from 0 <= r < self.nrows():
                     self.set_unsafe(r, c, d.get_unsafe(r,c))
             self.clear_cache()
             self.cache('pivots', tuple(p))
@@ -7449,8 +7602,18 @@ cdef class Matrix(Matrix1):
             sage: transformation_matrix = m.echelonize(transformation=True)
             sage: m == transformation_matrix * m_original
             True
+
+        TESTS::
+
+        Check that :trac:`34724` is fixed (indirect doctest)::
+
+            sage: a=6.12323399573677e-17
+            sage: m=matrix(RR,[[-a, -1.72508242466029], [ 0.579682446302195, a]])
+            sage: (~m*m).norm()
+            1.0
         """
         self.check_mutability()
+        basring = self.base_ring()
 
         if algorithm == 'default':
             from sage.categories.discrete_valuation import DiscreteValuationFields
@@ -7460,16 +7623,22 @@ cdef class Matrix(Matrix1):
             # In general, we would like to do so in any rank one valuation ring,
             # but this should be done by introducing a category of general valuation rings and fields,
             # which we don't have at the moment
-            elif self.base_ring() in DiscreteValuationFields():
+            elif basring in DiscreteValuationFields():
                 try:
-                    self.base_ring().one().abs()
+                    basring.one().abs()
                     algorithm = 'scaled_partial_pivoting'
                 except (AttributeError, TypeError):
                     algorithm = 'scaled_partial_pivoting_valuation'
-            else:
+            elif basring.is_exact():
                 algorithm = 'classical'
+            else:
+                try:
+                    (basring(0.42)).abs()
+                    algorithm = 'scaled_partial_pivoting'
+                except (AttributeError, ArithmeticError, TypeError):
+                    algorithm = 'classical'
         try:
-            if self.base_ring() in _Fields:
+            if basring in _Fields:
                 if algorithm in ['classical', 'partial_pivoting', 'scaled_partial_pivoting', 'scaled_partial_pivoting_valuation']:
                     self._echelon_in_place(algorithm)
                 elif algorithm == 'strassen':
@@ -7481,11 +7650,11 @@ cdef class Matrix(Matrix1):
                     kwds['algorithm'] = algorithm
                 return self._echelonize_ring(**kwds)
         except ArithmeticError as msg:
-            raise NotImplementedError("%s\nEchelon form not implemented over '%s'."%(msg,self.base_ring()))
+            raise NotImplementedError("%s\nEchelon form not implemented over '%s'."%(msg,basring))
 
     def echelon_form(self, algorithm="default", cutoff=0, **kwds):
-        """
-        Return the echelon form of self.
+        r"""
+        Return the echelon form of ``self``.
 
         .. NOTE::
 
@@ -8017,7 +8186,7 @@ cdef class Matrix(Matrix1):
             ...
             TypeError: subdivide must be True or False, not junk
         """
-        if not subdivide in [True, False]:
+        if subdivide not in [True, False]:
             raise TypeError("subdivide must be True or False, not %s" % subdivide)
         R = self.base_ring()
         ident = self.matrix_space(self.nrows(), self.nrows()).one()
@@ -8065,7 +8234,7 @@ cdef class Matrix(Matrix1):
             sage: B = M.as_bipartite_graph()
             sage: B
             Bipartite graph on 5 vertices
-            sage: B.edges()
+            sage: B.edges(sort=True)
             [(1, 4, 1/3), (1, 5, 7), (2, 4, 6), (2, 5, 1/4), (3, 4, 8), (3, 5, -5)]
             sage: len(B.left) == M.nrows()
             True
@@ -8215,7 +8384,7 @@ cdef class Matrix(Matrix1):
         # me + nc and me + 1 such that no entry is present already in the matrix.
         S = [first_row[0] + ncols] + [None]*(ncols-1)
         for j in range(1, ncols):
-           S[j] = S[j - 1] if first_row[j] == first_row[j - 1] else S[j - 1] - 1
+            S[j] = S[j - 1] if first_row[j] == first_row[j - 1] else S[j - 1] - 1
         # If we want to sort the i-th row with respect to a symmetry determined
         # by S, then we will just sort the augmented row [[S[j], PM[i, j]] :
         # j in [1 .. nc]], S having lexicographic priority.
@@ -9055,18 +9224,14 @@ cdef class Matrix(Matrix1):
         We then randomize roughly half the entries::
 
             sage: a.randomize(0.5)
-            sage: a
-            [                     0                      0                      0]
-            [                     0                      0       1/2*x^2 - x - 12]
-            [1/2*x^2 - 1/95*x - 1/2                      0                      0]
+            sage: a.density() <= 0.5
+            True
 
         Now we randomize all the entries of the resulting matrix::
 
-            sage: a.randomize()
-            sage: a
-            [                     0 -5/2*x^2 + 2/3*x - 1/4           -x^2 + 2/3*x]
-            [                     1        x^2 + 1/3*x - 1                     -1]
-            [                    -1       -x^2 - 1/4*x + 1                  -1/14]
+            sage: while a.density() < 0.9:
+            ....:     a = matrix(QQ['x'], 3)
+            ....:     a.randomize()
 
         We create the zero matrix over the integers::
 
@@ -9081,9 +9246,10 @@ cdef class Matrix(Matrix1):
         ::
 
             sage: a.randomize(x=-2^64, y=2^64)
-            sage: a
-            [-3789934696463997112 -3775200185786627805]
-            [-8014573080042851913  7914454492632997238]
+            sage: while all(abs(b) < 2^63 for b in a.list()):
+            ....:     a.randomize(x=-2^64, y=2^64)
+            sage: all(abs(b) < 2^64 for b in a.list())
+            True
         """
         randint = current_randstate().python_random().randint
 
@@ -9193,13 +9359,13 @@ cdef class Matrix(Matrix1):
                         return False
         return True
 
-    def is_diagonal(self):
+    def is_diagonal(self) -> bool:
         """
-        Return True if this matrix is a diagonal matrix.
+        Return ``True`` if this matrix is a diagonal matrix.
 
         OUTPUT:
 
-        - whether self is a diagonal matrix.
+        boolean
 
         EXAMPLES::
 
@@ -9227,9 +9393,51 @@ cdef class Matrix(Matrix1):
                         return False
         return True
 
-    def is_unitary(self):
+    def is_triangular(self, side="lower") -> bool:
+        """
+        Return ``True`` if this matrix is a triangular matrix.
+
+        INPUT:
+
+        - ``side`` -- either ``"lower"`` (default) or ``"upper"``
+
+        OUTPUT:
+
+        boolean
+
+        EXAMPLES::
+
+            sage: m = matrix(QQ, 2, 2, range(4))
+            sage: m.is_triangular()
+            False
+            sage: m = matrix(QQ, 2, [5, 0, 0, 5])
+            sage: m.is_triangular()
+            True
+            sage: m = matrix(QQ, 2, [1, 2, 0, 1])
+            sage: m.is_triangular("upper")
+            True
+            sage: m.is_triangular("lower")
+            False
+        """
+        if not self.is_square():
+            return False
+        cdef Py_ssize_t i, j
+
+        if side == "upper":
+            for i in range(1, self._nrows):
+                for j in range(i):
+                    if not self.get_unsafe(i, j).is_zero():
+                        return False
+        else:
+            for i in range(self._nrows - 1):
+                for j in range(i + 1, self._ncols):
+                    if not self.get_unsafe(i, j).is_zero():
+                        return False
+        return True
+
+    def is_unitary(self) -> bool:
         r"""
-        Returns ``True`` if the columns of the matrix are an orthonormal basis.
+        Return ``True`` if the columns of the matrix are an orthonormal basis.
 
         For a matrix with real entries this determines if a matrix is
         "orthogonal" and for a matrix with complex entries this determines
@@ -9594,7 +9802,7 @@ cdef class Matrix(Matrix1):
         return img
 
     def density(self):
-        """
+        r"""
         Return the density of the matrix.
 
         By density we understand the ratio of the number of nonzero
@@ -9609,8 +9817,8 @@ cdef class Matrix(Matrix1):
         ::
 
             sage: A = random_matrix(GF(127),200,200,density=0.3)
-            sage: A.density()
-            5211/20000
+            sage: A.density() <= 0.3
+            True
 
         ::
 
@@ -10095,7 +10303,7 @@ cdef class Matrix(Matrix1):
         """
         from sage.modules.free_module_element import zero_vector
         from sage.matrix.constructor import zero_matrix, matrix
-        from sage.functions.other import sqrt
+        from sage.misc.functional import sqrt
 
         if full:
             QR = self.fetch('QR_factors')
@@ -10611,10 +10819,8 @@ cdef class Matrix(Matrix1):
             sage: mu*G == A
             True
         """
-        import sage.rings.real_double
-        import sage.rings.complex_double
         R = self.base_ring()
-        if R in [sage.rings.real_double.RDF, sage.rings.complex_double.CDF]:
+        if isinstance(R, (sage.rings.abc.RealDoubleField, sage.rings.abc.ComplexDoubleField)):
             Q, R = self.transpose().QR()
             m = R.nrows(); n = R.ncols()
             if m > n:
@@ -10671,19 +10877,19 @@ cdef class Matrix(Matrix1):
           correctness. Set this to ``False`` for a speedup if the eigenvalues
           are known to be correct.
 
-        NOTES:
+        .. NOTE::
 
-        Currently, the Jordan normal form is not computed over inexact rings
-        in any but the trivial cases when the matrix is either `0 \times 0`
-        or `1 \times 1`.
+            Currently, the Jordan normal form is not computed over
+            inexact rings in any but the trivial cases when the matrix
+            is either `0 \times 0` or `1 \times 1`.
 
-        In the case of exact rings, this method does not compute any
-        generalized form of the Jordan normal form, but is only able to
-        compute the result if the characteristic polynomial of the matrix
-        splits over the specific base ring.
+            In the case of exact rings, this method does not compute any
+            generalized form of the Jordan normal form, but is only able to
+            compute the result if the characteristic polynomial of the matrix
+            splits over the specific base ring.
 
-        Note that the base ring must be a field or a ring with an implemented
-        fraction field.
+            Note that the base ring must be a field or a ring with an
+            implemented fraction field.
 
         EXAMPLES::
 
@@ -10969,6 +11175,16 @@ cdef class Matrix(Matrix1):
             Traceback (most recent call last):
             ...
             ValueError: Matrix entries must be from a field, not Ring of integers modulo 6
+
+        Test for :trac:`10563`::
+
+            sage: R = FractionField(PolynomialRing(RationalField(),'a'))
+            sage: a = R.gen()
+            sage: A = matrix(R,[[1,a],[a,1]])
+            sage: A.jordan_form()
+            [ a + 1|     0]
+            [------+------]
+            [     0|-a + 1]
         """
         from sage.matrix.constructor import block_diagonal_matrix, jordan_block, diagonal_matrix
         from sage.combinat.partition import Partition
@@ -12164,7 +12380,7 @@ cdef class Matrix(Matrix1):
                 raise TypeError('polynomial variable must be a string or polynomial ring generator, not {0}'.format(var))
             elif var.base_ring() != R:
                 raise TypeError('polynomial generator must be over the same ring as the matrix entries')
-        if not basis in ['echelon', 'iterates']:
+        if basis not in ['echelon', 'iterates']:
             raise ValueError("basis format must be 'echelon' or 'iterates', not {0}".format(basis))
         if not self.is_square():
             raise TypeError('matrix must be square, not {0} x {1}'.format(self.nrows(), self.ncols()))
@@ -12205,45 +12421,19 @@ cdef class Matrix(Matrix1):
         else:
             return subspace
 
-    def _cholesky_decomposition_(self):
-        r"""
-        Return the Cholesky decomposition of ``self``; see ``cholesky_decomposition``.
-
-        This generic implementation uses a standard recursion.
-        """
-        L = self.fetch('cholesky_broken')
-        if L is None:
-            A = self.__copy__()
-            L = A.parent()(0)
-            n = self.nrows()
-            for k in range(0, n-1 + 1):
-                try:
-                    L[k, k] = A[k, k].sqrt()
-                except TypeError:
-                    raise ValueError("The input matrix was not symmetric and positive definite")
-
-                for s in range(k+1, n):
-                    L[s, k] = A[s, k] / L[k, k]
-                for j in range(k+1, n):
-                    for i in range(j, n):
-                        A[i, j] -= L[i, k]*L[j, k].conjugate()
-            L.set_immutable()
-            self.cache('cholesky_broken', L)
-        return L
 
     def cholesky(self):
         r"""
-        Returns the Cholesky decomposition of a symmetric or Hermitian matrix.
+        Returns the Cholesky decomposition of a Hermitian matrix.
 
         INPUT:
 
-        A square matrix that is real, symmetric and positive definite.
-        Or a square matrix that is complex, Hermitian and positive
-        definite.  Generally, the base ring for the entries of the
-        matrix needs to be a subfield of the algebraic numbers
-        (``QQbar``).  Examples include the rational numbers (``QQ``),
-        some number fields, and real algebraic numbers and the
-        algebraic numbers themselves.
+        A positive-definite matrix. Generally, the base ring for the
+        entries of the matrix needs to be a subfield of the algebraic
+        numbers (``QQbar``). Examples include the rational numbers
+        (``QQ``), some number fields, and real algebraic numbers and
+        the algebraic numbers themselves. Symbolic matrices can also
+        occasionally be factored.
 
         OUTPUT:
 
@@ -12254,30 +12444,37 @@ cdef class Matrix(Matrix1):
 
             A = LL^\ast
 
-        where `L^\ast` is the conjugate-transpose in the complex case,
-        and just the transpose in the real case. If the matrix
-        fails to be positive definite (perhaps because it is not
-        symmetric or Hermitian), then a ``ValueError`` results.
+        where `L^\ast` is the conjugate-transpose. If the matrix is
+        not positive-definite (for example, if it is not Hermitian)
+        then a ``ValueError`` results.
+
+        If possible, the output matrix will be over the fraction field
+        of the base ring of the input matrix. If that fraction field
+        is missing the requisite square roots but if no imaginaries
+        are encountered, then the algebraic-reals will be used.
+        Otherwise, the algebraic closure of the fraction field
+        (typically ``QQbar``) will be used.
 
         ALGORITHM:
 
-        Whether or not the matrix is positive definite is checked
-        first in every case.  This is accomplished with an
-        indefinite factorization (see :meth:`indefinite_factorization`)
-        which caches its result.  This algorithm is of an order `n^3/3`.
-        If the matrix is positive definite, this computation always
-        succeeds, using just field operations.  The transition to a
-        Cholesky decomposition "only" requires computing square roots
-        of the positive (real) entries of the diagonal matrix produced in
-        the indefinite factorization.  Hence, there is no real penalty
-        in the positive definite check (here, or prior to calling this
-        routine), but a field extension with square roots may not be
-        implemented in all reasonable cases.
+        First we ensure that the matrix `A`
+        :meth:`~.Matrix.is_hermitian`. Afterwards, we attempt to
+        compute a classical :meth:`block_ldlt` factorization, `A =
+        LDL^{*}`, of the matrix. If that fails, then the matrix was
+        not positive-definite and an error is raised. Otherwise we
+        take the entrywise square-root `\sqrt{D}` of the diagonal
+        matrix `D` (whose entries are the positive eigenvalues of the
+        original matrix) to obtain the Cholesky factorization `A =
+        \left(L\sqrt{D}\right)\left(L\sqrt{D}\right)^{*}`. If the
+        necessary square roots cannot be taken in the fraction field
+        of original base ring, then we move to either its algebraic
+        closure or the algebraic reals, depending on whether or not
+        imaginary numbers are required.
 
         EXAMPLES:
 
         This simple example has a result with entries that remain
-        in the field of rational numbers.  ::
+        in the field of rational numbers::
 
             sage: A = matrix(QQ, [[ 4, -2,  4,  2],
             ....:                 [-2, 10, -2, -7],
@@ -12299,7 +12496,7 @@ cdef class Matrix(Matrix1):
         This seemingly simple example requires first moving to
         the rational numbers for field operations, and then square
         roots necessitate that the result has entries in the field
-        of algebraic numbers.  ::
+        of algebraic numbers::
 
             sage: A = matrix(ZZ, [[ 78, -30, -37,  -2],
             ....:                 [-30, 102, 179, -18],
@@ -12320,7 +12517,7 @@ cdef class Matrix(Matrix1):
 
         Some subfields of the complex numbers, such as this number
         field of complex numbers with rational real and imaginary parts,
-        allow for this computation.  ::
+        allow for this computation::
 
             sage: C.<I> = QuadraticField(-1)
             sage: A = matrix(C, [[        23,  17*I + 3,  24*I + 25,     21*I],
@@ -12341,7 +12538,7 @@ cdef class Matrix(Matrix1):
             True
 
         The field of algebraic numbers is an ideal setting for this
-        computation.  ::
+        computation::
 
             sage: A = matrix(QQbar, [[        2,   4 + 2*I,   6 - 4*I],
             ....:                    [ -2*I + 4,        11, 10 - 12*I],
@@ -12355,12 +12552,11 @@ cdef class Matrix(Matrix1):
             [4.242640687119285? + 2.828427124746190?*I   -2*I + 2   1.732050807568878?]
             sage: L.parent()
             Full MatrixSpace of 3 by 3 dense matrices over Algebraic Field
-            sage: (L*L.conjugate_transpose() - A.change_ring(QQbar)).norm() < 10^-10
+            sage: L*L.conjugate_transpose() == A
             True
 
-
         Results are cached, hence immutable.  Use the ``copy`` function
-        if you need to make a change.  ::
+        if you need to make a change::
 
             sage: A = matrix(QQ, [[ 4, -2,  4,  2],
             ....:                 [-2, 10, -2, -7],
@@ -12369,7 +12565,6 @@ cdef class Matrix(Matrix1):
             sage: L = A.cholesky()
             sage: L.is_immutable()
             True
-
             sage: from copy import copy
             sage: LC = copy(L)
             sage: LC[0,0] = 1000
@@ -12379,50 +12574,48 @@ cdef class Matrix(Matrix1):
             [   2    0    2    0]
             [   1   -2    1    1]
 
-        There are a variety of situations which will prevent the computation of a Cholesky decomposition.
-
-        The base ring must be exact.  For numerical work, create a
-        matrix with a base ring of ``RDF`` or ``CDF`` and use the
-        :meth:`~sage.matrix.matrix_double_dense.Matrix_double_dense.cholesky`
-        method for matrices of that type. ::
+        The base ring need not be exact, although you should expect
+        the result to be inexact (correct only in the norm) as well
+        in that case::
 
             sage: F = RealField(100)
-            sage: A = matrix(F, [[1.0, 3.0], [3.0, -6.0]])
-            sage: A.cholesky()
-            Traceback (most recent call last):
-            ...
-            TypeError: base ring of the matrix must be exact, not Real Field with 100 bits of precision
+            sage: A = A = matrix(F, [[1.0, 2.0], [2.0, 6.0]])
+            sage: L = A.cholesky(); L
+            [ 1.000... 0.000...]
+            [ 2.000... 1.414...]
+            sage: (L*L.transpose() - A).norm() < 1e-10
+            True
 
-        The base ring may not have a fraction field.  ::
+        Even symbolic matrices can sometimes be factored::
+
+            sage: A = matrix(SR, [[pi,0], [0,pi]])      # optional - sage.symbolic
+            sage: A.cholesky()                          # optional - sage.symbolic
+            [sqrt(pi)        0]
+            [       0 sqrt(pi)]
+
+        There are a variety of situations which will prevent the
+        computation of a Cholesky decomposition.
+
+        The base ring may not be able to be viewed as a subset of the
+        complex numbers, implying that "Hermitian" is meaningless::
 
             sage: A = matrix(Integers(6), [[2, 0], [0, 4]])
             sage: A.cholesky()
             Traceback (most recent call last):
             ...
-            ValueError: Could not see Ring of integers modulo 6 as a subring of
-            the real or complex numbers
+            AttributeError: 'sage.rings.finite_rings.integer_mod.IntegerMod_int'
+            object has no attribute 'conjugate'
 
-        The base field may not have elements that are comparable to zero.  ::
+        The matrix may not be Hermitian::
 
             sage: F.<a> = FiniteField(5^4)
             sage: A = matrix(F, [[2+a^3, 3], [3, 3]])
             sage: A.cholesky()
             Traceback (most recent call last):
             ...
-            ValueError: Could not see Finite Field in a of size 5^4 as a subring
-            of the real or complex numbers
+            ValueError: matrix is not Hermitian
 
-        The algebraic closure of the fraction field of the base ring may not be implemented.  ::
-
-            sage: F = Integers(7)
-            sage: A = matrix(F, [[4, 0], [0, 3]])
-            sage: A.cholesky()
-            Traceback (most recent call last):
-            ...
-            ValueError: Could not see Ring of integers modulo 7 as a subring of
-            the real or complex numbers
-
-        The matrix may not be positive definite.  ::
+        The matrix may not be positive-definite::
 
             sage: C.<I> = QuadraticField(-1)
             sage: B = matrix(C, [[      2, 4 - 2*I, 2 + 2*I],
@@ -12433,11 +12626,9 @@ cdef class Matrix(Matrix1):
             sage: B.cholesky()
             Traceback (most recent call last):
             ...
-            ValueError: matrix is not positive definite,
-            so cannot compute Cholesky decomposition
+            ValueError: matrix is not positive definite
 
-        The matrix could be positive semi-definite, and thus
-        lack a Cholesky decomposition.  ::
+        ::
 
             sage: A = matrix(QQ, [[21, 15, 12, -3],
             ....:                 [15, 12,  9,  12],
@@ -12445,17 +12636,14 @@ cdef class Matrix(Matrix1):
             ....:                 [-3,  12,  3,  8]])
             sage: A.is_positive_definite()
             False
-            sage: [A[:i,:i].determinant() for i in range(1,A.nrows()+1)]
-            [21, 27, 0, 0]
             sage: A.cholesky()
             Traceback (most recent call last):
             ...
-            ValueError: matrix is not positive definite,
-            so cannot compute Cholesky decomposition
+            ValueError: matrix is not positive definite
 
         TESTS:
 
-        This verifies that :trac:`11274` is resolved.  ::
+        This verifies that :trac:`11274` is resolved::
 
             sage: E = matrix(QQ, [[2, 1], [1, 1]])
             sage: E.is_symmetric()
@@ -12478,53 +12666,106 @@ cdef class Matrix(Matrix1):
             sage: E = matrix(QQ, [[2, 1], [1, 1]])
             sage: E.cholesky().base_ring()
             Algebraic Real Field
+
+        Check that sparse floating-point matrices can be factored
+        using a toy example reported as part of :trac:`13674`::
+
+            sage: A = matrix(RDF, [[1, 1], [1, 2]], sparse=True)
+            sage: A.cholesky()
+            [1.0 0.0]
+            [1.0 1.0]
+            sage: A = matrix(CDF, [[1, I], [-I, 2]], sparse=True)
+            sage: A.cholesky()
+            [   1.0    0.0]
+            [-1.0*I    1.0]
+
+        Try the trivial case (:trac:`33107`)::
+
+            sage: all( matrix(R,[]).cholesky() == matrix(R,[])
+            ....:      for R in (RR,CC,RDF,CDF,ZZ,QQ,AA,QQbar) )
+            True
+            sage: all( matrix(R,[]).cholesky().is_immutable()
+            ....:      for R in (RR,CC,RDF,CDF,ZZ,QQ,AA,QQbar) )
+            True
+
         """
-        from copy import copy
+        cdef Matrix C # output matrix
         C = self.fetch('cholesky')
-        if C is None:
-            if not self.is_square():
-                msg = "matrix must be square, not {0} x {1}"
-                raise ValueError(msg.format(self.nrows(), self.ncols()))
-            if not self.base_ring().is_exact():
-                msg = 'base ring of the matrix must be exact, not {0}'
-                raise TypeError(msg.format(self.base_ring()))
-            if not self.is_positive_definite():
-                msg = 'matrix is not positive definite, so cannot compute Cholesky decomposition'
-                raise ValueError(msg)
-            # the successful positive definite check will cache a Hermitian
-            # or symmetric indefinite factorization, as appropriate
-            factors = self.fetch('indefinite_factorization_hermitian')
-            if factors is None:
-                factors = self.fetch('indefinite_factorization_symmetric')
-                from sage.rings.qqbar import AA as F_ac
-            else:
-                from sage.rings.qqbar import QQbar as F_ac
+        if C is not None:
+            return C
 
-            L = factors[0]
-            d = factors[1]
-            F = L.base_ring()  # field really
-            splits = []        # square roots of diagonal entries
-            extend = False
-            for x in d:
-                if not extend and x.is_square():
-                    sqrt = x.sqrt()
-                else:
-                    extend = True
-                    sqrt = F_ac(x).sqrt()
-                splits.append(sqrt)
-            # move square root of the diagonal matrix
-            # into the lower triangular matrix
-            # We need a copy, to break immutability
-            # and the field may have changed as well
-            if extend:
-                C = L.change_ring(F_ac)
-            else:
-                C = L.__copy__()
+        cdef Py_ssize_t n = self.nrows()
 
-            for c in range(C.ncols()):
-                C.rescale_col(c, splits[c])
+        if not self.is_hermitian():
+            raise ValueError("matrix is not Hermitian")
+
+        if n == 0:
+            # The trivial matrix has a trivial cholesky decomposition.
+            # We special-case this after is_hermitian() to ensure that
+            # the matrix is square.
+            C = self.__copy__()
             C.set_immutable()
-            self.cache('cholesky', C)
+            return C
+
+        # Use classical=True to ensure that we don't get a permuted L.
+        cdef Matrix L  # block_ldlt() results
+        cdef list d    # block_ldlt() results
+        try:
+            _,L,d = self._block_ldlt(True)
+        except ValueError:
+            # If the matrix was positive-definite, that would
+            # have worked.
+            raise ValueError("matrix is not positive definite")
+
+        F = L.base_ring()  # field really
+        zero = F.zero()
+
+        cdef list splits = []        # square roots of diagonal entries
+        cdef bint extend = False
+        for X in d:
+            # The X are guaranteed to be one-by-one blocks.
+            x = X[0,0]
+
+            if x <= zero:
+                raise ValueError("matrix is not positive definite")
+
+            if not extend and x.is_square():
+                sqrt = x.sqrt()
+            else:
+                extend = True
+                if hasattr(F, 'algebraic_closure'):
+                    # This can fail if, say, F is the symbolic ring which does
+                    # contain the requisite roots in its own special way but
+                    # does not have an algebraic_closure() method.
+                    F_ac = F.algebraic_closure()
+                sqrt = F_ac(x).sqrt()
+            splits.append(sqrt)
+        # move square root of the diagonal matrix
+        # into the lower triangular matrix
+        # We need a copy, to break immutability
+        # and the field may have changed as well
+        if extend:
+            # Try to use the algebraic reals but fall back to what is
+            # probably QQbar if we find an entry in "L" that won't fit
+            # in AA. This was Trac ticket #18381.
+            from sage.rings.qqbar import AA
+            try:
+                C = L.change_ring(AA)
+            except ValueError: # cannot coerce...
+                C = L.change_ring(F_ac)
+        else:
+            C = L.__copy__()
+
+        # Overwrite the (strict) upper-triangular part of "C", since a
+        # priori it contains junk after _block_ldlt().
+        zero = C.base_ring().zero()
+        cdef Py_ssize_t i, j # loop indices
+        for i in range(n):
+            C.rescale_col_c(i, splits[i], 0)
+            for j in range(i+1,n):
+                C.set_unsafe(i,j,zero)
+        C.set_immutable()
+        self.cache('cholesky', C)
         return C
 
     def inverse_positive_definite(self):
@@ -12608,7 +12849,6 @@ cdef class Matrix(Matrix1):
         rational entries::
 
             sage: from sage.misc.prandom import choice
-            sage: set_random_seed()
             sage: n = ZZ.random_element(5)
             sage: ring = choice([ZZ, QQ])
             sage: A = matrix.random(ring, n)
@@ -12628,7 +12868,6 @@ cdef class Matrix(Matrix1):
         entries is harder and requires smaller test cases::
 
             sage: from sage.misc.prandom import choice
-            sage: set_random_seed()
             sage: n = ZZ.random_element(2)
             sage: ring = choice([AA, QQbar])
             sage: A = matrix.random(ring, n)
@@ -12641,17 +12880,14 @@ cdef class Matrix(Matrix1):
             sage: actual == expected
             True
         """
-        # Does it hurt if we conjugate a real number?
-        L, diags = self.indefinite_factorization(algorithm='hermitian',
-                                                 check=False)
+        P,L,D = self.block_ldlt()
 
         # The default "echelonize" inverse() method works just fine for
         # triangular matrices.
         L_inv = L.inverse()
-        from sage.matrix.constructor import diagonal_matrix
-        D_inv = diagonal_matrix( ~d for d in diags )
 
-        return L_inv.conjugate_transpose()*D_inv*L_inv
+        # Take A = PLDL^{*}P^{T} and simply invert.
+        return P*L_inv.conjugate_transpose()*D.inverse()*L_inv*P.transpose()
 
 
     def LU(self, pivot=None, format='plu'):
@@ -13028,11 +13264,18 @@ cdef class Matrix(Matrix1):
             sage: P, L, U = C.LU(pivot='partial')
             sage: C == P*L*U
             True
+
+        Check that :trac:`32736` is solved::
+
+            sage: M = Matrix(FiniteField(11), [[2,3],[4,5]])
+            sage: P, L, U = M.LU()
+            sage: P.base_ring()
+            Finite Field of size 11
         """
-        if not pivot in [None, 'partial', 'nonzero']:
+        if pivot not in [None, 'partial', 'nonzero']:
             msg = "pivot strategy must be None, 'partial' or 'nonzero', not {0}"
             raise ValueError(msg.format(pivot))
-        if not format in ['compact', 'plu']:
+        if format not in ['compact', 'plu']:
             msg = "format must be 'plu' or 'compact', not {0}"
             raise ValueError(msg.format(format))
 
@@ -13121,6 +13364,7 @@ cdef class Matrix(Matrix1):
             zero = F(0)
             perm = [perm[i]+1 for i in range(m)]
             P = sage.combinat.permutation.Permutation(perm).to_matrix()
+            P = P.change_ring(F)
             L = M.matrix_space(m,m).identity_matrix().__copy__()
             for i in range(1, m):
                 for k in range(min(i,d)):
@@ -13320,7 +13564,7 @@ cdef class Matrix(Matrix1):
         cdef Py_ssize_t m, i, j, k
         cdef Matrix L
 
-        if not algorithm in ['symmetric', 'hermitian']:
+        if algorithm not in ['symmetric', 'hermitian']:
             msg = "'algorithm' must be 'symmetric' or 'hermitian', not {0}"
             raise ValueError(msg.format(algorithm))
         cache_string = 'indefinite_factorization_' + algorithm
@@ -13330,7 +13574,7 @@ cdef class Matrix(Matrix1):
             if not self.is_square():
                 msg = "matrix must be square, not {0} x {1}"
                 raise ValueError(msg.format(self.nrows(), self.ncols()))
-            if not algorithm in ['symmetric', 'hermitian']:
+            if algorithm not in ['symmetric', 'hermitian']:
                 msg = "'algorithm' must be 'symmetric' or 'hermitian', not {0}"
                 raise ValueError(msg.format(algorithm))
             if not R.is_exact():
@@ -13554,7 +13798,7 @@ cdef class Matrix(Matrix1):
             raise ValueError(msg.format(d))
         return L, vector(L.base_ring(), d)
 
-    def _block_ldlt(self):
+    cdef tuple _block_ldlt(self, bint classical):
         r"""
         Perform a user-unfriendly block-`LDL^{T}` factorization of the
         Hermitian matrix `A`
@@ -13581,21 +13825,14 @@ cdef class Matrix(Matrix1):
         method can be found in the user-facing :meth:`block_ldlt`
         method.
 
-        EXAMPLES:
-
-        Test that this method can be called directly; the returned ``l``
-        is not inspected because its upper-triangular part is undefined::
-
-            sage: A =  matrix(QQ, [[0, 1, 0],
-            ....:                  [1, 1, 2],
-            ....:                  [0, 2, 0]])
-            sage: p,l,d = A._block_ldlt()
-            sage: p
-            array('I', [1, 2, 0])
-            sage: d
-            [[1], [-4], [0]]
-
         """
+        cdef str cache_string = "_block_ldlt"
+        if classical:
+            cache_string += "_classical"
+        cdef tuple result = self.fetch(cache_string)
+        if result is not None:
+            return result
+
         cdef Py_ssize_t i, j, k # loop indices
         cdef Py_ssize_t r       # another row/column index
 
@@ -13685,6 +13922,19 @@ cdef class Matrix(Matrix1):
                 d.append( one_by_one_space(A_kk) )
                 k += 1
                 continue
+
+            if classical:
+                try:
+                    # This is a "step zero" that doesn't appear in the published algorithms.
+                    # It's a back door that lets us escape with only the standard non-block
+                    # non-pivoting LDL^T factorization. This allows us to implement e.g.
+                    # indefinite_factorization() in terms of this method.
+                    d.append( one_by_one_space(A_kk) )
+                    _block_ldlt_pivot1x1(A,k)
+                    k += 1
+                    continue
+                except ZeroDivisionError:
+                    raise ValueError("matrix has no classical LDL^T factorization")
 
             # Find the largest subdiagonal entry (in magnitude) in the
             # kth column. This occurs prior to Step (1) in Higham,
@@ -13821,9 +14071,11 @@ cdef class Matrix(Matrix1):
             # correctness.
             A.set_unsafe(i, i, one)
 
-        return (p,A,d)
+        result = (p,A,d)
+        self.cache(cache_string, result)
+        return result
 
-    def block_ldlt(self):
+    def block_ldlt(self, classical=False):
         r"""
         Compute a block-`LDL^{T}` factorization of a Hermitian
         matrix.
@@ -13849,9 +14101,23 @@ cdef class Matrix(Matrix1):
         Hermitian systems, and that is how we choose our row and
         column swaps.
 
+        INPUT:
+
+          * ``classical`` -- (default: ``False``) whether or not to
+            attempt a classical non-block `LDL^{T}` factorization
+            with no row/column swaps.
+
+        .. WARNING::
+
+            Not all matrices have a classical `LDL^{T}` factorization.
+            Set ``classical=True`` at your own risk, preferably after
+            verifying that your matrix is positive-definite and (over
+            inexact rings) not ill-conditioned.
+
         OUTPUT:
 
-        If the input matrix is Hermitian, we return a triple `(P,L,D)`
+        If the input matrix is not Hermitian, the output from this
+        function is undefined. Otherwise, we return a triple `(P,L,D)`
         such that `A = PLDL^{*}P^{T}` and
 
           * `P` is a permutation matrix,
@@ -13859,8 +14125,10 @@ cdef class Matrix(Matrix1):
           * `D` is a block-diagonal matrix whose blocks are of size
             one or two.
 
-        If the input matrix is not Hermitian, the output from this
-        function is undefined.
+        With ``classical=True``, the permutation matrix `P` is always
+        an identity matrix and the diagonal blocks are always
+        one-by-one. A ``ValueError`` is raised if the matrix has no
+        classical `LDL^{T}` factorization.
 
         ALGORITHM:
 
@@ -13904,11 +14172,15 @@ cdef class Matrix(Matrix1):
             sage: P.transpose()*A*P == L*D*L.transpose()
             True
 
-        This two-by-two matrix has no standard factorization, but it
+        This two-by-two matrix has no classical factorization, but it
         constitutes its own block-factorization::
 
             sage: A = matrix(QQ, [ [0,1],
             ....:                  [1,0] ])
+            sage: A.block_ldlt(classical=True)
+            Traceback (most recent call last):
+            ...
+            ValueError: matrix has no classical LDL^T factorization
             sage: A.block_ldlt()
             (
             [1 0]  [1 0]  [0 1]
@@ -13919,6 +14191,10 @@ cdef class Matrix(Matrix1):
 
             sage: A = matrix(QQbar, [ [ 0,I],
             ....:                     [-I,0] ])
+            sage: A.block_ldlt(classical=True)
+            Traceback (most recent call last):
+            ...
+            ValueError: matrix has no classical LDL^T factorization
             sage: A.block_ldlt()
             (
             [1 0]  [1 0]  [ 0  I]
@@ -13932,6 +14208,10 @@ cdef class Matrix(Matrix1):
 
             sage: A = matrix(RDF, 2, 2, [ [1e-10, 1    ],
             ....:                         [1    , 2e-10] ])
+            sage: _,L,D = A.block_ldlt(classical=True)
+            sage: L*D*L.T
+            [1e-10   1.0]
+            [  1.0   0.0]
             sage: A.block_ldlt()
             (
             [1.0 0.0]  [1.0 0.0]  [1e-10   1.0]
@@ -13950,11 +14230,76 @@ cdef class Matrix(Matrix1):
             sage: (P.T*A*P - L*D*L.H).norm() < 1e-10
             True
 
+        This matrix has a singular three-by-three leading principal
+        submatrix, and therefore has no classical factorization::
+
+            sage: A = matrix(QQ, [[21, 15, 12, -2],
+            ....:                 [15, 12,  9,  6],
+            ....:                 [12,  9,  7,  3],
+            ....:                 [-2,  6,  3,  8]])
+            sage: A[0:3,0:3].det() == 0
+            True
+            sage: A.block_ldlt(classical=True)
+            Traceback (most recent call last):
+            ...
+            ValueError: matrix has no classical LDL^T factorization
+            sage: A.block_ldlt()
+            (
+            [1 0 0 0]  [     1      0      0      0]
+            [0 0 1 0]  [ -2/21      1      0      0]
+            [0 0 0 1]  [   5/7  39/41      1      0]
+            [0 1 0 0], [   4/7 87/164  48/79      1],
+            <BLANKLINE>
+            [     21|      0|      0|      0]
+            [-------+-------+-------+-------]
+            [      0| 164/21|      0|      0]
+            [-------+-------+-------+-------]
+            [      0|      0|-237/41|      0]
+            [-------+-------+-------+-------]
+            [      0|      0|      0| 25/316]
+            )
+
+        An indefinite symmetric matrix that happens to have a
+        classical factorization::
+
+            sage: A = matrix(QQ, [[ 3,  -6,   9,   6,  -9],
+            ....:                 [-6,  11, -16, -11,  17],
+            ....:                 [ 9, -16,  28,  16, -40],
+            ....:                 [ 6, -11,  16,   9, -19],
+            ....:                 [-9,  17, -40, -19,  68]])
+            sage: A.block_ldlt(classical=True)[1:]
+            (
+                              [ 3| 0| 0| 0| 0]
+                              [--+--+--+--+--]
+                              [ 0|-1| 0| 0| 0]
+                              [--+--+--+--+--]
+            [ 1  0  0  0  0]  [ 0| 0| 5| 0| 0]
+            [-2  1  0  0  0]  [--+--+--+--+--]
+            [ 3 -2  1  0  0]  [ 0| 0| 0|-2| 0]
+            [ 2 -1  0  1  0]  [--+--+--+--+--]
+            [-3  1 -3  1  1], [ 0| 0| 0| 0|-1]
+            )
+
+        An indefinite Hermitian matrix that happens to have a
+        classical factorization::
+
+            sage: F.<I> = QuadraticField(-1)
+            sage: A = matrix(F, [[      2, 4 - 2*I, 2 + 2*I],
+            ....:                [4 + 2*I,       8,    10*I],
+            ....:                [2 - 2*I,   -10*I,      -3]])
+            sage: A.block_ldlt(classical=True)[1:]
+            (
+                                       [ 2| 0| 0]
+                                       [--+--+--]
+            [      1       0       0]  [ 0|-2| 0]
+            [  I + 2       1       0]  [--+--+--]
+            [ -I + 1 2*I + 1       1], [ 0| 0| 3]
+            )
+
         TESTS:
 
         All three factors should be the identity when the input matrix is::
 
-            sage: set_random_seed()
             sage: n = ZZ.random_element(6)
             sage: I = matrix.identity(QQ,n)
             sage: P,L,D = I.block_ldlt()
@@ -13963,7 +14308,6 @@ cdef class Matrix(Matrix1):
 
         Ensure that a "random" real symmetric matrix is factored correctly::
 
-            sage: set_random_seed()
             sage: n = ZZ.random_element(6)
             sage: A = matrix.random(QQ, n)
             sage: A = A + A.transpose()
@@ -13974,9 +14318,8 @@ cdef class Matrix(Matrix1):
         Ensure that a "random" complex Hermitian matrix is factored
         correctly::
 
-            sage: set_random_seed()
             sage: n = ZZ.random_element(6)
-            sage: F = NumberField(x^2 +1, 'I')
+            sage: F = QuadraticField(-1, 'I')
             sage: A = matrix.random(F, n)
             sage: A = A + A.conjugate_transpose()
             sage: P,L,D = A.block_ldlt()
@@ -13987,9 +14330,8 @@ cdef class Matrix(Matrix1):
         factored correctly and that the resulting block-diagonal matrix
         is in fact diagonal::
 
-            sage: set_random_seed()
             sage: n = ZZ.random_element(6)
-            sage: F = NumberField(x^2 +1, 'I')
+            sage: F = QuadraticField(-1, 'I')
             sage: A = matrix.random(F, n)
             sage: A = A*A.conjugate_transpose()
             sage: P,L,D = A.block_ldlt()
@@ -14000,7 +14342,6 @@ cdef class Matrix(Matrix1):
 
         The factorization should be a no-op on diagonal matrices::
 
-            sage: set_random_seed()
             sage: n = ZZ.random_element(6)
             sage: A = matrix.diagonal(random_vector(QQ, n))
             sage: I = matrix.identity(QQ,n)
@@ -14018,12 +14359,24 @@ cdef class Matrix(Matrix1):
             sage: L.base_ring() == D.base_ring()
             True
 
+        Ensure that a "random" real positive-definite symmetric matrix
+        has a classical factorization that agrees with
+        :meth:`indefinite_factorization`::
+
+            sage: n = ZZ.random_element(6)
+            sage: A = matrix.random(QQ, n)
+            sage: A = A*A.transpose() + matrix.identity(QQ, n)
+            sage: _,L,D = A.block_ldlt(classical=True)
+            sage: l,d = A.indefinite_factorization()
+            sage: L == l and D == matrix.diagonal(d)
+            True
+
         """
         cdef Py_ssize_t n    # size of the matrices
         cdef Py_ssize_t i, j # loop indices
         cdef Matrix P,L,D    # output matrices
 
-        p,L,d = self._block_ldlt()
+        p,L,d = self._block_ldlt(classical)
         MS = L.matrix_space()
         P = MS.matrix(lambda i,j: p[j] == i)
 
@@ -14042,6 +14395,50 @@ cdef class Matrix(Matrix1):
                 L.set_unsafe(i,j,zero)
 
         return (P,L,D)
+
+
+    cdef bint _is_positive_definite_or_semidefinite(self, bint semi) except -1:
+        """
+        This is an internal wrapper that allows us to implement both
+        :meth:`is_positive_definite` and
+        :meth:`is_positive_semidefinite` with essentially the same
+        code. The boolean ``semi`` argument exists only to change
+        "greater than zero" into "greater than or equal to zero."
+        """
+        from sage.rings.real_lazy import RLF,CLF
+
+        R = self.base_ring()
+
+        if not (RLF.has_coerce_map_from(R) or
+                R.has_coerce_map_from(RLF) or
+                CLF.has_coerce_map_from(R) or
+                R.has_coerce_map_from(CLF) or
+                isinstance(R, sage.rings.abc.SymbolicRing)):
+            # This is necessary to avoid "going through the motions"
+            # with e.g. a one-by-one identity matrix over the finite
+            # field of order 5^2, which might otherwise look positive-
+            # definite.
+            raise ValueError("Could not see {} as a subring of the "
+                    "real or complex numbers".format(R))
+
+        if not self.is_hermitian():
+            return False
+
+        if self._nrows == 0:
+            return True # vacuously
+
+        cdef list d
+        _,_,d = self._block_ldlt(False)
+
+        # Check each 1x1 block for a nonpositive (negative) entry. If
+        # we don't find any, the matrix is positive-(semi)definite. The
+        # presence of any 2x2 blocks also indicates indefiniteness.
+        import operator
+        op = operator.gt
+        if semi:
+            op = operator.ge
+
+        return all(d_i.nrows() == 1 and op(d_i[0,0], 0) for d_i in d)
 
 
     def is_positive_semidefinite(self):
@@ -14143,8 +14540,7 @@ cdef class Matrix(Matrix1):
         a Hermitian matrix (for a non-Hermitian matrix, both "obviously"
         return ``False``)::
 
-            sage: set_random_seed()
-            sage: F = NumberField(x^2 + 1, 'I')
+            sage: F = QuadraticField(-1, 'I')
             sage: from sage.misc.prandom import choice
             sage: ring = choice([ZZ, QQ, F, RDF, CDF])
             sage: A = matrix.random(ring, 10); A = A + A.conjugate_transpose()
@@ -14157,76 +14553,78 @@ cdef class Matrix(Matrix1):
             sage: actual = A.is_positive_semidefinite()
             sage: actual == expected
             True
+
+        We reject matrices whose base fields cannot be coerced to
+        either real numbers, complex numbers, or symbolics; otherwise
+        we risk returning nonsensical results::
+
+            sage: F = FiniteField(5^2)
+            sage: A = matrix.identity(F, 1)
+            sage: A.is_positive_semidefinite()
+            Traceback (most recent call last):
+            ...
+            ValueError: Could not see Finite Field in z2 of size 5^2
+            as a subring of the real or complex numbers
+
         """
-        if not self.is_hermitian():
-            return False
-
-        if self._nrows == 0:
-            return True # vacuously
-
-        cdef list d
-        _,_,d = self._block_ldlt()
-
-        # Check each 1x1 block for a negative entry. If we don't
-        # find any, it's positive-semidefinite. The presence of
-        # any 2x2 blocks also indicates indefiniteness.
-        for d_i in d:
-            if d_i.nrows() == 1:
-                if d_i < 0:
-                    return False
-            else:
-                # There's a 2x2 block
-                return False
-        return True
+        return self._is_positive_definite_or_semidefinite(True)
 
     def is_positive_definite(self, certificate=False):
         r"""
-        Determines if a real or symmetric matrix is positive definite.
+        Determine if a matrix is positive-definite.
 
-        A square matrix `A` is positive definite if it is
-        symmetric with real entries or Hermitian with complex entries,
-        and for every non-zero vector `\vec{x}`
+        A matrix `A` is positive definite if it
+        :meth:`~.Matrix.is_hermitian` and if, for every non-zero
+        vector `x`,
 
         .. MATH::
 
-            \vec{x}^\ast A\vec{x} > 0.
-
-        Here `\vec{x}^\ast` is the conjugate-transpose, which can be
-        simplified to just the transpose in the real case.
+            \left\langle Ax, x \right\rangle > 0.
 
         ALGORITHM:
 
-        A matrix is positive definite if and only if the
-        diagonal entries from the indefinite factorization
-        are all positive (see :meth:`indefinite_factorization`).
-        So this algorithm is of order ``n^3/3`` and may be applied
-        to matrices with elements of any ring that has a fraction
-        field contained within the reals or complexes.
+        A Hermitian matrix is positive-definite if and only if the
+        diagonal blocks in its :meth:`block_ldlt` factorization are
+        all 1-by-1 and have positive entries. We first check that the
+        matrix :meth:`~.Matrix.is_hermitian`, and then compute this
+        factorization.
 
         INPUT:
 
-        Any square matrix.
-
+        - ``self`` -- a matrix
         - ``certificate`` -- (default: ``False``) return the
-          decomposition from the indefinite factorization if possible
+          lower-triangular and diagonal parts of the :meth:`block_ldlt`
+          factorization when the matrix is positive-definite. Deprecated.
 
         OUTPUT:
 
-        This routine will return ``True`` if the matrix is square,
-        symmetric or Hermitian, and meets the condition above
-        for the quadratic form.
+        This routine will return ``True`` if the matrix is Hermitian
+        and meets the condition above for the quadratic form.
 
-        The base ring for the elements of the matrix needs to
-        have a fraction field implemented and the computations
-        that result from the indefinite factorization must be
-        convertible to real numbers that are comparable to zero.
+        The base ring for the elements of the matrix must
+
+        1. Have a fraction field implemented; and
+        2. Be a subring of the real numbers, complex numbers,
+           or symbolic ring.
+
+        If ``certificate`` is ``True``, a triplet ``(b, L, d)`` will
+        be returned instead, with ``b`` containing the result (true or
+        false). If the matrix is positive-definite, then ``L`` and
+        ``d`` will contain the lower-triangular and diagonal parts of
+        the :meth:`block_ldlt` factorization, respectively. Or if the
+        matrix is not positive-definite (that is, if ``b`` is
+        ``False``), then both ``L`` and ``d`` will be ``None``.
+
+        .. SEEALSO::
+
+            :meth:`block_ldlt`, :meth:`~.Matrix.is_hermitian`,
+            :meth:`is_positive_semidefinite`
 
         EXAMPLES:
 
-        A real symmetric matrix that is positive definite,
-        as evidenced by the positive entries for the diagonal
-        matrix of the indefinite factorization and the positive
-        determinants of the leading principal submatrices. ::
+        A real symmetric matrix that is positive-definite, as
+        evidenced by the positive determinants of its leading
+        principal submatrices::
 
             sage: A = matrix(QQ, [[ 4, -2,  4,  2],
             ....:                 [-2, 10, -2, -7],
@@ -14234,14 +14632,12 @@ cdef class Matrix(Matrix1):
             ....:                 [ 2, -7,  4,  7]])
             sage: A.is_positive_definite()
             True
-            sage: _, d = A.indefinite_factorization(algorithm='symmetric')
-            sage: d
-            (4, 9, 4, 1)
             sage: [A[:i,:i].determinant() for i in range(1,A.nrows()+1)]
             [4, 36, 144, 144]
 
-        A real symmetric matrix which is not positive definite, along
-        with a vector that makes the quadratic form negative. ::
+        A real symmetric matrix that is not positive-definite and a
+        vector ``u`` that makes the corresponding quadratic form
+        negative::
 
             sage: A = matrix(QQ, [[ 3,  -6,   9,   6,  -9],
             ....:                 [-6,  11, -16, -11,  17],
@@ -14250,18 +14646,13 @@ cdef class Matrix(Matrix1):
             ....:                 [-9,  17, -40, -19,  68]])
             sage: A.is_positive_definite()
             False
-            sage: _, d = A.indefinite_factorization(algorithm='symmetric')
-            sage: d
-            (3, -1, 5, -2, -1)
-            sage: [A[:i,:i].determinant() for i in range(1,A.nrows()+1)]
-            [3, -3, -15, 30, -30]
             sage: u = vector(QQ, [2, 2, 0, 1, 0])
-            sage: u.row()*A*u
-            (-3)
+            sage: (A*u).inner_product(u)
+            -3
 
-        A real symmetric matrix with a singular leading
-        principal submatrix, that is therefore not positive definite.
-        The vector ``u`` makes the quadratic form zero.  ::
+        Another real symmetric matrix that is not positive-definite
+        and a vector ``u`` that makes the corresponding quadratic form
+        zero::
 
             sage: A = matrix(QQ, [[21, 15, 12, -2],
             ....:                 [15, 12,  9,  6],
@@ -14269,13 +14660,13 @@ cdef class Matrix(Matrix1):
             ....:                 [-2,  6,  3,  8]])
             sage: A.is_positive_definite()
             False
-            sage: [A[:i,:i].determinant() for i in range(1,A.nrows()+1)]
-            [21, 27, 0, -75]
             sage: u = vector(QQ, [1,1,-3,0])
-            sage: u.row()*A*u
-            (0)
+            sage: (A*u).inner_product(u)
+            0
 
-        An Hermitian matrix that is positive definite.  ::
+        A complex Hermitian matrix that is positive-definite,
+        confirmed by the positive determinants of its leading
+        principal submatrices::
 
             sage: C.<I> = NumberField(x^2 + 1, embedding=CC(0,1))
             sage: A = matrix(C, [[        23,  17*I + 3,  24*I + 25,     21*I],
@@ -14284,14 +14675,11 @@ cdef class Matrix(Matrix1):
             ....:                [     -21*I, -7*I + 15,  -24*I + 6,       28]])
             sage: A.is_positive_definite()
             True
-            sage: _, d = A.indefinite_factorization(algorithm='hermitian')
-            sage: d
-            (23, 576/23, 89885/144, 142130/17977)
             sage: [A[:i,:i].determinant() for i in range(1,A.nrows()+1)]
             [23, 576, 359540, 2842600]
 
-        An Hermitian matrix that is not positive definite.
-        The vector ``u`` makes the quadratic form negative.  ::
+        An Hermitian matrix that is not positive-definite and a vector
+        ``u`` that makes the corresponding quadratic form negative::
 
             sage: C.<I> = QuadraticField(-1)
             sage: B = matrix(C, [[      2, 4 - 2*I, 2 + 2*I],
@@ -14299,16 +14687,13 @@ cdef class Matrix(Matrix1):
             ....:                [2 - 2*I,   -10*I,      -3]])
             sage: B.is_positive_definite()
             False
-            sage: _, d = B.indefinite_factorization(algorithm='hermitian')
-            sage: d
-            (2, -2, 3)
-            sage: [B[:i,:i].determinant() for i in range(1,B.nrows()+1)]
-            [2, -4, -12]
             sage: u = vector(C, [-5 + 10*I, 4 - 3*I, 0])
-            sage: u.row().conjugate()*B*u
-            (-50)
+            sage: (B*u).hermitian_inner_product(u)
+            -50
 
-        A positive definite matrix over an algebraically closed field.  ::
+        A positive-definite matrix over an algebraically-closed field,
+        confirmed by the positive determinants of its leading
+        principal submatrices::
 
             sage: A = matrix(QQbar, [[        2,   4 + 2*I,   6 - 4*I],
             ....:                    [ -2*I + 4,        11, 10 - 12*I],
@@ -14320,11 +14705,9 @@ cdef class Matrix(Matrix1):
 
         TESTS:
 
-        If the base ring lacks a ``conjugate`` method, it
-        will be assumed to not be Hermitian and thus symmetric.
-        If the base ring does not make sense as a subfield of
-        the reals, then this routine will fail since comparison
-        to zero is meaningless.  ::
+        If the base ring does not make sense as a subfield of the real
+        numbers, complex numbers, or symbolic ring, then this routine
+        will fail since comparison to zero is meaningless::
 
             sage: F.<a> = FiniteField(5^3)
             sage: a.conjugate()
@@ -14342,47 +14725,38 @@ cdef class Matrix(Matrix1):
             ValueError: Could not see Finite Field in a of size 5^3 as a subring
             of the real or complex numbers
 
-        The 0x0 matrix is trivially positive definite::
+        The 0x0 matrix is trivially positive-definite::
 
             sage: Matrix(0).is_positive_definite()
             True
+
+        We can check positive-definiteness of matrices over
+        approximate real/complex and symbolic rings::
+
+            sage: matrix.identity(RR,4).is_positive_definite()
+            True
+            sage: matrix.identity(CC,4).is_positive_definite()
+            True
+            sage: matrix.identity(SR,4).is_positive_definite()      # optional - sage.symbolic
+            True
         """
-        from sage.rings.real_lazy import RLF,CLF
-
-        R = self.base_ring()
-        if RLF.has_coerce_map_from(R):
-            if not self.is_symmetric():
-                return False
-            L, d = self._indefinite_factorization('symmetric', check=False)
-            real = True
-        elif CLF.has_coerce_map_from(R):
-            if not self.is_hermitian():
-                return False
-            L, d = self._indefinite_factorization('hermitian', check=False)
-            real = False
-        else:
-            raise ValueError("Could not see {} as a subring of the "
-                    "real or complex numbers".format(R))
-
-        if L is False:
-            return False
-
-        # Now have diagonal entries (hopefully real) and so can
-        # test with a generator (which will short-circuit)
-        # positive definite iff all entries of d are positive
-        zero = R.fraction_field().zero()
-        if real:
-            is_pos = all(x > zero for x in d)
-        else:
-            is_pos = all(x.real() > zero for x in d)
-
+        result = self._is_positive_definite_or_semidefinite(False)
         if certificate:
-            if is_pos:
-                return is_pos, L, d
-            else:
-                return is_pos, None, None
+            from sage.misc.superseded import deprecation
+            msg  = "the 'certificate' argument is deprecated; if you "
+            msg += "need the corresponding factorization, you can "
+            msg += "simply compute it yourself (the results are cached)"
+            deprecation(31619, msg)
+            L = None
+            d = None
+            if result:
+                from sage.modules.free_module_element import vector
+                _,L,D = self.block_ldlt()
+                d = vector(D.base_ring(), D.diagonal())
+            return (result, L, d)
         else:
-            return is_pos
+            return result
+
 
     def principal_square_root(self, check_positivity=True):
         r"""
@@ -14401,7 +14775,7 @@ cdef class Matrix(Matrix1):
             True
         """
         from sage.matrix.special import diagonal_matrix
-        from sage.functions.other import sqrt
+        from sage.misc.functional import sqrt
 
         if check_positivity and not self.is_positive_definite():
             return False
@@ -14535,6 +14909,8 @@ cdef class Matrix(Matrix1):
             for i from 0 <= i < size:
                 PyList_Append(M,<object>f(<object>PyList_GET_ITEM(L,i)))
 
+            from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
+
             return MatrixSpace(IntegerModRing(2),
                                nrows=self._nrows,ncols=self._ncols).matrix(M)
 
@@ -14617,11 +14993,11 @@ cdef class Matrix(Matrix1):
 
         EXAMPLES::
 
-            sage: M = matrix(SR, 2, 2, [[2-I, 3+4*I], [9-6*I, 5*I]])
-            sage: M.base_ring()
+            sage: M = matrix(SR, 2, 2, [[2-I, 3+4*I], [9-6*I, 5*I]])    # optional - sage.symbolic
+            sage: M.base_ring()                                         # optional - sage.symbolic
             Symbolic Ring
-            sage: M.conjugate_transpose()
-             [   I + 2  6*I + 9]
+            sage: M.conjugate_transpose()                               # optional - sage.symbolic
+            [   I + 2  6*I + 9]
             [-4*I + 3     -5*I]
 
             sage: P = matrix(CC, 3, 2, [0.95-0.63*I, 0.84+0.13*I, 0.94+0.23*I, 0.23+0.59*I, 0.52-0.41*I, -0.50+0.90*I])
@@ -14759,6 +15135,8 @@ cdef class Matrix(Matrix1):
             sage: matrix(CDF, 2, 2, sparse=True).norm(1)
             0.0
         """
+        from sage.rings.real_double import RDF
+        from sage.rings.complex_double import CDF
 
         if self._nrows == 0 or self._ncols == 0:
             return RDF(0)
@@ -14844,7 +15222,7 @@ cdef class Matrix(Matrix1):
 
         ::
 
-            sage: matrix(SR, 2, 2, range(4)).n()
+            sage: matrix(SR, 2, 2, range(4)).n()                    # optional - sage.symbolic
             [0.000000000000000  1.00000000000000]
             [ 2.00000000000000  3.00000000000000]
 
@@ -14863,14 +15241,17 @@ cdef class Matrix(Matrix1):
             sage: _ = A.n()
 
         """
+        from sage.rings.real_mpfr import RealField
+        from sage.rings.complex_mpfr import ComplexField
+
         if prec is None:
             prec = digits_to_bits(digits)
 
         try:
-            return self.change_ring(sage.rings.real_mpfr.RealField(prec))
+            return self.change_ring(RealField(prec))
         except (TypeError, ValueError):
             # try to return a complex result
-            return self.change_ring(sage.rings.complex_mpfr.ComplexField(prec))
+            return self.change_ring(ComplexField(prec))
 
     def plot(self, *args, **kwds):
         """
@@ -14935,6 +15316,7 @@ cdef class Matrix(Matrix1):
             sage: v.derivative(x,x)
             (0, 0, 2)
         """
+        from sage.misc.derivative import multi_derivative
         return multi_derivative(self, args)
 
     def exp(self):
@@ -14962,7 +15344,7 @@ cdef class Matrix(Matrix1):
             [             1/11*(sqrt(33)*e^sqrt(33) - sqrt(33))*e^(-1/2*sqrt(33) + 5/2)  1/22*((sqrt(33) + 11)*e^sqrt(33) - sqrt(33) + 11)*e^(-1/2*sqrt(33) + 5/2)]
 
             sage: type(a.exp())
-            <type 'sage.matrix.matrix_symbolic_dense.Matrix_symbolic_dense'>
+            <class 'sage.matrix.matrix_symbolic_dense.Matrix_symbolic_dense'>
 
             sage: a=matrix([[1/2,2/3],[3/4,4/5]])
             sage: a.exp()
@@ -15313,7 +15695,7 @@ cdef class Matrix(Matrix1):
         cdef Py_ssize_t i = 0
         cdef Py_ssize_t j = 0
 
-        cdef Py_ssize_t k, l
+        cdef Py_ssize_t k, l, c
 
         if transformation:
             from sage.matrix.constructor import identity_matrix
@@ -15349,9 +15731,9 @@ cdef class Matrix(Matrix1):
                             U.set_unsafe(k, c, p * Ukc + q * Ulc)
                             U.set_unsafe(l, c, (-f) * Ukc + e * Ulc)
                 if i != k:
-                    A.swap_rows(i,k)
+                    A.swap_rows_c(i,k)
                     if transformation:
-                        U.swap_rows(i,k)
+                        U.swap_rows_c(i,k)
                 pivot_cols.append(j)
                 i += 1
             j += 1
@@ -15366,9 +15748,9 @@ cdef class Matrix(Matrix1):
                 coeff = normalization(pivot)
                 for c in range(j,n):
                     A.set_unsafe(i, c, A.get_unsafe(i,c) * coeff)
-                    if transformation:
-                        for c in range(m):
-                            U.set_unsafe(i, c, U.get_unsafe(i,c) * coeff)
+                if transformation:
+                    for c in range(m):
+                        U.set_unsafe(i, c, U.get_unsafe(i,c) * coeff)
 
             pivot = A.get_unsafe(i,j)
             for k in range(i):
@@ -16565,7 +16947,6 @@ cdef class Matrix(Matrix1):
         Nonnegative matrices are positive operators on the nonnegative
         orthant::
 
-            sage: set_random_seed()
             sage: K = Cone([(1,0,0),(0,1,0),(0,0,1)])
             sage: L = random_matrix(QQ,3).apply_map(abs)
             sage: L.is_positive_operator_on(K)
@@ -16594,7 +16975,6 @@ cdef class Matrix(Matrix1):
 
         The identity matrix is always a positive operator::
 
-            sage: set_random_seed()
             sage: K = random_cone(max_ambient_dim=8)
             sage: R = K.lattice().vector_space().base_ring()
             sage: L = identity_matrix(R, K.lattice_dim())
@@ -16603,7 +16983,6 @@ cdef class Matrix(Matrix1):
 
         The zero matrix is always a positive operator::
 
-            sage: set_random_seed()
             sage: K = random_cone(max_ambient_dim=8)
             sage: R = K.lattice().vector_space().base_ring()
             sage: L = zero_matrix(R, K.lattice_dim())
@@ -16615,7 +16994,6 @@ cdef class Matrix(Matrix1):
         the underlying ring symbolic (the usual case is tested by
         the ``positive_operators_gens`` method)::
 
-            sage: set_random_seed()
             sage: K1 = random_cone(max_ambient_dim=5)
             sage: K2 = random_cone(max_ambient_dim=5)
             sage: all(L.change_ring(SR).is_positive_operator_on(K1, K2)
@@ -16642,15 +17020,23 @@ cdef class Matrix(Matrix1):
             ValueError: The base ring of the matrix is neither symbolic nor
             exact.
 
+        Symbolic subrings are fine::
+
+            sage: SCR = SR.subring(no_variables=True); SCR
+            Symbolic Constants Subring
+            sage: K = Cone([(1,2,3), (4,5,6)])
+            sage: L = identity_matrix(SCR, 3)
+            sage: L.is_positive_operator_on(K)
+            True
         """
-        from sage.symbolic.ring import SR
-        from sage.geometry.cone import is_Cone
+        import sage.geometry.abc
 
         if K2 is None:
             K2 = K1
-        if not ( is_Cone(K1) and is_Cone(K2) ):
+        if not (isinstance(K1, sage.geometry.abc.ConvexRationalPolyhedralCone)
+                and isinstance(K2, sage.geometry.abc.ConvexRationalPolyhedralCone)):
             raise TypeError('K1 and K2 must be cones.')
-        if not self.base_ring().is_exact() and not self.base_ring() is SR:
+        if not self.base_ring().is_exact() and not isinstance(self.base_ring(), sage.rings.abc.SymbolicRing):
             msg = 'The base ring of the matrix is neither symbolic nor exact.'
             raise ValueError(msg)
 
@@ -16738,7 +17124,6 @@ cdef class Matrix(Matrix1):
 
         The identity matrix is always cross-positive::
 
-            sage: set_random_seed()
             sage: K = random_cone(max_ambient_dim=8)
             sage: R = K.lattice().vector_space().base_ring()
             sage: L = identity_matrix(R, K.lattice_dim())
@@ -16747,7 +17132,6 @@ cdef class Matrix(Matrix1):
 
         The zero matrix is always cross-positive::
 
-            sage: set_random_seed()
             sage: K = random_cone(max_ambient_dim=8)
             sage: R = K.lattice().vector_space().base_ring()
             sage: L = zero_matrix(R, K.lattice_dim())
@@ -16759,7 +17143,6 @@ cdef class Matrix(Matrix1):
         symbolic (the usual case is tested by the
         ``cross_positive_operators_gens`` method)::
 
-            sage: set_random_seed()
             sage: K = random_cone(max_ambient_dim=5)
             sage: all(L.change_ring(SR).is_cross_positive_on(K)
             ....:     for L in K.cross_positive_operators_gens())  # long time
@@ -16785,13 +17168,20 @@ cdef class Matrix(Matrix1):
             ValueError: The base ring of the matrix is neither symbolic nor
             exact.
 
-        """
-        from sage.symbolic.ring import SR
-        from sage.geometry.cone import is_Cone
+        Symbolic subrings are fine::
 
-        if not is_Cone(K):
+            sage: SCR = SR.subring(no_variables=True); SCR
+            Symbolic Constants Subring
+            sage: K = Cone([(1,2,3), (4,5,6)])
+            sage: L = identity_matrix(SCR, 3)
+            sage: L.is_cross_positive_on(K)
+            True
+        """
+        import sage.geometry.abc
+
+        if not isinstance(K, sage.geometry.abc.ConvexRationalPolyhedralCone):
             raise TypeError('K must be a cone.')
-        if not self.base_ring().is_exact() and not self.base_ring() is SR:
+        if not self.base_ring().is_exact() and not isinstance(self.base_ring(), sage.rings.abc.SymbolicRing):
             msg = 'The base ring of the matrix is neither symbolic nor exact.'
             raise ValueError(msg)
 
@@ -16871,7 +17261,6 @@ cdef class Matrix(Matrix1):
 
         The identity matrix is always a Z-operator::
 
-            sage: set_random_seed()
             sage: K = random_cone(max_ambient_dim=8)
             sage: R = K.lattice().vector_space().base_ring()
             sage: L = identity_matrix(R, K.lattice_dim())
@@ -16880,7 +17269,6 @@ cdef class Matrix(Matrix1):
 
         The zero matrix is always a Z-operator::
 
-            sage: set_random_seed()
             sage: K = random_cone(max_ambient_dim=8)
             sage: R = K.lattice().vector_space().base_ring()
             sage: L = zero_matrix(R, K.lattice_dim())
@@ -16891,7 +17279,6 @@ cdef class Matrix(Matrix1):
         ``K``, , even if we make the underlying ring symbolic (the usual
         case is tested by the ``Z_operators_gens`` method)::
 
-            sage: set_random_seed()
             sage: K = random_cone(max_ambient_dim=5)
             sage: all(L.change_ring(SR).is_Z_operator_on(K)
             ....:     for L in K.Z_operators_gens())  # long time
@@ -16973,7 +17360,6 @@ cdef class Matrix(Matrix1):
         Diagonal matrices are Lyapunov-like operators on the nonnegative
         orthant::
 
-            sage: set_random_seed()
             sage: K = Cone([(1,0,0),(0,1,0),(0,0,1)])
             sage: L = diagonal_matrix(random_vector(QQ,3))
             sage: L.is_lyapunov_like_on(K)
@@ -16992,7 +17378,6 @@ cdef class Matrix(Matrix1):
 
         The identity matrix is always Lyapunov-like::
 
-            sage: set_random_seed()
             sage: K = random_cone(max_ambient_dim=8)
             sage: R = K.lattice().vector_space().base_ring()
             sage: L = identity_matrix(R, K.lattice_dim())
@@ -17001,7 +17386,6 @@ cdef class Matrix(Matrix1):
 
         The zero matrix is always Lyapunov-like::
 
-            sage: set_random_seed()
             sage: K = random_cone(max_ambient_dim=8)
             sage: R = K.lattice().vector_space().base_ring()
             sage: L = zero_matrix(R, K.lattice_dim())
@@ -17013,7 +17397,6 @@ cdef class Matrix(Matrix1):
         symbolic (the usual case is tested by the
         ``lyapunov_like_basis`` method)::
 
-            sage: set_random_seed()
             sage: K = random_cone(max_ambient_dim=5)
             sage: all(L.change_ring(SR).is_lyapunov_like_on(K)
             ....:     for L in K.lyapunov_like_basis())  # long time
@@ -17039,10 +17422,18 @@ cdef class Matrix(Matrix1):
             ValueError: The base ring of the matrix is neither symbolic nor
             exact.
 
+        Symbolic subrings are fine::
+
+            sage: SCR = SR.subring(no_variables=True); SCR
+            Symbolic Constants Subring
+            sage: K = Cone([(1,2,3), (4,5,6)])
+            sage: L = identity_matrix(SCR, 3)
+            sage: L.is_lyapunov_like_on(K)
+            True
+
         A matrix is Lyapunov-like on a cone if and only if both the
         matrix and its negation are cross-positive on the cone::
 
-            sage: set_random_seed()
             sage: K = random_cone(max_ambient_dim=5)
             sage: R = K.lattice().vector_space().base_ring()
             sage: L = random_matrix(R, K.lattice_dim())
@@ -17051,14 +17442,12 @@ cdef class Matrix(Matrix1):
             ....:             (-L).is_cross_positive_on(K))  # long time
             sage: actual == expected                         # long time
             True
-
         """
-        from sage.symbolic.ring import SR
-        from sage.geometry.cone import is_Cone
+        import sage.geometry.abc
 
-        if not is_Cone(K):
+        if not isinstance(K, sage.geometry.abc.ConvexRationalPolyhedralCone):
             raise TypeError('K must be a cone.')
-        if not self.base_ring().is_exact() and not self.base_ring() is SR:
+        if not self.base_ring().is_exact() and not isinstance(self.base_ring(), sage.rings.abc.SymbolicRing):
             msg = 'The base ring of the matrix is neither symbolic nor exact.'
             raise ValueError(msg)
 
@@ -17595,16 +17984,17 @@ def _binomial(Py_ssize_t n, Py_ssize_t k):
         i, n, k = i + 1, n - 1, k - 1
     return result
 
+
 def _jordan_form_vector_in_difference(V, W):
     r"""
     Given two lists of vectors ``V`` and ``W`` over the same base field,
     returns a vector in the difference ``V - W``.  If the difference is
     empty, returns ``None``.
 
-    NOTES:
+    .. NOTE::
 
-    This is meant to be a private helper method for the ``jordan_form`` method
-    in the above class.
+        This is meant to be a private helper method for the
+        ``jordan_form`` method in the above class.
 
     TESTS::
 
@@ -17791,7 +18181,7 @@ class NotFullRankError(ValueError):
     pass
 
 
-cdef inline void _block_ldlt_pivot1x1(Matrix A, Py_ssize_t k):
+cdef inline bint _block_ldlt_pivot1x1(Matrix A, Py_ssize_t k) except 1:
     r"""
     Update the `n`-by-`n` matrix `A` as part of a 1x1 pivot in the
     ``k,k`` position (whose value is ``pivot``). Relies on the fact
@@ -17799,7 +18189,9 @@ cdef inline void _block_ldlt_pivot1x1(Matrix A, Py_ssize_t k):
     this routine should overwrite its argument.
 
     There is no return value from this function, as its intended
-    effect is to update the matrix `A` in-place.
+    effect is to update the matrix `A` in-place, but we allow it
+    to return zero/one so that ``1`` can be used to indicate that
+    a python exception occurred.
     """
     cdef Py_ssize_t i,j # dumy loop indices
     cdef Py_ssize_t n = A._nrows
@@ -17825,4 +18217,4 @@ cdef inline void _block_ldlt_pivot1x1(Matrix A, Py_ssize_t k):
                      k,
                      A.get_unsafe(k+i+1,k)/ pivot)
 
-    return
+    return 0

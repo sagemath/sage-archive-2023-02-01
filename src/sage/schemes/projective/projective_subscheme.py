@@ -28,7 +28,7 @@ from sage.categories.homset import Hom
 
 from sage.matrix.constructor import matrix
 
-from sage.rings.all import ZZ
+from sage.rings.integer_ring import ZZ
 from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.rational_field import is_RationalField
@@ -201,9 +201,10 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
             self.__dimension = self.defining_ideal().dimension() - 1
             return self.__dimension
 
-    def affine_patch(self, i, AA = None):
+    def affine_patch(self, i, AA=None):
         r"""
         Return the `i^{th}` affine patch of this projective scheme.
+
         This is the intersection with this `i^{th}` affine patch of
         its ambient space.
 
@@ -434,7 +435,7 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
             sage: H.is_smooth()  # one of the few cases where the cone over the subvariety is smooth
             True
         """
-        if not point is None:
+        if point is not None:
             self._check_satisfies_equations(point)
             R = self.ambient_space().coordinate_ring()
             point_subs = dict(zip(R.gens(), point))
@@ -598,16 +599,16 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
             raise TypeError("must be a forward orbit")
         return self.orbit(f,[n,n+1])[0]
 
-    def _forward_image(self, f, check = True):
+    def _forward_image(self, f, check=True):
         r"""
         Compute the forward image of this subscheme by the morphism ``f``.
 
         The forward image is computed through elimination and ``f`` must be
         a morphism for this to be well defined.
-        In particular, let $X = V(h_1,\ldots, h_t)$ and define the ideal
-        $I = (h_1,\ldots,h_t,y_0-f_0(\bar{x}), \ldots, y_n-f_n(\bar{x}))$.
-        Then the elimination ideal $I_{n+1} = I \cap K[y_0,\ldots,y_n]$ is a homogeneous
-        ideal and $self(X) = V(I_{n+1})$.
+        In particular, let `X = V(h_1,\ldots, h_t)` and define the ideal
+        `I = (h_1,\ldots,h_t,y_0-f_0(\bar{x}), \ldots, y_n-f_n(\bar{x}))`.
+        Then the elimination ideal `I_{n+1} = I \cap K[y_0,\ldots,y_n]` is a homogeneous
+        ideal and `self(X) = V(I_{n+1})`.
 
         INPUT:
 
@@ -663,7 +664,7 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
             sage: f([t^2*y-z])
             Closed subscheme of Projective Space of dimension 2 over Fraction Field
             of Univariate Polynomial Ring in t over Rational Field defined by:
-              y + (-1/t^2)*z
+              y - 1/(t^2)*z
 
         ::
 
@@ -771,17 +772,17 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
         m = CR_codom.ngens()
         #can't call eliminate if the base ring is polynomial so we do it ourselves
         #with a lex ordering
-        R = PolynomialRing(f.base_ring(), n+m, 'tempvar', order = 'lex')
+        R = PolynomialRing(f.base_ring(), n + m, 'tempvar', order='lex')
         Rvars = R.gens()[0 : n]
-        phi = CR_dom.hom(Rvars,R)
+        phi = CR_dom.hom(Rvars, R)
         zero = n*[0]
-        psi = R.hom(zero + list(CR_codom.gens()),CR_codom)
+        psi = R.hom(zero + list(CR_codom.gens()), CR_codom)
         #set up ideal
         L = R.ideal([phi(t) for t in self.defining_polynomials()] + [R.gen(n+i) - phi(f[i]) for i in range(m)])
-        G = L.groebner_basis() #eliminate
+        G = L.groebner_basis()  # eliminate
         newL = []
-        #get only the elimination ideal portion
-        for i in range (len(G) - 1, 0, -1):
+        # get only the elimination ideal portion
+        for i in range(len(G) - 1, 0, -1):
             v = G[i].variables()
             if all(Rvars[j] not in v for j in range(n)):
                 newL.append(psi(G[i]))
@@ -981,7 +982,7 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
         from sage.libs.singular.function_factory import ff
 
         K = self.base_ring()
-        if not(is_RationalField(K) or is_FiniteField(K)):
+        if not (is_RationalField(K) or is_FiniteField(K)):
             raise NotImplementedError("base ring must be QQ or a finite field")
         I = self.defining_ideal()
         m = I.ngens()
@@ -1162,19 +1163,19 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
             sage: C.multiplicity(Q)
             8
         """
-        if not self.base_ring() in Fields():
+        if self.base_ring() not in Fields():
             raise TypeError("subscheme must be defined over a field")
 
         # check whether P is a point on this subscheme
         try:
             P = self(P)
         except TypeError:
-            raise TypeError("(=%s) is not a point on (=%s)"%(P,self))
+            raise TypeError("(=%s) is not a point on (=%s)" % (P,self))
 
         # find an affine chart of the ambient space of self that contains P
         i = 0
-        while(P[i] == 0):
-            i = i + 1
+        while P[i] == 0:
+            i += 1
         X = self.affine_patch(i)
         return X.multiplicity(X(P.dehomogenize(i)))
 
@@ -1427,4 +1428,3 @@ class AlgebraicScheme_subscheme_projective_field(AlgebraicScheme_subscheme_proje
         rel2 = rel + [CF]
         assert all(f in rel2 for f in CH.gens()), "did not find a principal generator"
         return alp(CF)
-

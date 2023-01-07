@@ -58,9 +58,10 @@ AUTHORS:
 from sage.schemes.generic.scheme import is_Scheme
 from sage.schemes.product_projective.space import is_ProductProjectiveSpaces
 from sage.misc.mrange import xmrange
-from sage.misc.all import prod
-from sage.arith.all import next_prime, previous_prime, crt
-from sage.rings.all import ZZ, RR
+from sage.misc.misc_c import prod
+from sage.arith.misc import next_prime, previous_prime, crt
+from sage.rings.integer_ring import ZZ
+from sage.rings.real_mpfr import RR
 from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
 from sage.parallel.ncpus import ncpus
 from sage.parallel.use_fork import p_iter_fork
@@ -121,7 +122,7 @@ def enum_product_projective_rational_field(X, B):
          (0 : 0 : 1 , 0 : 1), (0 : 0 : 1 , 1 : 1), (0 : 1 : 0 , 0 : 1),
          (0 : 1 : 0 , 1 : 1), (1 : -1/2 : 1 , 0 : 1), (1 : -1/2 : 1 , 1 : 1)]
     """
-    if(is_Scheme(X)):
+    if is_Scheme(X):
         if (not is_ProductProjectiveSpaces(X.ambient_space())):
             raise TypeError("ambient space must be product of projective space over the rational field")
         X = X(X.base_ring())
@@ -133,7 +134,7 @@ def enum_product_projective_rational_field(X, B):
     m = R.num_components()
     iters = [ R[i].points_of_bounded_height(bound=B) for i in range(m) ]
     dim = [R[i].dimension_relative() + 1 for i in range(m)]
-    
+
     dim_prefix = [0, dim[0]] # prefixes dim list
     for i in range(1, len(dim)):
         dim_prefix.append(dim_prefix[i] + dim[i])
@@ -188,7 +189,7 @@ def enum_product_projective_number_field(X, **kwds):
 
     This is an implementation of the revised algorithm (Algorithm 4) in
     [DK2013]_. Algorithm 5 is used for imaginary quadratic fields.
-    
+
     INPUT:
 
     kwds:
@@ -224,7 +225,7 @@ def enum_product_projective_number_field(X, **kwds):
     tol = kwds.pop('tolerance', 1e-2)
     prec = kwds.pop('precision', 53)
 
-    if(is_Scheme(X)):
+    if is_Scheme(X):
         if (not is_ProductProjectiveSpaces(X.ambient_space())):
             raise TypeError("ambient space must be product of projective space over the rational field")
         X = X(X.base_ring())
@@ -280,7 +281,7 @@ def enum_product_projective_finite_field(X):
         sage: len(enum_product_projective_finite_field(X))
         36
     """
-    if(is_Scheme(X)):
+    if is_Scheme(X):
         if (not is_ProductProjectiveSpaces(X.ambient_space())):
             raise TypeError("ambient space must be product of projective space over the rational field")
         X = X(X.base_ring())
@@ -494,11 +495,12 @@ def sieve(X, bound):
                 continue
 
             try:
-                rat_points.add(X(point)) # checks if this point lies on X or not
-            except:
+                # checks if this point lies on X or not
+                rat_points.add(X(point))
+            except (TypeError, ValueError):
                 pass
 
-        return [list(_) for _ in rat_points]
+        return [list(pt) for pt in rat_points]
 
     def lift_all_points():
         r"""
@@ -538,5 +540,5 @@ def sieve(X, bound):
         m.append(temp)
 
     rat_points = lift_all_points()
-    
+
     return sorted(rat_points)

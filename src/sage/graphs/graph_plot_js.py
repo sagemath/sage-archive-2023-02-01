@@ -73,18 +73,19 @@ Functions
 ---------
 """
 from sage.misc.temporary_file import tmp_filename
-from sage.plot.colors import rainbow
+from sage.misc.lazy_import import lazy_import
 import os
+lazy_import("sage.plot.colors", "rainbow")
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2013 Nathann Cohen <nathann.cohen@gmail.com>
 #                          Brice Onfroy  <onfroy.brice@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 
 def gen_html_code(G,

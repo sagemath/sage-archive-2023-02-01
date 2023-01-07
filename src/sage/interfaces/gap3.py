@@ -12,7 +12,7 @@ AUTHORS:
 
     The experimental package for GAP3 is Jean Michel's pre-packaged GAP3,
     which is a minimal GAP3 distribution containing packages that have
-    no equivalent in GAP4, see :trac:`20107` and also 
+    no equivalent in GAP4, see :trac:`20107` and also
 
         https://webusers.imj-prg.fr/~jean.michel/gap3/
 
@@ -30,7 +30,7 @@ by hand either of the following two versions of GAP3:
 - or you can download GAP3 from the GAP website below. Since GAP3
   is no longer supported, it may not be easy to install this version.
 
-    http://www.gap-system.org/Gap3/Download3/download.html
+    https://www.gap-system.org/Gap3/Download3/download.html
 
 Changing which GAP3 is used
 ---------------------------
@@ -212,7 +212,7 @@ Controlling variable names used by GAP3::
     ...
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2010 Franco Saliola <saliola@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -224,8 +224,8 @@ Controlling variable names used by GAP3::
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from sage.misc.cachefunc import cached_method
 from sage.interfaces.expect import Expect
@@ -235,6 +235,7 @@ from sage.cpython.string import bytes_to_str
 
 # gap3_cmd should point to the gap3 executable
 gap3_cmd = 'gap3'
+
 
 class Gap3(Gap_generic):
     r"""
@@ -596,7 +597,7 @@ class Gap3(Gap_generic):
         - Finally, you can download GAP3 from the GAP website below. Since
           GAP3 is no longer an officially supported distribution of GAP, it
           may not be easy to install this version.
-            http://www.gap-system.org/Gap3/Download3/download.html
+            https://www.gap-system.org/Gap3/Download3/download.html
 
     - If you have GAP3 installed, then perhaps it is not configured
       correctly. Sage assumes that you can start GAP3 with the command
@@ -624,8 +625,9 @@ class Gap3(Gap_generic):
         """
         return []
 
-    
+
 gap3 = Gap3()
+
 
 class GAP3Element(GapElement_generic):
     r"""
@@ -725,9 +727,9 @@ class GAP3Element(GapElement_generic):
         """
         gap3_session = self._check_valid()
         if not isinstance(n, tuple):
-            return gap3_session.new('%s[%s]'%(self.name(), n))
-        else:
-            return gap3_session.new('%s%s'%(self.name(), ''.join(['[%s]'%x for x in n])))
+            return gap3_session.new('%s[%s]' % (self.name(), n))
+        return gap3_session.new('%s%s' % (self.name(),
+                                          ''.join('[%s]' % x for x in n)))
 
     def _latex_(self):
         r"""

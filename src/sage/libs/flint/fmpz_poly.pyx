@@ -74,7 +74,7 @@ cdef class Fmpz_poly(SageObject):
 
     def __setitem__(self, i, value):
         """
-        Set the $i$-th item of self, which is the coefficient of the $x^i$ term.
+        Set the `i`-th item of self, which is the coefficient of the `x^i` term.
 
         EXAMPLES::
 
@@ -93,7 +93,7 @@ cdef class Fmpz_poly(SageObject):
 
     def __getitem__(self, i):
         """
-        Return the $i$-th item of self, which is the coefficient of the $x^i$ term.
+        Return the `i`-th item of self, which is the coefficient of the `x^i` term.
 
         EXAMPLES::
 
@@ -440,7 +440,6 @@ cdef class Fmpz_poly(SageObject):
         cdef long nn = n
         fmpz_poly_truncate(self.poly, nn) # mutating!
 
-
     def _sage_(self, var='x'):
         """
         Return self as an element of the sage ZZ[var].
@@ -454,6 +453,5 @@ cdef class Fmpz_poly(SageObject):
             sage: Fmpz_poly([-1,0,0,1])._sage_()
             x^3 - 1
         """
-        from sage.rings.all import ZZ
+        from sage.rings.integer_ring import ZZ
         return ZZ[var](self.list())
-

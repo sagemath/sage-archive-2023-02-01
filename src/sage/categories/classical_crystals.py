@@ -110,7 +110,7 @@ class ClassicalCrystals(Category_singleton):
 
     class ParentMethods:
 
-        def demazure_character(self, w, f = None):
+        def demazure_character(self, w, f=None):
             r"""
             Return the Demazure character associated to ``w``.
 
@@ -478,4 +478,3 @@ class ClassicalCrystals(Category_singleton):
                 [Category of classical crystals]
             """
             return [self.base_category()]
-

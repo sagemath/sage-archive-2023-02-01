@@ -2,15 +2,15 @@
 r"""
 Common category for Generalized Coxeter Groups or Complex Reflection Groups
 """
-#*****************************************************************************
+# ****************************************************************************
 #  Copyright (C) 2016 Nicolas M. Thiéry <nthiery at users.sf.net>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 import itertools
 from sage.misc.abstract_method import abstract_method
@@ -18,6 +18,7 @@ from sage.misc.cachefunc import cached_method
 from sage.categories.category_singleton import Category_singleton
 from sage.categories.category_with_axiom import CategoryWithAxiom
 from sage.categories.groups import Groups
+
 
 class ComplexReflectionOrGeneralizedCoxeterGroups(Category_singleton):
     r"""
@@ -201,7 +202,7 @@ class ComplexReflectionOrGeneralizedCoxeterGroups(Category_singleton):
                 3 (1,4)(2,8)(3,5)(7,10)(9,11)
                 asdf (2,5)(3,9)(4,6)(8,11)(10,12)
             """
-            if not i in self.index_set():
+            if i not in self.index_set():
                 raise ValueError("%s is not in the Dynkin node set %s" % (i, self.index_set()))
             return self.one().apply_simple_reflection(i)  # don't care about left/right
 
@@ -402,9 +403,9 @@ class ComplexReflectionOrGeneralizedCoxeterGroups(Category_singleton):
             """
             return list(self.simple_reflections()) + [self.one(), self.an_element()]
 
-        ##########################################################################
+        ######################################################################
         # Reflections
-        ##########################################################################
+        ######################################################################
 
         @abstract_method(optional=True)
         def reflection_index_set(self):
@@ -719,7 +720,7 @@ class ComplexReflectionOrGeneralizedCoxeterGroups(Category_singleton):
 
             TESTS::
 
-                sage: W=WeylGroup(['E',6])
+                sage: W = WeylGroup(['E',6])
                 sage: W.from_reduced_word([2,3,4,2])
                 [ 0  1  0  0  0  0  0  0]
                 [ 0  0 -1  0  0  0  0  0]
@@ -896,7 +897,7 @@ class ComplexReflectionOrGeneralizedCoxeterGroups(Category_singleton):
 
             EXAMPLES::
 
-                sage: W=CoxeterGroups().example()
+                sage: W = CoxeterGroups().example()
                 sage: w = W.an_element(); w
                 (1, 2, 3, 0)
                 sage: w.apply_simple_reflection_right(0)
@@ -1141,7 +1142,7 @@ class ComplexReflectionOrGeneralizedCoxeterGroups(Category_singleton):
             """
             return self.apply_simple_reflections(other.reduced_word())
 
-        def inverse(self):
+        def __invert__(self):
             """
             Return the inverse of ``self``.
 
@@ -1149,7 +1150,7 @@ class ComplexReflectionOrGeneralizedCoxeterGroups(Category_singleton):
 
                 sage: W = WeylGroup(['B',7])
                 sage: w = W.an_element()
-                sage: u = w.inverse()
+                sage: u = w.inverse()  # indirect doctest
                 sage: u == ~w
                 True
                 sage: u * w == w * u
@@ -1164,8 +1165,6 @@ class ComplexReflectionOrGeneralizedCoxeterGroups(Category_singleton):
                 [0 0 0 0 0 0 1]
             """
             return self.parent().one().apply_simple_reflections(self.reduced_word_reverse_iterator())
-
-        __invert__ = inverse
 
         def apply_conjugation_by_simple_reflection(self, i):
             r"""

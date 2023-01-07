@@ -41,6 +41,7 @@ EXAMPLES::
 # ****************************************************************************
 
 import itertools
+from collections.abc import Iterable
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
@@ -51,9 +52,10 @@ from sage.structure.parent import Parent
 from sage.categories.sets_cat import Sets
 
 from sage.combinat.combinat import CombinatorialObject
+from sage.structure.list_clone import ClonableElement
 from sage.combinat.words.alphabet import build_alphabet
 
-from sage.rings.all import Infinity
+from sage.rings.infinity import Infinity
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
 
@@ -134,9 +136,9 @@ class AbstractLanguage(Parent):
             True
 
             sage: Words('abc').sortkey_letters
-            <bound method FiniteOrInfiniteWords._sortkey_trivial of ...>
+            <bound method AbstractLanguage._sortkey_trivial of ...>
             sage: Words('bac').sortkey_letters
-            <bound method FiniteOrInfiniteWords._sortkey_letters of ...>
+            <bound method AbstractLanguage._sortkey_letters of ...>
         """
         if isinstance(alphabet, (int, Integer)):
             from sage.sets.integer_range import IntegerRange
@@ -238,18 +240,18 @@ class AbstractLanguage(Parent):
             sage: W._check('abcabcd')
             Traceback (most recent call last):
             ...
-            ValueError: d not in alphabet!
+            ValueError: d not in alphabet
             sage: W._check('abcabc'*10+'z') is None
             True
             sage: W._check('abcabc'*10+'z', length=80)
             Traceback (most recent call last):
             ...
-            ValueError: z not in alphabet!
+            ValueError: z not in alphabet
         """
         stop = None if length is None else int(length)
         for a in itertools.islice(w, stop):
             if a not in self.alphabet():
-                raise ValueError("%s not in alphabet!" % a)
+                raise ValueError("%s not in alphabet" % a)
 
     def _sortkey_trivial(self, letter1):
         """
@@ -407,7 +409,7 @@ class FiniteWords(AbstractLanguage):
 
             sage: d = FiniteWords()._element_classes
             sage: type(d)
-            <... 'dict'>
+            <class 'dict'>
             sage: len(d)
             7
             sage: e = FiniteWords('abcdefg')._element_classes
@@ -497,7 +499,7 @@ class FiniteWords(AbstractLanguage):
             data = iter(data)
             return self._word_from_iter(data, length, caching=False)
 
-        raise TypeError("Any instance of Word_class must be an instance of WordDatatype.")
+        raise TypeError("any instance of Word_class must be an instance of WordDatatype")
 
     def _word_from_callable(self, data, length, caching=True):
         r"""
@@ -667,7 +669,7 @@ class FiniteWords(AbstractLanguage):
             sage: FiniteWords("ab")("abca")
             Traceback (most recent call last):
             ...
-            ValueError: c not in alphabet!
+            ValueError: c not in alphabet
             sage: FiniteWords("ab")("abca", check=False)
             word: abca
 
@@ -781,12 +783,11 @@ class FiniteWords(AbstractLanguage):
             sage: type(Word([0,1,1,2,0,258], alphabet=list(range(257))))
             Traceback (most recent call last):
             ...
-            ValueError: 258 not in alphabet!
+            ValueError: 258 not in alphabet
             sage: type(Word([0,1,1,2,0,103], alphabet=list(range(100))))
             Traceback (most recent call last):
             ...
-            ValueError: 103 not in alphabet!
-
+            ValueError: 103 not in alphabet
         """
         if datatype is not None:
             if datatype == 'list':
@@ -806,7 +807,7 @@ class FiniteWords(AbstractLanguage):
                 data = unpickle_function(data)
                 w = self._word_from_callable(data, length, caching)
             else:
-                raise ValueError("Unknown datatype (={})".format(datatype))
+                raise ValueError("unknown datatype (={})".format(datatype))
 
         elif 'char' in self._element_classes:
             if data is None:
@@ -829,13 +830,13 @@ class FiniteWords(AbstractLanguage):
         elif isinstance(data, tuple):
             w = self._element_classes['tuple'](self, data)
 
-        elif isinstance(data, CombinatorialObject):
+        elif isinstance(data, (CombinatorialObject, ClonableElement)):
             w = self._element_classes['list'](self, list(data))
 
         elif callable(data):
             w = self._word_from_callable(data, length, caching)
 
-        elif hasattr(data, "__iter__"):
+        elif isinstance(data, Iterable):
             from sage.combinat.words.abstract_word import Word_class
             if isinstance(data, Word_class):
                 w = self._word_from_word(data)
@@ -843,7 +844,7 @@ class FiniteWords(AbstractLanguage):
                 w = self._word_from_iter(data, length, caching)
 
         else:
-            raise ValueError("Cannot guess a datatype from data (=%s); please specify one" % data)
+            raise ValueError("cannot guess a datatype from data (=%s); please specify one" % data)
 
         if check:
             self._check(w)
@@ -935,7 +936,6 @@ class FiniteWords(AbstractLanguage):
             ....:       break
             ....:   else:
             ....:       w
-            ....:
             word:
             word: 4
             word: 5
@@ -950,7 +950,6 @@ class FiniteWords(AbstractLanguage):
             ....:       break
             ....:   else:
             ....:       w
-            ....:
             word:
             word: 5
             word: 4
@@ -966,11 +965,12 @@ class FiniteWords(AbstractLanguage):
 
     def __contains__(self, x):
         """
-        Tests whether self contains x.
+        Tests whether ``self`` contains ``x``.
 
         OUTPUT:
-            This method returns True if x is a word of the appropriate
-            length and the alphabets of the parents match. Returns False
+
+            This method returns ``True`` if ``x`` is a word of the appropriate
+            length and the alphabets of the parents match. It returns ``False``
             otherwise.
 
         EXAMPLES::
@@ -1346,7 +1346,7 @@ class InfiniteWords(AbstractLanguage):
 
             sage: d = InfiniteWords()._element_classes
             sage: type(d)
-            <... 'dict'>
+            <class 'dict'>
             sage: len(d)
             4
             sage: e = InfiniteWords('abcdefg')._element_classes
@@ -1422,7 +1422,7 @@ class InfiniteWords(AbstractLanguage):
             data = iter(data)
             return self._word_from_iter(data, caching=False)
         else:
-            raise TypeError("Any instance of Word_class must be an instance of WordDatatype.")
+            raise TypeError("any instance of Word_class must be an instance of WordDatatype")
 
     def _word_from_callable(self, data, caching=True):
         r"""
@@ -1526,7 +1526,7 @@ class InfiniteWords(AbstractLanguage):
             sage: InfiniteWords("ab")(("c" if i == 0 else "a" for i in count()))
             Traceback (most recent call last):
             ...
-            ValueError: c not in alphabet!
+            ValueError: c not in alphabet
 
         Creation of a word from a word::
 
@@ -1556,12 +1556,12 @@ class InfiniteWords(AbstractLanguage):
                 data = unpickle_function(data)
                 w = self._word_from_callable(data, caching)
             else:
-                raise ValueError("Unknown datatype (={})".format(datatype))
+                raise ValueError("unknown datatype (={})".format(datatype))
 
         elif callable(data):
             w = self._word_from_callable(data, caching)
 
-        elif hasattr(data, "__iter__"):
+        elif isinstance(data, Iterable):
             from sage.combinat.words.abstract_word import Word_class
             if isinstance(data, Word_class):
                 w = self._word_from_word(data)
@@ -1569,7 +1569,7 @@ class InfiniteWords(AbstractLanguage):
                 w = self._word_from_iter(data, caching)
 
         else:
-            raise ValueError("Cannot guess a datatype from data (=%s); please specify one" % data)
+            raise ValueError("cannot guess a datatype from data (=%s); please specify one" % data)
 
         if check:
             self._check(w)
@@ -1892,7 +1892,7 @@ class FiniteOrInfiniteWords(AbstractLanguage):
             sage: Words("ab")("abca")
             Traceback (most recent call last):
             ...
-            ValueError: c not in alphabet!
+            ValueError: c not in alphabet
             sage: Words("ab")("abca", check=False)
             word: abca
 
@@ -2006,11 +2006,11 @@ class FiniteOrInfiniteWords(AbstractLanguage):
             sage: type(Word([0,1,1,2,0,258], alphabet=list(range(257))))
             Traceback (most recent call last):
             ...
-            ValueError: 258 not in alphabet!
+            ValueError: 258 not in alphabet
             sage: type(Word([0,1,1,2,0,103], alphabet=list(range(100))))
             Traceback (most recent call last):
             ...
-            ValueError: 103 not in alphabet!
+            ValueError: 103 not in alphabet
 
         Check that the type is rightly guessed for parking functions which are
         callable::
@@ -2045,10 +2045,10 @@ class FiniteOrInfiniteWords(AbstractLanguage):
             from sage.combinat.words.abstract_word import Word_class
             if isinstance(data, Word_class):
                 w = self._word_from_word(data)
-            elif hasattr(data, "__iter__"):
+            elif isinstance(data, Iterable):
                 w = self._word_from_iter(data, caching)
             else:
-                raise ValueError("Cannot guess a datatype from data (={!r}); please specify one".format(data))
+                raise ValueError("cannot guess a datatype from data (={!r}); please specify one".format(data))
 
             if check:
                 w.parent()._check(w)

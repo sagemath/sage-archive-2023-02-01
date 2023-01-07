@@ -54,7 +54,7 @@ We verify Lagrange's four squares identity::
 #*****************************************************************************
 
 from sage.structure.element import CommutativeRingElement, coerce_binop
-from sage.misc.all import prod
+from sage.misc.misc_c import prod
 import sage.rings.integer
 from sage.rings.qqbar_decorators import handle_AA_and_QQbar
 from . import polydict
@@ -65,6 +65,11 @@ from .multi_polynomial import MPolynomial
 from sage.categories.morphism import Morphism
 from sage.misc.lazy_attribute import lazy_attribute
 
+from sage.rings.rational_field import QQ
+from sage.rings.fraction_field import FractionField
+from sage.rings.number_field.order import is_NumberFieldOrder
+from sage.categories.number_fields import NumberFields
+from sage.rings.real_mpfr import RealField
 
 def is_MPolynomial(x):
     return isinstance(x, MPolynomial)
@@ -90,8 +95,8 @@ class MPolynomial_element(MPolynomial):
         EXAMPLES::
 
             sage: P.<x,y,z> = PolynomialRing(QQbar)
-            sage: x + QQbar.random_element() # indirect doctest
-            x + 0.4142135623730951?
+            sage: x + QQbar(sqrt(2) - 1/2*I)  # indirect doctest
+            x + 1.414213562373095? - 0.50000000000000000?*I
         """
         return "%s"%self.__element
 
@@ -213,7 +218,7 @@ class MPolynomial_element(MPolynomial):
         """
         n = self.parent().ngens()
         if n == 0:
-            return codomain._coerce_(self)
+            return codomain.coerce(self)
         y = codomain(0)
         if base_map is None:
             # Just use conversion
@@ -964,6 +969,182 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             raise ValueError("You must pass a dictionary list or monomial.")
         return self.parent()(self.element().polynomial_coefficient(looking_for))
 
+    def global_height(self, prec=None):
+        """
+        Return the (projective) global height of the polynomial.
+
+        This returns the absolute logarithmic height of the coefficients
+        thought of as a projective point.
+
+        INPUT:
+
+        - ``prec`` -- desired floating point precision (default:
+          default RealField precision).
+
+        OUTPUT:
+
+        - a real number.
+
+        EXAMPLES::
+
+            sage: R.<x,y> = PolynomialRing(QQbar, 2)
+            sage: f = QQbar(i)*x^2 + 3*x*y
+            sage: f.global_height()
+            1.09861228866811
+
+        Scaling should not change the result::
+
+            sage: R.<x, y> = PolynomialRing(QQbar, 2)
+            sage: f = 1/25*x^2 + 25/3*x + 1 + QQbar(sqrt(2))*y^2
+            sage: f.global_height()
+            6.43775164973640
+            sage: g = 100 * f
+            sage: g.global_height()
+            6.43775164973640
+
+        ::
+
+            sage: R.<x> = QQ[]
+            sage: K.<k> = NumberField(x^2 + 1)
+            sage: Q.<q,r> = PolynomialRing(K, implementation='generic')
+            sage: f = 12*q
+            sage: f.global_height()
+            0.000000000000000
+
+        ::
+
+            sage: R.<x,y> = PolynomialRing(QQ, implementation='generic')
+            sage: f = 1/123*x*y + 12
+            sage: f.global_height(prec=2)
+            8.0
+
+        ::
+
+            sage: R.<x,y> = PolynomialRing(QQ, implementation='generic')
+            sage: f = 0*x*y
+            sage: f.global_height()
+            0.000000000000000
+        """
+        if prec is None:
+            prec = 53
+
+        if self.is_zero():
+            return RealField(prec).zero()
+
+        from sage.rings.qqbar import QQbar, number_field_elements_from_algebraics
+
+        K = self.base_ring()
+        if K in NumberFields() or is_NumberFieldOrder(K):
+            from sage.schemes.projective.projective_space import ProjectiveSpace
+            Pr = ProjectiveSpace(K, self.number_of_terms()-1)
+            return Pr.point(self.coefficients()).global_height(prec=prec)
+        if K is QQbar:
+            K_pre, P, phi = number_field_elements_from_algebraics(list(self.coefficients()))
+            from sage.schemes.projective.projective_space import ProjectiveSpace
+            Pr = ProjectiveSpace(K_pre, len(P)-1)
+            return Pr.point(P).global_height(prec=prec)
+
+        raise TypeError("Must be over a Numberfield or a Numberfield Order.")
+
+    def local_height(self, v, prec=None):
+        """
+        Return the maximum of the local height of the coefficients of
+        this polynomial.
+
+        INPUT:
+
+        - ``v`` -- a prime or prime ideal of the base ring.
+
+        - ``prec`` -- desired floating point precision (default:
+          default RealField precision).
+
+        OUTPUT:
+
+        - a real number.
+
+        EXAMPLES::
+
+            sage: R.<x,y> = PolynomialRing(QQ, implementation='generic')
+            sage: f = 1/1331*x^2 + 1/4000*y
+            sage: f.local_height(1331)
+            7.19368581839511
+
+        ::
+
+            sage: R.<x> = QQ[]
+            sage: K.<k> = NumberField(x^2 - 5)
+            sage: T.<t,w> = PolynomialRing(K, implementation='generic')
+            sage: I = K.ideal(3)
+            sage: f = 1/3*t*w + 3
+            sage: f.local_height(I)
+            1.09861228866811
+
+        ::
+
+            sage: R.<x,y> = PolynomialRing(QQ, implementation='generic')
+            sage: f = 1/2*x*y + 2
+            sage: f.local_height(2, prec=2)
+            0.75
+        """
+        if prec is None:
+            prec = 53
+
+        K = FractionField(self.base_ring())
+        if K not in NumberFields() or is_NumberFieldOrder(K):
+            raise TypeError("must be over a Numberfield or a Numberfield order")
+
+        return max([K(c).local_height(v, prec=prec) for c in self.coefficients()])
+
+    def local_height_arch(self, i, prec=None):
+        """
+        Return the maximum of the local height at the ``i``-th infinite place
+        of the coefficients of this polynomial.
+
+        INPUT:
+
+        - ``i`` -- an integer.
+
+        - ``prec`` -- desired floating point precision (default:
+          default RealField precision).
+
+        OUTPUT:
+
+        - a real number.
+
+        EXAMPLES::
+
+            sage: R.<x,y> = PolynomialRing(QQ, implementation='generic')
+            sage: f = 210*x*y
+            sage: f.local_height_arch(0)
+            5.34710753071747
+
+        ::
+
+            sage: R.<x> = QQ[]
+            sage: K.<k> = NumberField(x^2 - 5)
+            sage: T.<t,w> = PolynomialRing(K, implementation='generic')
+            sage: f = 1/2*t*w + 3
+            sage: f.local_height_arch(1, prec=52)
+            1.09861228866811
+
+        ::
+
+            sage: R.<x,y> = PolynomialRing(QQ, implementation='generic')
+            sage: f = 1/2*x*y + 3
+            sage: f.local_height_arch(0, prec=2)
+            1.0
+        """
+        if prec is None:
+            prec = 53
+
+        K = FractionField(self.base_ring())
+        if K not in NumberFields() or is_NumberFieldOrder(K):
+            return TypeError("must be over a Numberfield or a Numberfield Order")
+
+        if K == QQ:
+            return max([K(c).local_height_arch(prec=prec) for c in self.coefficients()])
+        return max([K(c).local_height_arch(i, prec=prec) for c in self.coefficients()])
+
     @lazy_attribute
     def _exponents(self):
         """
@@ -1002,7 +1183,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
         By default the list of exponents is a list of ETuples::
 
             sage: type(f.exponents()[0])
-            <type 'sage.rings.polynomial.polydict.ETuple'>
+            <class 'sage.rings.polynomial.polydict.ETuple'>
             sage: type(f.exponents(as_ETuples=False)[0])
             <... 'tuple'>
 
@@ -1580,8 +1761,6 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
         """
         return self._MPolynomial_element__element.dict()!={}
 
-    __nonzero__ = __bool__
-
     def _floordiv_(self, right):
         r"""
         Quotient of division of self by other. This is denoted //.
@@ -2153,6 +2332,14 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             sage: G=[y1^2 + y2^2, y1*y2 + y2^2, y2^3]
             sage: type((y2^3).reduce(G))
             <class 'sage.rings.polynomial.multi_polynomial_element.MPolynomial_polydict'>
+
+        TESTS:
+
+        Verify that :trac:`34105` is fixed::
+
+            sage: R.<x,y> = AA[]
+            sage: x.reduce(R.zero_ideal())
+            x
         """
         from sage.rings.polynomial.multi_polynomial_ideal import MPolynomialIdeal
 
@@ -2172,8 +2359,8 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
         except (NotImplementedError, TypeError):
             pass
 
+        I = [g for g in I if g]
         lI = len(I)
-        I = list(I)
         r = P.zero()
         p = self
 
@@ -2184,7 +2371,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
                 gilm = gi.lm()
                 if P.monomial_divides(gilm, plm):
                     quot = p.lc()/gi.lc() * P.monomial_quotient(plm, gilm)
-                    p -= quot*I[i]
+                    p -= quot * gi
                     break
             else:
                 plt = p.lt()

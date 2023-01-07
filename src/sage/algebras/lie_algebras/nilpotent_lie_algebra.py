@@ -113,10 +113,13 @@ class NilpotentLieAlgebra_dense(LieAlgebraWithStructureCoefficients):
             # extract names from structural coefficients
             names = []
             for (X, Y), d in s_coeff.items():
-                if X not in names: names.append(X)
-                if Y not in names: names.append(Y)
+                if X not in names:
+                    names.append(X)
+                if Y not in names:
+                    names.append(Y)
                 for k in d:
-                    if k not in names: names.append(k)
+                    if k not in names:
+                        names.append(k)
 
         from sage.structure.indexed_generators import standardize_names_index_set
         names, index_set = standardize_names_index_set(names, index_set)
@@ -126,8 +129,8 @@ class NilpotentLieAlgebra_dense(LieAlgebraWithStructureCoefficients):
         cat = LieAlgebras(R).FiniteDimensional().WithBasis().Nilpotent()
         category = cat.or_subcategory(category)
 
-        return super(NilpotentLieAlgebra_dense, cls).__classcall__(
-            cls, R, s_coeff, names, index_set, category=category, **kwds)
+        return super().__classcall__(cls, R, s_coeff, names,
+                                     index_set, category=category, **kwds)
 
     def __init__(self, R, s_coeff, names, index_set, step=None, **kwds):
         r"""
@@ -155,7 +158,7 @@ class NilpotentLieAlgebra_dense(LieAlgebraWithStructureCoefficients):
             sage: L
             Nilpotent Lie algebra on 4 generators (X, Y, Z, W) over Rational Field
         """
-        return "Nilpotent %s" % (super(NilpotentLieAlgebra_dense, self)._repr_())
+        return "Nilpotent %s" % (super()._repr_())
 
 
 class FreeNilpotentLieAlgebra(NilpotentLieAlgebra_dense):
@@ -331,7 +334,7 @@ class FreeNilpotentLieAlgebra(NilpotentLieAlgebra_dense):
         cat = LieAlgebras(R).FiniteDimensional().WithBasis()
         category = cat.Graded().Stratified().or_subcategory(category)
 
-        return super(FreeNilpotentLieAlgebra, cls).__classcall__(
+        return super().__classcall__(
             cls, R, r, s, names=tuple(names), naming=naming,
             category=category, **kwds)
 
@@ -449,5 +452,4 @@ class FreeNilpotentLieAlgebra(NilpotentLieAlgebra_dense):
             sage: L
             Free Nilpotent Lie algebra on 5 generators (X_1, X_2, X_12, X_112, X_122) over Rational Field
         """
-        return "Free %s" % (super(FreeNilpotentLieAlgebra, self)._repr_())
-
+        return "Free %s" % (super()._repr_())

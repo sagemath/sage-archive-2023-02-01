@@ -227,7 +227,7 @@ Now we get the desired Cartan matrix::
 
 Note that backward edges have been automatically added::
 
-    sage: g.edges()
+    sage: g.edges(sort=True)
     [(1, 2, 2), (1, 3, 1), (2, 1, 1), (2, 3, 1), (3, 1, 1), (3, 2, 1)]
 
 .. rubric:: Reducible Cartan types
@@ -465,7 +465,7 @@ this data.
 
 .. TODO:: Should those indexes come before the introduction?
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
 #       Copyright (C) 2008-2009 Nicolas M. Thiery <nthiery at users.sf.net>,
 #
@@ -473,13 +473,13 @@ this data.
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.abstract_method import abstract_method
 from sage.misc.lazy_import import LazyImport
-from sage.rings.all import ZZ
+from sage.rings.integer_ring import ZZ
 from sage.rings.infinity import Infinity
 from sage.structure.sage_object import SageObject
 from sage.structure.unique_representation import UniqueRepresentation
@@ -924,7 +924,7 @@ class CartanTypeFactory(SageObject):
             D_{5}^{(2)}
 
         For type `A_{2n}^{(2)\dagger}`, the dual string/latex options are
-        automatically overriden::
+        automatically overridden::
 
             sage: dct = CartanType(['A',8,2]).dual(); dct
             ['A', 8, 2]^+
@@ -973,7 +973,7 @@ class CartanTypeFactory(SageObject):
 CartanType = CartanTypeFactory()
 CartanType.__doc__ = __doc__
 
-class CartanType_abstract(object):
+class CartanType_abstract():
     r"""
     Abstract class for Cartan types
 
@@ -1150,13 +1150,13 @@ class CartanType_abstract(object):
 
             sage: CartanType(['B',3]).coxeter_diagram()
             Graph on 3 vertices
-            sage: CartanType(['A',3]).coxeter_diagram().edges()
+            sage: CartanType(['A',3]).coxeter_diagram().edges(sort=True)
             [(1, 2, 3), (2, 3, 3)]
-            sage: CartanType(['B',3]).coxeter_diagram().edges()
+            sage: CartanType(['B',3]).coxeter_diagram().edges(sort=True)
             [(1, 2, 3), (2, 3, 4)]
-            sage: CartanType(['G',2]).coxeter_diagram().edges()
+            sage: CartanType(['G',2]).coxeter_diagram().edges(sort=True)
             [(1, 2, 6)]
-            sage: CartanType(['F',4]).coxeter_diagram().edges()
+            sage: CartanType(['F',4]).coxeter_diagram().edges(sort=True)
             [(1, 2, 3), (2, 3, 4), (3, 4, 3)]
         """
 
@@ -1631,7 +1631,6 @@ class CartanType_crystallographic(CartanType_abstract):
         from sage.combinat.root_system.cartan_matrix import CartanMatrix
         return CartanMatrix(self.dynkin_diagram())
 
-    @cached_method
     def coxeter_diagram(self):
         """
         Return the Coxeter diagram for ``self``.
@@ -1644,30 +1643,18 @@ class CartanType_crystallographic(CartanType_abstract):
 
             sage: CartanType(['A',3]).coxeter_diagram()
             Graph on 3 vertices
-            sage: CartanType(['A',3]).coxeter_diagram().edges()
+            sage: CartanType(['A',3]).coxeter_diagram().edges(sort=True)
             [(1, 2, 3), (2, 3, 3)]
-            sage: CartanType(['B',3]).coxeter_diagram().edges()
+            sage: CartanType(['B',3]).coxeter_diagram().edges(sort=True)
             [(1, 2, 3), (2, 3, 4)]
-            sage: CartanType(['G',2]).coxeter_diagram().edges()
+            sage: CartanType(['G',2]).coxeter_diagram().edges(sort=True)
             [(1, 2, 6)]
-            sage: CartanType(['F',4]).coxeter_diagram().edges()
+            sage: CartanType(['F',4]).coxeter_diagram().edges(sort=True)
             [(1, 2, 3), (2, 3, 4), (3, 4, 3)]
-            sage: CartanType(['A',2,2]).coxeter_diagram().edges()
+            sage: CartanType(['A',2,2]).coxeter_diagram().edges(sort=True)
             [(0, 1, +Infinity)]
         """
-        from sage.rings.infinity import infinity
-        scalarproducts_to_order = { 0: 2,  1: 3,  2: 4,  3: 6, 4: infinity }
-        from sage.graphs.graph import Graph
-        coxeter_diagram = Graph(multiedges=False)
-        a = self.dynkin_diagram()
-        I = self.index_set()
-        coxeter_diagram.add_vertices(I)
-        for i in I:
-            for j in a.neighbors_out(i):
-                # avoid adding the edge twice
-                if not coxeter_diagram.has_edge(i,j):
-                    coxeter_diagram.add_edge(i,j, scalarproducts_to_order[a[i,j]*a[j,i]])
-        return coxeter_diagram
+        return self.dynkin_diagram().coxeter_diagram()
 
     def is_crystallographic(self):
         """
@@ -1888,7 +1875,7 @@ class CartanType_affine(CartanType_simple, CartanType_crystallographic):
         if (label == self.special_node()
                 and self.options('mark_special_node') in ['printing', 'both']):
             return self.options('special_node_str')
-        return super(CartanType_affine, self)._ascii_art_node(label)
+        return super()._ascii_art_node(label)
 
     def _latex_draw_node(self, x, y, label, position="below=4pt"):
         r"""
@@ -1909,7 +1896,7 @@ class CartanType_affine(CartanType_simple, CartanType_crystallographic):
             fill = 'black'
         else:
             fill = 'white'
-        return super(CartanType_affine, self)._latex_draw_node(x, y, label, position, fill)
+        return super()._latex_draw_node(x, y, label, position, fill)
 
     def is_finite(self):
         """
@@ -2038,14 +2025,14 @@ class CartanType_affine(CartanType_simple, CartanType_crystallographic):
 
         We check that :meth:`classical`,
         :meth:`sage.combinat.root_system.cartan_type.CartanType_crystallographic.dynkin_diagram`,
-        and :meth:`.special_node` are consistent::
+        and :meth:`special_node` are consistent::
 
             sage: for ct in CartanType.samples(affine = True):
             ....:     g1 = ct.classical().dynkin_diagram()
             ....:     g2 = ct.dynkin_diagram()
             ....:     g2.delete_vertex(ct.special_node())
-            ....:     assert sorted(g1.vertices()) == sorted(g2.vertices())
-            ....:     assert sorted(g1.edges()) == sorted(g2.edges())
+            ....:     assert g1.vertices(sort=True) == g2.vertices(sort=True)
+            ....:     assert g1.edges(sort=True) == g2.edges(sort=True)
 
         """
 
@@ -2206,12 +2193,15 @@ class CartanType_affine(CartanType_simple, CartanType_crystallographic):
 
     def translation_factors(self):
         r"""
-        Returns the translation factors for ``self``. Those are the
-        smallest factors `t_i` such that the translation by `t_i
-        \alpha_i` maps the fundamental polygon to another polygon in
-        the alcove picture.
+        Return the translation factors for ``self``.
 
-        OUTPUT: a dictionary from ``self.index_set()`` to `\ZZ`
+        Those are the smallest factors `t_i` such that the translation
+        by `t_i \alpha_i` maps the fundamental polygon to another
+        polygon in the alcove picture.
+
+        OUTPUT:
+
+        a dictionary from ``self.index_set()`` to `\ZZ`
         (or `\QQ` for affine type `BC`)
 
         Those coefficients are all `1` for dual untwisted, and in
@@ -2219,9 +2209,11 @@ class CartanType_affine(CartanType_simple, CartanType_crystallographic):
         `c_i` coefficients (see :meth:`c`) for untwisted and dual
         thereof. See the discussion below for affine type `BC`.
 
-        Note: one usually realizes the alcove picture in the coweight
-        lattice, with translations by coroots; in that case, one will
-        use the translation factors for the dual Cartan type.
+        .. NOTE::
+
+            One usually realizes the alcove picture in the coweight
+            lattice, with translations by coroots; in that case, one will
+            use the translation factors for the dual Cartan type.
 
         FIXME: the current implementation assumes that the Cartan
         matrix is indexed by `[0,1,...]`, in the same order as the
@@ -3050,7 +3042,7 @@ class SuperCartanType_standard(UniqueRepresentation, SageObject):
 
 ##############################################################################
 # For backward compatibility
-class CartanType_simple_finite(object):
+class CartanType_simple_finite():
     def __setstate__(self, dict):
         """
         Implements the unpickling of Cartan types pickled by Sage <= 4.0.

@@ -46,7 +46,8 @@ from sage.misc.flatten import flatten
 from sage.ext.fast_callable import fast_callable
 from sage.rings.semirings.non_negative_integer_semiring import NN
 from sage.functions.log import log, exp
-from sage.functions.other import floor, sqrt, ceil
+from sage.functions.other import floor, ceil
+from sage.misc.functional import sqrt
 
 
 
@@ -377,7 +378,7 @@ def remove_constants(l1,l2):
 
 
 def genfiles_mintides(integrator, driver, f, ics, initial, final, delta,
-                      tolrel=1e-16, tolabs=1e-16, output = ''):
+                      tolrel=1e-16, tolabs=1e-16, output=''):
     r"""
     Generate the needed files for the min_tides library.
 
@@ -552,12 +553,10 @@ def genfiles_mintides(integrator, driver, f, ics, initial, final, delta,
 
     l0 = lv + l0
     indices = [l0.index(str(i(*var))) + n for i in f]
-    for i in range (1, n):
+    for i in range(1, n):
         res.append("XX[{}][i+1] = XX[{}][i] / (i+1.0);".format(i,indices[i-1]-n))
 
-
     code = res
-
 
     outfile = open(integrator, 'a')
     auxstring = """
@@ -638,9 +637,10 @@ def genfiles_mintides(integrator, driver, f, ics, initial, final, delta,
     outfile.write('\treturn 0; \n }')
     outfile.close()
 
+
 def genfiles_mpfr(integrator, driver, f, ics, initial, final, delta,
-                  parameters = None , parameter_values = None, dig = 20, tolrel=1e-16,
-                  tolabs=1e-16, output = ''):
+                  parameters=None, parameter_values=None, dig=20, tolrel=1e-16,
+                  tolabs=1e-16, output=''):
     r"""
         Generate the needed files for the mpfr module of the tides library.
 
@@ -810,14 +810,12 @@ def genfiles_mpfr(integrator, driver, f, ics, initial, final, delta,
                 oper += '_c'
             l3.append((oper, aa, bb))
 
-
     n = len(var)
     code = []
 
-
     l0 = lv + l0
     indices = [l0.index(str(i(*var)))+n for i in f]
-    for i in range (1, n):
+    for i in range(1, n):
         aux = indices[i-1]-n
         if aux < n:
             code.append('mpfrts_var_t(itd, var[{}], var[{}], i);'.format(aux, i))

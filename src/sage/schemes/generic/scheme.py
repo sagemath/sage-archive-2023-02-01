@@ -20,12 +20,13 @@ AUTHORS:
 # ****************************************************************************
 
 from sage.structure.parent import Parent
-from sage.misc.all import cached_method
-from sage.rings.all import (ZZ, CommutativeRing)
+from sage.misc.cachefunc import cached_method
+from sage.rings.integer_ring import ZZ
+from sage.categories.commutative_rings import CommutativeRings
 from sage.rings.ideal import is_Ideal
 from sage.structure.unique_representation import UniqueRepresentation
-
 from sage.schemes.generic.point import SchemeTopologicalPoint_prime_ideal
+
 
 def is_Scheme(x):
     """
@@ -100,7 +101,7 @@ class Scheme(Parent):
         """
         from sage.schemes.generic.morphism import is_SchemeMorphism
         from sage.categories.map import Map
-        from sage.categories.all import Rings
+        from sage.categories.rings import Rings
 
         if X is None:
             self._base_ring = ZZ
@@ -108,7 +109,7 @@ class Scheme(Parent):
             self._base_scheme = X
         elif is_SchemeMorphism(X):
             self._base_morphism = X
-        elif isinstance(X, CommutativeRing):
+        elif X in CommutativeRings():
             self._base_ring = X
         elif isinstance(X, Map) and X.category_for().is_subcategory(Rings()):
             # X is a morphism of Rings
@@ -126,9 +127,9 @@ class Scheme(Parent):
             category = default_category
         else:
             assert category.is_subcategory(default_category), \
-                "%s is not a subcategory of %s"%(category, default_category)
+                "%s is not a subcategory of %s" % (category, default_category)
 
-        Parent.__init__(self, self.base_ring(), category = category)
+        Parent.__init__(self, self.base_ring(), category=category)
 
     def union(self, X):
         """
@@ -252,7 +253,7 @@ class Scheme(Parent):
         if len(args) == 1:
             from sage.schemes.generic.morphism import SchemeMorphism_point
             S = args[0]
-            if isinstance(S, CommutativeRing):
+            if S in CommutativeRings():
                 return self.point_homset(S)
             elif is_Scheme(S):
                 return S.Hom(self)
@@ -645,7 +646,7 @@ class Scheme(Parent):
 
             sage: E = EllipticCurve('37a1')
             sage: Hom(E, E).__class__
-            <class 'sage.schemes.generic.homset.SchemeHomset_generic_with_category'>
+            <class 'sage.schemes.projective.projective_homset.SchemeHomset_polynomial_projective_space_with_category'>
 
             sage: Hom(Spec(ZZ), Spec(ZZ)).__class__
             <class 'sage.schemes.generic.homset.SchemeHomset_generic_with_category_with_equality_by_id'>
@@ -865,12 +866,11 @@ class AffineScheme(UniqueRepresentation, Scheme):
             sage: type(S)
             <class 'sage.schemes.generic.scheme.AffineScheme_with_category'>
         """
-        from sage.categories.commutative_rings import CommutativeRings
-        if not R in CommutativeRings():
+        if R not in CommutativeRings():
             raise TypeError("R (={}) must be a commutative ring".format(R))
         self.__R = R
-        if not S is None:
-            if not S in CommutativeRings():
+        if S is not None:
+            if S not in CommutativeRings():
                 raise TypeError("S (={}) must be a commutative ring".format(S))
             if not R.has_coerce_map_from(S):
                 raise ValueError("There must be a natural map S --> R, but S = {} and R = {}".format(S, R))
@@ -891,7 +891,7 @@ class AffineScheme(UniqueRepresentation, Scheme):
         """
         if '_Spec__R' in state:
             state['_AffineScheme__R'] = state.pop('_Spec__R')
-        super(AffineScheme, self).__setstate__(state)
+        super().__setstate__(state)
 
     def _repr_(self):
         """
@@ -1011,7 +1011,7 @@ class AffineScheme(UniqueRepresentation, Scheme):
         try:
             # Construct a scheme homset or a scheme-valued point from
             # args using the generic Scheme.__call__() method.
-            return super(AffineScheme, self).__call__(*args)
+            return super().__call__(*args)
         except NotImplementedError:
             # This arises from self._morphism() not being implemented.
             # We must convert it into a TypeError to keep the coercion
@@ -1055,7 +1055,7 @@ class AffineScheme(UniqueRepresentation, Scheme):
             Point on Spectrum of Integer Ring defined by the Principal ideal (811) of Integer Ring
         """
         if self.coordinate_ring() is ZZ:
-            from sage.arith.all import random_prime
+            from sage.arith.misc import random_prime
             return self(ZZ.ideal(random_prime(1000)))
         return self(self.coordinate_ring().zero_ideal())
 
@@ -1141,7 +1141,6 @@ class AffineScheme(UniqueRepresentation, Scheme):
             sage: Spec(ZZ['x']).base_extend(Spec(QQ))
             Spectrum of Univariate Polynomial Ring in x over Rational Field
         """
-        from sage.categories.commutative_rings import CommutativeRings
         if R in CommutativeRings():
             return AffineScheme(self.coordinate_ring().base_extend(R), self.base_ring())
         if not self.base_scheme() == R.base_scheme():
@@ -1212,7 +1211,7 @@ class AffineScheme(UniqueRepresentation, Scheme):
                     (2, r)
         """
         from sage.categories.map import Map
-        from sage.categories.all import Rings
+        from sage.categories.rings import Rings
 
         if is_Scheme(x):
             return self.Hom(x).natural_map()

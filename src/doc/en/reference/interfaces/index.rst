@@ -58,7 +58,7 @@ exact actual program available (especially useful for tab completion
 and testing to make sure nothing funny is going on).
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
    sage/interfaces/interface
    sage/interfaces/expect
@@ -85,6 +85,7 @@ and testing to make sure nothing funny is going on).
    sage/interfaces/magma_free
    sage/interfaces/maple
    sage/interfaces/mathematica
+   sage/interfaces/mathics
    sage/interfaces/matlab
    sage/interfaces/maxima
    sage/interfaces/maxima_abstract

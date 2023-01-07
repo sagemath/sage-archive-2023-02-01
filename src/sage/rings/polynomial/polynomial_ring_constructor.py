@@ -11,37 +11,37 @@ constructing Boolean polynomial rings, which are not technically polynomial
 rings but rather quotients of them (see module
 :mod:`sage.rings.polynomial.pbori` for more details).
 """
-
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-
-
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from sage.structure.category_object import normalize_names
 import sage.rings.ring as ring
 import sage.rings.padics.padic_base_leaves as padic_base_leaves
 
+import sage.rings.abc
 from sage.rings.integer import Integer
 from sage.rings.finite_rings.finite_field_base import is_FiniteField
-from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
 
 from sage.misc.cachefunc import weak_cached_function
+import sage.misc.weak_dict
 
 from sage.categories.fields import Fields
-_Fields = Fields()
 from sage.categories.commutative_rings import CommutativeRings
-_CommutativeRings = CommutativeRings()
+from sage.categories.domains import Domains
 from sage.categories.complete_discrete_valuation import CompleteDiscreteValuationRings, CompleteDiscreteValuationFields
+
+_CommutativeRings = CommutativeRings()
+_Fields = Fields()
+_Domains = Domains()
 _CompleteDiscreteValuationRings = CompleteDiscreteValuationRings()
 _CompleteDiscreteValuationFields = CompleteDiscreteValuationFields()
 
-import sage.misc.weak_dict
 _cache = sage.misc.weak_dict.WeakValueDictionary()
 
 
@@ -426,7 +426,7 @@ def PolynomialRing(base_ring, *args, **kwds):
         sage: R = PolynomialRing(ZZ, 'x,y', implementation="generic"); type(R)
         <class 'sage.rings.polynomial.multi_polynomial_ring.MPolynomialRing_polydict_domain_with_category'>
         sage: S = PolynomialRing(ZZ, 'x,y'); type(S)
-        <type 'sage.rings.polynomial.multi_polynomial_libsingular.MPolynomialRing_libsingular'>
+        <class 'sage.rings.polynomial.multi_polynomial_libsingular.MPolynomialRing_libsingular'>
 
     Sparse univariate polynomials only support a generic
     implementation::
@@ -659,6 +659,7 @@ def unpickle_PolynomialRing(base_ring, arg1=None, arg2=None, sparse=False):
     args = [arg for arg in (arg1, arg2) if arg is not None]
     return PolynomialRing(base_ring, *args, sparse=sparse)
 
+
 from sage.misc.persist import register_unpickle_override
 register_unpickle_override('sage.rings.polynomial.polynomial_ring_constructor', 'PolynomialRing', unpickle_PolynomialRing)
 
@@ -694,7 +695,7 @@ def _single_variate(base_ring, name, sparse=None, implementation=None, order=Non
 
     # Specialized implementations
     specialized = None
-    if is_IntegerModRing(base_ring):
+    if isinstance(base_ring, sage.rings.abc.IntegerModRing):
         n = base_ring.order()
         if n.is_prime():
             specialized = polynomial_ring.PolynomialRing_dense_mod_p
@@ -720,15 +721,15 @@ def _single_variate(base_ring, name, sparse=None, implementation=None, order=Non
 
     # Generic implementations
     if constructor is None:
-        if not isinstance(base_ring, ring.CommutativeRing):
+        if base_ring not in _CommutativeRings:
             constructor = polynomial_ring.PolynomialRing_general
         elif base_ring in _CompleteDiscreteValuationRings:
             constructor = polynomial_ring.PolynomialRing_cdvr
         elif base_ring in _CompleteDiscreteValuationFields:
             constructor = polynomial_ring.PolynomialRing_cdvf
-        elif base_ring.is_field(proof=False):
+        elif base_ring in _Fields:
             constructor = polynomial_ring.PolynomialRing_field
-        elif base_ring.is_integral_domain(proof=False):
+        elif base_ring in _Domains:
             constructor = polynomial_ring.PolynomialRing_integral_domain
         else:
             constructor = polynomial_ring.PolynomialRing_commutative
@@ -737,8 +738,8 @@ def _single_variate(base_ring, name, sparse=None, implementation=None, order=Non
 
         # Only use names which are not supported by the specialized class.
         if specialized is not None:
-            implementation_names = [n for n in implementation_names if
-                    specialized._implementation_names_impl(n, base_ring, sparse) is NotImplemented]
+            implementation_names = [n for n in implementation_names
+                                    if specialized._implementation_names_impl(n, base_ring, sparse) is NotImplemented]
 
     if implementation is not None:
         kwds["implementation"] = implementation
@@ -928,7 +929,6 @@ def BooleanPolynomialRing_constructor(n=None, names=None, order="lex"):
         sage: x2 > x3
         True
     """
-
     if isinstance(n, str):
         names = n
         n = -1
@@ -944,7 +944,7 @@ def BooleanPolynomialRing_constructor(n=None, names=None, order="lex"):
 
     key = ("pbori", names, n, order)
     R = _get_from_cache(key)
-    if not R is None:
+    if R is not None:
         return R
 
     from sage.rings.polynomial.pbori.pbori import BooleanPolynomialRing
@@ -953,6 +953,6 @@ def BooleanPolynomialRing_constructor(n=None, names=None, order="lex"):
     _save_in_cache(key, R)
     return R
 
-#########################################################################################
+############################################################################
 # END (Factory function for making polynomial rings)
-#########################################################################################
+############################################################################

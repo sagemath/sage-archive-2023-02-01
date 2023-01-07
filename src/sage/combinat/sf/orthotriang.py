@@ -70,7 +70,7 @@ class SymmetricFunctionAlgebra_orthotriang(sfa.SymmetricFunctionAlgebra_generic)
         .. NOTE::
 
             The base ring is required to be a `\QQ`-algebra for this
-            method to be useable, since the scalar product is defined by
+            method to be usable, since the scalar product is defined by
             its values on the power sum basis.
 
         EXAMPLES::
@@ -181,10 +181,13 @@ class SymmetricFunctionAlgebra_orthotriang(sfa.SymmetricFunctionAlgebra_generic)
         else:
             self._self_to_base_cache[n] = {}
 
-        self._gram_schmidt(n, self._sf_base, self._scalar, self._self_to_base_cache,\
-                           leading_coeff=self._leading_coeff, upper_triangular=True)
-        self._invert_morphism(n, self.base_ring(), self._self_to_base_cache, \
-                              self._base_to_self_cache, to_other_function = self._to_base)
+        self._gram_schmidt(n, self._sf_base, self._scalar,
+                           self._self_to_base_cache,
+                           leading_coeff=self._leading_coeff,
+                           upper_triangular=True)
+        self._invert_morphism(n, self.base_ring(), self._self_to_base_cache,
+                              self._base_to_self_cache,
+                              to_other_function=self._to_base)
 
     def _to_base(self, part):
         r"""

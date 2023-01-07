@@ -30,6 +30,7 @@ AUTHORS:
 
 from sage.combinat.integer_lists import IntegerListsLex
 from itertools import product
+from collections.abc import Sequence
 import numbers
 
 from sage.structure.parent import Parent
@@ -42,8 +43,8 @@ from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.rings.infinity import PlusInfinity
 from sage.arith.all import binomial
-from sage.rings.all import ZZ
-from sage.rings.semirings.all import NN
+from sage.rings.integer_ring import ZZ
+from sage.rings.semirings.non_negative_integer_semiring import NN
 from sage.rings.integer import Integer
 
 def is_gale_ryser(r,s):
@@ -121,7 +122,8 @@ def is_gale_ryser(r,s):
     #                                same number of 1s           domination
     return len(rstar) <= len(s2) and sum(r2) == sum(s2) and rstar.dominates(s)
 
-def gale_ryser_theorem(p1, p2, algorithm="gale"):
+def gale_ryser_theorem(p1, p2, algorithm="gale",
+                       *, solver=None, integrality_tolerance=1e-3):
     r"""
     Returns the binary matrix given by the Gale-Ryser theorem.
 
@@ -140,6 +142,17 @@ def gale_ryser_theorem(p1, p2, algorithm="gale"):
 
       - ``'ryser'`` implements the construction due to Ryser [Ryser63]_.
       - ``'gale'`` (default) implements the construction due to Gale [Gale57]_.
+
+    - ``solver`` -- (default: ``None``) Specify a Mixed Integer Linear Programming
+      (MILP) solver to be used. If set to ``None``, the default one is used. For
+      more information on MILP solvers and which default solver is used, see
+      the method
+      :meth:`solve <sage.numerical.mip.MixedIntegerLinearProgram.solve>`
+      of the class
+      :class:`MixedIntegerLinearProgram <sage.numerical.mip.MixedIntegerLinearProgram>`.
+
+    - ``integrality_tolerance`` -- parameter for use with MILP solvers over an
+      inexact base ring; see :meth:`MixedIntegerLinearProgram.get_values`.
 
     OUTPUT:
 
@@ -347,7 +360,7 @@ def gale_ryser_theorem(p1, p2, algorithm="gale"):
     elif algorithm == "gale":
         from sage.numerical.mip import MixedIntegerLinearProgram
         k1, k2=len(p1), len(p2)
-        p = MixedIntegerLinearProgram()
+        p = MixedIntegerLinearProgram(solver=solver)
         b = p.new_variable(binary = True)
         for (i,c) in enumerate(p1):
             p.add_constraint(p.sum([b[i,j] for j in range(k2)]) ==c)
@@ -355,11 +368,11 @@ def gale_ryser_theorem(p1, p2, algorithm="gale"):
             p.add_constraint(p.sum([b[j,i] for j in range(k1)]) ==c)
         p.set_objective(None)
         p.solve()
-        b = p.get_values(b)
+        b = p.get_values(b, convert=ZZ, tolerance=integrality_tolerance)
         M = [[0]*k2 for i in range(k1)]
         for i in range(k1):
             for j in range(k2):
-                M[i][j] = int(b[i,j])
+                M[i][j] = b[i,j]
         return matrix(M)
 
     else:
@@ -441,10 +454,60 @@ class IntegerVector(ClonableArray):
             sage: IV = IntegerVectors()
             sage: elt = IV([1,2,1])
             sage: elt.check()
+
+        Check :trac:`34510`::
+
+            sage: IV3 = IntegerVectors(n=3)
+            sage: IV3([2,2])
+            Traceback (most recent call last):
+            ...
+            ValueError: [2, 2] doesn't satisfy correct constraints
+            sage: IVk3 = IntegerVectors(k=3)
+            sage: IVk3([2,2])
+            Traceback (most recent call last):
+            ...
+            ValueError: [2, 2] doesn't satisfy correct constraints
+            sage: IV33 = IntegerVectors(n=3, k=3)
+            sage: IV33([2,2])
+            Traceback (most recent call last):
+            ...
+            ValueError: [2, 2] doesn't satisfy correct constraints
         """
         if any(x < 0 for x in self):
             raise ValueError("all entries must be non-negative")
+        if self not in self.parent():
+            raise ValueError(f"{self} doesn't satisfy correct constraints")
 
+
+    def trim(self):
+        """
+        Remove trailing zeros from the integer vector.
+
+        EXAMPLES::
+
+            sage: IV = IntegerVectors()
+            sage: IV([5,3,5,1,0,0]).trim()
+            [5, 3, 5, 1]
+            sage: IV([5,0,5,1,0]).trim()
+            [5, 0, 5, 1]
+            sage: IV([4,3,3]).trim()
+            [4, 3, 3]
+            sage: IV([0,0,0]).trim()
+            []
+
+            sage: IV = IntegerVectors(k=4)
+            sage: v = IV([4,3,2,0]).trim(); v
+            [4, 3, 2]
+            sage: v.parent()
+            Integer vectors
+        """
+        P = IntegerVectors()
+        v = list(self)
+        if all(i == 0 for i in v):
+            return P.element_class(P, [], check=False)
+        while not v[-1]:
+            v = v[:-1]
+        return P.element_class(P, v, check=False)
 
 class IntegerVectors(Parent, metaclass=ClasscallMetaclass):
     """
@@ -664,7 +727,7 @@ class IntegerVectors(Parent, metaclass=ClasscallMetaclass):
         if isinstance(x, IntegerVector):
             return True
 
-        if not isinstance(x, (list, tuple)):
+        if not isinstance(x, Sequence):
             return False
 
         for i in x:
@@ -1003,10 +1066,15 @@ class IntegerVectors_nk(UniqueRepresentation, IntegerVectors):
             False
             sage: [3,2,2,1] in IntegerVectors(8, 4)
             True
-        """
-        if isinstance(x, IntegerVector) and x.parent() is self:
-            return True
 
+        Check :trac:`34510`::
+
+            sage: IV33 = IntegerVectors(n=3, k=3)
+            sage: IV33([0])
+            Traceback (most recent call last):
+            ...
+            ValueError: [0] doesn't satisfy correct constraints
+        """
         if not IntegerVectors.__contains__(self, x):
             return False
 
@@ -1084,7 +1152,7 @@ class IntegerVectors_nnondescents(UniqueRepresentation, IntegerVectors):
             sage: IntegerVectors(4, [2,1]) is IntegerVectors(int(4), (2,1))
             True
         """
-        return super(IntegerVectors_nnondescents, cls).__classcall__(cls, n, tuple(comp))
+        return super().__classcall__(cls, n, tuple(comp))
 
     def __init__(self, n, comp):
         """

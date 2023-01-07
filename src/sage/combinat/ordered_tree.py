@@ -1021,7 +1021,7 @@ class OrderedTrees_size(OrderedTrees):
             sage: TestSuite(OrderedTrees_size(0)).run()
             sage: for i in range(6): TestSuite(OrderedTrees_size(i)).run()
         """
-        super(OrderedTrees_size, self).__init__(category=FiniteEnumeratedSets())
+        super().__init__(category=FiniteEnumeratedSets())
         self._size = size
 
     def _repr_(self):
@@ -1125,10 +1125,9 @@ class OrderedTrees_size(OrderedTrees):
         """
         if self._size == 0:
             return
-        else:
-            for c in Compositions(self._size - 1):
-                for lst in itertools.product(*[self.__class__(_) for _ in c]):
-                    yield self._element_constructor_(lst)
+        for c in Compositions(self._size - 1):
+            for lst in itertools.product(*[self.__class__(i) for i in c]):
+                yield self._element_constructor_(lst)
 
     @lazy_attribute
     def _parent_for(self):

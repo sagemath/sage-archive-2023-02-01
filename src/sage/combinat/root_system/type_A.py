@@ -10,7 +10,7 @@ Root system data for type A
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.rings.all import ZZ
+from sage.rings.integer_ring import ZZ
 from sage.combinat.root_system.root_lattice_realizations import RootLatticeRealizations
 from . import ambient_space
 
@@ -217,7 +217,7 @@ class CartanType(CartanType_standard_finite, CartanType_simply_laced, CartanType
             sage: latex(CartanType(['A',4]))
             A_{4}
         """
-        return "A_{%s}"%self.n
+        return "A_{%s}" % self.n
 
     AmbientSpace = AmbientSpace
 
@@ -254,7 +254,7 @@ class CartanType(CartanType_standard_finite, CartanType_simply_laced, CartanType
             O---O---O
             1   2   3
             A3
-            sage: sorted(a.edges())
+            sage: a.edges(sort=True)
             [(1, 2, 1), (2, 1, 1), (2, 3, 1), (3, 2, 1)]
 
         TESTS::
@@ -264,7 +264,7 @@ class CartanType(CartanType_standard_finite, CartanType_simply_laced, CartanType
             O
             1
             A1
-            sage: a.vertices(), a.edges()
+            sage: a.vertices(sort=False), a.edges(sort=False)
             ([1], [])
         """
         from .dynkin_diagram import DynkinDiagram_class

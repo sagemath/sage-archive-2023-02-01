@@ -211,7 +211,11 @@ cdef class Matroid(SageObject):
     cpdef _internal(self, B)
     cpdef _external(self, B)
     cpdef tutte_polynomial(self, x=*, y=*)
-    cpdef flat_cover(self, solver=*, verbose=*)
+    cpdef flat_cover(self, solver=*, verbose=*, integrality_tolerance=*)
+
+    # misc
+    cpdef bergman_complex(self)
+    cpdef augmented_bergman_complex(self)
 
     # visualization
     cpdef plot(self,B=*,lineorders=*,pos_method=*,pos_dict=*,save_pos=*)

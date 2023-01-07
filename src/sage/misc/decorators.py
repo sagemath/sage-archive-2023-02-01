@@ -175,7 +175,7 @@ def sage_wraps(wrapped, assigned=WRAPPER_ASSIGNMENTS, updated=WRAPPER_UPDATES):
 
 
 # Infix operator decorator
-class infix_operator(object):
+class infix_operator():
     """
     A decorator for functions which allows for a hack that makes
     the function behave like an infix operator.
@@ -256,7 +256,7 @@ class infix_operator(object):
         return wrapper_inst
 
 
-class _infix_wrapper(object):
+class _infix_wrapper():
     function = None
 
     def __init__(self, left=None, right=None):
@@ -345,7 +345,7 @@ def decorator_defaults(func):
     return my_wrap
 
 
-class suboptions(object):
+class suboptions():
     def __init__(self, name, **options):
         """
         A decorator for functions which collects all keywords
@@ -416,10 +416,10 @@ class suboptions(object):
             argspec = sage_getargspec(func)
 
             def listForNone(l):
-                return l if not l is None else []
+                return l if l is not None else []
             newArgs = [self.name + opt for opt in self.options.keys()]
-            args = (argspec.args if not argspec.args is None else []) + newArgs
-            defaults = (argspec.defaults if not argspec.defaults is None else ()) \
+            args = (argspec.args if argspec.args is not None else []) + newArgs
+            defaults = (argspec.defaults if argspec.defaults is not None else ()) \
                         + tuple(self.options.values())
             # Note: argspec.defaults is not always a tuple for some reason
             return ArgSpec(args, argspec.varargs, argspec.keywords, defaults)
@@ -428,7 +428,7 @@ class suboptions(object):
         return wrapper
 
 
-class options(object):
+class options():
     def __init__(self, **options):
         """
         A decorator for functions which allows for default options to be
@@ -495,7 +495,7 @@ class options(object):
         #special attribute _sage_argspec_ (see e.g. sage.misc.sageinspect)
         def argspec():
             argspec = sage_getargspec(func)
-            args = ((argspec.args if not argspec.args is None else []) +
+            args = ((argspec.args if argspec.args is not None else []) +
                     list(self.options))
             defaults = (argspec.defaults or ()) + tuple(self.options.values())
             # Note: argspec.defaults is not always a tuple for some reason
@@ -566,7 +566,7 @@ class options(object):
         return wrapper
 
 
-class rename_keyword(object):
+class rename_keyword():
     def __init__(self, deprecated=None, deprecation=None, **renames):
         """
         A decorator which renames keyword arguments and optionally

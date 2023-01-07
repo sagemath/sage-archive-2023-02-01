@@ -25,23 +25,23 @@ AUTHORS:
 - Ben Hutz (June 2012): added support for projective ring
 """
 
-
-#*****************************************************************************
-#       Copyright (C) 2011 Volker Braun <vbraun.name@gmail.com>
-#       Copyright (C) 2006 William Stein <wstein@gmail.com>
+# *****************************************************************************
+#        Copyright (C) 2011 Volker Braun <vbraun.name@gmail.com>
+#        Copyright (C) 2006 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#  as published by the Free Software Foundation; either version 2 of
-#  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#   Distributed under the terms of the GNU General Public License (GPL)
+#   as published by the Free Software Foundation; either version 2 of
+#   the License, or (at your option) any later version.
+#                   http://www.gnu.org/licenses/
+# *****************************************************************************
 
 from sage.categories.homset import HomsetWithBase
 from sage.structure.factory import UniqueFactory
 from sage.structure.parent import Set_generic
 
-from sage.rings.all import ZZ
+from sage.rings.integer_ring import ZZ
 from sage.rings.ring import CommutativeRing
+from sage.categories.commutative_rings import CommutativeRings
 
 from sage.schemes.generic.scheme import AffineScheme, is_AffineScheme
 from sage.schemes.generic.morphism import (
@@ -70,9 +70,10 @@ def is_SchemeHomset(H):
     return isinstance(H, SchemeHomset_generic)
 
 
-#*******************************************************************
-# Factory for Hom sets of schemes
-#*******************************************************************
+# *******************************************************************
+#  Factory for Hom sets of schemes
+# *******************************************************************
+
 class SchemeHomsetFactory(UniqueFactory):
     """
     Factory for Hom-sets of schemes.
@@ -105,12 +106,12 @@ class SchemeHomsetFactory(UniqueFactory):
     TESTS::
 
         sage: Hom.base()
-        Integer Ring
+        Rational Field
         sage: Hom.base_ring()
-        Integer Ring
+        Rational Field
     """
 
-    def create_key_and_extra_args(self, X, Y, category=None, base=ZZ,
+    def create_key_and_extra_args(self, X, Y, category=None, base=None,
                                   check=True, as_point_homset=False):
         """
         Create a key that uniquely determines the Hom-set.
@@ -142,21 +143,25 @@ class SchemeHomsetFactory(UniqueFactory):
             sage: SHOMfactory = SchemeHomsetFactory('test')
             sage: key, extra = SHOMfactory.create_key_and_extra_args(A3,A2,check=False)
             sage: key
-            (..., ..., Category of schemes over Integer Ring, False)
+            (..., ..., Category of schemes over Rational Field, False)
             sage: extra
             {'X': Affine Space of dimension 3 over Rational Field,
              'Y': Affine Space of dimension 2 over Rational Field,
-             'base_ring': Integer Ring,
+             'base_ring': Rational Field,
              'check': False}
         """
-        if isinstance(X, CommutativeRing):
+        _CommRings = CommutativeRings()
+        if X in _CommRings:
             X = AffineScheme(X)
-        if isinstance(Y, CommutativeRing):
+        if Y in _CommRings:
             Y = AffineScheme(Y)
+        if base is None:
+            from sage.structure.element import coercion_model
+            base = coercion_model.common_parent(X.base_ring(), Y.base_ring())
         if is_AffineScheme(base):
             base_spec = base
             base_ring = base.coordinate_ring()
-        elif isinstance(base, CommutativeRing):
+        elif base in _CommRings:
             base_spec = AffineScheme(base)
             base_ring = base
         else:
@@ -209,10 +214,10 @@ class SchemeHomsetFactory(UniqueFactory):
 SchemeHomset = SchemeHomsetFactory('sage.schemes.generic.homset.SchemeHomset')
 
 
+# *******************************************************************
+#  Base class
+# *******************************************************************
 
-#*******************************************************************
-# Base class
-#*******************************************************************
 class SchemeHomset_generic(HomsetWithBase):
     r"""
     The base class for Hom-sets of schemes.
@@ -383,16 +388,18 @@ class SchemeHomset_generic(HomsetWithBase):
             return self.domain()._morphism(self, x, check=check)
 
         from sage.categories.map import Map
-        from sage.categories.all import Rings
+        from sage.categories.rings import Rings
         if isinstance(x, Map) and x.category_for().is_subcategory(Rings()):
             # x is a morphism of Rings
             return SchemeMorphism_spec(self, x, check=check)
 
         raise TypeError("x must be a ring homomorphism, list or tuple")
 
-#*******************************************************************
-# Base class for points
-#*******************************************************************
+
+# *******************************************************************
+#  Base class for points
+# *******************************************************************
+
 class SchemeHomset_points(SchemeHomset_generic):
     """
     Set of rational points of the scheme.
@@ -556,8 +563,8 @@ class SchemeHomset_points(SchemeHomset_generic):
             True
         """
         target = self.codomain()
-        #ring elements can be coerced to a space if we're affine dimension 1
-        #and the base rings are coercible
+        # ring elements can be coerced to a space if we're affine dimension 1
+        # and the base rings are coercible
         if isinstance(other, CommutativeRing):
             try:
                 from sage.schemes.affine.affine_space import is_AffineSpace
@@ -566,7 +573,7 @@ class SchemeHomset_points(SchemeHomset_generic):
                     return target.base_ring().has_coerce_map_from(other)
                 else:
                     return False
-            except AttributeError: #no .ambient_space
+            except AttributeError:  # no .ambient_space
                 return False
         elif isinstance(other, SchemeHomset_points):
         #we are converting between scheme points

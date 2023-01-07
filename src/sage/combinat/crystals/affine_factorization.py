@@ -117,7 +117,7 @@ class AffineFactorizationCrystal(UniqueRepresentation, Parent):
             w0 = W.from_reduced_word(w[0].from_kbounded_to_reduced_word(k))
             w1 = W.from_reduced_word(w[1].from_kbounded_to_reduced_word(k))
             w = w0*(w1.inverse())
-        return super(AffineFactorizationCrystal, cls).__classcall__(cls, w, n, x)
+        return super().__classcall__(cls, w, n, x)
 
     def __init__(self, w, n, x = None):
         r"""
@@ -152,7 +152,7 @@ class AffineFactorizationCrystal(UniqueRepresentation, Parent):
         cartan_type = CartanType(['A',n-1])
         self._cartan_type = cartan_type
         from sage.combinat.sf.sf import SymmetricFunctions
-        from sage.rings.all import QQ
+        from sage.rings.rational_field import QQ
         Sym = SymmetricFunctions(QQ)
         s = Sym.schur()
         support = s(w.stanley_symmetric_function()).support()
@@ -184,7 +184,7 @@ class AffineFactorizationCrystal(UniqueRepresentation, Parent):
         """
         return "Crystal on affine factorizations of type A{} associated to {}".format(self.n-1, self.w)
 
-    # temporary workaround while an_element is overriden by Parent
+    # temporary workaround while an_element is overridden by Parent
     _an_element_ = EnumeratedSets.ParentMethods._an_element_
 
     @lazy_attribute
@@ -212,6 +212,7 @@ class AffineFactorizationCrystal(UniqueRepresentation, Parent):
         """
         # Constructing the tableaux crystal
         from sage.combinat.crystals.tensor_product import CrystalOfTableaux
+
         def mg_to_shape(mg):
             l = list(mg.weight().to_vector())
             while l and l[-1] == 0:
@@ -506,4 +507,3 @@ class FactorizationToTableaux(CrystalMorphism):
 
     is_embedding = is_isomorphism
     is_surjective = is_isomorphism
-

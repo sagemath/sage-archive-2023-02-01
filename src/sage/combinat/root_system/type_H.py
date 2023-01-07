@@ -60,7 +60,7 @@ class CartanType(CartanType_standard_finite, CartanType_simple):
              sage: ct = CartanType(['H',3])
              sage: ct.coxeter_diagram()
              Graph on 3 vertices
-             sage: sorted(ct.coxeter_diagram().edges())
+             sage: ct.coxeter_diagram().edges(sort=True)
              [(1, 2, 3), (2, 3, 5)]
              sage: ct.coxeter_matrix()
              [1 3 2]
@@ -70,7 +70,7 @@ class CartanType(CartanType_standard_finite, CartanType_simple):
              sage: ct = CartanType(['H',4])
              sage: ct.coxeter_diagram()
              Graph on 4 vertices
-             sage: sorted(ct.coxeter_diagram().edges())
+             sage: ct.coxeter_diagram().edges(sort=True)
              [(1, 2, 3), (2, 3, 3), (3, 4, 5)]
              sage: ct.coxeter_matrix()
              [1 3 2 2]
@@ -100,4 +100,3 @@ class CartanType(CartanType_standard_finite, CartanType_simple):
         if self.n == 3:
             return 10
         return 30
-

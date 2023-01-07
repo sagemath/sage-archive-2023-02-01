@@ -24,7 +24,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.matrix.all import Matrix
+from sage.matrix.constructor import Matrix
 from sage.schemes.plane_conics.constructor import Conic
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.schemes.hyperelliptic_curves.constructor import HyperellipticCurve
@@ -77,8 +77,10 @@ def HyperellipticCurve_from_invariants(i, reduced=True, precision=None,
 
     An example over a finite field::
 
-        sage: HyperellipticCurve_from_invariants([GF(13)(1),3,7,5])
-        Hyperelliptic Curve over Finite Field of size 13 defined by y^2 = 8*x^5 + 5*x^4 + 5*x^2 + 9*x + 3
+        sage: H = HyperellipticCurve_from_invariants([GF(13)(1),3,7,5]); H
+        Hyperelliptic Curve over Finite Field of size 13 defined by ...
+        sage: H.igusa_clebsch_invariants()
+        (4, 9, 6, 11)
 
     An example over a number field::
 
@@ -155,7 +157,7 @@ def HyperellipticCurve_from_invariants(i, reduced=True, precision=None,
     t = k['t'].gen()
 
     if algorithm == 'magma':
-        from sage.interfaces.all import magma
+        from sage.interfaces.magma import magma
         from sage.misc.sage_eval import sage_eval
         if MConic.has_rational_point(algorithm='magma'):
             parametrization = [l.replace('$.1', 't').replace('$.2', 'u') \

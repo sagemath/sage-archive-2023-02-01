@@ -51,8 +51,9 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.rings.all import ZZ, QQ
-from sage.misc.all import cartesian_product_iterator
+from sage.rings.integer_ring import ZZ
+from sage.rings.rational_field import QQ
+from sage.misc.mrange import cartesian_product_iterator
 from sage.schemes.generic.scheme import is_Scheme
 
 

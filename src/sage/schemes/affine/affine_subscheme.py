@@ -21,8 +21,8 @@ AUTHORS:
 # ****************************************************************************
 
 from sage.categories.fields import Fields
-from sage.interfaces.all import singular
-from sage.modules.all import vector
+from sage.interfaces.singular import singular
+from sage.modules.free_module_element import vector
 from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme
 
 from .affine_morphism import SchemeMorphism_polynomial_affine_subscheme_field
@@ -328,7 +328,7 @@ class AlgebraicScheme_subscheme_affine(AlgebraicScheme_subscheme):
             False
         """
         R = self.ambient_space().coordinate_ring()
-        if not point is None:
+        if point is not None:
             self._check_satisfies_equations(point)
             point_subs = dict(zip(R.gens(), point))
             Jac = self.Jacobian().subs(point_subs)
@@ -594,4 +594,3 @@ class AlgebraicScheme_subscheme_affine_field(AlgebraicScheme_subscheme_affine):
         I = [f for f in Jp * vector(gens) if f]
 
         return A.subscheme(R.ideal(I))
-

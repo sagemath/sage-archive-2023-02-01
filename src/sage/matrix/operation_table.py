@@ -4,18 +4,18 @@ Operation Tables
 This module implements general operation tables, which are very matrix-like.
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2010 Rob Beezer <beezer at ups.edu>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from sage.structure.sage_object import SageObject
+
 
 class OperationTable(SageObject):
     r"""
@@ -397,7 +397,7 @@ class OperationTable(SageObject):
         # Note: there exist listable infinite objects (like ZZ)
         if (elements is None):
             if hasattr(S, 'is_finite'):
-                if not(S.is_finite()):
+                if not S.is_finite():
                     raise ValueError('%s is infinite' % S)
             try:
                 try:
@@ -411,7 +411,7 @@ class OperationTable(SageObject):
             try:
                 for e in elements:
                     coerced = S(e)
-                    if not(coerced in elems):
+                    if coerced not in elems:
                         elems.append(coerced)
             except Exception:
                 raise TypeError('unable to coerce %s into %s' % (e, S))
@@ -540,15 +540,15 @@ class OperationTable(SageObject):
             ...
             ValueError: element names must be a list, or one of the keywords: 'letters', 'digits', 'elements'
         """
-        from sage.functions.log import log
-        name_list=[]
+        from math import log, log10
+        name_list = []
         if names == 'digits':
             if self._n == 0 or self._n == 1:
                 width = 1
             else:
-                width = int(log(self._n-1,10))+1
+                width = int(log10(self._n - 1)) + 1
             for i in range(self._n):
-                name_list.append('{0:0{1}d}'.format(i,width))
+                name_list.append('{0:0{1}d}'.format(i, width))
         elif names == 'letters':
             from string import ascii_lowercase as letters
             from sage.rings.integer import Integer
@@ -556,7 +556,7 @@ class OperationTable(SageObject):
             if self._n == 0 or self._n == 1:
                 width = 1
             else:
-                width = int(log(self._n-1,base))+1
+                width = int(log(self._n - 1, base)) + 1
             for i in range(self._n):
                 places = Integer(i).digits(base=base, digits=letters, padto=width)
                 places.reverse()

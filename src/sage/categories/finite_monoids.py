@@ -35,17 +35,19 @@ class FiniteMonoids(CategoryWithAxiom):
             r"""
             The nerve (classifying space) of this monoid.
 
-            OUTPUT: the nerve $BG$ (if $G$ denotes this monoid), as a
-            simplicial set.  The $k$-dimensional simplices of this
-            object are indexed by products of $k$ elements in the
+            OUTPUT:
+
+            the nerve `BG` (if `G` denotes this monoid), as a
+            simplicial set.  The `k`-dimensional simplices of this
+            object are indexed by products of `k` elements in the
             monoid:
 
             .. MATH::
 
                 a_1 * a_2 * \cdots * a_k
 
-            The 0th face of this is obtained by deleting $a_1$, and
-            the $k$-th face is obtained by deleting $a_k$. The other
+            The 0th face of this is obtained by deleting `a_1`, and
+            the `k`-th face is obtained by deleting `a_k`. The other
             faces are obtained by multiplying elements: the 1st face
             is
 
@@ -58,7 +60,7 @@ class FiniteMonoids(CategoryWithAxiom):
             set.
 
             A simplex in this simplicial set will be degenerate if in
-            the corresponding product of $k$ elements, one of those
+            the corresponding product of `k` elements, one of those
             elements is the identity. So we only need to keep track of
             the products of non-identity elements. Similarly, if a
             product `a_{i-1} a_i` is the identity element, then the
@@ -157,7 +159,7 @@ class FiniteMonoids(CategoryWithAxiom):
                 3: Vector space of dimension 1 over Finite Field of size 5,
                 4: Vector space of dimension 1 over Finite Field of size 5}
             """
-            from sage.homology.simplicial_set_examples import Nerve
+            from sage.topology.simplicial_set_examples import Nerve
             return Nerve(self)
 
         def rhodes_radical_congruence(self, base_ring=None):

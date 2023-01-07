@@ -5,7 +5,7 @@ The ``groups`` object may be used to access examples of various groups.
 Using tab-completion on this object is an easy way to discover and quickly
 create the groups that are available (as listed here).
 
-Let ``<tab>`` indicate pressing the tab key.  So begin by typing
+Let ``<tab>`` indicate pressing the :kbd:`Tab` key.  So begin by typing
 ``groups.<tab>`` to the see primary divisions, followed by (for example)
 ``groups.matrix.<tab>`` to access various groups implemented as sets of matrices.
 
@@ -104,4 +104,3 @@ from sage.groups.misc_gps import misc_groups_catalog as misc
 from sage.groups.affine_gps import catalog as affine
 from sage.groups.lie_gps import catalog as lie
 from sage.groups import finitely_presented_catalog as presentation
-

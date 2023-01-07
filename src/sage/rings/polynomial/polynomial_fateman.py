@@ -19,7 +19,9 @@ from math import ceil as pyceil
 def _mul_fateman_to_int2(f_list, g_list):
     """
     Convert a polynomial to an integer by evaluating it
+
     INPUT: p, a list of integers
+
     OUTPUT: padding
     """
     max_coeff_f = max([abs(i) for i in f_list])
@@ -28,13 +30,13 @@ def _mul_fateman_to_int2(f_list, g_list):
     return int(pyceil(pylog(b, 2)))
 
 
-def _mul_fateman_to_poly(number,padding):
+def _mul_fateman_to_poly(number, padding):
     """
-    Converts a number to a polynomial, according
-    to a padding
-    OUTPUT: a list containing the coefficient of
-    a polynomial of degree len(list)
+    Converts a number to a polynomial, according to a padding
 
+    OUTPUT:
+
+    a list containing the coefficient of a polynomial of degree len(list)
     """
     coeffs = []
     flag=0
@@ -88,9 +90,9 @@ def _mul_fateman_mul(f,g):
     n_f = z_poly_f(1<<padding)
     n_g = z_poly_g(1<<padding)
 
-    if div == 1: return _mul_fateman_to_poly(n_f*n_g,padding)
+    if div == 1:
+        return _mul_fateman_to_poly(n_f*n_g,padding)
     #return to_poly(n_f*n_g,padding)
     else:
         l=_mul_fateman_to_poly(n_f*n_g,padding)
         return [QQ(i*div) for i in l]
-

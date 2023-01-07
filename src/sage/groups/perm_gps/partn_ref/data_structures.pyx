@@ -828,11 +828,12 @@ cdef SC_print_level(StabilizerChain *SC, int level):
         print('| labels  {}'.format([SC.labels        [level][i] for i from 0 <= i < n]))
         print('|')
         print('| generators  {}'.format([[SC.generators  [level][n*i + j] for j from 0 <= j < n] for i from 0 <= i < SC.num_gens[level]]))
-        print('\ inverses    {}'.format([[SC.gen_inverses[level][n*i + j] for j from 0 <= j < n] for i from 0 <= i < SC.num_gens[level]]))
+        print(r'\ inverses    {}'.format([[SC.gen_inverses[level][n*i + j] for j from 0 <= j < n] for i from 0 <= i < SC.num_gens[level]]))
     else:
         print('/ level {}'.format(level))
         print('|')
-        print('\ base_size {}'.format(SC.base_size))
+        print(r'\ base_size {}'.format(SC.base_size))
+
 
 cdef StabilizerChain *SC_new_base(StabilizerChain *SC, int *base, int base_len):
     """
@@ -1271,7 +1272,7 @@ def SC_test_list_perms(list L, int n, int limit, bint gap, bint limit_complain, 
         ....:     test_stab_chain_fns_4(n, 2, 1, 0) # long time
         ....:     test_stab_chain_fns_4(n, 2, 1, 0) # long time
         ....:     test_stab_chain_fns_4(n, 3, 1, 0) # long time
-        sage: for n in range(4,9):
+        sage: for n in range(4,9):  # not tested, known bug (see :trac:`32187`)
         ....:     test_stab_chain_fns_4(n, 1, 0, 1)
         ....:     for j in range(6):
         ....:         test_stab_chain_fns_4(n, 2, 0, 1)

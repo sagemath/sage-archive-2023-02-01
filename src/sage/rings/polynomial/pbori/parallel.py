@@ -6,12 +6,12 @@ PolyBoRi
 Created by Michael Brickenstein on 2008-10-31.
 Copyright 2008 The PolyBoRi Team
 """
-from sage.rings.polynomial.pbori.pbori import if_then_else
-from .PyPolyBoRi import CCuddNavigator, BooleSet
-from .PyPolyBoRi import (Polynomial, Ring, WeakRingRef, Monomial, Variable)
-from .gbcore import groebner_basis
 from zlib import compress, decompress
 import copyreg
+
+from .pbori import if_then_else, BooleSet, CCuddNavigator
+from .PyPolyBoRi import (Polynomial, Ring, WeakRingRef, Monomial, Variable)
+from .gbcore import groebner_basis
 
 
 def to_fast_pickable(l):
@@ -157,11 +157,7 @@ def from_fast_pickable(l, r):
 
 def _calculate_gb_with_keywords(args):
     (I, kwds_as_single_arg) = args
-    import traceback
-    try:
-        return groebner_basis(I, **kwds_as_single_arg)
-    except:
-        raise ValueError(traceback.format_exc())
+    return groebner_basis(I, **kwds_as_single_arg)
 
 
 def _decode_polynomial(code):
@@ -187,7 +183,7 @@ copyreg.pickle(BooleSet, pickle_bset)
 
 
 def pickle_monom(self):
-    return (Monomial, ([var for var in self.variables()], ))
+    return (Monomial, (list(self.variables()),))
 
 
 copyreg.pickle(Monomial, pickle_monom)
@@ -208,7 +204,7 @@ def _decode_ring(code):
     try:
         _polybori_parallel_rings
     except NameError:
-        _polybori_parallel_rings = dict()
+        _polybori_parallel_rings = {}
 
     for key in [key for key in _polybori_parallel_rings
                 if not _polybori_parallel_rings[key][0]()]:
@@ -238,7 +234,7 @@ def _encode_ring(ring):
     try:
         _polybori_parallel_rings
     except NameError:
-        _polybori_parallel_rings = dict()
+        _polybori_parallel_rings = {}
 
     for key in [key for key in _polybori_parallel_rings
                 if not _polybori_parallel_rings[key][0]()]:

@@ -59,7 +59,7 @@ class CartanType(CartanType_standard_untwisted_affine):
             O=<=O---O
             1   2   0
             G2~
-            sage: sorted(g.edges())
+            sage: g.edges(sort=True)
             [(0, 2, 1), (1, 2, 1), (2, 0, 1), (2, 1, 3)]
         """
         from .dynkin_diagram import DynkinDiagram_class
@@ -124,4 +124,3 @@ class CartanType(CartanType_standard_untwisted_affine):
         """
         from sage.combinat.root_system.type_folded import CartanTypeFolded
         return CartanTypeFolded(self, ['D', 4, 1], [[0], [1, 3, 4], [2]])
-

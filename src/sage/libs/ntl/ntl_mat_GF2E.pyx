@@ -45,9 +45,9 @@ from sage.misc.randstate cimport randstate, current_randstate
 
 from sage.libs.ntl.ntl_ZZ import unpickle_class_args
 
-cdef class ntl_mat_GF2E(object):
+cdef class ntl_mat_GF2E():
     r"""
-    The \class{mat_GF2E} class implements arithmetic with matrices over $GF(2**x)$.
+    The \class{mat_GF2E} class implements arithmetic with matrices over `GF(2**x)`.
     """
     def __init__(self, modulus = None, nrows=0, ncols=0, v=None):
         """
@@ -78,7 +78,7 @@ cdef class ntl_mat_GF2E(object):
             [0x0 0x0 0x0 0x0 0x0]
             [0x0 0x0 0x0 0x0 0x0]
             ]
-            sage: A= matrix(k,5,5,[k.fetch_int(_%(2^4)) for _ in range(25)])
+            sage: A = matrix(k, 5, 5, [k.from_integer(i % 2^4) for i in range(25)])
             sage: ntl.mat_GF2E(ctx, A)
             [[0x0 0x1 0x2 0x3 0x4]
             [0x5 0x6 0x7 0x8 0x9]
@@ -445,17 +445,18 @@ cdef class ntl_mat_GF2E(object):
         sig_off()
         return r
 
-    def gauss(self,ncols=-1):
-        """
-        Performs unitary row operations so as to bring this matrix
-        into row echelon form.  If the optional argument \code{ncols}
-        is supplied, stops when first ncols columns are in echelon
-        form.  The return value is the rank (or the rank of the first
-        ncols columns).
+    def gauss(self, ncols=-1):
+        r"""
+        Perform unitary row operations so as to bring this matrix
+        into row echelon form.
+
+        If the optional argument ``ncols`` is supplied, stops when
+        first ``ncols`` columns are in echelon form.  The return value
+        is the rank (or the rank of the first ``ncols`` columns).
 
         INPUT:
 
-        - ``ncols`` - number of columns to process (default: all)
+        - ``ncols`` -- number of columns to process (default: all)
 
         EXAMPLES::
 
@@ -571,7 +572,7 @@ cdef class ntl_mat_GF2E(object):
 
     def __invert__(self):
         """
-        Return $X = A^{-1}$; an error is raised if A is singular.
+        Return `X = A^{-1}`; an error is raised if A is singular.
 
         EXAMPLES::
 
@@ -678,21 +679,39 @@ cdef class ntl_mat_GF2E(object):
             sage: k.<a> = GF(2^4)
             sage: ctx = ntl.GF2EContext(k)
             sage: ntl.GF2XHexOutput(1)
-            sage: A = ntl.mat_GF2E(ctx, 100,100)
-            sage: A.randomize()
-            sage: len([e for e in A.list() if e!=0])  # rel tol 1e-1
-            9346
+            sage: A = ntl.mat_GF2E(ctx, 100, 100)
+            sage: expected_non_zeros = 100 * 100 * (1 - 1.0/2^4)
+            sage: observed = lambda : len([e for e in A.list() if e!=0])
+            sage: n = 0; s = 0
+            sage: def add_samples():
+            ....:     global n, s, A
+            ....:     for i in range(10):
+            ....:         A.randomize()
+            ....:         n += 1
+            ....:         s += observed() - expected_non_zeros
+
+            sage: add_samples()
+            sage: while abs(s*1.0/n) > 10: add_samples()
+            sage: while abs(s*1.0/n) > 5: add_samples()  # long time
 
             sage: A = ntl.mat_GF2E(ctx, 100,100)
             sage: A.randomize(nonzero=True)
             sage: len([e for e in A.list() if e!=0])
             10000
 
-            sage: A = ntl.mat_GF2E(ctx, 100,100)
-            sage: A.randomize(nonzero=True, density=0.1)
-            sage: len([e for e in A.list() if e!=0])  # rel tol 2e-1
-            1000
+            sage: expected_non_zeros = 1000
+            sage: n = 0; s = 0
+            sage: def add_samples():
+            ....:     global n, s, A
+            ....:     for i in range(10):
+            ....:         A = ntl.mat_GF2E(ctx, 100,100)
+            ....:         A.randomize(nonzero=True, density=0.1)
+            ....:         n += 1
+            ....:         s += observed() - expected_non_zeros
 
+            sage: add_samples()
+            sage: while abs(s*1.0/n) > 10: add_samples()
+            sage: while abs(s*1.0/n) > 5: add_samples()  # long time
         """
         cdef long i,j
         cdef GF2E_c tmp

@@ -1,15 +1,27 @@
 """
 Base class for finite field elements
 
-AUTHORS::
+AUTHORS:
 
-- David Roe (2010-1-14) -- factored out of sage.structure.element
-- Sebastian Oehms (2018-7-19) -- add :meth:`conjugate` (see :trac:`26761`)
+- David Roe (2010-01-14): factored out of sage.structure.element
+- Sebastian Oehms (2018-07-19): added :meth:`conjugate` (see :trac:`26761`)
 """
+
+# ****************************************************************************
+#       Copyright (C) 2010 David Roe <roed@math.harvard.edu>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from sage.structure.element cimport Element
 from sage.structure.parent cimport Parent
+from sage.rings.integer_ring import ZZ
 from sage.rings.integer import Integer
+from sage.misc.superseded import deprecated_function_alias
 
 def is_FiniteFieldElement(x):
     """
@@ -42,7 +54,7 @@ cdef class FiniteRingElement(CommutativeRingElement):
             sage: a = Zmod(17)(13)
             sage: a._nth_root_common(4, True, "Johnston", False)
             [3, 5, 14, 12]
-            sage: a._nth_root_common(4, True, "Johnston", cunningham = True) # optional - cunningham_tables
+            sage: a._nth_root_common(4, True, "Johnston", cunningham=True)  # optional - cunningham_tables
             [3, 5, 14, 12]
         """
         K = self.parent()
@@ -201,10 +213,139 @@ cdef class FinitePolyExtElement(FiniteRingElement):
         """
         return self.minpoly(var)
 
+    def __getitem__(self, n):
+        r"""
+        Return the `n`\th coefficient of this finite field element when
+        written as a polynomial in the generator.
+
+        EXAMPLES::
+
+            sage: x = polygen(GF(19))
+            sage: F.<i> = GF(19^2, modulus=x^2+1)
+            sage: a = 5 + 7*i
+            sage: a[0]
+            5
+            sage: a[1]
+            7
+
+        ::
+
+            sage: b = F(11)
+            sage: b[0]
+            11
+            sage: b[1]
+            0
+
+        TESTS::
+
+            sage: F,t = GF(random_prime(99)^randrange(2,99), 't').objgen()
+            sage: a = F.random_element()
+            sage: all(a[i] == a.polynomial()[i] for i in range(F.degree()))
+            True
+            sage: a == sum(a[i]*t^i for i in range(F.degree()))
+            True
+        """
+        if n < 0 or n >= self.parent().degree():
+            raise IndexError("index must lie between 0 and the degree minus 1")
+        return self.polynomial()[n]
+
+    def list(self):
+        r"""
+        Return the list of coefficients (in little-endian) of this
+        finite field element when written as a polynomial in the
+        generator.
+
+        Equivalent to calling ``list()`` on this element.
+
+        EXAMPLES::
+
+            sage: x = polygen(GF(71))
+            sage: F.<u> = GF(71^7, modulus=x^7+x+1)
+            sage: a = 3 + u + 3*u^2 + 3*u^3 + 7*u^4
+            sage: a.list()
+            [3, 1, 3, 3, 7, 0, 0]
+            sage: a.list() == list(a) == [a[i] for i in range(F.degree())]
+            True
+
+        The coefficients returned are those of a fully reduced
+        representative of the finite field element::
+
+            sage: b = u^777
+            sage: b.list()
+            [9, 69, 4, 27, 40, 10, 56]
+            sage: (u.polynomial()^777).list()
+            [0, 0, 0, 0, ..., 0, 1]
+
+        TESTS::
+
+            sage: R.<x> = GF(17)[]
+            sage: F.<t> = GF(17^60)
+            sage: a = F.random_element()
+            sage: a == R(a.list())(t)
+            True
+            sage: list(a) == a.list()
+            True
+        """
+        return self.polynomial().padded_list(self.parent().degree())
+
+    def __iter__(self):
+        r"""
+        Return an iterator over the coefficients of this finite field
+        element, in the same order as :meth:`list`.
+
+        EXAMPLES::
+
+            sage: x = polygen(GF(19))
+            sage: F.<i> = GF(19^2, modulus=x^2+1)
+            sage: a = 5 + 7*i
+            sage: it = iter(a)
+            sage: next(it)
+            5
+            sage: next(it)
+            7
+            sage: next(it)
+            Traceback (most recent call last):
+            ...
+            StopIteration
+            sage: list(a)   # implicit doctest
+            [5, 7]
+            sage: tuple(a)  # implicit doctest
+            (5, 7)
+            sage: b = F(11)
+            sage: list(b)   # implicit doctest
+            [11, 0]
+            sage: tuple(b)  # implicit doctest
+            (11, 0)
+            sage: list(b.polynomial())
+            [11]
+
+        TESTS::
+
+            sage: F = GF(random_prime(333)^randrange(111,999),'t')
+            sage: a = F.random_element()
+            sage: list(a) == a.list()  # implicit doctest
+            True
+
+        ::
+
+            sage: F.<t> = GF(17^60)
+            sage: a = F.random_element()
+            sage: a == sum(c*t^i for i,c in enumerate(a))  # implicit doctest
+            True
+
+        ::
+
+            sage: F.<t> = GF((2^127-1)^10, 't')
+            sage: a = F.random_element()
+            sage: a == sum(c*t^i for i,c in enumerate(a))  # implicit doctest
+            True
+        """
+        return iter(self.list())
+
     def _vector_(self, reverse=False):
         """
         Return a vector matching this element in the vector space attached
-        to the parent.  The most significant bit is to the right.
+        to the parent.  The most significant coefficient is to the right.
 
         INPUT:
 
@@ -240,7 +381,7 @@ cdef class FinitePolyExtElement(FiniteRingElement):
 
         k = self.parent()
         p = self.polynomial()
-        ret = p.list() + [0] * (k.degree() - p.degree() - 1)
+        ret = self.polynomial().padded_list(k.degree())
 
         if reverse:
             ret.reverse()
@@ -329,7 +470,7 @@ cdef class FinitePolyExtElement(FiniteRingElement):
             sage: t_element
             3*b^2 + 2*b + 4
             sage: type(t_element)
-            <type 'cypari2.gen.Gen'>
+            <class 'cypari2.gen.Gen'>
         """
         if var is None:
             var = self.parent().variable_name()
@@ -531,7 +672,6 @@ cdef class FinitePolyExtElement(FiniteRingElement):
             1
         """
         if self.is_zero():
-            from sage.rings.integer import Integer
             return Integer(1)
         return self.parent().characteristic()
 
@@ -713,11 +853,9 @@ cdef class FinitePolyExtElement(FiniteRingElement):
             sage: k(1).nth_root(0,all=True)
             [a, a + 1, 1]
 
-        ALGORITHMS:
+        ALGORITHM:
 
-        - The default is currently an algorithm described in the following paper:
-
-        Johnston, Anna M. A generalized qth root algorithm. Proceedings of the tenth annual ACM-SIAM symposium on Discrete algorithms. Baltimore, 1999: pp 929-930.
+        The default is currently an algorithm described in [Joh1999]_.
 
         AUTHOR:
 
@@ -741,7 +879,6 @@ cdef class FinitePolyExtElement(FiniteRingElement):
                 else: raise ValueError
         if extend:
             raise NotImplementedError
-        from sage.rings.integer import Integer
         n = Integer(n)
         return self._nth_root_common(n, all, algorithm, cunningham)
 
@@ -846,9 +983,71 @@ cdef class FinitePolyExtElement(FiniteRingElement):
 
         return self.pth_power(k=k)
 
+    def to_integer(self, reverse=False):
+        r"""
+        Return an integer representation of this finite field element
+        obtained by lifting its representative polynomial to `\ZZ` and
+        evaluating it at the characteristic `p`.
+
+        If ``reverse`` is set to ``True`` (default: ``False``),
+        the list of coefficients is reversed prior to evaluation.
+
+        Inverse of :meth:`sage.rings.finite_rings.finite_field_base.FiniteField.from_integer`.
+
+        EXAMPLES::
+
+            sage: F.<t> = GF(7^5)
+            sage: F(5).to_integer()
+            5
+            sage: t.to_integer()
+            7
+            sage: (t^2).to_integer()
+            49
+            sage: (t^2+1).to_integer()
+            50
+            sage: (t^2+t+1).to_integer()
+            57
+
+        ::
+
+            sage: F.<t> = GF(2^8)
+            sage: u = F.from_integer(0xd1)
+            sage: bin(u.to_integer(False))
+            '0b11010001'
+            sage: bin(u.to_integer(True))
+            '0b10001011'
+
+        TESTS::
+
+            sage: p = random_prime(2^99)
+            sage: k = randrange(2,10)
+            sage: F.<t> = GF((p, k))
+            sage: rev = bool(randrange(2))
+            sage: u = F.random_element()
+            sage: 0 <= u.to_integer(rev) < F.cardinality()
+            True
+            sage: F.from_integer(u.to_integer(rev), rev) == u
+            True
+            sage: n = randrange(F.cardinality())
+            sage: F.from_integer(n, rev).to_integer(rev) == n
+            True
+        """
+        if not reverse:
+            try:
+                return self._integer_representation()
+            except AttributeError:
+                pass
+        p = self.parent().characteristic()
+        f = self.polynomial().change_ring(ZZ)
+        if reverse:
+            f = f.reverse(self.parent().degree() - 1)
+        return f(p)
+
+    integer_representation = deprecated_function_alias(33941, to_integer)
+
 cdef class Cache_base(SageObject):
     cpdef FinitePolyExtElement fetch_int(self, number):
-        """
+        r"""
         Given an integer less than `p^n` with base `2`
         representation `a_0 + a_1 \cdot 2 + \cdots + a_k 2^k`, this returns
         `a_0 + a_1 x + \cdots + a_k x^k`, where `x` is the
@@ -861,4 +1060,3 @@ cdef class Cache_base(SageObject):
             a^33 + a + 1
         """
         raise NotImplementedError("this must be implemented by subclasses")
-

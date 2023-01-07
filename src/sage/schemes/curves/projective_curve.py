@@ -139,16 +139,17 @@ AUTHORS:
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.cachefunc import cached_method
 
-from sage.categories.all import hom
 from sage.categories.fields import Fields
+from sage.categories.homset import hom, Hom, End
 from sage.categories.number_fields import NumberFields
-from sage.categories.homset import Hom, End
 
-from sage.interfaces.all import singular
-from sage.matrix.all import matrix
-from sage.misc.all import add, sage_eval
+from sage.interfaces.singular import singular
+from sage.matrix.constructor import matrix
+from builtins import sum as add
+from sage.misc.sage_eval import sage_eval
 
-from sage.rings.all import degree_lowest_rational_function, IntegerRing
+from sage.rings.polynomial.multi_polynomial_element import degree_lowest_rational_function
+from sage.rings.integer_ring import IntegerRing
 from sage.rings.number_field.number_field import NumberField
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.qqbar import (number_field_elements_from_algebraics,
@@ -411,7 +412,7 @@ class ProjectiveCurve(Curve_generic, AlgebraicScheme_subscheme_projective):
             raise TypeError("this curve is already a plane curve")
         if self.base_ring() not in Fields():
             raise TypeError("this curve must be defined over a field")
-        if not PS is None:
+        if PS is not None:
             if not is_ProjectiveSpace(PS):
                 raise TypeError("(=%s) must be a projective space" % PS)
             if PS.dimension_relative() != n - 1:
@@ -433,9 +434,9 @@ class ProjectiveCurve(Curve_generic, AlgebraicScheme_subscheme_projective):
                 l = list(PP.gens())
                 for i in range(n + 1):
                     l[i] = 0
-                    while(F(l) == 0):
-                        l[i] = l[i] + 1
-                Q = PP(l) # will be a point not on the curve
+                    while F(l) == 0:
+                        l[i] += 1
+                Q = PP(l)  # will be a point not on the curve
             else:
                 # if the base ring is a finite field, iterate over all points in the ambient space and check which
                 # are on this curve
@@ -455,7 +456,7 @@ class ProjectiveCurve(Curve_generic, AlgebraicScheme_subscheme_projective):
                 Q = self(P)
             except TypeError:
                 pass
-            if not Q is None:
+            if Q is not None:
                 raise TypeError("(=%s) must be a point not on this curve" % P)
             try:
                 Q = self.ambient_space()(P)
@@ -610,7 +611,7 @@ class ProjectivePlaneCurve(ProjectiveCurve):
         if not (is_ProjectiveSpace(A) and A.dimension != 2):
             raise TypeError("the ambient space is not a projective plane")
 
-        super(ProjectivePlaneCurve, self).__init__(A, [f])
+        super().__init__(A, [f])
 
     def _repr_type(self):
         r"""
@@ -702,7 +703,7 @@ class ProjectivePlaneCurve(ProjectiveCurve):
         y0 = F(pt[1])
         astr = ["a"+str(i) for i in range(1,2*n)]
         x,y = R.gens()
-        R0 = PolynomialRing(F,2*n+2,names = [str(x),str(y),"t"]+astr)
+        R0 = PolynomialRing(F, 2 * n + 2, names=[str(x), str(y), "t"] + astr)
         vars0 = R0.gens()
         t = vars0[2]
         yt = y0*t**0 + add([vars0[i]*t**(i-2) for i in range(3,2*n+2)])
@@ -1532,7 +1533,7 @@ class ProjectiveCurve_field(ProjectiveCurve, AlgebraicScheme_subscheme_projectiv
             sage: loads(dumps(C)) == C
             True
         """
-        super(ProjectiveCurve_field, self).__init__(A, X)
+        super().__init__(A, X)
 
         if not A.base_ring() in Fields():
             raise TypeError("curve not defined over a field")
@@ -1689,6 +1690,15 @@ class ProjectivePlaneCurve_field(ProjectivePlaneCurve, ProjectiveCurve_field):
         .. WARNING::
 
             This functionality requires the ``sirocco`` package to be installed.
+
+        TESTS::
+
+            sage: P.<x,y,z>=ProjectiveSpace(QQ,2)
+            sage: f=z^2*y^3-z*(33*x*z+2*x^2+8*z^2)*y^2+(21*z^2+21*x*z-x^2)*(z^2+11*x*z-x^2)*y+(x-18*z)*(z^2+11*x*z-x^2)^2
+            sage: C = P.curve(f)
+            sage: C.fundamental_group() # optional - sirocco
+            Finitely presented group < x1, x3 | (x3^-1*x1^-1*x3*x1^-1)^2*x3^-1, x3*(x1^-1*x3^-1)^2*x1^-1*(x3*x1)^2 >
+
         """
         from sage.schemes.curves.zariski_vankampen import fundamental_group
         F = self.base_ring()
@@ -1699,7 +1709,7 @@ class ProjectivePlaneCurve_field(ProjectivePlaneCurve, ProjectiveCurve_field):
         f = self.affine_patch(2).defining_polynomial()
         if f.degree() == self.degree():
             return fundamental_group(f, projective=True)
-        else:  #in this case, the line at infinity is part of the curve, so the complement lies in the affine patch
+        else:  # in this case, the line at infinity is part of the curve, so the complement lies in the affine patch
             return fundamental_group(f, projective=False)
 
     def rational_parameterization(self):
@@ -1866,7 +1876,7 @@ class ProjectivePlaneCurve_finite_field(ProjectivePlaneCurve_field):
         """
         g = self.defining_polynomial()
         K = g.parent().base_ring()
-        from sage.rings.polynomial.all import PolynomialRing
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
         R = PolynomialRing(K,'X')
         X = R.gen()
         one = K.one()
@@ -1883,20 +1893,20 @@ class ProjectivePlaneCurve_finite_field(ProjectivePlaneCurve_field):
         g10 = R(g(X,one,zero))
         if g10.is_zero():
             for x in K:
-                yield(self.point([x,one,zero]))
+                yield self.point([x, one, zero])
         else:
             for x in g10.roots(multiplicities=False):
-                yield(self.point([x,one,zero]))
+                yield self.point([x, one, zero])
 
         # points with Z = 1
         for y in K:
             gy1 = R(g(X,y,one))
             if gy1.is_zero():
                 for x in K:
-                    yield(self.point([x,y,one]))
+                    yield self.point([x, y, one])
             else:
                 for x in gy1.roots(multiplicities=False):
-                    yield(self.point([x,y,one]))
+                    yield self.point([x, y, one])
 
     def _points_via_singular(self, sort=True):
         r"""
@@ -2036,7 +2046,7 @@ class ProjectivePlaneCurve_finite_field(ProjectivePlaneCurve_field):
                 Dcoeffs.append(D.coefficient(coords[x[1]]))
             else:
                 Dcoeffs.append(0)
-        G = singular(','.join([str(x) for x in Dcoeffs]), type='intvec')
+        G = singular(','.join(str(x) for x in Dcoeffs), type='intvec')
         # call singular's brill noether routine and return
         T = X2[1][2]
         T.set_ring()
@@ -2137,8 +2147,8 @@ class ProjectivePlaneCurve_finite_field(ProjectivePlaneCurve_field):
         if algorithm == "bn":
             return self._points_via_singular(sort=sort)
         elif algorithm == "all":
-            S_enum = self.rational_points(algorithm = "enum")
-            S_bn = self.rational_points(algorithm = "bn")
+            S_enum = self.rational_points(algorithm="enum")
+            S_bn = self.rational_points(algorithm="bn")
             if S_enum != S_bn:
                 raise RuntimeError("Bug in rational_points -- different\
                                      algorithms give different answers for\
@@ -2166,7 +2176,7 @@ class IntegralProjectiveCurve(ProjectiveCurve_field):
             sage: loads(dumps(C)) == C
             True
         """
-        super(IntegralProjectiveCurve, self).__init__(A, f)
+        super().__init__(A, f)
 
         ideal = self.defining_ideal()
         gs = self.ambient_space().gens()
@@ -2230,7 +2240,7 @@ class IntegralProjectiveCurve(ProjectiveCurve_field):
             y^5 + x*y*z^3 + z^5
         """
         try:
-            return super(IntegralProjectiveCurve, self).__call__(*args)
+            return super().__call__(*args)
         except TypeError as e:
             try:
                 return self.function(*args)
@@ -2628,11 +2638,11 @@ class IntegralProjectiveCurve_finite_field(IntegralProjectiveCurve):
             [Point (x0, x1),
              Point (x0 + (-z2 - 1)*x2, x1),
              Point (x0 + (z2 + 1)*x2, x1),
-             Point (x0 + (z2)*x2, x1 + (z2 - 1)*x2),
+             Point (x0 + z2*x2, x1 + (z2 - 1)*x2),
              Point (x0 + (-z2)*x2, x1 + (-z2 + 1)*x2),
              Point (x0 + (-z2 - 1)*x2, x1 + (-z2 - 1)*x2),
              Point (x0 + (z2 + 1)*x2, x1 + (z2 + 1)*x2),
-             Point (x0 + (z2 - 1)*x2, x1 + (z2)*x2),
+             Point (x0 + (z2 - 1)*x2, x1 + z2*x2),
              Point (x0 + (-z2 + 1)*x2, x1 + (-z2)*x2),
              Point (x0 + x2, x1 - x2),
              Point (x0 - x2, x1 + x2)]

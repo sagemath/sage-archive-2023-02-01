@@ -1,5 +1,5 @@
 r"""
-Finite `\ZZ`-modules with with bilinear and quadratic forms.
+Finite `\ZZ`-modules with bilinear and quadratic forms
 
 AUTHORS:
 
@@ -62,7 +62,7 @@ def TorsionQuadraticForm(q):
 
     TESTS::
 
-        sage: TorsionQuadraticForm(matrix.diagonal([3/8,3/8,3/4]))
+        sage: TorsionQuadraticForm(matrix.diagonal([3/4,3/8,3/8]))
         Finite quadratic module over Integer Ring with invariants (4, 8, 8)
         Gram matrix of the quadratic form with values in Q/2Z:
         [3/4   0   0]
@@ -273,7 +273,7 @@ class TorsionQuadraticModule(FGP_Module_class, CachedRepresentation):
             modulus_qf = max_modulus_qf
         elif check and max_modulus_qf / modulus_qf not in V.base_ring():
             raise ValueError("the modulus_qf must divide (V, W)")
-        return super(TorsionQuadraticModule, cls).__classcall__(cls, V, W, gens, modulus, modulus_qf)
+        return super().__classcall__(cls, V, W, gens, modulus, modulus_qf)
 
     def __init__(self, V, W, gens, modulus, modulus_qf):
         r"""
@@ -881,7 +881,7 @@ class TorsionQuadraticModule(FGP_Module_class, CachedRepresentation):
             try:
                 gens = [matrix(x*g for x in self.smith_form_gens()) for g in gens]
             except TypeError:
-                pass 
+                pass
             # the ambient knows what to do with the generators
             gens = tuple(ambient(g) for g in gens)
         Oq =  FqfOrthogonalGroup(ambient, gens, self, check=check)
@@ -1030,10 +1030,10 @@ class TorsionQuadraticModule(FGP_Module_class, CachedRepresentation):
             sage: T
             Finite quadratic module over Integer Ring with invariants (6, 6, 12, 12)
             Gram matrix of the quadratic form with values in Q/(1/3)Z:
-            [1/18 5/36    0    0]
-            [5/36 1/18 5/36 5/36]
-            [   0 5/36 1/36 1/72]
-            [   0 5/36 1/72 1/36]
+            [ 1/18  1/12  5/36  1/36]
+            [ 1/12   1/6  1/36   1/9]
+            [ 5/36  1/36  1/36 11/72]
+            [ 1/36   1/9 11/72  1/36]
             sage: T.normal_form()
             Finite quadratic module over Integer Ring with invariants (6, 6, 12, 12)
             Gram matrix of the quadratic form with values in Q/(1/3)Z:

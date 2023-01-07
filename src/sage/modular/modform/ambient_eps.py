@@ -119,7 +119,8 @@ class ModularFormsAmbient_eps(ModularFormsAmbient):
         """
         if not dirichlet.is_DirichletCharacter(character):
             raise TypeError("character (=%s) must be a Dirichlet character"%character)
-        if base_ring is None: base_ring=character.base_ring()
+        if base_ring is None:
+            base_ring=character.base_ring()
         if character.base_ring() != base_ring:
             character = character.change_ring(base_ring)
         if base_ring.characteristic() != 0:
@@ -197,9 +198,9 @@ class ModularFormsAmbient_eps(ModularFormsAmbient):
         """
         if self.base_ring() == base_ring:
             return self
-        return ambient_R.ModularFormsAmbient_R(self, base_ring = base_ring)
+        return ambient_R.ModularFormsAmbient_R(self, base_ring=base_ring)
 
-    @cached_method(key=lambda self,sign: rings.Integer(sign)) # convert sign to an Integer before looking this up in the cache
+    @cached_method(key=lambda self, sign: rings.Integer(sign)) # convert sign to an Integer before looking this up in the cache
     def modular_symbols(self, sign=0):
         """
         Return corresponding space of modular symbols with given sign.
@@ -221,9 +222,9 @@ class ModularFormsAmbient_eps(ModularFormsAmbient):
         """
         sign = rings.Integer(sign)
         return modsym.ModularSymbols(self.character(),
-                                     weight = self.weight(),
-                                     sign = sign,
-                                     base_ring = self.base_ring())
+                                     weight=self.weight(),
+                                     sign=sign,
+                                     base_ring=self.base_ring())
 
     @cached_method
     def eisenstein_submodule(self):

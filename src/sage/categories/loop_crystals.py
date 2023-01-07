@@ -59,7 +59,7 @@ class LoopCrystals(Category_singleton):
         """
         return [Crystals()]
 
-    def example(self, n = 3):
+    def example(self, n=3):
         """
         Return an example of Kirillov-Reshetikhin crystals, as per
         :meth:`Category.example`.
@@ -119,8 +119,9 @@ class LoopCrystals(Category_singleton):
             """
             G = Crystals().parent_class.digraph(self, subset, index_set)
             if have_dot2tex():
-                f = lambda u_v_label: ({"backward": u_v_label[2] == 0})
-                G.set_latex_options(edge_options=f)
+                def eopt(u_v_label):
+                    return {"backward": u_v_label[2] == 0}
+                G.set_latex_options(edge_options=eopt)
             return G
 
 # TODO: Should we make "regular" an axiom?
@@ -455,7 +456,7 @@ class KirillovReshetikhinCrystals(Category_singleton):
             bsharp = None
             for b in self:
                 phi = b.Phi()
-                if phi.support() == [0] and phi[0] < ell:
+                if list(phi.support()) == [0] and phi[0] < ell:
                     bsharp = b
                     ell = phi[0]
             return bsharp
@@ -852,7 +853,7 @@ class KirillovReshetikhinCrystals(Category_singleton):
                     True
                 """
                 if q is None:
-                    from sage.rings.all import QQ
+                    from sage.rings.rational_field import QQ
                     q = QQ['q'].gens()[0]
                 P0 = self.weight_lattice_realization().classical()
                 B = P0.algebra(q.parent())
@@ -1268,4 +1269,3 @@ class LocalEnergyFunction(Map):
             self._known_values[y] = baseline + visited[y]
 
         return self._known_values[x]
-

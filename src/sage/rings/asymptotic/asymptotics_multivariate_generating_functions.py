@@ -336,7 +336,7 @@ class FractionWithFactoredDenominator(RingElement):
             sage: f = FFPD(x, df)
             sage: TestSuite(f).run()
         """
-        super(FractionWithFactoredDenominator, self).__init__(parent)
+        super().__init__(parent)
 
         from sage.rings.semirings.non_negative_integer_semiring import NN
         self._numerator = parent._numerator_ring(numerator)
@@ -1578,7 +1578,7 @@ class FractionWithFactoredDenominator(RingElement):
             (1, [(x*y + x + y - 1, 2)])
             sage: alpha = [4, 3]
             sage: decomp = F.asymptotic_decomposition(alpha); decomp
-            (0, []) + (-2*r*(1/x + 1) - 1/2/x - 1/2, [(x*y + x + y - 1, 1)])
+            (0, []) + (... - 1/2, [(x*y + x + y - 1, 1)])
             sage: F1 = decomp[1]
             sage: p = {y: 1/3, x: 1/2}
             sage: asy = F1.asymptotics(p, alpha, 2, verbose=True)
@@ -1757,14 +1757,15 @@ class FractionWithFactoredDenominator(RingElement):
         """
         from sage.calculus.functions import jacobian
         from sage.calculus.var import function
-        from sage.functions.other import factorial, sqrt
+        from sage.functions.other import factorial
+        from sage.misc.functional import sqrt
         from sage.functions.gamma import gamma
         from sage.functions.log import exp, log
         from sage.matrix.constructor import matrix
         from sage.modules.free_module_element import vector
         from sage.symbolic.constants import pi
         from sage.symbolic.relation import solve
-        from sage.rings.all import CC
+        from sage.rings.cc import CC
         from sage.rings.rational_field import QQ
 
         R = self.denominator_ring
@@ -1939,7 +1940,7 @@ class FractionWithFactoredDenominator(RingElement):
                                      sub_final=[Tstar, atP], rekey=AA)
                 Phitu_derivs = diff_all(Phitu, T, N - 1 + v,
                                         sub=hderivs1, sub_final=[Tstar, atP],
-                                        zero_order=v + 1 , rekey=BB)
+                                        zero_order=v + 1, rekey=BB)
             AABB_derivs = At_derivs
             AABB_derivs.update(Phitu_derivs)
             AABB_derivs[AA] = At.subs(Tstar).subs(atP)
@@ -2006,7 +2007,7 @@ class FractionWithFactoredDenominator(RingElement):
             AABB_derivs[BB] = Phitu.subs(Tstar).subs(atP)
             if verbose:
                 print("Computing second order differential operator actions...")
-            DD = diff_op(AA, BB, AABB_derivs, T, a_inv, 1 , N)
+            DD = diff_op(AA, BB, AABB_derivs, T, a_inv, 1, N)
 
             # Plug above into asymptotic formula.
             L = []
@@ -2138,11 +2139,12 @@ class FractionWithFactoredDenominator(RingElement):
         from sage.calculus.var import function
         from sage.combinat.combinat import stirling_number1
         from sage.functions.log import exp, log
-        from sage.functions.other import factorial, sqrt
+        from sage.functions.other import factorial
+        from sage.misc.functional import sqrt
         from sage.matrix.constructor import matrix
         from sage.misc.mrange import xmrange
         from sage.modules.free_module_element import vector
-        from sage.rings.all import CC
+        from sage.rings.cc import CC
         from sage.arith.misc import binomial
         from sage.rings.rational_field import QQ
         from sage.symbolic.constants import pi
@@ -2725,7 +2727,7 @@ class FractionWithFactoredDenominator(RingElement):
             sage: F = FFPD(G, Hfac)
             sage: alpha = var('a1, a2')
             sage: F.smooth_critical_ideal(alpha)
-            Ideal (y^2 + 2*a1/a2*y - 1, x + ((-a2)/a1)*y + (-a1 + a2)/a1) of
+            Ideal (y^2 + (2*a1)/a2*y - 1, x + (-a2)/a1*y + (-a1 + a2)/a1) of
              Multivariate Polynomial Ring in x, y over Fraction Field of
              Multivariate Polynomial Ring in a1, a2 over Rational Field
 
@@ -2735,7 +2737,7 @@ class FractionWithFactoredDenominator(RingElement):
             sage: F = FFPD(G, Hfac)
             sage: alpha = [7/3, var('a')]
             sage: F.smooth_critical_ideal(alpha)
-            Ideal (y^2 + 14/3/a*y - 1, x + (-3/7*a)*y + 3/7*a - 1) of Multivariate Polynomial Ring in x, y over Fraction Field of Univariate Polynomial Ring in a over Rational Field
+            Ideal (y^2 + 14/(3*a)*y - 1, x + (-3*a)/7*y + (3*a - 7)/7) of Multivariate Polynomial Ring in x, y over Fraction Field of Univariate Polynomial Ring in a over Rational Field
         """
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
@@ -3064,8 +3066,8 @@ class FractionWithFactoredDenominatorRing(UniqueRepresentation, Ring):
                              'denominator ring {}'.format(
                                  numerator_ring, denominator_ring))
         category = Rings().or_subcategory(category)
-        return super(FractionWithFactoredDenominatorRing, cls).__classcall__(cls,
-                        denominator_ring, numerator_ring, category)
+        return super().__classcall__(cls, denominator_ring,
+                                     numerator_ring, category)
 
     def __init__(self, denominator_ring, numerator_ring=None, category=None):
         r"""
@@ -3681,6 +3683,7 @@ def diff_prod(f_derivs, u, g, X, interval, end, uderivs, atc):
         D = {}
         rhs = []
         lhs = []
+        new_vars = []
         for t in combinations_with_replacement(X, l):
             t = list(t)
             s = t + end
@@ -3689,13 +3692,15 @@ def diff_prod(f_derivs, u, g, X, interval, end, uderivs, atc):
             # Since Sage's solve command can't take derivatives as variable
             # names, make new variables based on t to stand in for
             # diff(u, t) and store them in D.
-            D[diff(u, t).subs(atc)] = var('zing' +
-                                          ''.join(str(x) for x in t))
+            new_var = SR.temp_var()
+            new_vars.append(new_var)
+            D[diff(u, t).subs(atc)] = new_var
         eqns = [lhs[i] == rhs[i].subs(uderivs).subs(D)
                 for i in range(len(lhs))]
         variables = D.values()
         sol = solve(eqns, *variables, solution_dict=True)
         uderivs.update(subs_all(D, sol[ZZ.zero()]))
+        SR.cleanup_var(new_vars)
     return uderivs
 
 
@@ -3787,7 +3792,7 @@ def subs_all(f, sub, simplify=False):
         sage: var('x, y')
         (x, y)
         sage: a = {'foo': x**2 + y**2, 'bar': x - y}
-        sage: b = {x: 1 , y: 2}
+        sage: b = {x: 1, y: 2}
         sage: subs_all(a, b)
         {'bar': -1, 'foo': 5}
     """
@@ -4027,7 +4032,7 @@ def diff_op(A, B, AB_derivs, V, M, r, N):
         sage: DD = diff_op(A, B, AB_derivs, T, M, 1, 2)
         sage: sorted(DD)
         [(0, 0, 0), (0, 1, 0), (0, 1, 1), (0, 1, 2)]
-        sage: len(DD[(0, 1, 2)])
+        sage: DD[(0, 1, 2)].number_of_operands()
         246
     """
     from itertools import product
@@ -4160,14 +4165,14 @@ def diff_op_simple(A, B, AB_derivs, x, v, a, N):
          ((1, 1),
           1/4*2^(2/3)*(B(x)*diff(A(x), x, x, x, x) + 4*diff(A(x), x, x, x)*diff(B(x), x) + 6*diff(A(x), x, x)*diff(B(x), x, x) + 4*diff(A(x), x)*diff(B(x), x, x, x) + A(x)*diff(B(x), x, x, x, x)))]
     """
-    from sage.functions.other import sqrt
+    from sage.misc.functional import sqrt
 
     I = sqrt(-ZZ.one())
     DD = {}
     if v.mod(Integer(2)) == ZZ.zero():
         for k in range(N):
             for l in range(2 * k + 1):
-               DD[(k, l)] = ((a ** (-ZZ.one() / v)) ** (2 * k + v * l) *
+                DD[(k, l)] = ((a ** (-ZZ.one() / v)) ** (2 * k + v * l) *
                               diff(A * B ** l, x,
                                    2 * k + v * l).subs(AB_derivs))
     else:

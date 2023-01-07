@@ -86,7 +86,6 @@ AUTHORS:
 
 from sage.structure.element import CommutativeRingElement
 from sage.structure.richcmp import richcmp
-import sage.rings.number_field.number_field_rel as number_field_rel
 import sage.rings.polynomial.polynomial_singular_interface as polynomial_singular_interface
 
 
@@ -132,7 +131,7 @@ class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_sin
             if not isinstance(polynomial, Polynomial):
                 raise TypeError("polynomial must be a polynomial")
 
-            if not polynomial in parent.polynomial_ring():
+            if polynomial not in parent.polynomial_ring():
                 raise TypeError("polynomial must be in the polynomial ring of the parent")
 
         f = parent.modulus()
@@ -560,6 +559,7 @@ class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_sin
 
         f = R.hom([alpha], F, check=False)
 
+        import sage.rings.number_field.number_field_rel as number_field_rel
         if number_field_rel.is_RelativeNumberField(F):
 
             base_map = F.base_field().hom([R.base_ring().gen()])
@@ -715,4 +715,25 @@ class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_sin
         """
         return self.matrix().trace()
 
+    def rational_reconstruction(self, *args, **kwargs):
+        r"""
+        Compute a rational reconstruction of this polynomial quotient
+        ring element to its cover ring.
 
+        This method is a thin convenience wrapper around
+        :meth:`Polynomial.rational_reconstruction`.
+
+        EXAMPLES::
+
+            sage: R.<x> = GF(65537)[]
+            sage: m = x^11 + 25345*x^10 + 10956*x^9 + 13873*x^8 + 23962*x^7 + 17496*x^6 + 30348*x^5 + 7440*x^4 + 65438*x^3 + 7676*x^2 + 54266*x + 47805
+            sage: f = 20437*x^10 + 62630*x^9 + 63241*x^8 + 12820*x^7 + 42171*x^6 + 63091*x^5 + 15288*x^4 + 32516*x^3 + 2181*x^2 + 45236*x + 2447
+            sage: f_mod_m = R.quotient(m)(f)
+            sage: f_mod_m.rational_reconstruction()
+            (51388*x^5 + 29141*x^4 + 59341*x^3 + 7034*x^2 + 14152*x + 23746,
+             x^5 + 15208*x^4 + 19504*x^3 + 20457*x^2 + 11180*x + 28352)
+        """
+        m = self.parent().modulus()
+        R = m.parent()
+        f = R(self._polynomial)
+        return f.rational_reconstruction(m, *args, **kwargs)

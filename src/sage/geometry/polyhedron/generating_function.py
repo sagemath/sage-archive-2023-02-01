@@ -37,6 +37,7 @@ Functions
 
 Hrepresentation_str_options = {'prefix': 'b', 'style': 'positive'}
 
+
 def generating_function_of_integral_points(polyhedron, split=False,
                                            result_as_tuple=None,
                                            name=None, names=None,
@@ -517,18 +518,22 @@ def generating_function_of_integral_points(polyhedron, split=False,
 
     parts = None
     if split is True:
+
         def polyhedron_from_permutation(pi):
+
             def ieq(a, b):
                 return ((0 if a < b else -1,) +
-                        tuple(1 if i==b else (-1 if i==a else 0)
-                              for i in range(1, d+1)))
+                        tuple(1 if i == b else (-1 if i == a else 0)
+                              for i in range(1, d + 1)))
+
             def ieq_repr_rhs(a, b):
                 return (' <= ' if a < b else ' < ') + 'b{}'.format(b-1)
+
             def ieqs_repr_lhs(pi):
                 return 'b{}'.format(pi[0]-1)
 
             ieqs, repr_rhss = zip(*[(ieq(a, b), ieq_repr_rhs(a, b))
-                                     for a, b in zip(pi[:-1], pi[1:])])
+                                    for a, b in zip(pi[:-1], pi[1:])])
             return Polyhedron(ieqs=ieqs),  ieqs_repr_lhs(pi) + ''.join(repr_rhss)
 
         split = (polyhedron_from_permutation(pi) for pi in Permutations(d))
@@ -644,13 +649,12 @@ def __generating_function_of_integral_points__(
     from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
     from sage.structure.factorization import Factorization
 
-    B = LaurentPolynomialRing(
-        ZZ,
-        tuple(name + str(k) for k in indices),
-        len(indices))
+    B = LaurentPolynomialRing(ZZ,
+                              tuple(name + str(k) for k in indices),
+                              len(indices))
 
     logger.info('preprocessing %s inequalities and %s equations...',
-                 len(inequalities), len(equations))
+                len(inequalities), len(equations))
 
     T_mod = _TransformMod(inequalities, equations, B, mod)
     inequalities = T_mod.inequalities
@@ -1175,9 +1179,9 @@ class _SplitOffSimpleInequalities(_TransformHrepresentation):
                 inequalities_extra.append(tuple(coeffs))
         T = matrix(ZZ, dim, dim, D)
 
-        self.inequalities = list(tuple(T*vector(ieq))
-                                 for ieq in inequalities_filtered) + \
-                            inequalities_extra
+        self.inequalities = (list(tuple(T*vector(ieq))
+                                  for ieq in inequalities_filtered)
+                             + inequalities_extra)
 
         rules_pre = ((y, B({tuple(row[1:]): 1}))
                      for y, row in zip((1,) + B.gens(), T.rows()))
@@ -1478,7 +1482,7 @@ class _TransformMod(_TransformHrepresentation):
         OUTPUT:
 
         A tuple where each entry represents one possible configuration.
-        Each entry is a dictionary mapping ``i`` to ``(m, r)`` with the following 
+        Each entry is a dictionary mapping ``i`` to ``(m, r)`` with the following
         meaning: The ``i``-th coordinate of each element of the polyhedron
         has to be congruent to ``r`` modulo ``m``.
 

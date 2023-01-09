@@ -468,8 +468,8 @@ class InfinitePolynomial_sparse(RingElement):
             sage: f = x[1] + x[1]*x[2]*x[3]
 
         Passing ``fixed={x[1]: x[0]}``. Note that the keys may be given
-        using the ``.__getitem__`` method of the infinite polynomial
-        generator ``x_*`` or as a string::
+        using the generators of the infinite polynomial ring
+        or as a string::
 
             sage: f.subs({x[1]: x[0]})
             x_3*x_2*x_0 + x_0

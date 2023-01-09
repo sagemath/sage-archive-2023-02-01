@@ -1532,7 +1532,7 @@ class Projection(SageObject):
         tikz_pic += "%% facet_color = {}\n".format(facet_color)
         tikz_pic += "%% opacity = {}\n".format(opacity)
         tikz_pic += "%% vertex_color = {}\n".format(vertex_color)
-        tikz_pic += "%% axis = {}\n\n".format(axis)
+        tikz_pic += "%% axis = {}\n%%\n".format(axis)
 
         # Draws the axes if True
         if axis:
@@ -1681,7 +1681,7 @@ class Projection(SageObject):
         tikz_pic += "%% facet_color = {}\n".format(facet_color)
         tikz_pic += "%% opacity = {}\n".format(opacity)
         tikz_pic += "%% vertex_color = {}\n".format(vertex_color)
-        tikz_pic += "%% axis = {}\n\n".format(axis)
+        tikz_pic += "%% axis = {}\n%%\n".format(axis)
 
         # Draws the axes if True
         if axis:
@@ -1881,7 +1881,7 @@ class Projection(SageObject):
         tikz_pic += "%% facet_color = {}\n".format(facet_color)
         tikz_pic += "%% opacity = {}\n".format(opacity)
         tikz_pic += "%% vertex_color = {}\n".format(vertex_color)
-        tikz_pic += "%% axis = {}\n\n".format(axis)
+        tikz_pic += "%% axis = {}\n%%\n".format(axis)
 
         # Draws the axes if True
         if axis:

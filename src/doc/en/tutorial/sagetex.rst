@@ -147,6 +147,8 @@ ways to accomplish this.
 
   where ``SAGE_ROOT`` is the location of your Sage installation.
   Thereafter, TeX and friends will find the SageTeX style file.
+  If you want to make this change persistent, you can add the 1st of the
+  above lines to your ``.bashrc`` file.
   If you are using a different shell, you may have to
   modify the above command to make the environment variable known; see
   your shell's documentation for how to do that.
@@ -234,8 +236,10 @@ SageTeX and TeXLive
 One potentially confusing issue is that the popular TeX distribution
 `TeXLive <http://www.tug.org/texlive/>`_ includes SageTeX. This may
 seem nice, but with SageTeX, it's important that the Sage bits and LaTeX
-bits be synchronized -- which is a problem in this case, since both Sage
-and SageTeX are updated frequently, and TeXLive is not.
+bits be synchronized -- which is a problem in this case, since
+TeXLive, as shipped by your OS distro, or package manager, might be out of sync with
+TeXLive distribution, and the latter might also be out of sync with
+the current SageTeX.
 
 Because of this, it is *strongly recommended* that you always install
 the LaTeX part of SageTeX from Sage, as described above. The

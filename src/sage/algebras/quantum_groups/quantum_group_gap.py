@@ -1949,7 +1949,11 @@ class HighestWeightSubmodule(QuantumGroupModule):
             sage: TestSuite(S).run()  # optional - gap_packages
         """
         self._ambient = ambient
-        cat = ambient.category()
+        # We do not use the generic ambient category since submodules of tensor
+        #   products are considered to be tensor products.
+        # This should be reverted after this has changed.
+        #cat = ambient.category()
+        cat = Modules(ambient.base_ring()).FiniteDimensional().WithBasis()
         QuantumGroupModule.__init__(self, ambient._Q, cat.Subobjects())
 
         self._gen = gen

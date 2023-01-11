@@ -5359,6 +5359,7 @@ REFERENCES:
 .. [Sho1999] Victor Shoup: *Efficient computation of minimal polynomials in
              algebraic extensions of finite fields*.
              In ISSAC '99, pp. 53–58. ACM, 1999.
+             :doi:`10.1145/309831.309859`,
              https://shoup.net/papers/mpol.pdf
 
 .. [Shr2004] \S. Shreve, *Stochastic Calculus for Finance II:

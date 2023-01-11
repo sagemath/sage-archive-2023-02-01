@@ -1464,7 +1464,7 @@ cdef class RingExtensionWithBasisElement(RingExtensionElement):
             mod = parent.modulus()
             S = mod.parent().quotient(mod)
             try:
-                return S(self.polynomial()).minpoly()
+                return S(list(self.vector())).minpoly()
             except NotImplementedError:
                 pass  # fall back to generic code below
 

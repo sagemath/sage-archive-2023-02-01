@@ -1773,7 +1773,7 @@ class Projection(SageObject):
             %% opacity = 0.8
             %% vertex_color = green
             %% axis = False
-            <BLANKLINE>
+            %%
             %% Coordinate of the vertices:
             %%
             \coordinate (0.00000, 1.00000, -1.00000) at (0.00000, 1.00000, -1.00000);

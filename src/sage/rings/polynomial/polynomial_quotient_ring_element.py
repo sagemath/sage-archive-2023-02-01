@@ -715,14 +715,15 @@ class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_sin
         We make sure that the previous example works on random examples::
 
             sage: p = random_prime(50)
-            sage: K.<u> = GF((p, randrange(2,20)))
-            sage: L.<v> = K.extension(randrange(1,20))
+            sage: K.<u> = GF((p, randrange(1,20)))
+            sage: L.<v> = K.extension(randrange(2,20))
             sage: LK = L.over(K)
             sage: a = L.random_element()
             sage: poly = LK(a).minpoly()  # indirect doctest
             sage: poly(a)
             0
-            sage: poly.degree() == L.degree() // K.degree()
+            sage: abs_deg = a.minpoly().degree()
+            sage: poly.degree() == abs_deg // gcd(abs_deg, K.degree())
             True
         """
         poly = self.lift()

@@ -1,2 +1,3 @@
 cd src
-sdh_make_install
+./configure
+sdh_make

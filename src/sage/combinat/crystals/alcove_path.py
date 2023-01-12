@@ -316,7 +316,6 @@ class CrystalOfAlcovePaths(UniqueRepresentation, Parent):
         self._highest_weight_crystal = highest_weight_crystal
         self._cartan_type = cartan_type
 
-
         if cartan_type.is_finite() and highest_weight_crystal:
             Parent.__init__(self, category=ClassicalCrystals())
             self._R = RootsWithHeight(starting_weight)
@@ -331,7 +330,6 @@ class CrystalOfAlcovePaths(UniqueRepresentation, Parent):
             Parent.__init__(self, category=HighestWeightCrystals())
             self._R = RootsWithHeight(starting_weight)
             self._finite_cartan_type = False
-
 
         self.module_generators = ( self.element_class(self, ()), )
 
@@ -467,6 +465,7 @@ class CrystalOfAlcovePathsElement(ElementWrapper):
         sage: C([8,9])
         ((alpha[1], 2), (alpha[1] + alpha[2], 4))
     """
+
     def __iter__(self):
         r"""
         Initialize ``self``.
@@ -914,7 +913,6 @@ class CrystalOfAlcovePathsElement(ElementWrapper):
         if ( (not finite_cartan_type or i!=0) and m_index < len(gi)-1  # alpha_i is a simple root
             ) or KR_test:
 
-
             J.remove(positions[m_index])
             if m_index+1 < len(positions): # if m_index+1 != 'infinity'
                                            # i.e. positions[m_index+1] makes sense
@@ -1131,7 +1129,9 @@ class CrystalOfAlcovePathsElement(ElementWrapper):
             ret.append(ret[-1] * prod(s[j] for j in i.root.associated_reflection()))
         return ret
 
+
 CrystalOfAlcovePaths.Element = CrystalOfAlcovePathsElement
+
 
 class InfinityCrystalOfAlcovePaths(UniqueRepresentation, Parent):
     r"""
@@ -1611,6 +1611,7 @@ class RootsWithHeight(UniqueRepresentation, Parent):
         """
         return self( self._root_lattice.from_vector(vector([1])), 0 )
 
+
 class RootsWithHeightElement(Element):
     r"""
     Element of :class:`RootsWithHeight`.
@@ -1632,6 +1633,7 @@ class RootsWithHeightElement(Element):
         sage: y = R(x, 1); y
         (alpha[1] + alpha[2], 1)
     """
+
     def __init__(self, parent, root, height):
         r"""
         Initialize ``self``.
@@ -1744,11 +1746,13 @@ class RootsWithHeightElement(Element):
         #assert self.parent() is other.parent(), "elements have different parents"
         return richcmp(self._cmp_v, other._cmp_v, op)
 
+
 RootsWithHeight.Element = RootsWithHeightElement
 
 #####################################################################
 # Test code, by comparing with existing crystal implementations.
 #####################################################################
+
 
 def _test_some_specific_examples(clss=CrystalOfAlcovePaths):
     r"""
@@ -1888,6 +1892,7 @@ def _test_some_specific_examples(clss=CrystalOfAlcovePaths):
 
     return True
 
+
 def compare_graphs(g1, g2, node1, node2):
     r"""
     Compare two edge-labeled :class:`graphs <DiGraph>` obtained from
@@ -1927,6 +1932,7 @@ def compare_graphs(g1, g2, node1, node2):
             print("ERROR:  No matching edge for ", out_edge, ".")
             return False
     return True
+
 
 def _test_against_tableaux(R, N, k, clss=CrystalOfAlcovePaths):
     r"""
@@ -1973,6 +1979,7 @@ def _test_against_tableaux(R, N, k, clss=CrystalOfAlcovePaths):
             print("FAIL: number of nodes differ.", cc, ct)
             return
         print("  Compare graphs: ", compare_graphs(G, H, C(()), H.vertices(sort=True)[0]))
+
 
 def _test_with_lspaths_crystal(cartan_type, weight, depth=10):
     r"""

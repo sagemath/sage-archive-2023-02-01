@@ -273,6 +273,7 @@ class CompositionTableau(CombinatorialElement, metaclass=ClasscallMetaclass):
         entries = sum(self,[])
         return sorted(entries) == list(range(1, self.size() + 1))
 
+
 class CompositionTableaux(UniqueRepresentation, Parent):
     r"""
     Composition tableaux.
@@ -519,10 +520,12 @@ class CompositionTableaux(UniqueRepresentation, Parent):
                         return False
         return True
 
+
 class CompositionTableaux_all(CompositionTableaux, DisjointUnionEnumeratedSets):
     r"""
     All composition tableaux.
     """
+
     def __init__(self, max_entry=None):
         r"""
         Initialize ``self``.
@@ -564,6 +567,7 @@ class CompositionTableaux_all(CompositionTableaux, DisjointUnionEnumeratedSets):
         """
         return self.element_class(self, [[1, 1], [2]])
 
+
 class CompositionTableaux_size(CompositionTableaux):
     r"""
     Composition tableaux of a fixed size `n`.
@@ -577,6 +581,7 @@ class CompositionTableaux_size(CompositionTableaux):
 
     - The class of composition tableaux of size ``n``.
     """
+
     def __init__(self, n, max_entry=None):
         r"""
         Initializes the class of composition tableaux of size ``n``.
@@ -665,6 +670,7 @@ class CompositionTableaux_size(CompositionTableaux):
 
         return self.element_class(self, [[1]*(self.size-1),[2]])
 
+
 class CompositionTableaux_shape(CompositionTableaux):
     r"""
     Composition tableaux of a fixed shape ``comp`` with a given max entry.
@@ -675,6 +681,7 @@ class CompositionTableaux_shape(CompositionTableaux):
     - ``max_entry`` -- a nonnegative integer. This keyword argument defaults
       to the size of ``comp``.
     """
+
     def  __init__(self, comp, max_entry=None):
         """
         Initialize ``self``.
@@ -761,6 +768,7 @@ class CompositionTableauxBacktracker(GenericBacktracker):
     r"""
     A backtracker class for generating sets of composition tableaux.
     """
+
     def __init__(self, shape, max_entry=None):
         """
         EXAMPLES::

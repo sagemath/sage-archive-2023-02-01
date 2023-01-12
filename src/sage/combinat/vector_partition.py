@@ -26,6 +26,7 @@ from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.combinat.combinat import CombinatorialElement
 from sage.combinat.partition import Partition
 
+
 def find_min(vect):
     """
     Return a string of ``0``'s with one ``1`` at the location where the list
@@ -55,6 +56,7 @@ def find_min(vect):
     if i>0:
         min[i-1]=1
     return min
+
 
 def IntegerVectorsIterator(vect, min = None):
     """
@@ -157,6 +159,7 @@ class VectorPartition(CombinatorialElement):
             [4, 2]
         """
         return Partition(sorted([vec[i] for vec in self._list], reverse = True))
+
 
 class VectorPartitions(UniqueRepresentation, Parent):
     r"""

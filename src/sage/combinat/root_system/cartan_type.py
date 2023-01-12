@@ -973,6 +973,7 @@ class CartanTypeFactory(SageObject):
 CartanType = CartanTypeFactory()
 CartanType.__doc__ = __doc__
 
+
 class CartanType_abstract():
     r"""
     Abstract class for Cartan types
@@ -1524,6 +1525,7 @@ class CartanType_abstract():
 
     options = CartanType.options
 
+
 class CartanType_crystallographic(CartanType_abstract):
     """
     An abstract class for crystallographic Cartan types.
@@ -1778,10 +1780,12 @@ class CartanType_crystallographic(CartanType_abstract):
             raise ValueError("the Dynkin diagram must be bipartite")
         return G.bipartite_sets()
 
+
 class CartanType_simply_laced(CartanType_crystallographic):
     """
     An abstract class for simply laced Cartan types.
     """
+
     def is_simply_laced(self):
         """
         Return whether ``self`` is simply laced, which is ``True``.
@@ -1816,10 +1820,12 @@ class CartanType_simply_laced(CartanType_crystallographic):
         """
         return self
 
+
 class CartanType_simple(CartanType_abstract):
     """
     An abstract class for simple Cartan types.
     """
+
     def is_irreducible(self):
         """
         Return whether ``self`` is irreducible, which is ``True``.
@@ -1831,10 +1837,12 @@ class CartanType_simple(CartanType_abstract):
         """
         return True
 
+
 class CartanType_finite(CartanType_abstract):
     """
     An abstract class for simple affine Cartan types.
     """
+
     def is_finite(self):
         """
         EXAMPLES::
@@ -1852,6 +1860,7 @@ class CartanType_finite(CartanType_abstract):
             False
         """
         return False
+
 
 class CartanType_affine(CartanType_simple, CartanType_crystallographic):
     """
@@ -2411,6 +2420,7 @@ class CartanType_affine(CartanType_simple, CartanType_crystallographic):
 ##############################################################################
 # Concrete base classes
 
+
 class CartanType_standard(UniqueRepresentation, SageObject):
     # Technical methods
     def _repr_(self, compact = False):
@@ -2475,6 +2485,7 @@ class CartanType_standard_finite(CartanType_standard, CartanType_finite):
          sage: ct1 != ct3
          True
     """
+
     def __init__(self, letter, n):
         """
         EXAMPLES::
@@ -2663,6 +2674,8 @@ class CartanType_standard_finite(CartanType_standard, CartanType_finite):
         return Family(d)
 
 ##########################################################################
+
+
 class CartanType_standard_affine(CartanType_standard, CartanType_affine):
     r"""
     A concrete class for affine simple Cartan types.
@@ -2832,10 +2845,13 @@ class CartanType_standard_affine(CartanType_standard, CartanType_affine):
         return self.letter
 
 ##########################################################################
+
+
 class CartanType_standard_untwisted_affine(CartanType_standard_affine):
     r"""
     A concrete class for the standard untwisted affine Cartan types.
     """
+
     def classical(self):
         r"""
         Return the classical Cartan type associated with ``self``.
@@ -2916,10 +2932,13 @@ class CartanType_standard_untwisted_affine(CartanType_standard_affine):
         return self.classical()._latex_()+"^{(1)}"
 
 ##########################################################################
+
+
 class CartanType_decorator(UniqueRepresentation, SageObject, CartanType_abstract):
     """
     Concrete base class for Cartan types that decorate another Cartan type.
     """
+
     def __init__(self, ct):
         """
         Initialize ``self``.
@@ -2993,6 +3012,8 @@ class CartanType_decorator(UniqueRepresentation, SageObject, CartanType_abstract
 
 ##############################################################################
 # Base concrete class for superalgebras
+
+
 class SuperCartanType_standard(UniqueRepresentation, SageObject):
     # Technical methods
     def _repr_(self, compact = False):
@@ -3042,6 +3063,8 @@ class SuperCartanType_standard(UniqueRepresentation, SageObject):
 
 ##############################################################################
 # For backward compatibility
+
+
 class CartanType_simple_finite():
     def __setstate__(self, dict):
         """

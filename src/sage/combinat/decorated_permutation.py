@@ -182,6 +182,7 @@ class DecoratedPermutations(UniqueRepresentation, Parent):
         16
 
     """
+
     def __init__(self, n):
         r"""
         Initialize ``self``.

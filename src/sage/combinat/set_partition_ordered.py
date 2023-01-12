@@ -1077,6 +1077,7 @@ class OrderedSetPartitions_s(OrderedSetPartitions):
     """
     Class of ordered partitions of a set `S`.
     """
+
     def _repr_(self):
         """
         TESTS::
@@ -1411,6 +1412,7 @@ class OrderedSetPartitions_all(OrderedSetPartitions):
     Ordered set partitions of `\{1, \ldots, n\}` for all
     `n \in \ZZ_{\geq 0}`.
     """
+
     def __init__(self):
         """
         Initialize ``self``.

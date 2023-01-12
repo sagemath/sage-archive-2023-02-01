@@ -71,6 +71,7 @@ def  _nonperiodic_autocorrelation(sequences, j):
             result += seq[i]*seq[i+j]
     return result
 
+
 def is_skew(seq, verbose=False):
     r"""
     Check if the given sequence is skew.
@@ -116,6 +117,7 @@ def is_skew(seq, verbose=False):
                 print(f'Constraint not satisfied at index {i}')
             return False
     return True
+
 
 def is_symmetric(seq, verbose=False):
     r"""
@@ -215,7 +217,6 @@ def is_T_sequences_set(sequences, verbose=False):
             print(f"T-Sequence should contain 4 sequences, found {len(sequences)} instead")
         return False
     
-    
     t = len(sequences[0])
     
     for i in range(t):
@@ -239,6 +240,7 @@ def is_T_sequences_set(sequences, verbose=False):
             return False
 
     return True
+
 
 def turyn_sequences_smallcases(l, existence=False):
     r"""
@@ -296,6 +298,7 @@ def turyn_sequences_smallcases(l, existence=False):
         raise ValueError(f"Turyn sequence of length {l} is not implemented yet.")
 
     return list(map(Sequence, db[l]))
+
 
 def T_sequences_construction_I(turyn_sequences, check=True):
     r"""
@@ -374,6 +377,7 @@ def T_sequences_construction_I(turyn_sequences, check=True):
         assert is_T_sequences_set(res)
     return res
 
+
 def T_sequences_construction_II(turyn_sequences, check=True):
     r"""
     Construct T-sequences of length `4l-1` from Turyn sequences of length `l`.
@@ -445,6 +449,7 @@ def T_sequences_construction_II(turyn_sequences, check=True):
     if check:
         assert is_T_sequences_set(res)
     return res
+
 
 def T_sequences_smallcases(t, existence=False, check=True):
     r"""

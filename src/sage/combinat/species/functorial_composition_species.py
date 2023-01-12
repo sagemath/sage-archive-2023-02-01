@@ -18,8 +18,10 @@ Functorial composition species
 from .species import GenericCombinatorialSpecies
 from .structure import GenericSpeciesStructure
 
+
 class FunctorialCompositionStructure(GenericSpeciesStructure):
     pass
+
 
 class FunctorialCompositionSpecies(GenericCombinatorialSpecies):
     def __init__(self, F, G, min=None, max=None, weight=None):
@@ -87,7 +89,6 @@ class FunctorialCompositionSpecies(GenericCombinatorialSpecies):
         """
         raise NotImplementedError
 
-
     def _gs(self, series_ring, base_ring):
         """
         EXAMPLES::
@@ -141,6 +142,7 @@ class FunctorialCompositionSpecies(GenericCombinatorialSpecies):
         g_weights = self._G.weight_ring()
 
         return cm.explain(f_weights, g_weights, verbosity=0)
+
 
 #Backward compatibility
 FunctorialCompositionSpecies_class = FunctorialCompositionSpecies

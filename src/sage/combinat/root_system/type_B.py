@@ -12,6 +12,7 @@ Root system data for type B
 
 from . import ambient_space
 
+
 class  AmbientSpace(ambient_space.AmbientSpace):
     def dimension(self):
         """
@@ -85,7 +86,6 @@ class  AmbientSpace(ambient_space.AmbientSpace):
         """
         return [ -a for a in self.positive_roots()]
 
-
     def positive_roots(self):
         """
         EXAMPLES::
@@ -126,7 +126,10 @@ class  AmbientSpace(ambient_space.AmbientSpace):
         else:
             return self.sum(self.monomial(j) for j in range(i))
 
+
 from .cartan_type import CartanType_standard_finite, CartanType_simple, CartanType_crystallographic, CartanType_simply_laced
+
+
 class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_crystallographic):
     def __init__(self, n):
         """
@@ -337,6 +340,7 @@ class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_cryst
         n = self.n
         return CartanTypeFolded(self, ['D', n+1],
             [[i] for i in range(1, n)] + [[n, n+1]])
+
 
 # For unpickling backward compatibility (Sage <= 4.1)
 from sage.misc.persist import register_unpickle_override

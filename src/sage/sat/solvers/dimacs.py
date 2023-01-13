@@ -478,7 +478,6 @@ class DIMACS(SatSolver):
 
         self._run()
 
-        s = [None] + [False for _ in range(self.nvars())]
         for line in self._output:
             if line.startswith("c"):
                 continue
@@ -486,10 +485,12 @@ class DIMACS(SatSolver):
                 if "UNSAT" in line:
                     return False
             if line.startswith("v"):
-                lits = map(int, line[2:-2].strip().split(" "))
-                for e in lits:
-                    s[abs(e)] = e>0
-        return tuple(s)
+                L = line.strip().split(" ")
+                assert L[0] == "v"
+                assert L[-1] == "0", "last digit of solution line must be zero (not {})".format(L[-1])
+                return (None,) + tuple(int(e)>0 for e in L[1:-1])
+
+        raise ValueError("When parsing the output, no line starts with letter v or s")
 
 class RSat(DIMACS):
     """

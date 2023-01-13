@@ -545,25 +545,57 @@ class Glucose(DIMACS):
     When the problem is SAT::
 
         sage: from sage.sat.solvers import Glucose
-        sage: solver = Glucose()
-        sage: solver.add_clause( (1, 2, 3) )
-        sage: solver.add_clause( (-1,) )
-        sage: solver.add_clause( (-2,) )
-        sage: solver()                            # optional - glucose
+        sage: solver1 = Glucose()
+        sage: solver1.add_clause( (1, 2, 3) )
+        sage: solver1.add_clause( (-1,) )
+        sage: solver1.add_clause( (-2,) )
+        sage: solver1()                            # optional - glucose
         (None, False, False, True)
 
     When the problem is UNSAT::
 
-        sage: solver = Glucose()
-        sage: solver.add_clause((1,2))
-        sage: solver.add_clause((-1,2))
-        sage: solver.add_clause((1,-2))
-        sage: solver.add_clause((-1,-2))
-        sage: solver()                            # optional - glucose
+        sage: solver2 = Glucose()
+        sage: solver2.add_clause((1,2))
+        sage: solver2.add_clause((-1,2))
+        sage: solver2.add_clause((1,-2))
+        sage: solver2.add_clause((-1,-2))
+        sage: solver2()                            # optional - glucose
         False
 
+    With one hundred variables::
+
+        sage: solver3 = Glucose()
+        sage: solver3.add_clause( (1, 2, 100) )
+        sage: solver3.add_clause( (-1,) )
+        sage: solver3.add_clause( (-2,) )
+        sage: solver3()                            # optional - glucose
+        (None, False, False, ..., True)
+
+    TESTS::
+
+	sage: solver1._output                      # optional - glucose
+	['c...',
+         ...
+	 's SATISFIABLE\n',
+	 'v -1 -2 3 0\n']
+
+    ::
+
+	sage: solver2._output                      # optional - glucose
+	['c...',
+         ...
+         's UNSATISFIABLE\n']
+
+    Glucose gives large solution on one single line::
+
+	sage: solver3._output                      # optional - glucose
+	['c...',
+         ...
+         's SATISFIABLE\n',
+         'v -1 -2 -3 -4 -5 -6 -7 -8 -9 -10 -11 -12 -13 -14 -15 -16 -17 -18 -19 -20 -21 -22 -23 -24 -25 -26 -27 -28 -29 -30 -31 -32 -33 -34 -35 -36 -37 -38 -39 -40 -41 -42 -43 -44 -45 -46 -47 -48 -49 -50 -51 -52 -53 -54 -55 -56 -57 -58 -59 -60 -61 -62 -63 -64 -65 -66 -67 -68 -69 -70 -71 -72 -73 -74 -75 -76 -77 -78 -79 -80 -81 -82 -83 -84 -85 -86 -87 -88 -89 -90 -91 -92 -93 -94 -95 -96 -97 -98 -99 100 0\n']
+
     """
-    command = "glucose -verb=2 {input} {output}"
+    command = "glucose -verb=0 -model {input}"
 
     def __call__(self, assumptions=None, **kwds):
         """
@@ -653,26 +685,57 @@ class GlucoseSyrup(DIMACS):
 
     When the problem is SAT::
 
-        sage: from sage.sat.solvers import GlucoseSyrup
-        sage: solver = GlucoseSyrup()
-        sage: solver.add_clause( (1, 2, 3) )
-        sage: solver.add_clause( (-1,) )
-        sage: solver.add_clause( (-2,) )
-        sage: solver()                            # optional - glucose
+        sage: solver1 = GlucoseSyrup()
+        sage: solver1.add_clause( (1, 2, 3) )
+        sage: solver1.add_clause( (-1,) )
+        sage: solver1.add_clause( (-2,) )
+        sage: solver1()                            # optional - glucose
         (None, False, False, True)
 
     When the problem is UNSAT::
 
-        sage: solver = GlucoseSyrup()
-        sage: solver.add_clause((1,2))
-        sage: solver.add_clause((-1,2))
-        sage: solver.add_clause((1,-2))
-        sage: solver.add_clause((-1,-2))
-        sage: solver()                            # optional - glucose
+        sage: solver2 = GlucoseSyrup()
+        sage: solver2.add_clause((1,2))
+        sage: solver2.add_clause((-1,2))
+        sage: solver2.add_clause((1,-2))
+        sage: solver2.add_clause((-1,-2))
+        sage: solver2()                            # optional - glucose
         False
 
+    With one hundred variables::
+
+        sage: solver3 = GlucoseSyrup()
+        sage: solver3.add_clause( (1, 2, 100) )
+        sage: solver3.add_clause( (-1,) )
+        sage: solver3.add_clause( (-2,) )
+        sage: solver3()                            # optional - glucose
+        (None, False, False, ..., True)
+
+    TESTS::
+
+	sage: solver1._output                      # optional - glucose
+	['c...',
+         ...
+	 's SATISFIABLE\n',
+	 'v -1 -2 3 0\n']
+
+    ::
+
+        sage: solver2._output                      # optional - glucose
+	['c...',
+         ...
+         's UNSATISFIABLE\n']
+
+    GlucoseSyrup gives large solution on one single line::
+
+	sage: solver3._output                      # optional - glucose
+	['c...',
+         ...
+         's SATISFIABLE\n',
+         'v -1 -2 -3 -4 -5 -6 -7 -8 -9 -10 -11 -12 -13 -14 -15 -16 -17 -18 -19 -20 -21 -22 -23 -24 -25 -26 -27 -28 -29 -30 -31 -32 -33 -34 -35 -36 -37 -38 -39 -40 -41 -42 -43 -44 -45 -46 -47 -48 -49 -50 -51 -52 -53 -54 -55 -56 -57 -58 -59 -60 -61 -62 -63 -64 -65 -66 -67 -68 -69 -70 -71 -72 -73 -74 -75 -76 -77 -78 -79 -80 -81 -82 -83 -84 -85 -86 -87 -88 -89 -90 -91 -92 -93 -94 -95 -96 -97 -98 -99 100 0\n']
+
     """
-    command = "glucose-syrup -model -verb=2 {input}"
+    command = "glucose-syrup -model -verb=0 {input}"
 
     def __call__(self, assumptions=None, **kwds):
         """
@@ -760,22 +823,50 @@ class Kissat(DIMACS):
 
     When the problem is SAT::
 
-        sage: solver = Kissat()
-        sage: solver.add_clause( (1, 2, 3) )
-        sage: solver.add_clause( (-1,) )
-        sage: solver.add_clause( (-2,) )
-        sage: solver()                            # optional - kissat
+        sage: solver1 = Kissat()
+        sage: solver1.add_clause( (1, 2, 3) )
+        sage: solver1.add_clause( (-1,) )
+        sage: solver1.add_clause( (-2,) )
+        sage: solver1()                           # optional - kissat
         (None, False, False, True)
 
     When the problem is UNSAT::
 
-        sage: solver = Kissat()
-        sage: solver.add_clause((1,2))
-        sage: solver.add_clause((-1,2))
-        sage: solver.add_clause((1,-2))
-        sage: solver.add_clause((-1,-2))
-        sage: solver()                           # optional - kissat
+        sage: solver2 = Kissat()
+        sage: solver2.add_clause((1,2))
+        sage: solver2.add_clause((-1,2))
+        sage: solver2.add_clause((1,-2))
+        sage: solver2.add_clause((-1,-2))
+        sage: solver2()                           # optional - kissat
         False
+
+    With one hundred variables::
+
+        sage: solver3 = Kissat()
+        sage: solver3.add_clause( (1, 2, 100) )
+        sage: solver3.add_clause( (-1,) )
+        sage: solver3.add_clause( (-2,) )
+        sage: solver3()                           # optional - kissat
+        (None, False, False, ..., True)
+
+    TESTS::
+
+	sage: solver1._output                     # optional - kissat
+        ['s SATISFIABLE\n', 'v -1 -2 3 0\n']
+
+    ::
+
+	sage: solver2._output                     # optional - kissat
+	['s UNSATISFIABLE\n']
+
+    Here the output contains many lines starting with letter "v"::
+
+	sage: solver3._output                     # optional - kissat
+        ['s SATISFIABLE\n',
+         'v -1 -2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28\n',
+         'v 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53\n',
+         'v 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78\n',
+         'v 79 80 81 82 83 84 85 86 87 88 89 90 91 92 93 94 95 96 97 98 99 100 0\n']
 
     """
 

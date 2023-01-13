@@ -1,5 +1,5 @@
-Kissat SAT Solver
-=================
+kissat: SAT solver
+==================
 
 Description
 -----------
@@ -23,14 +23,9 @@ From the website::
 License
 -------
 
-The code has an MIT license.
+MIT license.
 
 Upstream Contact
 ----------------
 
 Website: http://fmv.jku.at/kissat/
-
-Special Update/Build Instructions
----------------------------------
-
-None.

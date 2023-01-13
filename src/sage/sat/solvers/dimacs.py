@@ -382,8 +382,7 @@ class DIMACS(SatSolver):
             sage: solver._output                      # optional - glucose
             [...
              's SATISFIABLE\n',
-             'SAT\n',
-             '-1 -2 3 0\n']
+             'v -1 -2 3 0\n']
         """
         from sage.misc.verbose import get_verbose
 
@@ -460,6 +459,32 @@ class DIMACS(SatSolver):
             sage: solver()                            # optional - rsat
             False
 
+        With Glucose::
+
+            sage: from sage.sat.solvers.dimacs import Glucose
+            sage: solver = Glucose()
+            sage: solver.add_clause((1,2))
+            sage: solver.add_clause((-1,2))
+            sage: solver.add_clause((1,-2))
+            sage: solver()                           # optional - glucose
+            (None, True, True)
+            sage: solver.add_clause((-1,-2))
+            sage: solver()                           # optional - glucose
+            False
+
+        With GlucoseSyrup::
+
+            sage: from sage.sat.solvers.dimacs import GlucoseSyrup
+            sage: solver = GlucoseSyrup()
+            sage: solver.add_clause((1,2))
+            sage: solver.add_clause((-1,2))
+            sage: solver.add_clause((1,-2))
+            sage: solver()                          # optional - glucose
+            (None, True, True)
+            sage: solver.add_clause((-1,-2))
+            sage: solver()                          # optional - glucose
+            False
+
         TESTS::
 
             sage: from sage.sat.boolean_polynomials import solve as solve_sat
@@ -478,6 +503,7 @@ class DIMACS(SatSolver):
 
         self._run()
 
+        v_lines = []
         for line in self._output:
             if line.startswith("c"):
                 continue
@@ -485,12 +511,14 @@ class DIMACS(SatSolver):
                 if "UNSAT" in line:
                     return False
             if line.startswith("v"):
-                L = line.strip().split(" ")
-                assert L[0] == "v"
-                assert L[-1] == "0", "last digit of solution line must be zero (not {})".format(L[-1])
-                return (None,) + tuple(int(e)>0 for e in L[1:-1])
+                v_lines.append(line[1:].strip())
 
-        raise ValueError("When parsing the output, no line starts with letter v or s")
+        if v_lines:
+            L = " ".join(v_lines).split(" ")
+            assert L[-1] == "0", "last digit of solution line must be zero (not {})".format(L[-1])
+            return (None,) + tuple(int(e)>0 for e in L[:-1])
+        else:
+            raise ValueError("When parsing the output, no line starts with letter v or s")
 
 class RSat(DIMACS):
     """
@@ -597,79 +625,6 @@ class Glucose(DIMACS):
     """
     command = "glucose -verb=0 -model {input}"
 
-    def __call__(self, assumptions=None, **kwds):
-        """
-        Solve this instance and return the parsed output.
-
-        INPUT:
-
-        - ``assumptions`` - ignored, accepted for compatibility with
-          other solvers (default: ``None``)
-
-        OUTPUT:
-
-        - If this instance is SAT: A tuple of length ``nvars()+1``
-          where the ``i``-th entry holds an assignment for the
-          ``i``-th variables (the ``0``-th entry is always ``None``).
-
-        - If this instance is UNSAT: ``False``
-
-        .. NOTE::
-
-            The output of Glucose is not standard (for instance the line
-            containing the results does not start with a letter v). This is
-            why the method ``DIMACS.__call__`` needs to be overwritten.
-
-        EXAMPLES::
-
-            sage: from sage.sat.solvers.dimacs import Glucose
-            sage: solver = Glucose()
-            sage: solver.add_clause((1,2))
-            sage: solver.add_clause((-1,2))
-            sage: solver.add_clause((1,-2))
-            sage: solver()                           # optional - glucose
-            (None, True, True)
-            sage: solver.add_clause((-1,-2))
-            sage: solver()                           # optional - glucose
-            False
-
-        ::
-
-            sage: from sage.sat.boolean_polynomials import solve as solve_sat
-            sage: sr = mq.SR(1,1,1,4,gf2=True,polybori=True)
-            sage: while True:  # workaround (see :trac:`31891`)
-            ....:     try:
-            ....:         F, s = sr.polynomial_system()
-            ....:         break
-            ....:     except ZeroDivisionError:
-            ....:         pass
-            sage: [sol] = solve_sat(F, solver=sage.sat.solvers.Glucose)  # optional - glucose
-            sage: Fsol = F.subs(sol)                                     # optional - glucose
-            sage: Fsol                                                   # optional - glucose
-            Polynomial Sequence with 36 Polynomials in 0 Variables
-            sage: Fsol.reduced()                                         # optional - glucose
-            []
-
-        """
-        if assumptions is not None:
-            raise NotImplementedError("Assumptions are not supported for DIMACS based solvers.")
-
-        self._run()
-
-        for line in self._output:
-            if line.startswith("c"):
-                continue
-            if line.startswith("s"):
-                if "UNSAT" in line:
-                    return False
-            try:
-                s = map(int, line[:-2].strip().split(" "))
-                s = (None,) + tuple(e>0 for e in s)
-                return s
-            except ValueError:
-                pass
-        return False
-
 class GlucoseSyrup(DIMACS):
     """
     An instance of the Glucose-syrup parallel solver.
@@ -736,77 +691,6 @@ class GlucoseSyrup(DIMACS):
 
     """
     command = "glucose-syrup -model -verb=0 {input}"
-
-    def __call__(self, assumptions=None, **kwds):
-        """
-        Solve this instance and return the parsed output.
-
-        INPUT:
-
-        - ``assumptions`` - ignored, accepted for compatibility with
-          other solvers (default: ``None``)
-
-        OUTPUT:
-
-        - If this instance is SAT: A tuple of length ``nvars()+1``
-          where the ``i``-th entry holds an assignment for the
-          ``i``-th variables (the ``0``-th entry is always ``None``).
-
-        - If this instance is UNSAT: ``False``
-
-        .. NOTE::
-
-            The output of Glucose is not standard (for instance the line
-            containing the results does not start with a letter v). This is
-            why the method ``DIMACS.__call__`` needs to be overwritten.
-
-        EXAMPLES::
-
-            sage: from sage.sat.boolean_polynomials import solve as solve_sat
-            sage: sr = mq.SR(1,1,1,4,gf2=True,polybori=True)
-            sage: while True:  # workaround (see :trac:`31891`)
-            ....:     try:
-            ....:         F, s = sr.polynomial_system()
-            ....:         break
-            ....:     except ZeroDivisionError:
-            ....:         pass
-            sage: [sol] = solve_sat(F, solver=sage.sat.solvers.GlucoseSyrup)  # optional - glucose
-            sage: Fsol = F.subs(sol)                                          # optional - glucose
-            sage: Fsol                                                        # optional - glucose
-            Polynomial Sequence with 36 Polynomials in 0 Variables
-            sage: Fsol.reduced()                                              # optional - glucose
-            []
-
-        ::
-
-            sage: from sage.sat.solvers.dimacs import GlucoseSyrup
-            sage: solver = GlucoseSyrup()
-            sage: solver.add_clause((1,2))
-            sage: solver.add_clause((-1,2))
-            sage: solver.add_clause((1,-2))
-            sage: solver()                          # optional - glucose
-            (None, True, True)
-            sage: solver.add_clause((-1,-2))
-            sage: solver()                          # optional - glucose
-            False
-        """
-        if assumptions is not None:
-            raise NotImplementedError("Assumptions are not supported for DIMACS based solvers.")
-
-        self._run()
-
-        full_line = ''
-        for line in self._output:
-            if line.startswith("c"):
-                continue
-            if line.startswith("s"):
-                if "UNSAT" in line:
-                    return False
-            if line.startswith("v"):
-                full_line += line[2:] + ' '
-        s = map(int, full_line[:-3].strip().split(" "))
-        s = (None,) + tuple(e > 0 for e in s)
-        return s
 
 class Kissat(DIMACS):
     """

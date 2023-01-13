@@ -744,3 +744,39 @@ class GlucoseSyrup(DIMACS):
         s = (None,) + tuple(e > 0 for e in s)
         return s
 
+class Kissat(DIMACS):
+    """
+    An instance of the Kissat SAT solver
+
+    For information on Kissat see: http://fmv.jku.at/kissat/
+
+    EXAMPLES::
+
+        sage: from sage.sat.solvers import Kissat
+        sage: solver = Kissat()
+        sage: solver
+        DIMACS Solver: 'kissat {input} {output}'
+
+    When the problem is SAT::
+
+        sage: solver = Kissat()
+        sage: solver.add_clause( (1, 2, 3) )
+        sage: solver.add_clause( (-1,) )
+        sage: solver.add_clause( (-2,) )
+        sage: solver()                            # optional - kissat
+        (None, False, False, True)
+
+    When the problem is UNSAT::
+
+        sage: solver = Kissat()
+        sage: solver.add_clause((1,2))
+        sage: solver.add_clause((-1,2))
+        sage: solver.add_clause((1,-2))
+        sage: solver.add_clause((-1,-2))
+        sage: solver()                           # optional - kissat
+        False
+
+    """
+
+    command = "kissat -q {input}"
+

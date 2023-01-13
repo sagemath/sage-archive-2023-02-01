@@ -354,14 +354,9 @@ class DIMACS(SatSolver):
                 fh.write(" ".join(map(str, lits)) + " 0\n")
         fh.close()
 
-    def __call__(self, assumptions=None):
+    def _run(self):
         """
         Run 'command' and collect output.
-
-        INPUT:
-
-        - ``assumptions`` - ignored, accepted for compatibility with
-          other solvers (default: ``None``)
 
         TESTS:
 
@@ -371,14 +366,26 @@ class DIMACS(SatSolver):
             sage: fn = tmp_filename()
             sage: solver = DIMACS(filename=fn)
             sage: solver.add_clause( (1, -2 , 3) )
-            sage: solver()
+            sage: solver._run()
             Traceback (most recent call last):
             ...
             ValueError: no SAT solver command selected
+
+        It is used by subclasses::
+
+            sage: from sage.sat.solvers import Glucose
+            sage: solver = Glucose()
+            sage: solver.add_clause( (1, 2, 3) )
+            sage: solver.add_clause( (-1,) )
+            sage: solver.add_clause( (-2,) )
+            sage: solver._run()                       # optional - glucose
+            sage: solver._output                      # optional - glucose
+            [...
+             's SATISFIABLE\n',
+             'SAT\n',
+             '-1 -2 3 0\n']
         """
         from sage.misc.verbose import get_verbose
-        if assumptions is not None:
-            raise NotImplementedError("Assumptions are not supported for DIMACS based solvers.")
 
         self.write()
         output_filename = None
@@ -414,19 +421,9 @@ class DIMACS(SatSolver):
             process.kill()
             raise
 
-
-class RSat(DIMACS):
-    """
-    An instance of the RSat solver.
-
-    For information on RSat see: http://reasoning.cs.ucla.edu/rsat/
-    """
-
-    command = "rsat {input} -v -s"
-
     def __call__(self, assumptions=None):
         """
-        Solve this instance.
+        Solve this instance and return the parsed output.
 
         INPUT:
 
@@ -441,7 +438,29 @@ class RSat(DIMACS):
 
         - If this instance is UNSAT: ``False``
 
-        EXAMPLES::
+        EXAMPLES:
+
+        When the problem is SAT::
+
+            sage: from sage.sat.solvers import RSat
+            sage: solver = RSat()
+            sage: solver.add_clause( (1, 2, 3) )
+            sage: solver.add_clause( (-1,) )
+            sage: solver.add_clause( (-2,) )
+            sage: solver()                            # optional - rsat
+            (None, False, False, True)
+
+        When the problem is UNSAT::
+
+            sage: solver = RSat()
+            sage: solver.add_clause((1,2))
+            sage: solver.add_clause((-1,2))
+            sage: solver.add_clause((1,-2))
+            sage: solver.add_clause((-1,-2))
+            sage: solver()                            # optional - rsat
+            False
+
+        TESTS::
 
             sage: from sage.sat.boolean_polynomials import solve as solve_sat
             sage: sr = mq.SR(1,1,1,4,gf2=True,polybori=True)
@@ -452,8 +471,12 @@ class RSat(DIMACS):
             ....:     except ZeroDivisionError:
             ....:         pass
             sage: solve_sat(F, solver=sage.sat.solvers.RSat)  # optional - RSat
+
         """
-        DIMACS.__call__(self)
+        if assumptions is not None:
+            raise NotImplementedError("Assumptions are not supported for DIMACS based solvers.")
+
+        self._run()
 
         s = [None] + [False for _ in range(self.nvars())]
         for line in self._output:
@@ -468,6 +491,43 @@ class RSat(DIMACS):
                     s[abs(e)] = e>0
         return tuple(s)
 
+class RSat(DIMACS):
+    """
+    An instance of the RSat solver.
+
+    For information on RSat see: http://reasoning.cs.ucla.edu/rsat/
+
+    EXAMPLES::
+
+        sage: from sage.sat.solvers import RSat
+        sage: solver = RSat()
+        sage: solver
+        DIMACS Solver: 'rsat {input} {output} -v -s'
+
+    When the problem is SAT::
+
+        sage: from sage.sat.solvers import RSat
+        sage: solver = RSat()
+        sage: solver.add_clause( (1, 2, 3) )
+        sage: solver.add_clause( (-1,) )
+        sage: solver.add_clause( (-2,) )
+        sage: solver()                            # optional - rsat
+        (None, False, False, True)
+
+    When the problem is UNSAT::
+
+        sage: solver = RSat()
+        sage: solver.add_clause((1,2))
+        sage: solver.add_clause((-1,2))
+        sage: solver.add_clause((1,-2))
+        sage: solver.add_clause((-1,-2))
+        sage: solver()                            # optional - rsat
+        False
+
+    """
+    command = "rsat {input} -v -s"
+
+
 class Glucose(DIMACS):
     """
     An instance of the Glucose solver.
@@ -480,19 +540,33 @@ class Glucose(DIMACS):
         sage: solver = Glucose()
         sage: solver
         DIMACS Solver: 'glucose -verb=2 {input} {output}'
+
+    When the problem is SAT::
+
+        sage: from sage.sat.solvers import Glucose
+        sage: solver = Glucose()
         sage: solver.add_clause( (1, 2, 3) )
         sage: solver.add_clause( (-1,) )
         sage: solver.add_clause( (-2,) )
         sage: solver()                            # optional - glucose
         (None, False, False, True)
 
-    """
+    When the problem is UNSAT::
 
+        sage: solver = Glucose()
+        sage: solver.add_clause((1,2))
+        sage: solver.add_clause((-1,2))
+        sage: solver.add_clause((1,-2))
+        sage: solver.add_clause((-1,-2))
+        sage: solver()                            # optional - glucose
+        False
+
+    """
     command = "glucose -verb=2 {input} {output}"
 
-    def __call__(self, **kwds):
+    def __call__(self, assumptions=None, **kwds):
         """
-        Solve this instance.
+        Solve this instance and return the parsed output.
 
         INPUT:
 
@@ -507,7 +581,26 @@ class Glucose(DIMACS):
 
         - If this instance is UNSAT: ``False``
 
+        .. NOTE::
+
+            The output of Glucose is not standard (for instance the line
+            containing the results does not start with a letter v). This is
+            why the method ``DIMACS.__call__`` needs to be overwritten.
+
         EXAMPLES::
+
+            sage: from sage.sat.solvers.dimacs import Glucose
+            sage: solver = Glucose()
+            sage: solver.add_clause((1,2))
+            sage: solver.add_clause((-1,2))
+            sage: solver.add_clause((1,-2))
+            sage: solver()                           # optional - glucose
+            (None, True, True)
+            sage: solver.add_clause((-1,-2))
+            sage: solver()                           # optional - glucose
+            False
+
+        ::
 
             sage: from sage.sat.boolean_polynomials import solve as solve_sat
             sage: sr = mq.SR(1,1,1,4,gf2=True,polybori=True)
@@ -524,20 +617,11 @@ class Glucose(DIMACS):
             sage: Fsol.reduced()                                         # optional - glucose
             []
 
-        ::
-
-            sage: from sage.sat.solvers.dimacs import Glucose
-            sage: solver = Glucose()
-            sage: solver.add_clause((1,2))
-            sage: solver.add_clause((-1,2))
-            sage: solver.add_clause((1,-2))
-            sage: solver()                           # optional - glucose
-            (None, True, True)
-            sage: solver.add_clause((-1,-2))
-            sage: solver()                           # optional - glucose
-            False
         """
-        DIMACS.__call__(self)
+        if assumptions is not None:
+            raise NotImplementedError("Assumptions are not supported for DIMACS based solvers.")
+
+        self._run()
 
         for line in self._output:
             if line.startswith("c"):
@@ -558,13 +642,40 @@ class GlucoseSyrup(DIMACS):
     An instance of the Glucose-syrup parallel solver.
 
     For information on Glucose see: http://www.labri.fr/perso/lsimon/glucose/
-    """
 
+    EXAMPLES::
+
+        sage: from sage.sat.solvers import GlucoseSyrup
+        sage: solver = GlucoseSyrup()
+        sage: solver
+        DIMACS Solver: 'glucose-syrup -model -verb=2 {input}'
+
+    When the problem is SAT::
+
+        sage: from sage.sat.solvers import GlucoseSyrup
+        sage: solver = GlucoseSyrup()
+        sage: solver.add_clause( (1, 2, 3) )
+        sage: solver.add_clause( (-1,) )
+        sage: solver.add_clause( (-2,) )
+        sage: solver()                            # optional - glucose
+        (None, False, False, True)
+
+    When the problem is UNSAT::
+
+        sage: solver = GlucoseSyrup()
+        sage: solver.add_clause((1,2))
+        sage: solver.add_clause((-1,2))
+        sage: solver.add_clause((1,-2))
+        sage: solver.add_clause((-1,-2))
+        sage: solver()                            # optional - glucose
+        False
+
+    """
     command = "glucose-syrup -model -verb=2 {input}"
 
-    def __call__(self, **kwds):
+    def __call__(self, assumptions=None, **kwds):
         """
-        Solve this instance.
+        Solve this instance and return the parsed output.
 
         INPUT:
 
@@ -578,6 +689,12 @@ class GlucoseSyrup(DIMACS):
           ``i``-th variables (the ``0``-th entry is always ``None``).
 
         - If this instance is UNSAT: ``False``
+
+        .. NOTE::
+
+            The output of Glucose is not standard (for instance the line
+            containing the results does not start with a letter v). This is
+            why the method ``DIMACS.__call__`` needs to be overwritten.
 
         EXAMPLES::
 
@@ -609,10 +726,12 @@ class GlucoseSyrup(DIMACS):
             sage: solver()                          # optional - glucose
             False
         """
-        DIMACS.__call__(self)
+        if assumptions is not None:
+            raise NotImplementedError("Assumptions are not supported for DIMACS based solvers.")
+
+        self._run()
 
         full_line = ''
-
         for line in self._output:
             if line.startswith("c"):
                 continue
@@ -624,3 +743,4 @@ class GlucoseSyrup(DIMACS):
         s = map(int, full_line[:-3].strip().split(" "))
         s = (None,) + tuple(e > 0 for e in s)
         return s
+

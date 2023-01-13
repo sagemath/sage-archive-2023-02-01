@@ -368,6 +368,11 @@ def SAT(solver=None, *args, **kwds):
 
         sage: SAT(solver="glucose-syrup")
         DIMACS Solver: 'glucose-syrup -model -verb=2 {input}'
+
+    Forcing Kissat::
+
+        sage: SAT(solver="kissat")
+        DIMACS Solver: 'kissat -q {input} {output}'
     """
     if solver is None:
         import pkgutil
@@ -393,5 +398,8 @@ def SAT(solver=None, *args, **kwds):
     elif solver == 'glucose-syrup':
         from .dimacs import GlucoseSyrup
         return GlucoseSyrup(*args, **kwds)
+    elif solver == 'kissat':
+        from .dimacs import Kissat
+        return Kissat(*args, **kwds)
     else:
         raise ValueError("Solver '{}' is not available".format(solver))

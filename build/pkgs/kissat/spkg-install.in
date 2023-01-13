@@ -1,3 +1,6 @@
 cd src
-./configure
+./configure CC="$CC" --test --kitten
+mkdir build
+cd build
 sdh_make
+sdh_install kissat kitten "$SAGE_LOCAL"/bin

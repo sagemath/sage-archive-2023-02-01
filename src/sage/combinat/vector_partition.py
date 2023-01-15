@@ -230,7 +230,7 @@ class VectorPartitions(UniqueRepresentation, Parent):
         [[[0, 1], [0, 1], [1, 0], [1, 0]], [[0, 1], [1, 0], [1, 1]], [[1, 1], [1, 1]]]
 
     If ``is_repeatable`` is specified, then the parts which satisfy the boolean function
-    ``is_repeatable`` is allowed to be repeated.
+    ``is_repeatable`` are allowed to be repeated.
 
         sage: Vector_Partitions = VectorPartitions([2,2], parts=[[0,1],[1,0],[1,1]], is_repeatable=lambda vec: sum(vec)%2!=0)
         sage: list(Vector_Partitions)

@@ -603,26 +603,23 @@ class Glucose(DIMACS):
 
     TESTS::
 
-        sage: solver1._output                      # optional - glucose
-        ['c...',
-         ...
-         's SATISFIABLE\n',
-         'v -1 -2 3 0\n']
+        sage: print(''.join(solver1._output))      # optional - glucose
+        c...
+        s SATISFIABLE
+        v -1 -2 3 0
 
     ::
 
-        sage: solver2._output                      # optional - glucose
-        ['c...',
-         ...
-         's UNSATISFIABLE\n']
+        sage: print(''.join(solver2._output))      # optional - glucose
+        c...
+        s UNSATISFIABLE
 
     Glucose gives large solution on one single line::
 
-        sage: solver3._output                      # optional - glucose
-        ['c...',
-         ...
-         's SATISFIABLE\n',
-         'v -1 -2 ... 100 0\n']
+        sage: print(''.join(solver3._output))      # optional - glucose
+        c...
+        s SATISFIABLE
+        v -1 -2 ... 100 0
 
     """
     command = "glucose -verb=0 -model {input}"
@@ -670,26 +667,23 @@ class GlucoseSyrup(DIMACS):
 
     TESTS::
 
-        sage: solver1._output                      # optional - glucose
-        ['c...',
-         ...
-         's SATISFIABLE\n',
-         'v -1 -2 3 0\n']
+        sage: print(''.join(solver1._output))      # optional - glucose
+        c...
+        s SATISFIABLE
+        v -1 -2 3 0
 
     ::
 
-        sage: solver2._output                      # optional - glucose
-        ['c...',
-         ...
-         's UNSATISFIABLE\n']
+        sage: print(''.join(solver2._output))      # optional - glucose
+        c...
+        s UNSATISFIABLE
 
     GlucoseSyrup gives large solution on one single line::
 
-        sage: solver3._output                      # optional - glucose
-        ['c...',
-         ...
-         's SATISFIABLE\n',
-         'v -1 -2 ... 100 0\n']
+        sage: print(''.join(solver3._output))      # optional - glucose
+        c...
+        s SATISFIABLE
+        v -1 -2 ... 100 0
 
     """
     command = "glucose-syrup -model -verb=0 {input}"
@@ -737,23 +731,23 @@ class Kissat(DIMACS):
 
     TESTS::
 
-        sage: solver1._output                     # optional - kissat
-        ['s SATISFIABLE\n',
-         'v -1 -2 3 0\n']
+        sage: print(''.join(solver1._output))     # optional - kissat
+        s SATISFIABLE
+        v -1 -2 3 0
 
     ::
 
-        sage: solver2._output                     # optional - kissat
-        ['s UNSATISFIABLE\n']
+        sage: print(''.join(solver2._output))     # optional - kissat
+        s UNSATISFIABLE
 
     Here the output contains many lines starting with letter "v"::
 
-        sage: solver3._output                     # optional - kissat
-        ['s SATISFIABLE\n',
-         'v -1 -2 ...',
-         'v ...',
-         'v ...',
-         'v ... 100 0\n']
+        sage: print(''.join(solver3._output))     # optional - kissat
+        s SATISFIABLE
+        v -1 -2 ...
+        v ...
+        v ...
+        v ... 100 0
 
     """
 

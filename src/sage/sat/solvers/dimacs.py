@@ -533,7 +533,7 @@ class RSat(DIMACS):
         sage: from sage.sat.solvers import RSat
         sage: solver = RSat()
         sage: solver
-        DIMACS Solver: 'rsat {input} {output} -v -s'
+        DIMACS Solver: 'rsat {input} -v -s'
 
     When the problem is SAT::
 
@@ -570,7 +570,7 @@ class Glucose(DIMACS):
         sage: from sage.sat.solvers import Glucose
         sage: solver = Glucose()
         sage: solver
-        DIMACS Solver: 'glucose -verb=2 {input} {output}'
+        DIMACS Solver: 'glucose -verb=0 -model {input}'
 
     When the problem is SAT::
 
@@ -603,23 +603,23 @@ class Glucose(DIMACS):
 
     TESTS::
 
-	sage: solver1._output                      # optional - glucose
-	['c...',
+        sage: solver1._output                      # optional - glucose
+        ['c...',
          ...
-	 's SATISFIABLE\n',
-	 'v -1 -2 3 0\n']
+         's SATISFIABLE\n',
+         'v -1 -2 3 0\n']
 
     ::
 
-	sage: solver2._output                      # optional - glucose
-	['c...',
+        sage: solver2._output                      # optional - glucose
+        ['c...',
          ...
          's UNSATISFIABLE\n']
 
     Glucose gives large solution on one single line::
 
-	sage: solver3._output                      # optional - glucose
-	['c...',
+        sage: solver3._output                      # optional - glucose
+        ['c...',
          ...
          's SATISFIABLE\n',
          'v -1 -2 ... 100 0\n']
@@ -638,7 +638,7 @@ class GlucoseSyrup(DIMACS):
         sage: from sage.sat.solvers import GlucoseSyrup
         sage: solver = GlucoseSyrup()
         sage: solver
-        DIMACS Solver: 'glucose-syrup -model -verb=2 {input}'
+        DIMACS Solver: 'glucose-syrup -model -verb=0 {input}'
 
     When the problem is SAT::
 
@@ -670,23 +670,23 @@ class GlucoseSyrup(DIMACS):
 
     TESTS::
 
-	sage: solver1._output                      # optional - glucose
-	['c...',
+        sage: solver1._output                      # optional - glucose
+        ['c...',
          ...
-	 's SATISFIABLE\n',
-	 'v -1 -2 3 0\n']
+         's SATISFIABLE\n',
+         'v -1 -2 3 0\n']
 
     ::
 
         sage: solver2._output                      # optional - glucose
-	['c...',
+        ['c...',
          ...
          's UNSATISFIABLE\n']
 
     GlucoseSyrup gives large solution on one single line::
 
-	sage: solver3._output                      # optional - glucose
-	['c...',
+        sage: solver3._output                      # optional - glucose
+        ['c...',
          ...
          's SATISFIABLE\n',
          'v -1 -2 ... 100 0\n']
@@ -705,7 +705,7 @@ class Kissat(DIMACS):
         sage: from sage.sat.solvers import Kissat
         sage: solver = Kissat()
         sage: solver
-        DIMACS Solver: 'kissat {input} {output}'
+        DIMACS Solver: 'kissat -q {input}'
 
     When the problem is SAT::
 
@@ -737,18 +737,18 @@ class Kissat(DIMACS):
 
     TESTS::
 
-	sage: solver1._output                     # optional - kissat
+        sage: solver1._output                     # optional - kissat
         ['s SATISFIABLE\n',
          'v -1 -2 3 0\n']
 
     ::
 
-	sage: solver2._output                     # optional - kissat
-	['s UNSATISFIABLE\n']
+        sage: solver2._output                     # optional - kissat
+        ['s UNSATISFIABLE\n']
 
     Here the output contains many lines starting with letter "v"::
 
-	sage: solver3._output                     # optional - kissat
+        sage: solver3._output                     # optional - kissat
         ['s SATISFIABLE\n',
          'v -1 -2 ...',
          'v ...',

@@ -362,17 +362,17 @@ def SAT(solver=None, *args, **kwds):
     Forcing Glucose::
 
         sage: SAT(solver="glucose")
-        DIMACS Solver: 'glucose -verb=2 {input} {output}'
+        DIMACS Solver: 'glucose -verb=0 -model {input}'
 
     Forcing Glucose Syrup::
 
         sage: SAT(solver="glucose-syrup")
-        DIMACS Solver: 'glucose-syrup -model -verb=2 {input}'
+        DIMACS Solver: 'glucose-syrup -model -verb=0 {input}'
 
     Forcing Kissat::
 
         sage: SAT(solver="kissat")
-        DIMACS Solver: 'kissat -q {input} {output}'
+        DIMACS Solver: 'kissat -q {input}'
     """
     if solver is None:
         import pkgutil

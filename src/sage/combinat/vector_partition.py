@@ -31,7 +31,7 @@ from sage.combinat.partition import Partition
 def find_min(vect):
     """
     Return a string of ``0``'s with one ``1`` at the location where the list
-    vect has its last entry which is not equal to ``0``.
+    ``vect`` has its last entry which is not equal to ``0``.
 
     INPUT:
 
@@ -230,7 +230,7 @@ class VectorPartitions(UniqueRepresentation, Parent):
         [[[0, 1], [0, 1], [1, 0], [1, 0]], [[0, 1], [1, 0], [1, 1]], [[1, 1], [1, 1]]]
 
     If ``is_repeatable`` is specified, then the parts which satisfy the boolean function
-    ``is_repeatable`` is allowed to be repeated.
+    ``is_repeatable`` are allowed to be repeated::
 
         sage: Vector_Partitions = VectorPartitions([2,2], parts=[[0,1],[1,0],[1,1]], is_repeatable=lambda vec: sum(vec)%2!=0)
         sage: list(Vector_Partitions)

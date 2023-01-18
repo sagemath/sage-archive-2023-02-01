@@ -567,7 +567,7 @@ class OverconvergentDistributions_abstract(Module):
             M = self.precision_cap()
         R = self.base_ring()
         return self((R ** M).random_element(**args))
-##        return self(self.approx_module(M).random_element())
+    #        return self(self.approx_module(M).random_element())
 
     def clear_cache(self):
         """

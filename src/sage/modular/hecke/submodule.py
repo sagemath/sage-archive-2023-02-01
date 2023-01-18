@@ -655,10 +655,10 @@ class HeckeSubmodule(module.HeckeModule_free_module):
 
         # Neither is ambient
         V = self.free_module().intersection(other.free_module())
-        M = self.ambient_hecke_module().submodule(V,check=False)
+        M = self.ambient_hecke_module().submodule(V, check=False)
 
-        ## if sign is nonzero, the intersection will be, too
-        ## this only makes sense for modular symbols spaces (and hence shouldn't really be in this file)
+        # if sign is nonzero, the intersection will be, too
+        # this only makes sense for modular symbols spaces (and hence shouldn't really be in this file)
         try:
             if self.sign():
                 M._set_sign(self.sign())

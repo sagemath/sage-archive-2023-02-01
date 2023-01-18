@@ -384,10 +384,10 @@ def check_integer_list_constraints(l, **kwargs):
     filters['max_part'] = lambda x: max(x) <= max_part
     filters['min_length'] = lambda x: len(x) >= min_length
     filters['max_length'] = lambda x: len(x) <= max_length
-    filters['min_slope'] = lambda x: min([x[i+1]-x[i] for i in range(len(x)-1)]+[min_slope+1]) >= min_slope
-    filters['max_slope'] = lambda x: max([x[i+1]-x[i] for i in range(len(x)-1)]+[max_slope-1]) <= max_slope
-    filters['outer'] = lambda x: len(outer) >= len(x) and min([outer[i]-x[i] for i in range(len(x))]) >= 0
-    filters['inner'] = lambda x: len(x) >= len(inner) and max([inner[i]-x[i] for i in range(len(inner))]) <= 0
+    filters['min_slope'] = lambda x: min((x[i + 1] - x[i] for i in range(len(x) - 1)), default=min_slope + 1) >= min_slope
+    filters['max_slope'] = lambda x: max((x[i + 1] - x[i] for i in range(len(x) - 1)), default=max_slope - 1) <= max_slope
+    filters['outer'] = lambda x: len(outer) >= len(x) and min(outer[i] - x[i] for i in range(len(x))) >= 0
+    filters['inner'] = lambda x: len(x) >= len(inner) and max(inner[i] - x[i] for i in range(len(inner))) <= 0
 
     for key in kwargs:
         result = [x for x in result if filters[key](x)]

@@ -4418,6 +4418,10 @@ REFERENCES:
              leurs modules*. Effective methods in algebraic geometry (Castiglioncello,
              1990), 313--334, Progr. Math., 94, Birkhauser Boston, Boston, MA, 1991.
 
+.. [MG1992] \J. Misra and D. Gries. *A constructive proof of Vizing's theorem*.
+            Information Processing Letters, (3) 41 (1992), 131-133.
+            :doi:`10.1016/0020-0190(92)90041-S`.
+
 .. [Mil1958] \J. W. Milnor, *The Steenrod algebra and its dual*,
              Ann. of Math. (2) 67 (1958), 150-171.
 

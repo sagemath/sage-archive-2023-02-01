@@ -1917,6 +1917,21 @@ class TensorProductOfHighestWeightModules(QuantumGroupModule):
                 for wt, vecs in zip(*self._highest_weights_and_vectors)
                 for v in vecs]
 
+    def tensor_factors(self):
+        r"""
+        Return the factors of ``self``.
+
+        EXAMPLES::
+
+            sage: Q = QuantumGroup(['A',2])           # optional - gap_packages
+            sage: V = Q.highest_weight_module([1,0])  # optional - gap_packages
+            sage: T = tensor([V,V])                   # optional - gap_packages
+            sage: T.tensor_factors()                  # optional - gap_packages
+            (Highest weight module of weight Lambda[1] of Quantum Group of type ['A', 2] with q=q,
+             Highest weight module of weight Lambda[1] of Quantum Group of type ['A', 2] with q=q)
+        """
+        return self._modules
+
     Element = QuaGroupRepresentationElement
 
 
@@ -1934,7 +1949,11 @@ class HighestWeightSubmodule(QuantumGroupModule):
             sage: TestSuite(S).run()  # optional - gap_packages
         """
         self._ambient = ambient
-        cat = ambient.category()
+        # We do not use the generic ambient category since submodules of tensor
+        #   products are considered to be tensor products.
+        # This should be reverted after this has changed.
+        #cat = ambient.category()
+        cat = Modules(ambient.base_ring()).FiniteDimensional().WithBasis()
         QuantumGroupModule.__init__(self, ambient._Q, cat.Subobjects())
 
         self._gen = gen
@@ -2652,3 +2671,4 @@ def _unpickle_generic_element(parent, data):
         ret.append(libgap(data[2 * i]))
         ret.append(one * libgap(data[2 * i + 1].subs(q=parent._libgap_q)))
     return parent.element_class(parent, F.ObjByExtRep(ret))
+

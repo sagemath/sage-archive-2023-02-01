@@ -849,7 +849,7 @@ class CrystalOfAlcovePathsElement(ElementWrapper):
                 if j == len(J) - 1:
                     c2 = max_height_Beta
                 else:
-                    c2 = min (max_height_Beta, J[j+1]._cmp_v[0]*max_height_Beta + 1)
+                    c2 = min(max_height_Beta, J[j+1]._cmp_v[0]*max_height_Beta + 1)
 
                 for k in range(int(c1), int(c2)):
 
@@ -1045,7 +1045,7 @@ class CrystalOfAlcovePathsElement(ElementWrapper):
             if m_index < len(positions): # if m_index != 'infinity'
                                          # thus positions[m_index] makes sense
                 J.remove(positions[m_index])
-            return_value = Parent ( tuple( sorted(J) ) )
+            return_value = Parent(tuple(sorted(J)))
 
             # we attach to each admissible sequence a list
             # which encodes a path (via root operators) from the generator ()

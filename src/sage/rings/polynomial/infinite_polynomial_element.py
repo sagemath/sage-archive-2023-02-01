@@ -779,7 +779,9 @@ class InfinitePolynomial_sparse(RingElement):
             else:  # Permutation group element
                 p = n
 
-            def q(s): return s[0]+'_'+str(p(ZZ(s[1])))
+            def q(s):
+                return s[0] + '_' + str(p(ZZ(s[1])))
+
             newVars = [q(X.split('_')) for X in self._p.parent().variable_names()]
             if not newVars:
                 return self
@@ -976,9 +978,13 @@ class InfinitePolynomial_sparse(RingElement):
             x_2*y_4 + x_1*y_3
 
         """
-        Indices = set([0]+[Integer(str(Y).split('_')[1]) for Y in self.variables()])
+        Indices = set([0] + [Integer(str(Y).split('_')[1])
+                             for Y in self.variables()])
         Indices = sorted(Indices)
-        def P(n): return Indices.index(n) if n in Indices else n
+
+        def P(n):
+            return Indices.index(n) if n in Indices else n
+
         return self**P
 
     def footprint(self):
@@ -1571,7 +1577,9 @@ class InfinitePolynomial_dense(InfinitePolynomial_sparse):
             if hasattr(n, 'to_cycles') and hasattr(n, '__len__'):  # duck typing Permutation
                 # auxiliary function, necessary since n(m) raises an error if m>len(n)
                 l = len(n)
-                def p(m): return n(m) if 0 < m <= l else m
+
+                def p(m):
+                    return n(m) if 0 < m <= l else m
             else:  # Permutation group element
                 p = n
 

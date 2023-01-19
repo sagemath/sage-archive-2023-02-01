@@ -192,6 +192,7 @@ def WeakTableau(t, k, inner_shape = [], representation = "core"):
     else:
         raise NotImplementedError("The representation option needs to be 'core', 'bounded', or 'factorized_permutation'")
 
+
 def WeakTableaux(k, shape , weight, representation = "core"):
     r"""
     This is the dispatcher method for the parent class of weak `k`-tableaux.
@@ -257,11 +258,14 @@ def WeakTableaux(k, shape , weight, representation = "core"):
         raise NotImplementedError("The representation option needs to be 'core', 'bounded', or 'factorized_permutation'")
 
 #Abstract class for the elements of weak tableau
+
+
 class WeakTableau_abstract(ClonableList,
         metaclass=InheritComparisonClasscallMetaclass):
     r"""
     Abstract class for the various element classes of WeakTableau.
     """
+
     def shape(self):
         r"""
         Return the shape of ``self``.
@@ -520,10 +524,13 @@ class WeakTableau_abstract(ClonableList,
             raise ValueError("The representation must be one of 'core', 'bounded', or 'factorized_permutation'")
 
 #Abstract class for the parents of weak tableaux
+
+
 class WeakTableaux_abstract(UniqueRepresentation, Parent):
     r"""
     Abstract class for the various parent classes of WeakTableaux.
     """
+
     def shape(self):
         r"""
         Return the shape of the tableaux of ``self``.
@@ -1207,6 +1214,7 @@ class WeakTableau_core(WeakTableau_abstract):
         L = [v for v in sw if self[v[0]][v[1]] <= r]
         return max(v[0] for v in L+R)
 
+
 class WeakTableaux_core(WeakTableaux_abstract):
     r"""
     The class of (skew) weak `k`-tableaux in the core representation of shape ``shape``
@@ -1784,6 +1792,8 @@ class WeakTableaux_bounded(WeakTableaux_abstract):
     Element = WeakTableau_bounded
 
 #Weak tableaux in terms of factorized permutations
+
+
 class WeakTableau_factorized_permutation(WeakTableau_abstract):
     r"""
     A weak (skew) `k`-tableau represented in terms of factorizations of affine
@@ -3913,6 +3923,7 @@ class StrongTableau(ClonableList, metaclass=InheritComparisonClasscallMetaclass)
         """
         return StrongTableaux.marked_CST_to_transposition_sequence( self.to_standard_list(), self.k )
 
+
 class StrongTableaux(UniqueRepresentation, Parent):
 
     def __init__( self, k, shape, weight ):
@@ -4585,6 +4596,7 @@ class StrongTableaux(UniqueRepresentation, Parent):
 
 #### common or global functions related to weak/strong tableaux
 
+
 def nabs(v):
     r"""
     Return the absolute value of ``v`` or ``None``.
@@ -4609,6 +4621,7 @@ def nabs(v):
         return v
     else:
         return abs(v)
+
 
 def intermediate_shapes(t):
     r"""

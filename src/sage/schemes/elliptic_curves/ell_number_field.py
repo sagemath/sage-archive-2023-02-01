@@ -2290,14 +2290,21 @@ class EllipticCurve_number_field(EllipticCurve_field):
         It can happen that no points are found if the height bounds
         used in the search are too small (see :trac:`10745`)::
 
-            sage: K.<y> = NumberField(x^4 + x^2 - 7)
-            sage: E = EllipticCurve(K, [1, 0, 5*y^2 + 16, 0, 0])
+            sage: K.<t> = NumberField(x^4 + x^2 - 7)
+            sage: E = EllipticCurve(K, [1, 0, 5*t^2 + 16, 0, 0])
             sage: E.gens(lim1=1, lim3=1)
             []
             sage: E.rank()
             1
-            sage: E.gens(lim3=13)  # long time (about 4s)
+            sage: gg=E.gens(lim3=13); gg  # long time (about 4s)
             [(... : 1)]
+
+        Check that the the point found has infinite order, and that it is on the curve::
+
+            sage: P=gg[0]; P.order()
+            +Infinity
+            sage: E.defining_polynomial()(*P)
+            0
 
         Here is a curve of rank 2::
 

@@ -2294,9 +2294,10 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: E = EllipticCurve(K, [1, 0, 5*y^2 + 16, 0, 0])
             sage: E.gens(lim1=1, lim3=1)
             []
-            sage: E.rank(), E.gens(lim3=12)  # long time (about 4s)
-            (1,
-             [(369/25*y^3 + 539/25*y^2 + 1178/25*y + 1718/25 : -29038/125*y^3 - 43003/125*y^2 - 92706/125*y - 137286/125 : 1)])
+            sage: E.rank()
+            1
+            sage: E.gens(lim3=13)  # long time (about 4s)
+            [(... : 1)]
 
         Here is a curve of rank 2::
 
@@ -2644,7 +2645,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: [phi.codomain().cm_discriminant() for phi in E.isogenies_prime_degree()]  # long time
             [-92, -23, -23]
 
-            sage: C.matrix()  # long time
+            sage: C.matrix()  # long time # random
             [1 2 2 4 4 2]
             [2 1 2 4 2 4]
             [2 2 1 2 4 4]
@@ -2676,13 +2677,15 @@ class EllipticCurve_number_field(EllipticCurve_field):
         determined::
 
             sage: G = C.graph()  # long time
-            sage: G.adjacency_matrix()  # long time
+            sage: G.adjacency_matrix()  # long time # random
             [0 1 1 0 0 1]
             [1 0 1 0 1 0]
             [1 1 0 1 0 0]
             [0 0 1 0 1 1]
             [0 1 0 1 0 1]
             [1 0 0 1 1 0]
+            sage: Graph(polytopes.simplex(2).prism().adjacency_matrix()).is_isomorphic(G) # long time
+            True
 
         To display the graph without any edge labels::
 

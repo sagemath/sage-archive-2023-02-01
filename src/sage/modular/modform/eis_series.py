@@ -125,8 +125,8 @@ def eisenstein_series_qexp(k, prec=10, K=QQ, var='q', normalization='linear'):
     - David Loeffler (2012-03-15): add options for alternative normalizations
       (motivated by :trac:`12043`)
     """
-    ## we use this to prevent computation if it would fail anyway.
-    if k <= 0 or k % 2 == 1 :
+    # we use this to prevent computation if it would fail anyway.
+    if k <= 0 or k % 2 == 1:
         raise ValueError("k must be positive and even")
 
     a0 = - bernoulli(k) / (2*k)

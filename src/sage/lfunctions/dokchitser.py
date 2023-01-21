@@ -1,12 +1,5 @@
 """
-Dokchitser's L-functions Calculator
-
-AUTHORS:
-
-- Tim Dokchitser (2002): original PARI code and algorithm (and the
-  documentation below is based on Dokchitser's docs).
-
-- William Stein (2006-03-08): Sage interface
+Dokchitser's `L`-functions calculator
 
 .. TODO::
 
@@ -15,6 +8,14 @@ AUTHORS:
 
     - plug this code into number fields and modular forms code (elliptic
       curves are done).
+
+AUTHORS:
+
+- Tim Dokchitser (2002): original PARI code and algorithm (and the
+  documentation below is based on Dokchitser's docs).
+
+- William Stein (2006-03-08): Sage interface
+
 """
 
 # ****************************************************************************

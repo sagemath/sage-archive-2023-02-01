@@ -1,5 +1,5 @@
 """
-Quadratic Forms Overview
+Quadratic forms overview
 
 AUTHORS:
 

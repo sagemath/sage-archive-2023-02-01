@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Eisenstein Series
+Eisenstein series
 """
 # ****************************************************************************
 #       Copyright (C) 2004-2006 William Stein <wstein@gmail.com>

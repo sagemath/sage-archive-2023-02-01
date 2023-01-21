@@ -417,7 +417,6 @@ class RootLatticeRealizations(Category_over_base_ring):
                     longest=j
             return self.simple_roots()[longest[0]]
 
-
         ##########################################################################
         # simple roots
         ##########################################################################
@@ -1233,7 +1232,6 @@ class RootLatticeRealizations(Category_over_base_ring):
             """
             return self.root_system.coroot_space(base_ring = base_ring)
 
-
         def simple_coroot(self, i):
             """
             Returns the `i^{th}` simple coroot.
@@ -1365,7 +1363,6 @@ class RootLatticeRealizations(Category_over_base_ring):
             coef = self.cartan_type().acheck()
             return sum(coef[k]*self.simple_coroots()[k] for k in coef.keys())
 
-
         ##########################################################################
         # fundamental weights
         ##########################################################################
@@ -1445,7 +1442,6 @@ class RootLatticeRealizations(Category_over_base_ring):
             except ValueError:
                 raise ValueError("The fundamental weights do not live in this realization of the root lattice")
             return Family(dict(zip(self.index_set(),fundamental_weights)))
-
 
         ##########################################################################
         # reflections
@@ -1825,7 +1821,6 @@ class RootLatticeRealizations(Category_over_base_ring):
                     orbit.append(beta)
                 orbits.append(orbit)
             return orbits
-
 
         ##########################################################################
         # Methods for affine root lattice realizations
@@ -2498,7 +2493,6 @@ class RootLatticeRealizations(Category_over_base_ring):
                 G += plot_options.reflection_hyperplane(coroot)
             return plot_options.finalize(G)
 
-
         def plot_hedron(self, **options):
             r"""
             Plot the polyhedron whose vertices are given by the orbit
@@ -2820,7 +2814,6 @@ class RootLatticeRealizations(Category_over_base_ring):
             #             G += line(facet,
             #                       rgbcolor = plot_options.color(i),
             #                       thickness = 2 if i == special_node else 1)
-
 
         def plot_bounding_box(self, **options):
             r"""
@@ -3595,7 +3588,6 @@ class RootLatticeRealizations(Category_over_base_ring):
             else:
                 return self - self.scalar(root.associated_coroot()) * root
 
-
         ##########################################################################
         # Descents
         ##########################################################################
@@ -3789,7 +3781,6 @@ class RootLatticeRealizations(Category_over_base_ring):
             """
             return self.to_dominant_chamber(index_set=index_set,positive=positive,reduced_word = True)[1]
 
-
         def is_dominant(self, index_set = None, positive = True):
             r"""
             Returns whether self is dominant.
@@ -3852,7 +3843,6 @@ class RootLatticeRealizations(Category_over_base_ring):
             from sage.rings.semirings.non_negative_integer_semiring import NN
             return all(self.inner_product(alphacheck[i]) in NN
                        for i in self.parent().index_set())
-
 
         ##########################################################################
         # weak order

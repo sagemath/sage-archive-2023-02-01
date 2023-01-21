@@ -40,6 +40,7 @@ from sage.misc.abstract_method import abstract_method
 from sage.categories.category_types import Category_over_base_ring
 from sage.categories.realizations import RealizationsCategory
 
+
 class BasesOfQSymOrNCSF(Category_realization_of_parent):
 
     def _repr_object_names(self):
@@ -993,6 +994,7 @@ class AlgebraMorphism(ModuleMorphismByLinearity): # Find a better name
     """
     A class for algebra morphism defined on a free algebra from the image of the generators
     """
+
     def __init__(self, domain, on_generators, position = 0, codomain = None, category = None, anti = False):
         """
         Given a map on the multiplicative basis of a free algebra, this method
@@ -1153,6 +1155,7 @@ class AlgebraMorphism(ModuleMorphismByLinearity): # Find a better name
         if self._anti:
             c = reversed(c)
         return self.codomain().prod(self._on_generators(i) for i in c)
+
 
 class GradedModulesWithInternalProduct(Category_over_base_ring):
     r"""

@@ -18,6 +18,7 @@ Miscellaneous
 
 from sage.misc.misc_c import prod
 
+
 class DoublyLinkedList():
     """
     A doubly linked list class that provides constant time hiding and
@@ -38,6 +39,7 @@ class DoublyLinkedList():
         sage: dll.unhide(2); dll
         Doubly linked list of [1, 2, 3]: [1, 2, 3]
     """
+
     def __init__(self, l):
         """
         TESTS::
@@ -177,7 +179,6 @@ class DoublyLinkedList():
         return self.prev_value[j]
 
 
-
 def _monomial_exponent_to_lower_factorial(me, x):
     r"""
     Converts a tuple of exponents to the monomial obtained by replacing
@@ -206,6 +207,7 @@ def _monomial_exponent_to_lower_factorial(me, x):
         for j in range(me[i]):
             terms.append( x[i]-j )
     return prod(terms)
+
 
 def umbral_operation(poly):
     r"""
@@ -272,6 +274,7 @@ class IterableFunctionCall:
         bbb
         foo
     """
+
     def __init__(self, f, *args, **kwargs):
         """
         EXAMPLES::

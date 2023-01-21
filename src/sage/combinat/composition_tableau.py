@@ -523,6 +523,7 @@ class CompositionTableaux_all(CompositionTableaux, DisjointUnionEnumeratedSets):
     r"""
     All composition tableaux.
     """
+
     def __init__(self, max_entry=None):
         r"""
         Initialize ``self``.
@@ -578,6 +579,7 @@ class CompositionTableaux_size(CompositionTableaux):
 
     - The class of composition tableaux of size ``n``.
     """
+
     def __init__(self, n, max_entry=None):
         r"""
         Initializes the class of composition tableaux of size ``n``.
@@ -762,6 +764,7 @@ class CompositionTableauxBacktracker(GenericBacktracker):
     r"""
     A backtracker class for generating sets of composition tableaux.
     """
+
     def __init__(self, shape, max_entry=None):
         """
         EXAMPLES::

@@ -2344,14 +2344,14 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
 
         for i in range(len_pn):
             for j in range(len_pn):
-                if inverse[i,j] != zero:
+                if inverse[i, j] != zero:
                     if hasattr(self, '_normalize_coefficients'):
-                        unknown_cache_n[ pn[i] ] [ pn[j] ] = self._normalize_coefficients(inverse[i,j])
+                        unknown_cache_n[ pn[i] ][ pn[j] ] = self._normalize_coefficients(inverse[i, j])
                     else:
-                        unknown_cache_n[ pn[i] ] [ pn[j] ] = inverse[i,j]
+                        unknown_cache_n[ pn[i] ][ pn[j] ] = inverse[i, j]
 
-        known_cache[ n ]   = known_cache_n
-        unknown_cache[ n ] = unknown_cache_n
+        known_cache[n] = known_cache_n
+        unknown_cache[n] = unknown_cache_n
 
     def symmetric_function_ring(self):
         r"""

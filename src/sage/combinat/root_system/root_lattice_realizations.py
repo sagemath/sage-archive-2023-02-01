@@ -325,7 +325,7 @@ class RootLatticeRealizations(Category_over_base_ring):
 
             # Check the embeddings from the root lattice and the root space over the same base ring
             root_lattice = self.root_system.root_lattice()
-            root_space   = self.root_system.root_space  (R)
+            root_space = self.root_system.root_space(R)
             tester.assertIsNot(self.coerce_map_from(root_lattice), None)
             tester.assertIsNot(self.coerce_map_from(root_space), None)
             for i in self.index_set():
@@ -2925,20 +2925,20 @@ class RootLatticeRealizations(Category_over_base_ring):
             if foldings is None:
                 foldings = [False] * len(word)
             w = W.one()
-            source  = plot_options.projection(start)
+            source = plot_options.projection(start)
             G = plot_options.empty()
             for (i, folding) in zip(word, foldings):
                 w = w * s[i]
                 target = plot_options.projection(w.action(start))
                 if folding:
-                    middle = (source+target)/2
-                    G += line ([source, middle], rgbcolor=color)
+                    middle = (source + target) / 2
+                    G += line([source, middle], rgbcolor=color)
                     G += arrow(middle, source, rgbcolor=color, arrowsize=plot_options._arrowsize)
                     # reset w
                     w = w * s[i]
                 else:
                     G += arrow(source, target, rgbcolor=color, arrowsize=plot_options._arrowsize)
-                    source=target
+                    source = target
             return G
 
         @cached_method

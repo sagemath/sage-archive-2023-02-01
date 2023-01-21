@@ -1076,12 +1076,15 @@ class AlgebraMorphism(ModuleMorphismByLinearity): # Find a better name
         assert codomain is not None
         if category is None:
             if anti:
-                category = ModulesWithBasis (domain.base_ring())
+                category = ModulesWithBasis(domain.base_ring())
             else:
                 category = AlgebrasWithBasis(domain.base_ring())
         self._anti = anti
         self._on_generators = on_generators
-        ModuleMorphismByLinearity.__init__(self, domain = domain, codomain = codomain, position = position, category = category)
+        ModuleMorphismByLinearity.__init__(self, domain=domain,
+                                           codomain=codomain,
+                                           position=position,
+                                           category=category)
 
     def __eq__(self, other):
         """

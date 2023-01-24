@@ -1,20 +1,14 @@
 diff --git a/src/basemath/ellsea.c b/src/basemath/ellsea.c
-index a6871fa6a7..f1e725ea55 100644
+index a6871fa6a7..05f148eadd 100644
 --- a/src/basemath/ellsea.c
 +++ b/src/basemath/ellsea.c
-@@ -1303,6 +1303,7 @@ find_trace_Elkies_power(GEN a4, GEN a6, ulong ell, long *pt_k, struct meqn *MEQN
-   lambda = tr ? find_eigen_value_oneroot(a4, a6, ell, tr, kpoly, T, p):
-                 find_eigen_value_power(a4, a6, ell, 1, 1, kpoly, T, p);
-   if (DEBUGLEVEL>1) err_printf(" [%ld ms]", timer_delay(ti));
-+  if (lambda==ell) return NULL;
-   if (smallfact && smallfact%(long)ell!=0)
-   {
-     ulong pell = pellk%ell;
-@@ -1317,6 +1318,7 @@ find_trace_Elkies_power(GEN a4, GEN a6, ulong ell, long *pt_k, struct meqn *MEQN
-     if (!tmp) { k = cnt-1; break; }
-     if (DEBUGLEVEL) err_printf(", %Ps", powuu(ell, cnt));
-     lambda = find_eigen_value_power(a4, a6, ell, cnt, lambda, gel(tmp,3), T, p);
-+    if (lambda == upowuu(ell, cnt)) { k = cnt-1; break; }
-     Eba4 = Eca4;
-     Eba6 = Eca6;
-     Eca4 = gel(tmp,1);
+@@ -852,7 +852,8 @@ find_isogenous_from_Atkin(GEN a4, GEN a6, ulong ell, struct meqn *MEQN, GEN g, G
+       GEN a4t, a6t, h;
+       a4a6t(&a4t, &a6t, ell, E4t, E6t, T, p);
+       h = find_kernel(a4, a6, ell, a4t, a6t, pp1, T, p, pp, e);
+-      if (h) return gerepilecopy(ltop, mkvec3(a4t, a6t, h));
++      if (h && signe(Fq_elldivpolmod(a4, a6, ell, h, T, pp))==0)
++        return gerepilecopy(ltop, mkvec3(a4t, a6t, h));
+     }
+   }
+   pari_err_BUG("find_isogenous_from_Atkin, kernel not found");
